@@ -441,9 +441,9 @@
     ]
    },
    "hair": {
-    "count": 462,
+    "count": 463,
     "label": "\uba38\ub9ac",
-    "none": 461,
+    "none": 462,
     "groups": [
      [
       0,
@@ -966,6 +966,9 @@
      ],
      [
       461
+     ],
+     [
+      462
      ]
     ],
     "names": [
@@ -1430,6 +1433,7 @@
      "Hairstyle_29_14",
      "Hairstyle_29_15",
      "Hairstyle_29_16",
+     "Hairstyle_30_02",
      "none"
     ]
    },
