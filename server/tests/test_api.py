@@ -33,7 +33,10 @@ def test_register_partial_nickname(client, env):
 def test_register_flow(client):
     token = register(client, "lun")
     assert len(token) > 30
-    assert client.post("/api/register", json={"id": "lun"}).status_code == 409
+    # same nickname again = login: a new token replaces the old one (details in test_register_existing_id_logs_in)
+    r = client.post("/api/register", json={"id": "lun"}).json()
+    assert r["existing"] is True
+    token = r["token"]
 
     r = client.get("/api/me", headers=auth(token))
     assert r.status_code == 200
@@ -171,3 +174,20 @@ def test_ws_bad_auth(client):
             assert False, "expected close"
         except Exception:
             pass
+
+
+def test_register_existing_id_logs_in(client, env):
+    """Nickname = login: an existing id gets a new token, the old one dies, items and avatar stay."""
+    lun = register(client, "lun")
+    assert client.post("/api/room/place", json={"item_id": "chair", "x": 1, "y": 1}, headers=auth(lun)).status_code == 200
+    assert client.put("/api/avatar", json={"skin": 1, "eyes": 2, "hair": 0, "outfit": 0, "acc": 0}, headers=auth(lun)).status_code == 200
+
+    r = client.post("/api/register", json={"id": "lun"})
+    assert r.status_code == 200, r.text
+    assert r.json()["existing"] is True and r.json()["created"] is False
+    lun2 = r.json()["token"]
+    assert lun2 != lun
+    assert client.get("/api/me", headers=auth(lun)).status_code == 401
+    me = client.get("/api/me", headers=auth(lun2)).json()
+    assert me["id"] == "lun" and me["avatar"]["skin"] == 1
+    assert [i["placed_by"] for i in client.get("/api/room").json()["items"]] == ["lun"]

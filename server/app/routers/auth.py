@@ -19,26 +19,36 @@ def register(body: RegisterIn, request: Request, conn: sqlite3.Connection = Depe
     if not limiter.allow(f"reg:{ip_hash(request)}", limit, per):
         raise ApiError(429, "rate_limited")
 
+    """Nickname = login. An existing id gets a fresh token (the previous one stops working); a new id is
+    recorded on the sheet and created. This is a friends-only room, so knowing the nickname is enough."""
     sheet = request.app.state.sheet
-    if conn.execute("SELECT 1 FROM players WHERE id = ?", (body.id,)).fetchone():
-        log_access(conn, request, "register", body.id, False)
-        raise ApiError(409, "already_registered")
-    # The sheet is the member list: it records the id in column R (or appends a row for a new nickname).
-    try:
-        info = sheet.register(conn, body.id)
-    except ApiError:
-        log_access(conn, request, "register", body.id, False)
-        raise
+    existing = conn.execute("SELECT 1 FROM players WHERE id = ?", (body.id,)).fetchone() is not None
+    info: dict = {}
+    if not existing:
+        # The sheet is the member list: it records the id in column R (or appends a row for a new nickname).
+        try:
+            info = sheet.register(conn, body.id)
+        except ApiError:
+            log_access(conn, request, "register", body.id, False)
+            raise
 
     token = new_token()
     with transaction(conn):
-        conn.execute(
-            "INSERT INTO players(id, token_hash, created_ts, last_seen_ts) VALUES (?, ?, ?, ?)",
-            (body.id, hash_token(token), now(), now()),
-        )
-        conn.execute("INSERT INTO avatars(id) VALUES (?)", (body.id,))
-        log_access(conn, request, "register", body.id, True)
-    return {"id": body.id, "token": token, "created": bool(info.get("created")),
+        if existing:
+            # keep the row: items.placed_by / ledger.player_id reference it. Only the credential changes.
+            conn.execute("UPDATE players SET token_hash = ?, last_seen_ts = ? WHERE id = ?",
+                         (hash_token(token), now(), body.id))
+            log_access(conn, request, "login", body.id, True)
+        else:
+            conn.execute(
+                "INSERT INTO players(id, token_hash, created_ts, last_seen_ts) VALUES (?, ?, ?, ?)",
+                (body.id, hash_token(token), now(), now()),
+            )
+            conn.execute("INSERT INTO avatars(id) VALUES (?)", (body.id,))
+            log_access(conn, request, "register", body.id, True)
+    if existing:
+        hub.kick_threadsafe(body.id)  # a session on the old token (other device) is disconnected
+    return {"id": body.id, "token": token, "existing": existing, "created": bool(info.get("created")),
             "name": info.get("name", body.id), "earned": info.get("earned", 0)}
 
 

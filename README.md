@@ -59,7 +59,7 @@ sudo systemctl restart interior
 
 | 메서드 | 경로 | 설명 |
 |---|---|---|
-| POST | `/api/register` | 닉네임(시트 B열)으로 등록 → 시트 R열에 기록(없으면 새 행) → 토큰 1회 발급 |
+| POST | `/api/register` | 닉네임으로 로그인/등록. DB에 있는 ID면 새 토큰 발급(이전 토큰 무효), 없으면 시트 R열에 기록(없으면 새 행) 후 생성 |
 | GET | `/api/me` | 내 정보 + 공용 잔액 + 기여 목록 |
 | POST | `/api/sync` | 시트 강제 동기화 |
 | PUT | `/api/avatar` | 아바타 레이어 인덱스 |

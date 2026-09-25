@@ -31,7 +31,7 @@ async function loadAccount(id: string | null): Promise<void> {
   } catch (e) {
     state.token = null;
     if (e instanceof ApiError && e.status === 401) {
-      toast(`${acct.id} 토큰이 더 이상 유효하지 않아요. 스프레드 시트에서 계정을 지우고 복구 링크로 다시 들어와주세요.`);
+      toast(`${acct.id} 로그인이 풀렸어요 (다른 기기에서 들어왔을 수 있어요). 닉네임을 다시 입력해서 들어와주세요.`);
     } else {
       toast(e instanceof ApiError ? msgFor(e.code) : String(e));
     }

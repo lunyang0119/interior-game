@@ -7,10 +7,10 @@ html:root {
   --fs-title: 30px;
   --preview-w: 160px;
   --label-font: "Label";
-  --label-size: 50;
+  --label-size: 25;
   --label-color: #ffffff;
   --label-stroke: #000000;
-  --label-scale: 0.8;
+  --label-scale: 0.6;
   --bg: #1b1b24;
   --panel: #e9d6cd;
   --chip: #e6d5be;

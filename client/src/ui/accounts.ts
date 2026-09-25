@@ -15,8 +15,12 @@ export function initAccounts(): void {
       const r = await api.register(id);
       storage.addAccount({ id: r.id, token: r.token });
       input.value = "";
-      const who = r.created ? "시트에 새 행 추가됨" : `시트의 "${r.name}"에 연결됨`;
-      toast(`${r.id} 등록 완료 (${who}). 복구 링크를 어딘가 저장해주세요`);
+      if (r.existing) {
+        toast(`${r.id} 계정으로 들어왔어요`);
+      } else {
+        const who = r.created ? "시트에 새 행 추가됨" : `시트의 "${r.name}"에 연결됨`;
+        toast(`${r.id} 등록 완료 (${who})`);
+      }
       bus.emit("account:switch", { id: r.id });
       closeAllPanels();
     } catch (e) {
@@ -69,7 +73,7 @@ function render(): void {
   list.innerHTML = "";
   const accounts = storage.accounts();
   if (accounts.length === 0) {
-    list.innerHTML = `<div class="small" style="color:var(--muted)">아직 계정이 없어요. 시트 닉네임으로 등록해주세요 (닉네임의 일부만 써도 된답니다).</div>`;
+    list.innerHTML = `<div class="small" style="color:var(--muted)">닉네임을 쓰고 들어와주세요. 이미 있는 계정이면 그 계정으로, 없으면 새로 만들어져요 (시트 닉네임의 일부만 써도 돼요).</div>`;
     return;
   }
   for (const a of accounts) {
@@ -86,7 +90,7 @@ function render(): void {
     const rm = document.createElement("button");
     rm.textContent = "삭제";
     rm.addEventListener("click", () => {
-      if (!confirm(`${a.id}를 이 기기에서 지울까요? (복구 링크 없으면 못 돌아와요)`)) return;
+      if (!confirm(`${a.id}를 이 기기에서 지울까요? (닉네임으로 다시 들어올 수 있어요)`)) return;
       storage.removeAccount(a.id);
       const next = storage.activeAccount();
       bus.emit("account:switch", { id: next?.id ?? "" });

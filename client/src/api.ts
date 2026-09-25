@@ -11,7 +11,6 @@ const MESSAGES: Record<string, string> = {
   unauthorized: "로그인이 필요해요",
   rate_limited: "요청이 너무 잦아요. 잠시 후 다시 시도해주세요",
   not_in_sheet: "시트에 없는 ID네요",
-  already_registered: "이미 등록된 ID에요 (복구 링크로 들어와주세요)",
   sheet_unavailable: "시트에 연결이 안되었어요. 오류니 잠시 뒤, 다시 한 번 들어와주세요.",
   ambiguous_nickname: "닉네임이 겹쳐요. 다른 걸로 써주세요",
   nickname_taken: "그 닉네임은 이미 다른 ID로 등록됐어요",
@@ -58,7 +57,7 @@ export interface RoomResponse { version: number; items: RoomItem[] }
 
 export const api = {
   catalog: () => call<{ items: Item[]; room: Room; chars: Chars }>("GET", "/api/catalog"),
-  register: (id: string) => call<{ id: string; token: string; created: boolean; name: string; earned: number }>("POST", "/api/register", { id }),
+  register: (id: string) => call<{ id: string; token: string; existing: boolean; created: boolean; name: string; earned: number }>("POST", "/api/register", { id }),
   me: () => call<MeResponse>("GET", "/api/me"),
   sync: () => call<{ refreshed: boolean; balance: number; contributions: Contribution[] }>("POST", "/api/sync"),
   putAvatar: (a: AvatarLook) => call<{ avatar: AvatarLook }>("PUT", "/api/avatar", a),
