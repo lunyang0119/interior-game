@@ -8,9 +8,9 @@
  * The server sums every member's `earned` into one shared pool.
  */
 
-const SHEET_NAME = "Sheet1";  // tab name
-const ID_COL = 1;             // A = 1
-const EARNED_COL = 2;         // B = 2
+const SHEET_NAME = "Characters";  // 시트 이름
+const ID_COL = 1;             // A열
+const EARNED_COL = 15;         // O열
 const HEADER_ROWS = 1;
 
 function doGet() {

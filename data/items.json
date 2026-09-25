@@ -3,7 +3,7 @@
   {
    "id": "bed_green",
    "name": "초록 침대",
-   "price": 300,
+   "price": 3,
    "sprite": "bed_green",
    "w": 3,
    "h": 4,
@@ -14,7 +14,7 @@
   {
    "id": "bed_white",
    "name": "하얀 침대",
-   "price": 300,
+   "price": 3,
    "sprite": "bed_white",
    "w": 3,
    "h": 4,
@@ -25,7 +25,7 @@
   {
    "id": "table_wood_large",
    "name": "큰 나무 테이블",
-   "price": 200,
+   "price": 20,
    "sprite": "table_wood_large",
    "w": 4,
    "h": 2,
@@ -36,7 +36,7 @@
   {
    "id": "table_light_large",
    "name": "큰 밝은 테이블",
-   "price": 200,
+   "price": 20,
    "sprite": "table_light_large",
    "w": 4,
    "h": 2,
@@ -47,7 +47,7 @@
   {
    "id": "table_wood_small",
    "name": "작은 나무 테이블",
-   "price": 80,
+   "price": 8,
    "sprite": "table_wood_small",
    "w": 1,
    "h": 1,
@@ -58,7 +58,7 @@
   {
    "id": "table_light_small",
    "name": "작은 밝은 테이블",
-   "price": 60,
+   "price": 6,
    "sprite": "table_light_small",
    "w": 1,
    "h": 1,
@@ -69,7 +69,7 @@
   {
    "id": "rug_blue_large",
    "name": "큰 파란 러그",
-   "price": 120,
+   "price": 12,
    "sprite": "rug_blue_large",
    "w": 3,
    "h": 4,
@@ -91,7 +91,7 @@
   {
    "id": "stool_round",
    "name": "둥근 스툴",
-   "price": 40,
+   "price": 4,
    "sprite": "stool_round",
    "w": 1,
    "h": 1,
@@ -102,7 +102,7 @@
   {
    "id": "sofa_brown",
    "name": "갈색 소파",
-   "price": 250,
+   "price": 25,
    "sprite": "sofa_brown",
    "w": 3,
    "h": 1,
@@ -113,7 +113,7 @@
   {
    "id": "food_salad",
    "name": "샐러드",
-   "price": 20,
+   "price": 2,
    "sprite": "food_salad",
    "w": 1,
    "h": 1,
@@ -135,7 +135,7 @@
   {
    "id": "food_pizza",
    "name": "피자",
-   "price": 30,
+   "price": 3,
    "sprite": "food_pizza",
    "w": 1,
    "h": 1,
@@ -146,7 +146,7 @@
   {
    "id": "food_bowl",
    "name": "과일 그릇",
-   "price": 20,
+   "price": 2,
    "sprite": "food_bowl",
    "w": 1,
    "h": 1,
@@ -157,7 +157,7 @@
   {
    "id": "rug_red_large",
    "name": "큰 빨간 러그",
-   "price": 120,
+   "price": 12,
    "sprite": "rug_red_large",
    "w": 4,
    "h": 3,
@@ -168,7 +168,7 @@
   {
    "id": "rug_blue_small",
    "name": "작은 파란 러그",
-   "price": 60,
+   "price": 6,
    "sprite": "rug_blue_small",
    "w": 2,
    "h": 2,
@@ -179,7 +179,7 @@
   {
    "id": "rug_red_tall",
    "name": "세로 빨간 러그",
-   "price": 110,
+   "price": 11,
    "sprite": "rug_red_tall",
    "w": 3,
    "h": 4,
@@ -190,7 +190,7 @@
   {
    "id": "rug_green_small",
    "name": "작은 초록 러그",
-   "price": 60,
+   "price": 6,
    "sprite": "rug_green_small",
    "w": 2,
    "h": 2,
@@ -201,7 +201,7 @@
   {
    "id": "shelf_small",
    "name": "작은 선반",
-   "price": 130,
+   "price": 13,
    "sprite": "shelf_small",
    "w": 2,
    "h": 1,
@@ -212,7 +212,7 @@
   {
    "id": "rug_brown_small",
    "name": "작은 갈색 러그",
-   "price": 60,
+   "price": 6,
    "sprite": "rug_brown_small",
    "w": 2,
    "h": 2,
@@ -223,7 +223,7 @@
   {
    "id": "painting_flowers",
    "name": "꽃 그림",
-   "price": 80,
+   "price": 8,
    "sprite": "painting_flowers",
    "w": 2,
    "h": 2,
@@ -234,7 +234,7 @@
   {
    "id": "painting_fire",
    "name": "불 그림",
-   "price": 80,
+   "price": 8,
    "sprite": "painting_fire",
    "w": 2,
    "h": 2,
@@ -245,7 +245,7 @@
   {
    "id": "rug_blue_tiny",
    "name": "파란 러그",
-   "price": 50,
+   "price": 5,
    "sprite": "rug_blue_tiny",
    "w": 2,
    "h": 2,
@@ -256,7 +256,7 @@
   {
    "id": "painting_forest",
    "name": "숲 그림",
-   "price": 80,
+   "price": 8,
    "sprite": "painting_forest",
    "w": 2,
    "h": 2,
@@ -267,7 +267,7 @@
   {
    "id": "painting_ocean",
    "name": "바다 그림",
-   "price": 80,
+   "price": 8,
    "sprite": "painting_ocean",
    "w": 2,
    "h": 2,
@@ -278,7 +278,7 @@
   {
    "id": "painting_cat",
    "name": "고양이 그림",
-   "price": 90,
+   "price": 9,
    "sprite": "painting_cat",
    "w": 2,
    "h": 2,
@@ -289,7 +289,7 @@
   {
    "id": "window_wood",
    "name": "나무 창문",
-   "price": 100,
+   "price": 10,
    "sprite": "window_wood",
    "w": 2,
    "h": 2,
@@ -300,7 +300,7 @@
   {
    "id": "frame_gold",
    "name": "금색 액자",
-   "price": 50,
+   "price": 5,
    "sprite": "frame_gold",
    "w": 1,
    "h": 2,
@@ -311,7 +311,7 @@
   {
    "id": "frame_small",
    "name": "작은 액자",
-   "price": 40,
+   "price": 4,
    "sprite": "frame_small",
    "w": 1,
    "h": 2,
@@ -322,7 +322,7 @@
   {
    "id": "mirror_wall",
    "name": "벽 거울",
-   "price": 70,
+   "price": 7,
    "sprite": "mirror_wall",
    "w": 1,
    "h": 2,
@@ -333,7 +333,7 @@
   {
    "id": "rug_green_square",
    "name": "초록 러그",
-   "price": 60,
+   "price": 6,
    "sprite": "rug_green_square",
    "w": 2,
    "h": 2,
@@ -344,7 +344,7 @@
   {
    "id": "rug_olive",
    "name": "올리브 러그",
-   "price": 40,
+   "price": 4,
    "sprite": "rug_olive",
    "w": 1,
    "h": 2,
@@ -355,7 +355,7 @@
   {
    "id": "chair_wood",
    "name": "나무 의자",
-   "price": 50,
+   "price": 5,
    "sprite": "chair_wood",
    "w": 1,
    "h": 1,
@@ -366,7 +366,7 @@
   {
    "id": "chair_red",
    "name": "빨간 의자",
-   "price": 60,
+   "price": 6,
    "sprite": "chair_red",
    "w": 1,
    "h": 1,
@@ -377,7 +377,7 @@
   {
    "id": "globe_gold",
    "name": "지구본",
-   "price": 70,
+   "price": 7,
    "sprite": "globe_gold",
    "w": 1,
    "h": 1,
@@ -388,7 +388,7 @@
   {
    "id": "globe_silver",
    "name": "은색 지구본",
-   "price": 70,
+   "price": 7,
    "sprite": "globe_silver",
    "w": 1,
    "h": 1,
@@ -399,7 +399,7 @@
   {
    "id": "chalkboard",
    "name": "칠판",
-   "price": 120,
+   "price": 12,
    "sprite": "chalkboard",
    "w": 2,
    "h": 1,
@@ -410,7 +410,7 @@
   {
    "id": "plant_tree",
    "name": "나무 화분",
-   "price": 150,
+   "price": 15,
    "sprite": "plant_tree",
    "w": 2,
    "h": 1,
@@ -421,7 +421,7 @@
   {
    "id": "plant_palm",
    "name": "야자수",
-   "price": 150,
+   "price": 15,
    "sprite": "plant_palm",
    "w": 2,
    "h": 1,
@@ -443,7 +443,7 @@
   {
    "id": "wardrobe_wood",
    "name": "나무 옷장",
-   "price": 260,
+   "price": 26,
    "sprite": "wardrobe_wood",
    "w": 2,
    "h": 1,
@@ -454,7 +454,7 @@
   {
    "id": "cupboard_wood",
    "name": "나무 찬장",
-   "price": 200,
+   "price": 20,
    "sprite": "cupboard_wood",
    "w": 2,
    "h": 1,
@@ -465,7 +465,7 @@
   {
    "id": "cupboard_wood_b",
    "name": "나무 찬장 B",
-   "price": 200,
+   "price": 20,
    "sprite": "cupboard_wood_b",
    "w": 2,
    "h": 1,
@@ -487,7 +487,7 @@
   {
    "id": "wardrobe_mirror",
    "name": "거울 옷장",
-   "price": 240,
+   "price": 24,
    "sprite": "wardrobe_mirror",
    "w": 2,
    "h": 1,
@@ -520,7 +520,7 @@
   {
    "id": "lamp_floor_red",
    "name": "빨간 스탠드",
-   "price": 110,
+   "price": 11,
    "sprite": "lamp_floor_red",
    "w": 1,
    "h": 1,
@@ -531,7 +531,7 @@
   {
    "id": "lamp_floor_blue",
    "name": "파란 스탠드",
-   "price": 110,
+   "price": 11,
    "sprite": "lamp_floor_blue",
    "w": 1,
    "h": 1,
@@ -564,7 +564,7 @@
   {
    "id": "desk_wood",
    "name": "나무 책상",
-   "price": 150,
+   "price": 15,
    "sprite": "desk_wood",
    "w": 2,
    "h": 1,
@@ -575,7 +575,7 @@
   {
    "id": "cabinet_light",
    "name": "밝은 수납장",
-   "price": 120,
+   "price": 12,
    "sprite": "cabinet_light",
    "w": 2,
    "h": 1,
@@ -586,7 +586,7 @@
   {
    "id": "dresser_wood",
    "name": "나무 서랍장",
-   "price": 120,
+   "price": 12,
    "sprite": "dresser_wood",
    "w": 2,
    "h": 1,
@@ -597,7 +597,7 @@
   {
    "id": "dresser_wood_wide",
    "name": "넓은 서랍장",
-   "price": 140,
+   "price": 14,
    "sprite": "dresser_wood_wide",
    "w": 2,
    "h": 1,
@@ -608,7 +608,7 @@
   {
    "id": "stove",
    "name": "가스레인지",
-   "price": 220,
+   "price": 22,
    "sprite": "stove",
    "w": 2,
    "h": 1,
