@@ -119,11 +119,17 @@ class SheetService:
                 log.warning("sheet fetch failed: %s", e)
                 return False
             ts = now()
+            # the sheet may hold several rows with the same nickname (template/duplicate rows): merge them
+            merged: dict[str, int] = {}
+            for m in members:
+                if m["id"] in merged:
+                    log.warning("sheet: duplicate id %r, summing earned", m["id"])
+                merged[m["id"]] = merged.get(m["id"], 0) + int(m["earned"])
             with transaction(conn):
                 conn.execute("DELETE FROM sheet_snapshot")
                 conn.executemany(
                     "INSERT INTO sheet_snapshot(player_id, earned, fetched_ts) VALUES (?, ?, ?)",
-                    [(m["id"], m["earned"], ts) for m in members],
+                    [(pid, earned, ts) for pid, earned in merged.items()],
                 )
             self._last_fetch = time.monotonic()
             return True
