@@ -105,10 +105,11 @@ def test_insufficient_funds(client, env):
 
 def test_avatar_validation(client):
     lun = register(client, "lun")
-    ok = {"skin": 1, "eyes": 2, "hair": 1, "outfit": 0, "acc": 0}
+    ok = {"skin": 1, "eyes": 2, "hair": 1, "outfit": 0, "acc": 0, "preset": 2}
     assert client.put("/api/avatar", json=ok, headers=auth(lun)).status_code == 200
     got = client.get("/api/me", headers=auth(lun)).json()["avatar"]
-    assert got["skin"] == 1 and got["eyes"] == 2 and got["hair"] == 1 and got["hair_color"] == 0
+    assert got["skin"] == 1 and got["eyes"] == 2 and got["hair"] == 1 and got["hair_color"] == 0 and got["preset"] == 2
+    assert client.put("/api/avatar", json=dict(ok, preset=3), headers=auth(lun)).json()["error"] == "bad_preset"
     bad = dict(ok, skin=2)
     assert client.put("/api/avatar", json=bad, headers=auth(lun)).json()["error"] == "bad_skin"
     bad = dict(ok, eyes=3)

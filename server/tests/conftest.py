@@ -36,7 +36,8 @@ def env(tmp_path, monkeypatch):
     }), encoding="utf-8")
     (gen / "manifest.json").write_text(json.dumps({
         "chars": {"frameW": 16, "frameH": 32, "anims": {}, "layerOrder": ["skin", "eyes", "hair"],
-                  "layers": {"skin": {"count": 2}, "eyes": {"count": 3}, "hair": {"count": 2, "none": True},
+                  "layers": {"skin": {"count": 2}, "eyes": {"count": 3}, "hair": {"count": 2, "none": 1},
+                             "preset": {"count": 3, "none": 0, "exclusive": True},
                              "outfit": {"count": 0}, "acc": {"count": 0}}},
         "interiors": {"atlas": "gen/interiors.json",
                       "keys": {k: {} for k in ["table", "chair", "cup", "tray", "rug", "frame", "tile_wall", "tile_floor"]}},

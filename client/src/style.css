@@ -80,6 +80,7 @@ input {
 #avatar-preview { display: block; margin: 0 auto 8px; width: var(--preview-w); height: calc(var(--preview-w) * 4 / 3); padding: 8px; image-rendering: pixelated; background: var(--card); border-radius: 10px; }
 #avatar-layers .layer { display: flex; align-items: center; gap: 8px; margin: 6px 0; }
 #avatar-layers .layer.sub { margin-left: 16px; color: var(--muted); }
+#avatar-layers .layer.off { opacity: .4; }
 #avatar-layers .layer span { flex: 1; }
 #avatar-layers .layer button { width: 44px; padding: 6px 0; text-align: center; }
 

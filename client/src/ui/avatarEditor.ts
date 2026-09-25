@@ -1,6 +1,6 @@
 import { api, ApiError, msgFor } from "../api";
 import { bus, toast } from "../bus";
-import { AVATAR_LAYERS, DEFAULT_LOOK, type AvatarLook, type LayerSpec } from "../catalog";
+import { AVATAR_LAYERS, DEFAULT_LOOK, drawList, type AvatarLook, type LayerSpec } from "../catalog";
 import { catalog, state } from "../state";
 import { $, show, togglePanel } from "./hud";
 
@@ -28,14 +28,7 @@ async function preview(): Promise<void> {
   const seq = ++previewSeq;
   const frame = chars.anims["idle_down"]?.[0] ?? 0;
   const images: HTMLImageElement[] = [];
-  for (const layer of chars.layerOrder) {
-    const spec = chars.layers[layer];
-    const count = spec?.count ?? 0;
-    if (count <= 0) continue;
-    const idx = Math.min((draft as unknown as Record<string, number>)[layer] ?? 0, count - 1);
-    if (spec.none && idx === count - 1) continue;
-    images.push(await sheet(layer, idx));
-  }
+  for (const { layer, idx } of drawList(draft, chars)) images.push(await sheet(layer, idx));
   if (seq !== previewSeq) return; // a newer preview started while loading
   canvas.width = chars.frameW * SCALE;
   canvas.height = chars.frameH * SCALE;
@@ -85,21 +78,27 @@ function renderControls(): void {
     if (!spec || spec.count <= 0) continue;
     const groups = groupsOf(spec);
     const label = spec.label ?? layer;
+    // layers hidden by an active exclusive layer (preset) are greyed out
+    const hidden = !spec.exclusive && drawList(draft, chars).some((d) => chars.layers[d.layer]?.exclusive);
     const find = () => {
       const idx = draft[layer];
       const g = groups.findIndex((grp) => grp.includes(idx));
       return g < 0 ? { g: 0, c: 0 } : { g, c: groups[g].indexOf(idx) };
     };
+    const noneIdx = spec.none;
+    const noneGroup = noneIdx === undefined ? -1 : groups.findIndex((grp) => grp.includes(noneIdx));
     const styleText = () => {
       const { g } = find();
-      return spec.none && g === groups.length - 1 ? `없음 (${groups.length}/${groups.length})` : `${g + 1}/${groups.length}`;
+      return g === noneGroup ? `없음 (${g + 1}/${groups.length})` : `${g + 1}/${groups.length}`;
     };
     // style row: jump between groups (keep colour slot when the next style has it)
-    box.appendChild(stepper(label, styleText, (d) => {
+    const row = stepper(label, styleText, (d) => {
       const { g, c } = find();
       const ng = (g + d + groups.length) % groups.length;
       draft[layer] = groups[ng][Math.min(c, groups[ng].length - 1)];
-    }));
+    });
+    if (hidden) row.classList.add("off");
+    box.appendChild(row);
     // colour row only when some style has colour variants
     if (groups.some((grp) => grp.length > 1)) {
       const colorRow = stepper(`${label} 색`, () => {
@@ -111,6 +110,7 @@ function renderControls(): void {
         draft[layer] = grp[(c + d + grp.length) % grp.length];
       });
       colorRow.classList.add("sub");
+      if (hidden) colorRow.classList.add("off");
       box.appendChild(colorRow);
     }
   }
@@ -128,8 +128,10 @@ export function initAvatarEditor(): void {
   $("avatar-random").addEventListener("click", () => {
     const chars = catalog().chars;
     for (const layer of AVATAR_LAYERS) {
-      const n = chars.layers[layer]?.count ?? 0;
-      if (n > 0) draft[layer] = Math.floor(Math.random() * n);
+      const spec = chars.layers[layer];
+      const n = spec?.count ?? 0;
+      if (n <= 0) continue;
+      draft[layer] = spec.exclusive ? (spec.none ?? 0) : Math.floor(Math.random() * n); // random = layered look
     }
     renderControls();
     void preview();

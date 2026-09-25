@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import type { AvatarLook, Chars } from "../catalog";
+import { drawList, type AvatarLook, type Chars } from "../catalog";
 
 export function texKey(layer: string, idx: number): string {
   return `char_${layer}_${idx}`;
@@ -11,15 +11,7 @@ export function animKey(tex: string, anim: string): string {
 
 /** Which (layer, idx) sheets a look needs, in draw order. Layers with no variants are skipped. */
 export function sheetsFor(look: AvatarLook, chars: Chars): { layer: string; idx: number }[] {
-  const out: { layer: string; idx: number }[] = [];
-  for (const layer of chars.layerOrder) {
-    const count = chars.layers[layer]?.count ?? 0;
-    if (count <= 0) continue;
-    const idx = Math.min(Math.max((look as unknown as Record<string, number>)[layer] ?? 0, 0), count - 1);
-    if (chars.layers[layer]?.none && idx === count - 1) continue; // "nothing" variant: no sheet to draw
-    out.push({ layer, idx });
-  }
-  return out;
+  return drawList(look, chars);
 }
 
 /** Loads only the sheets this look needs (if not cached) and registers their animations. */

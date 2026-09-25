@@ -22,8 +22,9 @@ export interface Room {
   tiles: { wall: string[]; wall_left: string[]; wall_right: string[]; floor: string };
 }
 
-/** One avatar layer. `groups` = indices that share a style (colour variants); `none` = the last index means "nothing". */
-export interface LayerSpec { count: number; label?: string; none?: boolean; groups?: number[][]; names?: string[] }
+/** One avatar layer. `groups` = indices that share a style (colour variants); `none` = index that means "nothing";
+ *  `exclusive` = when not none, this layer is drawn alone (premade characters). */
+export interface LayerSpec { count: number; label?: string; none?: number; exclusive?: boolean; groups?: number[][]; names?: string[] }
 
 export interface Chars {
   frameW: number;
@@ -52,6 +53,7 @@ export interface RoomItem {
 }
 
 export interface AvatarLook {
+  preset: number; // premade character, 0 = none
   skin: number;
   eyes: number;
   hair: number;
@@ -60,8 +62,23 @@ export interface AvatarLook {
   acc: number;
 }
 
-export const AVATAR_LAYERS: (keyof AvatarLook)[] = ["skin", "eyes", "outfit", "hair", "acc"];
-export const DEFAULT_LOOK: AvatarLook = { skin: 0, eyes: 0, hair: 0, hair_color: 0, outfit: 0, acc: 0 };
+export const AVATAR_LAYERS: (keyof AvatarLook)[] = ["preset", "skin", "eyes", "outfit", "hair", "acc"];
+export const DEFAULT_LOOK: AvatarLook = { preset: 0, skin: 0, eyes: 0, hair: 0, hair_color: 0, outfit: 0, acc: 0 };
+
+/** Which (layer, idx) a look draws, bottom → top; honours none / exclusive. */
+export function drawList(look: AvatarLook, chars: Chars): { layer: string; idx: number }[] {
+  const out: { layer: string; idx: number }[] = [];
+  for (const layer of chars.layerOrder) {
+    const spec = chars.layers[layer];
+    const count = spec?.count ?? 0;
+    if (count <= 0) continue;
+    const idx = Math.min(Math.max((look as unknown as Record<string, number>)[layer] ?? 0, 0), count - 1);
+    if (spec.none !== undefined && idx === spec.none) continue;
+    if (spec.exclusive) return [{ layer, idx }];
+    out.push({ layer, idx });
+  }
+  return out;
+}
 
 export const Z_SCALE: Record<Layer, number> = { wall: 0, floor: 0, furniture: 10, surface_item: 20 };
 export const Z_AVATAR = 15;

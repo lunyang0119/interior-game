@@ -6,6 +6,7 @@ class RegisterIn(BaseModel):
 
 
 class AvatarIn(BaseModel):
+    preset: int = Field(ge=0, default=0)
     skin: int = Field(ge=0)
     eyes: int = Field(ge=0, default=0)
     hair: int = Field(ge=0)

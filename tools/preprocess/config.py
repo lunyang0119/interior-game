@@ -52,7 +52,7 @@ _STYLE_COLOR = re.compile(r"_(\d+)(?:_[A-Za-z_]+?)?_(\d+)\.png$")  # Outfit_03_0
 _STYLE_ONLY = re.compile(r"_(\d+)\.png$")                          # Body_05 / Eyes_02
 
 
-def _gen_layer(folder: str, prefix: str, none: bool = False) -> list[dict]:
+def _gen_layer(folder: str, prefix: str, none: bool = False, none_first: bool = False) -> list[dict]:
     """All 16x16 sheets of one generator layer as variants, sorted by (style, color).
 
     Variant: {"name", "sheet", "style", "color"}. When `none` is True, the LAST index is a
@@ -71,7 +71,9 @@ def _gen_layer(folder: str, prefix: str, none: bool = False) -> list[dict]:
                 style, color = (int(m1.group(1)) if m1 else len(out) + 1), 0
             out.append({"name": p.stem, "sheet": p, "style": style, "color": color})
         out.sort(key=lambda v: (v["style"], v["color"]))
-    if none:
+    if none_first:
+        out.insert(0, {"name": "none", "sheet": None, "style": 0, "color": 0})
+    elif none:
         out.append({"name": "none", "sheet": None, "style": 10_000, "color": 0})
     return out
 
@@ -116,6 +118,8 @@ def _with_extra_hair_colors(variants: list[dict]) -> list[dict]:
 # layer -> list of variants (index = value stored in avatars table).
 # Layers with an empty list are exposed in manifest with count 0 so the editor hides them.
 CHAR_LAYERS = {
+    # premade characters: index 0 = none (default). When a preset is chosen it replaces every other layer.
+    "preset": _gen_layer("0_Premade_Characters", "Premade_Character", none_first=True),
     "skin": _gen_layer("Bodies", "Body"),
     "eyes": _gen_layer("Eyes", "Eyes"),
     "outfit": _gen_layer("Outfits", "Outfit"),
@@ -124,7 +128,9 @@ CHAR_LAYERS = {
 }
 
 # Draw order of layers inside the avatar container (bottom → top), per CHARACTER_GENERATOR.txt.
-LAYER_ORDER = ["skin", "eyes", "outfit", "hair", "acc"]
+LAYER_ORDER = ["preset", "skin", "eyes", "outfit", "hair", "acc"]
+# layers that, when not "none", are drawn alone
+EXCLUSIVE_LAYERS = {"preset"}
 
 # Korean labels for the avatar editor (shipped in manifest).
-LAYER_LABELS = {"skin": "몸", "eyes": "눈", "outfit": "옷", "hair": "머리", "acc": "악세서리"}
+LAYER_LABELS = {"preset": "프리셋 캐릭터", "skin": "몸", "eyes": "눈", "outfit": "옷", "hair": "머리", "acc": "악세서리"}

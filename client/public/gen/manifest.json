@@ -37,6 +37,7 @@
    ]
   },
   "layerOrder": [
+   "preset",
    "skin",
    "eyes",
    "outfit",
@@ -44,6 +45,35 @@
    "acc"
   ],
   "layers": {
+   "preset": {
+    "count": 21,
+    "label": "\ud504\ub9ac\uc14b \uce90\ub9ad\ud130",
+    "none": 0,
+    "exclusive": true,
+    "names": [
+     "none",
+     "Premade_Character_01",
+     "Premade_Character_02",
+     "Premade_Character_03",
+     "Premade_Character_04",
+     "Premade_Character_05",
+     "Premade_Character_06",
+     "Premade_Character_07",
+     "Premade_Character_08",
+     "Premade_Character_09",
+     "Premade_Character_10",
+     "Premade_Character_11",
+     "Premade_Character_12",
+     "Premade_Character_13",
+     "Premade_Character_14",
+     "Premade_Character_15",
+     "Premade_Character_16",
+     "Premade_Character_17",
+     "Premade_Character_18",
+     "Premade_Character_19",
+     "Premade_Character_20"
+    ]
+   },
    "skin": {
     "count": 9,
     "label": "\ubab8",
@@ -413,7 +443,7 @@
    "hair": {
     "count": 462,
     "label": "\uba38\ub9ac",
-    "none": true,
+    "none": 461,
     "groups": [
      [
       0,
@@ -1406,7 +1436,7 @@
    "acc": {
     "count": 85,
     "label": "\uc545\uc138\uc11c\ub9ac",
-    "none": true,
+    "none": 84,
     "groups": [
      [
       0,
