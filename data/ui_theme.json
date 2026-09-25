@@ -7,8 +7,8 @@
   "sizes": {
    "small": 13,
    "button": 16,
-   "big": 18,
-   "title": 18,
+   "big": 25,
+   "title": 30,
    "preview": 160
   }
  },
@@ -94,8 +94,8 @@
  },
  "scale": 2,
  "label": {
-  "font": "",
-  "size": 16,
+  "font": "stardust-bold",
+  "size": 50,
   "color": "#ffffff",
   "stroke": "#000000",
   "scale": 0.5

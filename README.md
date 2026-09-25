@@ -48,13 +48,12 @@ nano /opt/interior/server/.env     # SHEET_URL, DUCKDNS_TOKEN 채우기 (IP_SALT
 ```
 Oracle 콘솔에서 VCN → Security List → Ingress에 TCP 80, 443 추가 (스크립트가 VM 안 iptables는 열어줌).
 
-**배포할 때마다 (PC의 Git Bash에서)**
+**배포할 때마다 (VM에서)**
 ```bash
-./deploy/push.sh ubuntu@<VM_IP>
+sudo systemctl restart interior
 ```
-빌드 → git push → gen/media/static 전송 → VM에서 git pull + 서비스 재시작까지 한 번에.
 
-Apps Script 코드는 `tools/appsscript/Code.gs` (GET = 재화 목록, POST = 등록 기록). 코드 바꾸면 반드시 새 버전으로 재배포.
+수정된 파일 전송 후, 재시작.
 
 ## API 요약
 
