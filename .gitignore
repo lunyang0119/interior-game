@@ -1,0 +1,19 @@
+# licensed raw assets
+assets/
+# generated sprite sheets (derived from licensed assets)
+client/public/gen/*.png
+client/public/gen/chars/
+tools/preprocess/contact_*.png
+# build outputs
+server/static/
+client/dist/
+client/node_modules/
+# runtime
+*.db
+*.db-wal
+*.db-shm
+.env
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/

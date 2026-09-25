@@ -1,0 +1,464 @@
+{
+ "chars": {
+  "frameW": 16,
+  "frameH": 32,
+  "anims": {
+   "run_right": [
+    0,
+    5
+   ],
+   "run_up": [
+    6,
+    11
+   ],
+   "run_left": [
+    12,
+    17
+   ],
+   "run_down": [
+    18,
+    23
+   ],
+   "idle_right": [
+    24,
+    29
+   ],
+   "idle_up": [
+    30,
+    35
+   ],
+   "idle_left": [
+    36,
+    41
+   ],
+   "idle_down": [
+    42,
+    47
+   ]
+  },
+  "layerOrder": [
+   "skin",
+   "outfit",
+   "hair",
+   "acc"
+  ],
+  "layers": {
+   "skin": {
+    "count": 4
+   },
+   "hair": {
+    "count": 0
+   },
+   "hair_color": {
+    "count": 0
+   },
+   "outfit": {
+    "count": 0
+   },
+   "acc": {
+    "count": 0
+   }
+  }
+ },
+ "interiors": {
+  "atlas": "gen/interiors.json",
+  "keys": {
+   "bed_green": {
+    "w": 48,
+    "h": 80,
+    "cw": 3,
+    "ch": 5
+   },
+   "bed_white": {
+    "w": 48,
+    "h": 80,
+    "cw": 3,
+    "ch": 5
+   },
+   "table_wood_large": {
+    "w": 64,
+    "h": 48,
+    "cw": 4,
+    "ch": 3
+   },
+   "table_light_large": {
+    "w": 64,
+    "h": 48,
+    "cw": 4,
+    "ch": 3
+   },
+   "table_wood_small": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "table_light_small": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "rug_blue_large": {
+    "w": 48,
+    "h": 64,
+    "cw": 3,
+    "ch": 4
+   },
+   "plate_cookies": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "stool_round": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "sofa_brown": {
+    "w": 48,
+    "h": 32,
+    "cw": 3,
+    "ch": 2
+   },
+   "food_salad": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "food_cake": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "food_pizza": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "food_bowl": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "rug_red_large": {
+    "w": 64,
+    "h": 48,
+    "cw": 4,
+    "ch": 3
+   },
+   "rug_blue_small": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "rug_red_tall": {
+    "w": 48,
+    "h": 64,
+    "cw": 3,
+    "ch": 4
+   },
+   "rug_green_small": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "shelf_small": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3
+   },
+   "rug_brown_small": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "painting_flowers": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "painting_fire": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "rug_blue_tiny": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "painting_forest": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "painting_ocean": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "painting_cat": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "window_wood": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "frame_gold": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "frame_small": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "mirror_wall": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "rug_green_square": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "rug_olive": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "chair_wood": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "chair_red": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "globe_gold": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "globe_silver": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "chalkboard": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "plant_tree": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3
+   },
+   "plant_palm": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "plant_bush": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "wardrobe_wood": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3
+   },
+   "cupboard_wood": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3
+   },
+   "cupboard_wood_b": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3
+   },
+   "plant_pot": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "wardrobe_mirror": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "lamp_red_small": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "lamp_red_small_b": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "lamp_floor_red": {
+    "w": 16,
+    "h": 48,
+    "cw": 1,
+    "ch": 3
+   },
+   "lamp_floor_blue": {
+    "w": 16,
+    "h": 48,
+    "cw": 1,
+    "ch": 3
+   },
+   "lamp_table_beige": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "lamp_table_beige_b": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "desk_wood": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "cabinet_light": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "dresser_wood": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "dresser_wood_wide": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "stove": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3
+   },
+   "tile_wall_top": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "tile_wall_bottom": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "tile_wall_left_top": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "tile_wall_left_bottom": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "tile_wall_right_top": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "tile_wall_right_bottom": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "tile_floor_wood": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "tile_floor_cream": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "tile_floor_gray": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "tile_floor_brick": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   }
+  }
+ }
+}
