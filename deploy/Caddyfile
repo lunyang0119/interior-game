@@ -1,0 +1,7 @@
+# /etc/caddy/Caddyfile
+# Replace the hostname with your DuckDNS subdomain. Caddy fetches the TLS cert automatically.
+# WebSocket upgrades on /ws are proxied transparently.
+YOURNAME.duckdns.org {
+	encode gzip
+	reverse_proxy 127.0.0.1:8000
+}
