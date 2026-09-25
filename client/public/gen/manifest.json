@@ -1719,6 +1719,78 @@
     "cw": 2,
     "ch": 10
    },
+   "wallpaper_coral": {
+    "w": 32,
+    "h": 131,
+    "cw": 2,
+    "ch": 8
+   },
+   "wallpaper_cream_stripe": {
+    "w": 32,
+    "h": 131,
+    "cw": 2,
+    "ch": 8
+   },
+   "wallpaper_lavender": {
+    "w": 32,
+    "h": 131,
+    "cw": 2,
+    "ch": 8
+   },
+   "wallpaper_orange2": {
+    "w": 32,
+    "h": 131,
+    "cw": 2,
+    "ch": 8
+   },
+   "wallpaper_plank_gold": {
+    "w": 32,
+    "h": 131,
+    "cw": 2,
+    "ch": 8
+   },
+   "wallpaper_plank_tan2": {
+    "w": 32,
+    "h": 131,
+    "cw": 2,
+    "ch": 8
+   },
+   "wallpaper_purple2": {
+    "w": 32,
+    "h": 131,
+    "cw": 2,
+    "ch": 8
+   },
+   "wallpaper_red_stripe": {
+    "w": 32,
+    "h": 131,
+    "cw": 2,
+    "ch": 8
+   },
+   "wallpaper_salmon": {
+    "w": 32,
+    "h": 131,
+    "cw": 2,
+    "ch": 8
+   },
+   "wallpaper_sky_blue": {
+    "w": 32,
+    "h": 131,
+    "cw": 2,
+    "ch": 8
+   },
+   "wallpaper_starry_navy": {
+    "w": 32,
+    "h": 131,
+    "cw": 2,
+    "ch": 8
+   },
+   "wallpaper_teal_dark": {
+    "w": 32,
+    "h": 131,
+    "cw": 2,
+    "ch": 8
+   },
    "med_001": {
     "w": 80,
     "h": 128,
@@ -4276,6 +4348,174 @@
     "ch": 2
    },
    "fire_extinguisher_sm": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "floor_beige_dot": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "floor_brick_brown2": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "floor_brick_choco": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "floor_brick_darkbrown": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "floor_brick_ochre": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "floor_brick_orange2": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "floor_check_blackwhite": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "floor_check_coral": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "floor_check_goldbrown_small": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "floor_check_green": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "floor_check_lavender": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "floor_check_mint": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "floor_check_mintblue": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "floor_check_peach_small": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "floor_check_yellowbrown_small": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "floor_coral_dot": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "floor_dot_purple_small": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "floor_lavender2": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "floor_orange_dot": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "floor_paleyellow_dot": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "floor_parquet_orange2": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "floor_pink2": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "floor_purple_dot": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "floor_red2": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "floor_salmon_dot": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "floor_sky_blue2": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "floor_starry_navy": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "floor_teal_dark2": {
     "w": 32,
     "h": 32,
     "cw": 2,
