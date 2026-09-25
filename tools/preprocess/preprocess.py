@@ -447,7 +447,23 @@ def cmd_ui(_: argparse.Namespace) -> None:
     # html:root / html-prefixed selectors: theme.css may end up before the bundled style.css, so win on specificity
     lines = ["html:root {"]
     lines.append('  --font-body: "Stardust", -apple-system, "Segoe UI", system-ui, sans-serif;')
-    lines.append(f"  --font-size: {int(font.get('size', 15))}px;")
+    sizes = {"body": int(font.get("size", 15)), "small": 13, "button": None, "big": None, "title": None,
+             "preview": 144}
+    sizes.update(font.get("sizes", {}))
+    lines.append(f"  --font-size: {sizes['body']}px;")
+    lines.append(f"  --fs-small: {sizes['small']}px;")
+    lines.append(f"  --fs-button: {sizes['button'] or sizes['body']}px;")
+    lines.append(f"  --fs-big: {sizes['big'] or sizes['body']}px;")
+    lines.append(f"  --fs-title: {sizes['title'] or sizes['body']}px;")
+    lines.append(f"  --preview-w: {sizes['preview']}px;")
+    # avatar name label (Phaser text): read at runtime by Avatar.ts
+    label = theme.get("label", {})
+    label_font = label.get("font", "")  # file stem in media/fonts, e.g. "stardust-s"; empty = same as body
+    lines.append(f'  --label-font: "{"Label" if label_font else "Stardust"}";')
+    lines.append(f"  --label-size: {int(label.get('size', 16))};")
+    lines.append(f"  --label-color: {label.get('color', '#ffffff')};")
+    lines.append(f"  --label-stroke: {label.get('stroke', '#000000')};")
+    lines.append(f"  --label-scale: {label.get('scale', 0.5)};")
     for k, v in theme.get("colors", {}).items():
         lines.append(f"  --{k}: {v};")
     frames = theme.get("frames", {})
@@ -485,6 +501,8 @@ def cmd_ui(_: argparse.Namespace) -> None:
             lines.append(f"{sel} {{ border-radius: 0; background: none; box-shadow: none; backdrop-filter: none; }}")
     lines.append('@font-face { font-family: "Stardust"; font-weight: 400; src: url(/media/fonts/%s.ttf) format("truetype"); font-display: swap; }' % body)
     lines.append('@font-face { font-family: "Stardust"; font-weight: 700; src: url(/media/fonts/%s.ttf) format("truetype"); font-display: swap; }' % bold)
+    if label_font:
+        lines.append('@font-face { font-family: "Label"; src: url(/media/fonts/%s.ttf) format("truetype"); font-display: swap; }' % label_font)
     (C.MEDIA_DIR / "theme.css").write_text("\n".join(lines) + "\n", encoding="utf-8")
     print(f"{len(frames)} frames → media/ui/, theme.css written")
 

@@ -1,9 +1,16 @@
 {
- "_help": "python tools/preprocess/preprocess.py ui 로 적용. frames 에는 panel / button / button_primary / chip / input / ctx / toast 를 넣을 수 있음. file = assets/ 기준 PNG, 또는 sheet + x,y,w,h 로 시트에서 잘라냄. slice = 9-slice 테두리 두께(px), pad = 안쪽 여백(px, 기본 slice). scale = 화면 배율. fill_inner=true 면 테두리 안쪽을 단색으로 채움(버튼에 박힌 글자 지우기).",
+ "_help": "python tools/preprocess/preprocess.py ui 로 적용. frames 에는 panel / button / button_primary / chip / input / ctx / toast 를 넣을 수 있음. file = assets/ 기준 PNG, 또는 sheet + x,y,w,h 로 시트에서 잘라냄. slice = 9-slice 테두리 두께(px), pad = 안쪽 여백(px, 기본 slice). scale = 화면 배율. fill_inner=true 면 테두리 안쪽을 단색으로 채움(버튼에 박힌 글자 지우기). font.sizes: small(작은 글씨)/button/big(하단 큰 버튼)/title(패널 제목)/preview(아바타 미리보기 폭 px). label: 아바타 이름표 — font는 media/fonts 파일 이름(비우면 body와 같음), size는 렌더 px, scale은 축소 배율(16px×0.5=8px).",
  "font": {
   "body": "stardust",
   "bold": "stardust-bold",
-  "size": 16
+  "size": 16,
+  "sizes": {
+   "small": 13,
+   "button": 16,
+   "big": 18,
+   "title": 18,
+   "preview": 160
+  }
  },
  "colors": {
   "bg": "#1b1b24",
@@ -85,5 +92,12 @@
    "fill_inner": true
   }
  },
- "scale": 2
+ "scale": 2,
+ "label": {
+  "font": "",
+  "size": 16,
+  "color": "#ffffff",
+  "stroke": "#000000",
+  "scale": 0.5
+ }
 }

@@ -67,3 +67,14 @@ python tools/preprocess/preprocess.py ui      # → client/public/media/theme.cs
 팩의 `Hairstyles_palette.png`를 복사한 파일. 가로 5px짜리 세로 열 하나가 색 하나이고, 위 3줄 = 밝은색, 가운데 3줄 = 중간, 아래 3줄 = 어두운색.
 앞의 8열(7색 + 윤곽선)은 팩 원본이라 건드리지 말고, **오른쪽에 5px 열을 더 그리면** 그 색이 모든 헤어스타일에 추가된다 (예시로 분홍·민트 두 열이 들어있음).
 `build` 실행 → 에디터의 "머리 색"이 늘어남. 열을 지우면 색도 사라지니 이미 저장된 아바타 인덱스가 밀릴 수 있음 (뒤에만 붙이는 게 안전).
+
+## 글자 크기 · 이름표 폰트 · 미리보기 크기 (`data/ui_theme.json`)
+
+```json
+"font": {"body": "stardust", "bold": "stardust-bold", "size": 16,
+         "sizes": {"small": 13, "button": 16, "big": 18, "title": 18, "preview": 160}},
+"label": {"font": "", "size": 16, "color": "#ffffff", "stroke": "#000000", "scale": 0.5}
+```
+- `size` = 기본 글자(px). `sizes.small` = 상점 아이템 이름/가격·안내문, `button` = 일반 버튼, `big` = 하단 상점/아바타 버튼, `title` = 패널 제목, `preview` = 아바타 미리보기 폭(px, 높이는 4:3 자동).
+- `label` = 아바타 머리 위 이름표. `font`는 `media/fonts/`의 파일 이름(확장자 없이, 예 `stardust-s-bold`), 비우면 본문 폰트. 새 폰트를 쓰려면 ttf를 `assets/fonts/`에 넣고 `media` 실행 → 파일명이 `media/fonts/`에 아스키로 복사되니 그 이름을 적기. `size`×`scale`이 실제 게임 픽셀 높이 (16×0.5 = 8px, 화면 zoom 2배라 16px로 보임). 픽셀 폰트는 제작 크기(보통 16)로 두고 scale로 조절하는 게 깨끗함.
+- 바꾼 뒤 `python tools/preprocess/preprocess.py ui` → 새로고침. 서버 재시작 불필요.

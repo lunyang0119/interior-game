@@ -12,6 +12,8 @@
   --card: #1b1b24; /* inner cards inside panels (shop items, account rows, inputs) */
   --font-body: -apple-system, "Segoe UI", system-ui, sans-serif;
   --font-size: 15px;
+  --fs-small: 13px; --fs-button: 15px; --fs-big: 15px; --fs-title: 15px;
+  --preview-w: 144px;
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
 
@@ -42,11 +44,11 @@ img, .framed { image-rendering: pixelated; }
 button, .chip {
   border: var(--slice-button-px) solid transparent; border-image: var(--frame-button) var(--slice-button) fill round;
   border-radius: 999px; background: var(--chip); color: var(--text);
-  padding: var(--pad-button) calc(var(--pad-button) + 4px); font: inherit; cursor: pointer; image-rendering: pixelated;
+  padding: var(--pad-button) calc(var(--pad-button) + 4px); font: inherit; font-size: var(--fs-button); cursor: pointer; image-rendering: pixelated;
 }
 .chip { border: var(--slice-chip-px) solid transparent; border-image: var(--frame-chip) var(--slice-chip) fill round; padding: var(--pad-chip) calc(var(--pad-chip) + 4px); }
 button:active { transform: scale(0.97); }
-button.big { padding: 12px 20px; font-weight: 700; background: var(--panel); box-shadow: 0 2px 8px rgba(0,0,0,.4); }
+button.big { padding: 12px 20px; font-weight: 700; font-size: var(--fs-big); background: var(--panel); box-shadow: 0 2px 8px rgba(0,0,0,.4); }
 button.primary { background: var(--primary); border: var(--slice-button-primary-px) solid transparent; border-image: var(--frame-button-primary) var(--slice-button-primary) fill round; }
 button.danger { background: var(--danger); }
 button.close { background: transparent; border: 0; border-image: none; font-size: 18px; }
@@ -58,10 +60,10 @@ button.close { background: transparent; border: 0; border-image: none; font-size
   background: var(--panel); border-radius: 16px; padding: var(--pad-panel); z-index: 20; box-shadow: 0 8px 30px rgba(0,0,0,.5);
   border: var(--slice-panel-px) solid transparent; border-image: var(--frame-panel) var(--slice-panel) fill round; image-rendering: pixelated;
 }
-.panel-head { display: flex; justify-content: space-between; align-items: center; font-weight: 700; margin-bottom: 8px; }
+.panel-head { display: flex; justify-content: space-between; align-items: center; font-weight: 700; font-size: var(--fs-title); margin-bottom: 8px; }
 .row { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
-.row.small button { padding: 6px 10px; font-size: 13px; }
-.small { font-size: 13px; }
+.row.small button { padding: 6px 10px; font-size: var(--fs-small); }
+.small { font-size: var(--fs-small); }
 .credits { color: var(--muted); margin-top: 10px; font-size: 11px; }
 input {
   flex: 1; min-width: 0; border-radius: 10px; padding: var(--pad-input); font: inherit; background: var(--card); color: var(--text);
@@ -72,10 +74,10 @@ input {
 #accounts-list .acct { display: flex; align-items: center; gap: 8px; padding: 8px; border-radius: 10px; background: var(--card); margin-bottom: 6px; }
 #accounts-list .acct.active { outline: 2px solid var(--primary); }
 #accounts-list .acct .name { flex: 1; font-weight: 700; }
-#accounts-list .acct button { padding: 4px 10px; font-size: 13px; }
+#accounts-list .acct button { padding: 4px 10px; font-size: var(--fs-small); }
 #logins-out { background: var(--card); padding: 8px; border-radius: 10px; font-size: 11px; max-height: 30vh; overflow: auto; white-space: pre-wrap; }
 
-#avatar-preview { display: block; margin: 0 auto 8px; width: 96px; height: 128px; image-rendering: pixelated; background: var(--card); border-radius: 10px; }
+#avatar-preview { display: block; margin: 0 auto 8px; width: var(--preview-w); height: calc(var(--preview-w) * 4 / 3); padding: 8px; image-rendering: pixelated; background: var(--card); border-radius: 10px; }
 #avatar-layers .layer { display: flex; align-items: center; gap: 8px; margin: 6px 0; }
 #avatar-layers .layer.sub { margin-left: 16px; color: var(--muted); }
 #avatar-layers .layer span { flex: 1; }
@@ -84,8 +86,8 @@ input {
 #shop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 8px; }
 .shop-item { background: var(--card); border-radius: 10px; padding: 6px; text-align: center; cursor: pointer; }
 .shop-item canvas { width: 64px; height: 64px; image-rendering: pixelated; display: block; margin: 0 auto 4px; }
-.shop-item .n { font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.shop-item .p { font-size: 12px; color: var(--muted); }
+.shop-item .n { font-size: var(--fs-small); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.shop-item .p { font-size: var(--fs-small); color: var(--muted); }
 .shop-item.disabled { opacity: .4; }
 #shop-tabs button.on { background: var(--primary); filter: brightness(0.8); }
 
@@ -94,7 +96,7 @@ input {
   box-shadow: 0 8px 30px rgba(0,0,0,.5); min-width: 150px;
   border: var(--slice-ctx-px) solid transparent; border-image: var(--frame-ctx) var(--slice-ctx) fill round; image-rendering: pixelated;
 }
-#ctx-title { font-size: 12px; color: var(--muted); padding: 2px 4px; }
+#ctx-title { font-size: var(--fs-small); color: var(--muted); padding: 2px 4px; }
 #ctx button { border-radius: 8px; text-align: left; }
 
 #toast {

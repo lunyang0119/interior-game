@@ -7,7 +7,19 @@ import { animKey, sheetsFor, texKey } from "./AvatarLoader";
 const SPEED = 48; // px per second
 const REMOTE_SPEED = 64;
 const LABEL_DEPTH = 1_000_000; // always above furniture
-const LABEL_FONT = 16; // rendered at 16px then scaled 0.5 → crisp 8px pixel font at zoom 2
+
+/** Name-tag style from theme.css variables (data/ui_theme.json → "label"). */
+function labelStyle(): { font: string; size: number; color: string; stroke: string; scale: number } {
+  const cs = getComputedStyle(document.documentElement);
+  const v = (name: string, fallback: string) => cs.getPropertyValue(name).trim() || fallback;
+  return {
+    font: v("--label-font", '"Stardust"'),
+    size: Number(v("--label-size", "16")) || 16,
+    color: v("--label-color", "#ffffff"),
+    stroke: v("--label-stroke", "#000000"),
+    scale: Number(v("--label-scale", "0.5")) || 0.5,
+  };
+}
 
 export type Dir = "right" | "up" | "left" | "down";
 
@@ -29,10 +41,11 @@ export class Avatar extends Phaser.GameObjects.Container {
     this.speed = remote ? REMOTE_SPEED : SPEED;
     scene.add.existing(this);
     // name tag lives outside the container so its depth is independent of the y-sort
+    const st = labelStyle();
     this.label = scene.add.text(0, 0, name, {
-      fontFamily: '"Stardust", sans-serif', fontSize: `${LABEL_FONT}px`, color: "#ffffff",
-      stroke: "#000000", strokeThickness: 3, resolution: 2,
-    }).setOrigin(0.5, 1).setScale(0.5).setDepth(LABEL_DEPTH).setVisible(name !== "");
+      fontFamily: `${st.font}, sans-serif`, fontSize: `${st.size}px`, color: st.color,
+      stroke: st.stroke, strokeThickness: 3, resolution: 2,
+    }).setOrigin(0.5, 1).setScale(st.scale).setDepth(LABEL_DEPTH).setVisible(name !== "");
     this.setLook(look);
     this.refreshDepth();
     this.syncLabel();

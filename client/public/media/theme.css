@@ -1,6 +1,16 @@
 html:root {
   --font-body: "Stardust", -apple-system, "Segoe UI", system-ui, sans-serif;
   --font-size: 16px;
+  --fs-small: 13px;
+  --fs-button: 16px;
+  --fs-big: 18px;
+  --fs-title: 18px;
+  --preview-w: 160px;
+  --label-font: "Stardust";
+  --label-size: 16;
+  --label-color: #ffffff;
+  --label-stroke: #000000;
+  --label-scale: 0.5;
   --bg: #1b1b24;
   --panel: #e9d6cd;
   --chip: #e6d5be;

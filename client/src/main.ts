@@ -56,6 +56,7 @@ async function boot(): Promise<void> {
   const [cat] = await Promise.all([
     api.catalog(),
     document.fonts.load('16px "Stardust"').catch(() => undefined),
+    document.fonts.load('16px "Label"').catch(() => undefined),
   ]);
   state.catalog = makeCatalog(cat);
   const room = state.catalog.room;
