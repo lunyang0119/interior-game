@@ -12,7 +12,6 @@ sudo apt-get install -y -qq git python3 python3-venv python3-pip curl debian-key
 
 # Caddy (official repo)
 if ! command -v caddy >/dev/null; then
-  curl -1sLf 'https://dl.cloudflare.com/caddy/stable/gpg.key' 2>/dev/null | sudo gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg || \
   curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | sudo gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
   curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | sudo tee /etc/apt/sources.list.d/caddy-stable.list >/dev/null
   sudo apt-get update -qq && sudo apt-get install -y -qq caddy
