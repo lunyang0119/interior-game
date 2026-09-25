@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from contextlib import asynccontextmanager
 
@@ -7,12 +8,37 @@ from fastapi.staticfiles import StaticFiles
 
 from . import catalog as catalog_mod
 from . import config, sheet
-from .db import connect, migrate
+from .db import connect, migrate, now
 from .errors import ApiError
 from .presence import hub
 from .routers import auth, me, room, ws
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s %(message)s")
+log = logging.getLogger("main")
+
+ACCESS_LOG_KEEP_DAYS = 90
+PRUNE_INTERVAL_S = 24 * 3600
+
+
+def prune_access_log() -> int:
+    """access_log grows with every action (and every bad-token hit); keep the last N days."""
+    conn = connect()
+    try:
+        cur = conn.execute("DELETE FROM access_log WHERE ts < ?", (now() - ACCESS_LOG_KEEP_DAYS * 86400,))
+        return cur.rowcount
+    finally:
+        conn.close()
+
+
+async def _prune_loop() -> None:
+    while True:
+        try:
+            n = await asyncio.to_thread(prune_access_log)
+            if n:
+                log.info("pruned %d access_log rows", n)
+        except Exception as e:  # noqa: BLE001
+            log.warning("access_log prune failed: %s", e)
+        await asyncio.sleep(PRUNE_INTERVAL_S)
 
 
 @asynccontextmanager
@@ -23,7 +49,9 @@ async def lifespan(app: FastAPI):
     app.state.catalog = catalog_mod.load()
     app.state.sheet = sheet.from_config()
     hub.bind_loop()
+    prune_task = asyncio.create_task(_prune_loop())
     yield
+    prune_task.cancel()
 
 
 def create_app() -> FastAPI:

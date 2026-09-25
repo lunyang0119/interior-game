@@ -15,8 +15,9 @@ import time
 import httpx
 
 from . import config
-from .db import now, transaction
+from .db import connect, now, transaction
 from .errors import ApiError
+from .presence import hub
 
 log = logging.getLogger("sheet")
 
@@ -32,6 +33,7 @@ class SheetService:
         self._last_fetch = 0.0
         self._last_manual = 0.0
         self._lock = threading.Lock()
+        self._inflight = False  # a background refresh thread is running
 
     # -- fetching -----------------------------------------------------------
 
@@ -108,23 +110,56 @@ class SheetService:
         return {"ok": True, "id": player_id, "name": player_id, "created": True, "earned": 0}
 
     def refresh(self, conn: sqlite3.Connection, force: bool = False) -> bool:
-        """Fetch if the cache is stale (or force). Returns True on a successful fetch."""
+        """Make sure the snapshot is fresh enough. Returns True when this call fetched.
+
+        Request handlers call this on every /api/me and purchase, so it must not block on the
+        network: when the cache is merely stale, the current snapshot is served and a background
+        thread refreshes it (stale-while-revalidate). Only `force` and the very first fetch (no
+        snapshot yet) wait for the Apps Script.
+        """
+        if force:
+            return self._fetch_into(conn)
+        age = time.monotonic() - self._last_fetch
+        if self._last_fetch and age < self.cache_seconds:
+            return False
+        if not self.has_snapshot(conn):
+            return self._fetch_into(conn)
+        self._refresh_async()
+        return False
+
+    def _refresh_async(self) -> None:
         with self._lock:
-            age = time.monotonic() - self._last_fetch
-            if not force and self._last_fetch and age < self.cache_seconds:
-                return False
+            if self._inflight:
+                return
+            self._inflight = True
+
+        def run() -> None:
+            conn = connect()
             try:
-                members = self._fetch()
-            except Exception as e:  # network / parse errors: keep the snapshot
-                log.warning("sheet fetch failed: %s", e)
-                return False
-            ts = now()
-            # the sheet may hold several rows with the same nickname (template/duplicate rows): merge them
-            merged: dict[str, int] = {}
-            for m in members:
-                if m["id"] in merged:
-                    log.warning("sheet: duplicate id %r, summing earned", m["id"])
-                merged[m["id"]] = merged.get(m["id"], 0) + int(m["earned"])
+                if self._fetch_into(conn):
+                    hub.broadcast_threadsafe({"type": "money", "balance": self.balance(conn)})
+            finally:
+                conn.close()
+                with self._lock:
+                    self._inflight = False
+
+        threading.Thread(target=run, name="sheet-refresh", daemon=True).start()
+
+    def _fetch_into(self, conn: sqlite3.Connection) -> bool:
+        """Network fetch (outside the lock) → replace sheet_snapshot. Returns True on success."""
+        try:
+            members = self._fetch()
+        except Exception as e:  # network / parse errors: keep the snapshot
+            log.warning("sheet fetch failed: %s", e)
+            return False
+        ts = now()
+        # the sheet may hold several rows with the same nickname (template/duplicate rows): merge them
+        merged: dict[str, int] = {}
+        for m in members:
+            if m["id"] in merged:
+                log.warning("sheet: duplicate id %r, summing earned", m["id"])
+            merged[m["id"]] = merged.get(m["id"], 0) + int(m["earned"])
+        with self._lock:
             with transaction(conn):
                 conn.execute("DELETE FROM sheet_snapshot")
                 conn.executemany(
@@ -132,7 +167,7 @@ class SheetService:
                     [(pid, earned, ts) for pid, earned in merged.items()],
                 )
             self._last_fetch = time.monotonic()
-            return True
+        return True
 
     def manual_sync(self, conn: sqlite3.Connection) -> bool:
         if time.monotonic() - self._last_manual < self.cooldown_seconds:

@@ -5,9 +5,9 @@
   "bold": "stardust-bold",
   "size": 16,
   "sizes": {
-   "small": 13,
+   "small": 20,
    "button": 16,
-   "big": 25,
+   "big": 50,
    "title": 30,
    "preview": 160
   }
@@ -94,10 +94,10 @@
  },
  "scale": 2,
  "label": {
-  "font": "stardust-bold",
+  "font": "stardust-s",
   "size": 50,
   "color": "#ffffff",
   "stroke": "#000000",
-  "scale": 0.5
+  "scale": 0.8
  }
 }

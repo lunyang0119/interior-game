@@ -158,7 +158,8 @@ def test_ws_presence(client):
             assert mv == {"type": "move", "id": "kim", "x": 1.5, "y": 2.5, "dir": "left", "moving": True}
             # REST change pushes a room version
             client.post("/api/room/place", json={"item_id": "chair", "x": 1, "y": 1}, headers=auth(lun))
-            assert a.receive_json() == {"type": "room", "version": 1}
+            # ...with the shared pool balance so every client's HUD follows (800 - chair 50)
+            assert a.receive_json() == {"type": "room", "version": 1, "balance": 750}
         assert a.receive_json()["type"] == "leave"
 
 

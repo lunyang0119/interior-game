@@ -14,6 +14,8 @@ from .db import get_db, now
 from .errors import ApiError
 from .ratelimit import limiter
 
+LAST_SEEN_INTERVAL = 60  # seconds
+
 
 def new_token() -> str:
     return secrets.token_urlsafe(32)
@@ -73,7 +75,10 @@ def current_player(request: Request, conn: sqlite3.Connection = Depends(get_db))
     limit, per = config.RATE_PLAYER
     if not limiter.allow(f"p:{pid}", limit, per):
         raise ApiError(429, "rate_limited")
-    conn.execute("UPDATE players SET last_seen_ts = ? WHERE id = ?", (now(), pid))
+    # last_seen is informational: touch it at most once a minute so plain GETs don't take the write lock
+    t = now()
+    conn.execute("UPDATE players SET last_seen_ts = ? WHERE id = ? AND (last_seen_ts IS NULL OR last_seen_ts < ?)",
+                 (t, pid, t - LAST_SEEN_INTERVAL))
     return Player(id=pid)
 
 

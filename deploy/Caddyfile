@@ -3,5 +3,15 @@
 # WebSocket upgrades on /ws are proxied transparently.
 crystalroom.duckdns.org {
 	encode gzip
+
+	# Vite output is content-hashed: safe to cache forever.
+	@bundle path /assets/*
+	header @bundle Cache-Control "public, max-age=31536000, immutable"
+
+	# Sprites / BGM / fonts change only when preprocess.py is re-run and pushed: a day of caching,
+	# then a cheap 304 revalidation (ETag comes from the app).
+	@media path /gen/* /media/*
+	header @media Cache-Control "public, max-age=86400, stale-while-revalidate=604800"
+
 	reverse_proxy 127.0.0.1:8000
 }

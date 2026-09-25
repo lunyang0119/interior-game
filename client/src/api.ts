@@ -9,7 +9,7 @@ export class ApiError extends Error {
 
 const MESSAGES: Record<string, string> = {
   unauthorized: "로그인이 필요해요",
-  rate_limited: "잠시만 기다린 뒤 다시 시도해주세요....(10분이 이상적)",
+  rate_limited: "요청이 너무 잦아요. 잠시 후 다시 시도해주세요",
   not_in_sheet: "시트에 없는 ID네요",
   already_registered: "이미 등록된 ID에요 (복구 링크로 들어와주세요)",
   sheet_unavailable: "시트에 연결이 안되었어요. 오류니 잠시 뒤, 다시 한 번 들어와주세요.",

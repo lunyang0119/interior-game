@@ -24,6 +24,16 @@ export function togglePanel(id: string): void {
 
 let toastTimer: number | null = null;
 
+/** Click handler that ignores re-taps while the async work is in flight (buttons show disabled meanwhile). */
+export function guard(btn: HTMLElement, fn: () => Promise<void>): void {
+  const b = btn as HTMLButtonElement;
+  b.addEventListener("click", async () => {
+    if (b.disabled) return;
+    b.disabled = true;
+    try { await fn(); } finally { b.disabled = false; }
+  });
+}
+
 export function initHud(): void {
   document.querySelectorAll<HTMLElement>("[data-close]").forEach((b) => {
     b.addEventListener("click", () => show(b.dataset.close!, false));
@@ -39,17 +49,19 @@ export function initHud(): void {
     toastTimer = window.setTimeout(() => t.classList.add("hidden"), ms ?? 2200);
   });
 
-  bus.on("place:state", ({ active, label, ok }) => {
+  bus.on("place:state", ({ active, label, ok, mode }) => {
     show("placebar", active);
     show("bottombar", !active);
     $("place-label").textContent = label;
     $("place-confirm").classList.toggle("primary", ok);
+    show("place-again", active && mode === "place"); // "one more" only makes sense for new items
     if (active) closeAllPanels();
   });
   $("place-confirm").addEventListener("click", () => bus.emit("place:confirm"));
+  $("place-again").addEventListener("click", () => bus.emit("place:confirm-again"));
   $("place-cancel").addEventListener("click", () => bus.emit("place:cancel"));
 
-  $("btn-sync").addEventListener("click", async () => {
+  guard($("btn-sync"), async () => {
     if (!state.token) { bus.emit("toast", { text: "먼저 계정을 골라주세요" }); return; }
     try {
       const r = await api.sync();

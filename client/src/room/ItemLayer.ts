@@ -1,6 +1,6 @@
 import Phaser from "phaser";
-import { Z_SCALE, type Catalog, type RoomItem } from "../catalog";
-import { depthOf } from "./depth";
+import { Z_SCALE, type Catalog, type Layer, type RoomItem } from "../catalog";
+import { depthOf, sortRowFor } from "./depth";
 import { CELL } from "./grid";
 import { footprintOf } from "./rules";
 
@@ -43,7 +43,7 @@ export class ItemLayer {
     const h = it?.h ?? 1;
     let x = row.x * CELL;
     let y = (row.y + h) * CELL;
-    let sortRow = row.y + h - 1;
+    let sortRow = sortRowFor(it?.layer, row.y + h - 1);
     if (it?.layer === "surface_item" && row.parent_uid != null) {
       const parent = this.entries.get(row.parent_uid)?.row ?? this.rows.find((r) => r.uid === row.parent_uid);
       const pit = parent && this.cat.byId.get(parent.item_id);
@@ -66,12 +66,14 @@ export class ItemLayer {
     if (e) this.layout(e);
   }
 
-  /** Topmost item whose footprint covers the cell (surface items before furniture before floor). */
-  itemAt(cx: number, cy: number): RoomItem | null {
+  /** Topmost item whose footprint covers the cell (surface items before furniture before floor).
+   *  `layers` restricts which item layers count (e.g. ignore rugs so a tap on one still walks there). */
+  itemAt(cx: number, cy: number, layers?: ReadonlySet<Layer>): RoomItem | null {
     let best: RoomItem | null = null;
     let bestZ = -1;
     for (const row of this.rows) {
       if (this.hidden.has(row.uid)) continue;
+      if (layers && !layers.has(this.cat.byId.get(row.item_id)?.layer ?? "furniture")) continue;
       if (!footprintOf(this.cat, row).some((c) => c[0] === cx && c[1] === cy)) continue;
       if (row.z > bestZ) { best = row; bestZ = row.z; }
     }

@@ -78,7 +78,9 @@ input {
 #accounts-list .acct button { padding: 4px 10px; font-size: var(--fs-small); }
 #logins-out { background: var(--card); padding: 8px; border-radius: 10px; font-size: 11px; max-height: 30vh; overflow: auto; white-space: pre-wrap; }
 
-#avatar-preview { display: block; margin: 0 auto 8px; width: var(--preview-w); height: calc(var(--preview-w) * 4 / 3); padding: 8px; image-rendering: pixelated; background: var(--card); border-radius: 10px; }
+/* the preview stays pinned at the top of the panel while the layer list scrolls underneath */
+.preview-wrap { position: sticky; top: calc(-1 * var(--pad-panel)); z-index: 1; background: var(--panel); padding: var(--pad-panel) 0 8px; margin-top: -8px; /* padding covers the panel inset when stuck; margin cancels the head gap */ }
+#avatar-preview { display: block; margin: 0 auto; width: var(--preview-w); height: calc(var(--preview-w) * 4 / 3); padding: 8px; image-rendering: pixelated; background: var(--card); border-radius: 10px; }
 #avatar-layers .layer { display: flex; align-items: center; gap: 8px; margin: 6px 0; }
 #avatar-layers .layer.sub { margin-left: 16px; color: var(--muted); }
 #avatar-layers .layer.off { opacity: .4; }

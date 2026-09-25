@@ -60,18 +60,20 @@ class Hub:
 
     # -- messaging -------------------------------------------------------------
 
+    SEND_TIMEOUT = 2.0  # a stalled socket (phone asleep, bad tunnel) must not delay everyone else
+
     async def broadcast(self, msg: dict, exclude: str | None = None) -> None:
         data = json.dumps(msg)
-        dead = []
-        for pid, o in list(self.online.items()):
-            if pid == exclude:
-                continue
-            try:
-                await o.ws.send_text(data)
-            except Exception:
-                dead.append(o)
-        for o in dead:
-            await self.leave(o)
+        targets = [o for pid, o in self.online.items() if pid != exclude]
+        if not targets:
+            return
+        results = await asyncio.gather(
+            *(asyncio.wait_for(o.ws.send_text(data), self.SEND_TIMEOUT) for o in targets),
+            return_exceptions=True,
+        )
+        for o, r in zip(targets, results):
+            if isinstance(r, BaseException):
+                await self.leave(o)
 
     def broadcast_threadsafe(self, msg: dict) -> None:
         if self.loop is None or not self.online:

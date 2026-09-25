@@ -33,7 +33,10 @@ def me(request: Request, me: Player = Depends(current_player), conn: sqlite3.Con
 def sync(request: Request, me: Player = Depends(current_player), conn: sqlite3.Connection = Depends(get_db)):
     refreshed = request.app.state.sheet.manual_sync(conn)
     log_access(conn, request, "sync", me.id, refreshed)
-    return {"refreshed": refreshed, **_money(request, conn)}
+    money = _money(request, conn)
+    if refreshed:
+        hub.broadcast_threadsafe({"type": "money", "balance": money["balance"]})
+    return {"refreshed": refreshed, **money}
 
 
 @router.put("/avatar")

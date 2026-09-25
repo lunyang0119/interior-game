@@ -2,9 +2,11 @@ import { api, ApiError, msgFor } from "../api";
 import { bus, toast } from "../bus";
 import { AVATAR_LAYERS, DEFAULT_LOOK, drawList, type AvatarLook, type LayerSpec } from "../catalog";
 import { catalog, state } from "../state";
-import { $, show, togglePanel } from "./hud";
+import { $, guard, show, togglePanel } from "./hud";
 
 const SCALE = 4;
+const REPEAT_DELAY_MS = 400;
+const REPEAT_EVERY_MS = 110;
 
 let draft: AvatarLook = { ...DEFAULT_LOOK };
 const imgCache = new Map<string, Promise<HTMLImageElement>>();
@@ -45,24 +47,65 @@ function groupsOf(spec: LayerSpec): number[][] {
 }
 
 const refreshers: (() => void)[] = [];
+const dimmers: (() => void)[] = [];
+
+/** True when an exclusive layer (premade preset) is active, so the other layers are not drawn. */
+function presetActive(): boolean {
+  const chars = catalog().chars;
+  return drawList(draft, chars).some((d) => chars.layers[d.layer]?.exclusive);
+}
+
+/** Turn every exclusive layer off so the layered look shows again. */
+function leavePreset(): void {
+  const chars = catalog().chars;
+  for (const layer of AVATAR_LAYERS) {
+    const spec = chars.layers[layer];
+    if (spec?.exclusive) draft[layer] = spec.none ?? 0;
+  }
+}
 
 function refreshAll(): void {
   for (const r of refreshers) r();
+  for (const d of dimmers) d();
   void preview();
+}
+
+/** Tap = one step; hold = auto-repeat (hair alone has hundreds of entries). */
+function repeatButton(glyph: string, onStep: () => void): HTMLButtonElement {
+  const b = document.createElement("button");
+  b.textContent = glyph;
+  let delay: number | null = null;
+  let timer: number | null = null;
+  let repeated = false;
+  const stop = () => {
+    if (delay !== null) clearTimeout(delay);
+    if (timer !== null) clearInterval(timer);
+    delay = timer = null;
+  };
+  b.addEventListener("pointerdown", (e) => {
+    if (e.button !== 0) return;
+    repeated = false;
+    stop();
+    delay = window.setTimeout(() => {
+      repeated = true;
+      onStep();
+      timer = window.setInterval(onStep, REPEAT_EVERY_MS);
+    }, REPEAT_DELAY_MS);
+  });
+  for (const ev of ["pointerup", "pointerleave", "pointercancel"]) b.addEventListener(ev, stop);
+  // the click that follows a hold must not add one more step
+  b.addEventListener("click", () => { if (!repeated) onStep(); repeated = false; });
+  return b;
 }
 
 function stepper(label: string, get: () => string, onStep: (d: number) => void): HTMLElement {
   const row = document.createElement("div");
   row.className = "layer";
-  const minus = document.createElement("button");
-  minus.textContent = "◀";
   const text = document.createElement("span");
-  const plus = document.createElement("button");
-  plus.textContent = "▶";
   const refresh = () => { text.textContent = `${label}  ${get()}`; };
   refreshers.push(refresh);
-  minus.addEventListener("click", () => { onStep(-1); refreshAll(); });
-  plus.addEventListener("click", () => { onStep(1); refreshAll(); });
+  const minus = repeatButton("◀", () => { onStep(-1); refreshAll(); });
+  const plus = repeatButton("▶", () => { onStep(1); refreshAll(); });
   row.append(minus, text, plus);
   refresh();
   return row;
@@ -73,13 +116,15 @@ function renderControls(): void {
   const box = $("avatar-layers");
   box.innerHTML = "";
   refreshers.length = 0;
+  dimmers.length = 0;
   for (const layer of AVATAR_LAYERS) {
     const spec = chars.layers[layer];
     if (!spec || spec.count <= 0) continue;
     const groups = groupsOf(spec);
     const label = spec.label ?? layer;
-    // layers hidden by an active exclusive layer (preset) are greyed out
-    const hidden = !spec.exclusive && drawList(draft, chars).some((d) => chars.layers[d.layer]?.exclusive);
+    // layers hidden by an active exclusive layer (preset) are greyed out; touching one leaves the preset
+    const dimmable = !spec.exclusive;
+    const wake = () => { if (dimmable && presetActive()) leavePreset(); };
     const find = () => {
       const idx = draft[layer];
       const g = groups.findIndex((grp) => grp.includes(idx));
@@ -93,11 +138,12 @@ function renderControls(): void {
     };
     // style row: jump between groups (keep colour slot when the next style has it)
     const row = stepper(label, styleText, (d) => {
+      wake();
       const { g, c } = find();
       const ng = (g + d + groups.length) % groups.length;
       draft[layer] = groups[ng][Math.min(c, groups[ng].length - 1)];
     });
-    if (hidden) row.classList.add("off");
+    if (dimmable) dimmers.push(() => row.classList.toggle("off", presetActive()));
     box.appendChild(row);
     // colour row only when some style has colour variants
     if (groups.some((grp) => grp.length > 1)) {
@@ -105,16 +151,18 @@ function renderControls(): void {
         const { g, c } = find();
         return groups[g].length > 1 ? `${c + 1}/${groups[g].length}` : "–";
       }, (d) => {
+        wake();
         const { g, c } = find();
         const grp = groups[g];
         draft[layer] = grp[(c + d + grp.length) % grp.length];
       });
       colorRow.classList.add("sub");
-      if (hidden) colorRow.classList.add("off");
+      if (dimmable) dimmers.push(() => colorRow.classList.toggle("off", presetActive()));
       box.appendChild(colorRow);
     }
   }
   if (!box.children.length) box.textContent = "바꿀 수 있는 레이어가 없어요 (preprocess build 필요)";
+  for (const d of dimmers) d();
 }
 
 export function initAvatarEditor(): void {
@@ -133,10 +181,9 @@ export function initAvatarEditor(): void {
       if (n <= 0) continue;
       draft[layer] = spec.exclusive ? (spec.none ?? 0) : Math.floor(Math.random() * n); // random = layered look
     }
-    renderControls();
-    void preview();
+    refreshAll();
   });
-  $("avatar-save").addEventListener("click", async () => {
+  guard($("avatar-save"), async () => {
     try {
       const r = await api.putAvatar(draft);
       state.avatar = r.avatar;

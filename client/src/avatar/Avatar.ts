@@ -33,6 +33,7 @@ export class Avatar extends Phaser.GameObjects.Container {
   onArrive: (() => void) | null = null;
   onStep: ((x: number, y: number, dir: Dir, moving: boolean) => void) | null = null;
   private stepAcc = 0;
+  private lastFrame: Phaser.Textures.Frame | null = null;
   private label: Phaser.GameObjects.Text;
 
   constructor(scene: Phaser.Scene, private chars: Chars, look: AvatarLook, cellX: number, cellY: number,
@@ -64,6 +65,7 @@ export class Avatar extends Phaser.GameObjects.Container {
   setLook(look: AvatarLook): void {
     for (const s of this.sprites) s.destroy();
     this.sprites = [];
+    this.lastFrame = null;
     for (const { layer, idx } of sheetsFor(look, this.chars)) {
       const s = this.scene.add.sprite(0, 0, texKey(layer, idx)).setOrigin(0.5, 1);
       this.add(s);
@@ -95,7 +97,10 @@ export class Avatar extends Phaser.GameObjects.Container {
 
   update(_time: number, delta: number): void {
     const driver = this.sprites[0];
-    if (driver) for (let i = 1; i < this.sprites.length; i++) this.sprites[i].setFrame(driver.frame.name);
+    if (driver && driver.frame !== this.lastFrame) { // copy the frame only when the animation advanced
+      this.lastFrame = driver.frame;
+      for (let i = 1; i < this.sprites.length; i++) this.sprites[i].setFrame(driver.frame.name);
+    }
 
     if (this.target) {
       const dx = this.target.x - this.x;

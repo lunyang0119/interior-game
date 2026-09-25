@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -30,8 +31,6 @@ class Item(BaseModel):
     def _rules(self) -> "Item":
         if self.is_surface and self.layer != "furniture":
             raise ValueError(f"{self.id}: only furniture can be is_surface")
-        if self.layer == "surface_item" and self.w * self.h > 2:
-            raise ValueError(f"{self.id}: surface_item footprint must be <= 2 cells")
         return self
 
 
@@ -68,17 +67,27 @@ class Catalog:
     room: Room
     manifest: dict
     layer_counts: dict[str, int] = field(default_factory=dict)
+    _public: dict | None = field(default=None, repr=False)
+    _etag: str = field(default="", repr=False)
 
     def get(self, item_id: str) -> Item | None:
         return self.items.get(item_id)
 
     def public(self) -> dict:
-        """What GET /api/catalog returns."""
-        return {
-            "items": [it.model_dump() for it in self.items.values()],
-            "room": self.room.model_dump(),
-            "chars": self.manifest["chars"],
-        }
+        """What GET /api/catalog returns. Static for the process lifetime, so it is built once."""
+        if self._public is None:
+            self._public = {
+                "items": [it.model_dump() for it in self.items.values()],
+                "room": self.room.model_dump(),
+                "chars": self.manifest["chars"],
+            }
+        return self._public
+
+    def etag(self) -> str:
+        if not self._etag:
+            digest = hashlib.sha1(json.dumps(self.public(), sort_keys=True).encode()).hexdigest()[:16]
+            self._etag = '"' + digest + '"'
+        return self._etag
 
 
 def load(data_dir: Path | None = None, gen_dir: Path | None = None) -> Catalog:

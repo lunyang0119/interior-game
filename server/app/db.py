@@ -1,6 +1,7 @@
 """SQLite connection + migrations (tracked with PRAGMA user_version)."""
 
 import sqlite3
+import threading
 import time
 from contextlib import contextmanager
 from pathlib import Path
@@ -49,12 +50,30 @@ def transaction(conn: sqlite3.Connection) -> Iterator[sqlite3.Connection]:
     conn.execute("COMMIT")
 
 
+_local = threading.local()
+
+
 def get_db() -> Iterator[sqlite3.Connection]:
-    conn = connect()
+    """One connection per worker thread, reused across requests (skips connect + PRAGMAs each time).
+
+    Handlers run in Starlette's threadpool, so the pool size bounds the number of open connections.
+    A connection that failed mid-transaction is rolled back before the next request sees it.
+    """
+    conn: sqlite3.Connection | None = getattr(_local, "conn", None)
+    if conn is None or getattr(_local, "path", None) != str(config.DB_PATH):
+        if conn is not None:
+            conn.close()
+        conn = connect()
+        _local.conn = conn
+        _local.path = str(config.DB_PATH)
     try:
         yield conn
     finally:
-        conn.close()
+        if conn.in_transaction:
+            try:
+                conn.execute("ROLLBACK")
+            except sqlite3.Error:
+                pass
 
 
 def room_version(conn: sqlite3.Connection) -> int:

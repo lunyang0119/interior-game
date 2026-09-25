@@ -11,8 +11,9 @@ export interface Events {
   "place:begin": { itemId: string };
   "place:move": { uid: number };
   "place:confirm": void;
+  "place:confirm-again": void;
   "place:cancel": void;
-  "place:state": { active: boolean; label: string; ok: boolean };
+  "place:state": { active: boolean; label: string; ok: boolean; mode: "place" | "move" | null };
   "room:refresh": void;
   "item:menu": { item: RoomItem; screenX: number; screenY: number };
   "item:remove": { uid: number };
@@ -34,6 +35,7 @@ export const bus = {
   },
 };
 
-export function toast(text: string, ms = 2200): void {
-  bus.emit("toast", { text, ms });
+/** Default duration grows with the text so long notices (token expired, registration) can actually be read. */
+export function toast(text: string, ms?: number): void {
+  bus.emit("toast", { text, ms: ms ?? Math.min(6000, 1500 + text.length * 60) });
 }

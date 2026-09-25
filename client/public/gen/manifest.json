@@ -441,9 +441,9 @@
     ]
    },
    "hair": {
-    "count": 463,
+    "count": 483,
     "label": "\uba38\ub9ac",
-    "none": 462,
+    "none": 482,
     "groups": [
      [
       0,
@@ -965,10 +965,32 @@
       460
      ],
      [
-      461
+      461,
+      462,
+      463,
+      464,
+      465,
+      466,
+      467,
+      468,
+      469,
+      470,
+      471
      ],
      [
-      462
+      472,
+      473,
+      474,
+      475,
+      476,
+      477,
+      478,
+      479,
+      480,
+      481
+     ],
+     [
+      482
      ]
     ],
     "names": [
@@ -1433,14 +1455,34 @@
      "Hairstyle_29_14",
      "Hairstyle_29_15",
      "Hairstyle_29_16",
+     "Hairstyle_30_01",
      "Hairstyle_30_02",
+     "Hairstyle_30_08",
+     "Hairstyle_30_09",
+     "Hairstyle_30_10",
+     "Hairstyle_30_11",
+     "Hairstyle_30_12",
+     "Hairstyle_30_13",
+     "Hairstyle_30_14",
+     "Hairstyle_30_15",
+     "Hairstyle_30_16",
+     "Hairstyle_31_01",
+     "Hairstyle_31_08",
+     "Hairstyle_31_09",
+     "Hairstyle_31_10",
+     "Hairstyle_31_11",
+     "Hairstyle_31_12",
+     "Hairstyle_31_13",
+     "Hairstyle_31_14",
+     "Hairstyle_31_15",
+     "Hairstyle_31_16",
      "none"
     ]
    },
    "acc": {
-    "count": 85,
+    "count": 86,
     "label": "\uc545\uc138\uc11c\ub9ac",
-    "none": 84,
+    "none": 85,
     "groups": [
      [
       0,
@@ -1566,6 +1608,9 @@
      ],
      [
       84
+     ],
+     [
+      85
      ]
     ],
     "names": [
@@ -1653,6 +1698,7 @@
      "Accessory_19_Party_Cone_02",
      "Accessory_19_Party_Cone_03",
      "Accessory_19_Party_Cone_04",
+     "Accessory_20_Scar_01",
      "none"
     ]
    }
@@ -1661,6 +1707,162 @@
  "interiors": {
   "atlas": "gen/interiors.json",
   "keys": {
+   "staircase_td": {
+    "w": 64,
+    "h": 160,
+    "cw": 4,
+    "ch": 10
+   },
+   "fence_railing_td": {
+    "w": 32,
+    "h": 160,
+    "cw": 2,
+    "ch": 10
+   },
+   "med_001": {
+    "w": 80,
+    "h": 128,
+    "cw": 5,
+    "ch": 8
+   },
+   "f03_rug_sofa_set": {
+    "w": 96,
+    "h": 112,
+    "cw": 6,
+    "ch": 7
+   },
+   "tall_cabinet_olive1": {
+    "w": 48,
+    "h": 112,
+    "cw": 3,
+    "ch": 7
+   },
+   "tall_cabinet_tan1": {
+    "w": 48,
+    "h": 112,
+    "cw": 3,
+    "ch": 7
+   },
+   "fmp_009": {
+    "w": 128,
+    "h": 96,
+    "cw": 8,
+    "ch": 6
+   },
+   "bookshelf_cabinet_set": {
+    "w": 112,
+    "h": 96,
+    "cw": 7,
+    "ch": 6
+   },
+   "big_bookshelf_tan1": {
+    "w": 64,
+    "h": 96,
+    "cw": 4,
+    "ch": 6
+   },
+   "painting_stripes_wide": {
+    "w": 64,
+    "h": 96,
+    "cw": 4,
+    "ch": 6
+   },
+   "rug_cross_pattern_ti": {
+    "w": 80,
+    "h": 80,
+    "cw": 5,
+    "ch": 5
+   },
+   "stair_corner_a_left": {
+    "w": 64,
+    "h": 80,
+    "cw": 4,
+    "ch": 5
+   },
+   "stair_corner_a_right": {
+    "w": 64,
+    "h": 80,
+    "cw": 4,
+    "ch": 5
+   },
+   "stair_corner_b_left": {
+    "w": 64,
+    "h": 80,
+    "cw": 4,
+    "ch": 5
+   },
+   "stair_corner_b_right": {
+    "w": 64,
+    "h": 80,
+    "cw": 4,
+    "ch": 5
+   },
+   "stair_corner_c_left": {
+    "w": 64,
+    "h": 80,
+    "cw": 4,
+    "ch": 5
+   },
+   "stair_corner_c_right": {
+    "w": 64,
+    "h": 80,
+    "cw": 4,
+    "ch": 5
+   },
+   "stair_straight_a_left": {
+    "w": 64,
+    "h": 80,
+    "cw": 4,
+    "ch": 5
+   },
+   "stair_straight_a_right": {
+    "w": 64,
+    "h": 80,
+    "cw": 4,
+    "ch": 5
+   },
+   "stair_straight_b_left": {
+    "w": 64,
+    "h": 80,
+    "cw": 4,
+    "ch": 5
+   },
+   "stair_straight_b_right": {
+    "w": 64,
+    "h": 80,
+    "cw": 4,
+    "ch": 5
+   },
+   "stair_straight_c_left": {
+    "w": 64,
+    "h": 80,
+    "cw": 4,
+    "ch": 5
+   },
+   "stair_straight_c_right": {
+    "w": 64,
+    "h": 80,
+    "cw": 4,
+    "ch": 5
+   },
+   "wardrobe_brown_a_open": {
+    "w": 64,
+    "h": 80,
+    "cw": 4,
+    "ch": 5
+   },
+   "wardrobe_brown_b_open": {
+    "w": 64,
+    "h": 80,
+    "cw": 4,
+    "ch": 5
+   },
+   "wardrobe_white_open": {
+    "w": 64,
+    "h": 80,
+    "cw": 4,
+    "ch": 5
+   },
    "bed_green": {
     "w": 48,
     "h": 80,
@@ -1672,6 +1874,204 @@
     "h": 80,
     "cw": 3,
     "ch": 5
+   },
+   "f03_bed_maroon_set": {
+    "w": 48,
+    "h": 80,
+    "cw": 3,
+    "ch": 5
+   },
+   "med_028": {
+    "w": 48,
+    "h": 80,
+    "cw": 3,
+    "ch": 5
+   },
+   "med_029": {
+    "w": 48,
+    "h": 80,
+    "cw": 3,
+    "ch": 5
+   },
+   "fence_accent_a_left": {
+    "w": 32,
+    "h": 80,
+    "cw": 2,
+    "ch": 5
+   },
+   "fence_accent_a_right": {
+    "w": 32,
+    "h": 80,
+    "cw": 2,
+    "ch": 5
+   },
+   "fence_accent_b_left": {
+    "w": 32,
+    "h": 80,
+    "cw": 2,
+    "ch": 5
+   },
+   "fence_accent_b_right": {
+    "w": 32,
+    "h": 80,
+    "cw": 2,
+    "ch": 5
+   },
+   "fence_accent_c_left": {
+    "w": 32,
+    "h": 80,
+    "cw": 2,
+    "ch": 5
+   },
+   "fence_accent_c_right": {
+    "w": 32,
+    "h": 80,
+    "cw": 2,
+    "ch": 5
+   },
+   "fence_plain_a_left": {
+    "w": 32,
+    "h": 80,
+    "cw": 2,
+    "ch": 5
+   },
+   "fence_plain_a_right": {
+    "w": 32,
+    "h": 80,
+    "cw": 2,
+    "ch": 5
+   },
+   "fence_plain_b_left": {
+    "w": 32,
+    "h": 80,
+    "cw": 2,
+    "ch": 5
+   },
+   "fence_plain_b_right": {
+    "w": 32,
+    "h": 80,
+    "cw": 2,
+    "ch": 5
+   },
+   "fence_plain_c_left": {
+    "w": 32,
+    "h": 80,
+    "cw": 2,
+    "ch": 5
+   },
+   "fence_plain_c_right": {
+    "w": 32,
+    "h": 80,
+    "cw": 2,
+    "ch": 5
+   },
+   "fmp_071": {
+    "w": 160,
+    "h": 64,
+    "cw": 10,
+    "ch": 4
+   },
+   "kitchen_workspace_fa": {
+    "w": 96,
+    "h": 64,
+    "cw": 6,
+    "ch": 4
+   },
+   "med_003": {
+    "w": 96,
+    "h": 64,
+    "cw": 6,
+    "ch": 4
+   },
+   "med_006": {
+    "w": 96,
+    "h": 64,
+    "cw": 6,
+    "ch": 4
+   },
+   "fmp_044": {
+    "w": 80,
+    "h": 64,
+    "cw": 5,
+    "ch": 4
+   },
+   "fmp_051": {
+    "w": 64,
+    "h": 64,
+    "cw": 4,
+    "ch": 4
+   },
+   "fridge_white_open_large": {
+    "w": 64,
+    "h": 64,
+    "cw": 4,
+    "ch": 4
+   },
+   "med_002": {
+    "w": 64,
+    "h": 64,
+    "cw": 4,
+    "ch": 4
+   },
+   "med_007": {
+    "w": 64,
+    "h": 64,
+    "cw": 4,
+    "ch": 4
+   },
+   "med_023": {
+    "w": 64,
+    "h": 64,
+    "cw": 4,
+    "ch": 4
+   },
+   "med_053": {
+    "w": 64,
+    "h": 64,
+    "cw": 4,
+    "ch": 4
+   },
+   "bed_pixel_black_double": {
+    "w": 48,
+    "h": 64,
+    "cw": 3,
+    "ch": 4
+   },
+   "bed_pixel_blue_double": {
+    "w": 48,
+    "h": 64,
+    "cw": 3,
+    "ch": 4
+   },
+   "bed_pixel_gray_double": {
+    "w": 48,
+    "h": 64,
+    "cw": 3,
+    "ch": 4
+   },
+   "bed_pixel_olive_double": {
+    "w": 48,
+    "h": 64,
+    "cw": 3,
+    "ch": 4
+   },
+   "bed_pixel_red_double": {
+    "w": 48,
+    "h": 64,
+    "cw": 3,
+    "ch": 4
+   },
+   "fmp_058": {
+    "w": 48,
+    "h": 64,
+    "cw": 3,
+    "ch": 4
+   },
+   "med_031": {
+    "w": 48,
+    "h": 64,
+    "cw": 3,
+    "ch": 4
    },
    "rug_blue_large": {
     "w": 48,
@@ -1685,7 +2085,331 @@
     "cw": 3,
     "ch": 4
    },
+   "wardrobe_brown_a_closed": {
+    "w": 48,
+    "h": 64,
+    "cw": 3,
+    "ch": 4
+   },
+   "wardrobe_brown_b_closed": {
+    "w": 48,
+    "h": 64,
+    "cw": 3,
+    "ch": 4
+   },
+   "wardrobe_white_closed": {
+    "w": 48,
+    "h": 64,
+    "cw": 3,
+    "ch": 4
+   },
+   "bed_blue_fp": {
+    "w": 32,
+    "h": 64,
+    "cw": 2,
+    "ch": 4
+   },
+   "bed_green_fp": {
+    "w": 32,
+    "h": 64,
+    "cw": 2,
+    "ch": 4
+   },
+   "bed_pixel_black_single": {
+    "w": 32,
+    "h": 64,
+    "cw": 2,
+    "ch": 4
+   },
+   "bed_pixel_blue_single": {
+    "w": 32,
+    "h": 64,
+    "cw": 2,
+    "ch": 4
+   },
+   "bed_pixel_gray_single": {
+    "w": 32,
+    "h": 64,
+    "cw": 2,
+    "ch": 4
+   },
+   "bed_pixel_olive_single": {
+    "w": 32,
+    "h": 64,
+    "cw": 2,
+    "ch": 4
+   },
+   "bed_pixel_red_single": {
+    "w": 32,
+    "h": 64,
+    "cw": 2,
+    "ch": 4
+   },
+   "chair_set_ti": {
+    "w": 32,
+    "h": 64,
+    "cw": 2,
+    "ch": 4
+   },
+   "door_office_dark": {
+    "w": 32,
+    "h": 64,
+    "cw": 2,
+    "ch": 4
+   },
+   "door_wood_open_a": {
+    "w": 32,
+    "h": 64,
+    "cw": 2,
+    "ch": 4
+   },
+   "door_wood_open_b": {
+    "w": 32,
+    "h": 64,
+    "cw": 2,
+    "ch": 4
+   },
+   "door_wood_open_c": {
+    "w": 32,
+    "h": 64,
+    "cw": 2,
+    "ch": 4
+   },
+   "fridge_steel_closed": {
+    "w": 32,
+    "h": 64,
+    "cw": 2,
+    "ch": 4
+   },
+   "fridge_white_closed_small": {
+    "w": 32,
+    "h": 64,
+    "cw": 2,
+    "ch": 4
+   },
+   "fridge_white_open_small": {
+    "w": 32,
+    "h": 64,
+    "cw": 2,
+    "ch": 4
+   },
+   "rug_rect_dotted_cream_tall": {
+    "w": 32,
+    "h": 64,
+    "cw": 2,
+    "ch": 4
+   },
+   "rug_rect_dotted_tan": {
+    "w": 32,
+    "h": 64,
+    "cw": 2,
+    "ch": 4
+   },
+   "rug_rect_plain_maroon": {
+    "w": 32,
+    "h": 64,
+    "cw": 2,
+    "ch": 4
+   },
+   "rug_runner_dotted_maroon": {
+    "w": 32,
+    "h": 64,
+    "cw": 2,
+    "ch": 4
+   },
+   "lamp_floor_dark_cream": {
+    "w": 16,
+    "h": 64,
+    "cw": 1,
+    "ch": 4
+   },
+   "rug_runner_plain_cream": {
+    "w": 16,
+    "h": 64,
+    "cw": 1,
+    "ch": 4
+   },
+   "rug_runner_striped_olive": {
+    "w": 16,
+    "h": 64,
+    "cw": 1,
+    "ch": 4
+   },
+   "wallpaper_brick_tan": {
+    "w": 64,
+    "h": 62,
+    "cw": 4,
+    "ch": 3
+   },
+   "wallpaper_plank_cream": {
+    "w": 64,
+    "h": 62,
+    "cw": 4,
+    "ch": 3
+   },
+   "wallpaper_plank_green": {
+    "w": 64,
+    "h": 62,
+    "cw": 4,
+    "ch": 3
+   },
+   "wallpaper_quatrefoil_sage": {
+    "w": 64,
+    "h": 62,
+    "cw": 4,
+    "ch": 3
+   },
+   "wallpaper_cream_solid": {
+    "w": 64,
+    "h": 61,
+    "cw": 4,
+    "ch": 3
+   },
+   "wallpaper_olive_panel": {
+    "w": 64,
+    "h": 61,
+    "cw": 4,
+    "ch": 3
+   },
+   "wallpaper_orange_solid": {
+    "w": 64,
+    "h": 61,
+    "cw": 4,
+    "ch": 3
+   },
+   "wallpaper_tan_solid": {
+    "w": 64,
+    "h": 61,
+    "cw": 4,
+    "ch": 3
+   },
+   "floor_brick_orange": {
+    "w": 64,
+    "h": 53,
+    "cw": 4,
+    "ch": 3
+   },
+   "floor_parquet_brown": {
+    "w": 64,
+    "h": 53,
+    "cw": 4,
+    "ch": 3
+   },
+   "floor_parquet_herringbone": {
+    "w": 64,
+    "h": 53,
+    "cw": 4,
+    "ch": 3
+   },
+   "floor_tile_dark_diamond": {
+    "w": 64,
+    "h": 53,
+    "cw": 4,
+    "ch": 3
+   },
+   "floor_brick_tan2": {
+    "w": 64,
+    "h": 52,
+    "cw": 4,
+    "ch": 3
+   },
+   "floor_plank_cream": {
+    "w": 64,
+    "h": 52,
+    "cw": 4,
+    "ch": 3
+   },
+   "floor_plank_olive": {
+    "w": 64,
+    "h": 52,
+    "cw": 4,
+    "ch": 3
+   },
+   "floor_plank_orange": {
+    "w": 64,
+    "h": 52,
+    "cw": 4,
+    "ch": 3
+   },
+   "blinds_navy": {
+    "w": 96,
+    "h": 48,
+    "cw": 6,
+    "ch": 3
+   },
+   "fmp_040": {
+    "w": 96,
+    "h": 48,
+    "cw": 6,
+    "ch": 3
+   },
+   "med_011": {
+    "w": 96,
+    "h": 48,
+    "cw": 6,
+    "ch": 3
+   },
+   "f03_table_long": {
+    "w": 64,
+    "h": 48,
+    "cw": 4,
+    "ch": 3
+   },
+   "fmp_013": {
+    "w": 64,
+    "h": 48,
+    "cw": 4,
+    "ch": 3
+   },
+   "fmp_042": {
+    "w": 64,
+    "h": 48,
+    "cw": 4,
+    "ch": 3
+   },
+   "fmp_056": {
+    "w": 64,
+    "h": 48,
+    "cw": 4,
+    "ch": 3
+   },
+   "fmp_063": {
+    "w": 64,
+    "h": 48,
+    "cw": 4,
+    "ch": 3
+   },
+   "fmp_065": {
+    "w": 64,
+    "h": 48,
+    "cw": 4,
+    "ch": 3
+   },
+   "med_010": {
+    "w": 64,
+    "h": 48,
+    "cw": 4,
+    "ch": 3
+   },
+   "med_030": {
+    "w": 64,
+    "h": 48,
+    "cw": 4,
+    "ch": 3
+   },
+   "rug_oval_tan": {
+    "w": 64,
+    "h": 48,
+    "cw": 4,
+    "ch": 3
+   },
    "rug_red_large": {
+    "w": 64,
+    "h": 48,
+    "cw": 4,
+    "ch": 3
+   },
+   "table_big_fp": {
     "w": 64,
     "h": 48,
     "cw": 4,
@@ -1703,6 +2427,516 @@
     "cw": 4,
     "ch": 3
    },
+   "toilet_fa": {
+    "w": 64,
+    "h": 48,
+    "cw": 4,
+    "ch": 3
+   },
+   "tv_table_fa": {
+    "w": 64,
+    "h": 48,
+    "cw": 4,
+    "ch": 3
+   },
+   "bath_fa": {
+    "w": 48,
+    "h": 48,
+    "cw": 3,
+    "ch": 3
+   },
+   "bathroom_cabinet_fa": {
+    "w": 48,
+    "h": 48,
+    "cw": 3,
+    "ch": 3
+   },
+   "bookcase_a_r1": {
+    "w": 48,
+    "h": 48,
+    "cw": 3,
+    "ch": 3
+   },
+   "bookcase_a_r2": {
+    "w": 48,
+    "h": 48,
+    "cw": 3,
+    "ch": 3
+   },
+   "bookcase_a_r3": {
+    "w": 48,
+    "h": 48,
+    "cw": 3,
+    "ch": 3
+   },
+   "bookcase_a_r4": {
+    "w": 48,
+    "h": 48,
+    "cw": 3,
+    "ch": 3
+   },
+   "bookcase_a_r5": {
+    "w": 48,
+    "h": 48,
+    "cw": 3,
+    "ch": 3
+   },
+   "bookcase_a_r6": {
+    "w": 48,
+    "h": 48,
+    "cw": 3,
+    "ch": 3
+   },
+   "bookcase_b_r1": {
+    "w": 48,
+    "h": 48,
+    "cw": 3,
+    "ch": 3
+   },
+   "bookcase_b_r2": {
+    "w": 48,
+    "h": 48,
+    "cw": 3,
+    "ch": 3
+   },
+   "bookcase_b_r3": {
+    "w": 48,
+    "h": 48,
+    "cw": 3,
+    "ch": 3
+   },
+   "bookcase_b_r4": {
+    "w": 48,
+    "h": 48,
+    "cw": 3,
+    "ch": 3
+   },
+   "bookcase_b_r5": {
+    "w": 48,
+    "h": 48,
+    "cw": 3,
+    "ch": 3
+   },
+   "bookcase_b_r6": {
+    "w": 48,
+    "h": 48,
+    "cw": 3,
+    "ch": 3
+   },
+   "bookcase_fa": {
+    "w": 48,
+    "h": 48,
+    "cw": 3,
+    "ch": 3
+   },
+   "bookcase_open_r1": {
+    "w": 48,
+    "h": 48,
+    "cw": 3,
+    "ch": 3
+   },
+   "bookcase_open_r2": {
+    "w": 48,
+    "h": 48,
+    "cw": 3,
+    "ch": 3
+   },
+   "bookcase_open_r3": {
+    "w": 48,
+    "h": 48,
+    "cw": 3,
+    "ch": 3
+   },
+   "bookcase_open_r4": {
+    "w": 48,
+    "h": 48,
+    "cw": 3,
+    "ch": 3
+   },
+   "bookcase_open_r5": {
+    "w": 48,
+    "h": 48,
+    "cw": 3,
+    "ch": 3
+   },
+   "bookcase_open_r6": {
+    "w": 48,
+    "h": 48,
+    "cw": 3,
+    "ch": 3
+   },
+   "cabinet_wide_a_r2": {
+    "w": 48,
+    "h": 48,
+    "cw": 3,
+    "ch": 3
+   },
+   "cabinet_wide_a_r4": {
+    "w": 48,
+    "h": 48,
+    "cw": 3,
+    "ch": 3
+   },
+   "cabinet_wide_a_r6": {
+    "w": 48,
+    "h": 48,
+    "cw": 3,
+    "ch": 3
+   },
+   "cabinet_wide_b_r2": {
+    "w": 48,
+    "h": 48,
+    "cw": 3,
+    "ch": 3
+   },
+   "cabinet_wide_b_r4": {
+    "w": 48,
+    "h": 48,
+    "cw": 3,
+    "ch": 3
+   },
+   "cabinet_wide_b_r6": {
+    "w": 48,
+    "h": 48,
+    "cw": 3,
+    "ch": 3
+   },
+   "cabinet_wide_c_r2": {
+    "w": 48,
+    "h": 48,
+    "cw": 3,
+    "ch": 3
+   },
+   "cabinet_wide_c_r4": {
+    "w": 48,
+    "h": 48,
+    "cw": 3,
+    "ch": 3
+   },
+   "cabinet_wide_c_r6": {
+    "w": 48,
+    "h": 48,
+    "cw": 3,
+    "ch": 3
+   },
+   "curtain_shower_blue": {
+    "w": 48,
+    "h": 48,
+    "cw": 3,
+    "ch": 3
+   },
+   "curtain_shower_pink": {
+    "w": 48,
+    "h": 48,
+    "cw": 3,
+    "ch": 3
+   },
+   "curtain_shower_tan": {
+    "w": 48,
+    "h": 48,
+    "cw": 3,
+    "ch": 3
+   },
+   "dresser_brown_3drawer_a": {
+    "w": 48,
+    "h": 48,
+    "cw": 3,
+    "ch": 3
+   },
+   "dresser_brown_3drawer_b": {
+    "w": 48,
+    "h": 48,
+    "cw": 3,
+    "ch": 3
+   },
+   "dresser_brown_3drawer_c": {
+    "w": 48,
+    "h": 48,
+    "cw": 3,
+    "ch": 3
+   },
+   "dresser_brown_3drawer_d": {
+    "w": 48,
+    "h": 48,
+    "cw": 3,
+    "ch": 3
+   },
+   "dresser_brown_4drawer_a": {
+    "w": 48,
+    "h": 48,
+    "cw": 3,
+    "ch": 3
+   },
+   "dresser_brown_4drawer_b": {
+    "w": 48,
+    "h": 48,
+    "cw": 3,
+    "ch": 3
+   },
+   "dresser_brown_4drawer_c": {
+    "w": 48,
+    "h": 48,
+    "cw": 3,
+    "ch": 3
+   },
+   "dresser_brown_4drawer_d": {
+    "w": 48,
+    "h": 48,
+    "cw": 3,
+    "ch": 3
+   },
+   "dresser_white_3drawer_a": {
+    "w": 48,
+    "h": 48,
+    "cw": 3,
+    "ch": 3
+   },
+   "dresser_white_3drawer_b": {
+    "w": 48,
+    "h": 48,
+    "cw": 3,
+    "ch": 3
+   },
+   "dresser_white_4drawer_a": {
+    "w": 48,
+    "h": 48,
+    "cw": 3,
+    "ch": 3
+   },
+   "dresser_white_4drawer_b": {
+    "w": 48,
+    "h": 48,
+    "cw": 3,
+    "ch": 3
+   },
+   "floor_lamp_fa": {
+    "w": 48,
+    "h": 48,
+    "cw": 3,
+    "ch": 3
+   },
+   "fmp_029": {
+    "w": 48,
+    "h": 48,
+    "cw": 3,
+    "ch": 3
+   },
+   "fmp_080": {
+    "w": 48,
+    "h": 48,
+    "cw": 3,
+    "ch": 3
+   },
+   "fmp_082": {
+    "w": 48,
+    "h": 48,
+    "cw": 3,
+    "ch": 3
+   },
+   "fmp_084": {
+    "w": 48,
+    "h": 48,
+    "cw": 3,
+    "ch": 3
+   },
+   "large_cabinet_tan1": {
+    "w": 48,
+    "h": 48,
+    "cw": 3,
+    "ch": 3
+   },
+   "med_008": {
+    "w": 48,
+    "h": 48,
+    "cw": 3,
+    "ch": 3
+   },
+   "med_019": {
+    "w": 48,
+    "h": 48,
+    "cw": 3,
+    "ch": 3
+   },
+   "med_052": {
+    "w": 48,
+    "h": 48,
+    "cw": 3,
+    "ch": 3
+   },
+   "med_055": {
+    "w": 48,
+    "h": 48,
+    "cw": 3,
+    "ch": 3
+   },
+   "med_057": {
+    "w": 48,
+    "h": 48,
+    "cw": 3,
+    "ch": 3
+   },
+   "med_058": {
+    "w": 48,
+    "h": 48,
+    "cw": 3,
+    "ch": 3
+   },
+   "pet_bed_fa": {
+    "w": 48,
+    "h": 48,
+    "cw": 3,
+    "ch": 3
+   },
+   "refrigerator_fa": {
+    "w": 48,
+    "h": 48,
+    "cw": 3,
+    "ch": 3
+   },
+   "rug_green_axulart": {
+    "w": 48,
+    "h": 48,
+    "cw": 3,
+    "ch": 3
+   },
+   "sideboard_r1": {
+    "w": 48,
+    "h": 48,
+    "cw": 3,
+    "ch": 3
+   },
+   "sideboard_r2": {
+    "w": 48,
+    "h": 48,
+    "cw": 3,
+    "ch": 3
+   },
+   "sideboard_r3": {
+    "w": 48,
+    "h": 48,
+    "cw": 3,
+    "ch": 3
+   },
+   "sideboard_r4": {
+    "w": 48,
+    "h": 48,
+    "cw": 3,
+    "ch": 3
+   },
+   "sideboard_r5": {
+    "w": 48,
+    "h": 48,
+    "cw": 3,
+    "ch": 3
+   },
+   "sideboard_r6": {
+    "w": 48,
+    "h": 48,
+    "cw": 3,
+    "ch": 3
+   },
+   "sink_counter_dry": {
+    "w": 48,
+    "h": 48,
+    "cw": 3,
+    "ch": 3
+   },
+   "sink_counter_full": {
+    "w": 48,
+    "h": 48,
+    "cw": 3,
+    "ch": 3
+   },
+   "stove_fa": {
+    "w": 48,
+    "h": 48,
+    "cw": 3,
+    "ch": 3
+   },
+   "vanity_fa": {
+    "w": 48,
+    "h": 48,
+    "cw": 3,
+    "ch": 3
+   },
+   "wardrobe_fa": {
+    "w": 48,
+    "h": 48,
+    "cw": 3,
+    "ch": 3
+   },
+   "washing_machine_fa": {
+    "w": 48,
+    "h": 48,
+    "cw": 3,
+    "ch": 3
+   },
+   "work_table_fa": {
+    "w": 48,
+    "h": 48,
+    "cw": 3,
+    "ch": 3
+   },
+   "armchair_gray_a": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3
+   },
+   "armchair_gray_b": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3
+   },
+   "armchair_green1": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3
+   },
+   "armchair_olive2": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3
+   },
+   "armchair_tan_a": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3
+   },
+   "armchair_tan_b": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3
+   },
+   "armchair_tan_plain": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3
+   },
+   "armchair_tan_striped": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3
+   },
+   "bed_fa": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3
+   },
+   "cabinet_drawers_olive1": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3
+   },
    "cupboard_wood": {
     "w": 32,
     "h": 48,
@@ -1710,6 +2944,240 @@
     "ch": 3
    },
    "cupboard_wood_b": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3
+   },
+   "decor_cabinet_olive1": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3
+   },
+   "door_brown_td": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3
+   },
+   "door_light_td": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3
+   },
+   "door_maroon_td": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3
+   },
+   "door_medium_td": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3
+   },
+   "door_wood_closed_a": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3
+   },
+   "door_wood_closed_b": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3
+   },
+   "door_wood_closed_c": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3
+   },
+   "doorframe_outline_a": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3
+   },
+   "doorframe_outline_b": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3
+   },
+   "doorframe_outline_c": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3
+   },
+   "doorway_void_a": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3
+   },
+   "doorway_void_b": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3
+   },
+   "doorway_void_c": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3
+   },
+   "f03_bookshelf_frame": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3
+   },
+   "fireplace_brick_maroon_lit": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3
+   },
+   "fireplace_brick_maroon_off": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3
+   },
+   "fireplace_brick_terracotta_lit": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3
+   },
+   "fireplace_brick_terracotta_off": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3
+   },
+   "fireplace_stone_gray_lit": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3
+   },
+   "fireplace_stone_gray_off": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3
+   },
+   "fireplace_stone_white_lit": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3
+   },
+   "fireplace_stone_white_off": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3
+   },
+   "floor_lamp_tan1": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3
+   },
+   "fmp_018": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3
+   },
+   "fmp_052": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3
+   },
+   "fmp_053": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3
+   },
+   "fmp_074": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3
+   },
+   "fmp_075": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3
+   },
+   "fmp_081": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3
+   },
+   "fmp_083": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3
+   },
+   "fmp_085": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3
+   },
+   "grandfather_clock_tan1": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3
+   },
+   "med_040": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3
+   },
+   "med_041": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3
+   },
+   "med_042": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3
+   },
+   "mirror_fa": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3
+   },
+   "mirror_tall_tan1": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3
+   },
+   "nightstand_drawers_tan1": {
     "w": 32,
     "h": 48,
     "cw": 2,
@@ -1733,13 +3201,283 @@
     "cw": 2,
     "ch": 3
    },
+   "stove_lit_gray": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3
+   },
+   "stove_lit_olive": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3
+   },
+   "stove_lit_tan": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3
+   },
+   "stove_off_gray": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3
+   },
+   "stove_off_olive": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3
+   },
+   "stove_off_tan": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3
+   },
+   "table_dining_dark_b": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3
+   },
+   "table_dining_medium_b": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3
+   },
+   "tall_dresser_olive1": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3
+   },
+   "toilet_white": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3
+   },
+   "vanity_mirror_chair_brown_a": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3
+   },
+   "vanity_mirror_chair_brown_b": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3
+   },
+   "vanity_mirror_chair_white": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3
+   },
    "wardrobe_wood": {
     "w": 32,
     "h": 48,
     "cw": 2,
     "ch": 3
    },
+   "bookcase_narrow_r1": {
+    "w": 16,
+    "h": 48,
+    "cw": 1,
+    "ch": 3
+   },
+   "bookcase_narrow_r2": {
+    "w": 16,
+    "h": 48,
+    "cw": 1,
+    "ch": 3
+   },
+   "bookcase_narrow_r3": {
+    "w": 16,
+    "h": 48,
+    "cw": 1,
+    "ch": 3
+   },
+   "bookcase_narrow_r4": {
+    "w": 16,
+    "h": 48,
+    "cw": 1,
+    "ch": 3
+   },
+   "bookcase_narrow_r5": {
+    "w": 16,
+    "h": 48,
+    "cw": 1,
+    "ch": 3
+   },
+   "bookcase_narrow_r6": {
+    "w": 16,
+    "h": 48,
+    "cw": 1,
+    "ch": 3
+   },
+   "cabinet_plain_a_r1": {
+    "w": 16,
+    "h": 48,
+    "cw": 1,
+    "ch": 3
+   },
+   "cabinet_plain_a_r3": {
+    "w": 16,
+    "h": 48,
+    "cw": 1,
+    "ch": 3
+   },
+   "cabinet_plain_a_r5": {
+    "w": 16,
+    "h": 48,
+    "cw": 1,
+    "ch": 3
+   },
+   "cabinet_plain_b_r1": {
+    "w": 16,
+    "h": 48,
+    "cw": 1,
+    "ch": 3
+   },
+   "cabinet_plain_b_r3": {
+    "w": 16,
+    "h": 48,
+    "cw": 1,
+    "ch": 3
+   },
+   "cabinet_plain_b_r5": {
+    "w": 16,
+    "h": 48,
+    "cw": 1,
+    "ch": 3
+   },
+   "cabinet_plain_c_r1": {
+    "w": 16,
+    "h": 48,
+    "cw": 1,
+    "ch": 3
+   },
+   "cabinet_plain_c_r3": {
+    "w": 16,
+    "h": 48,
+    "cw": 1,
+    "ch": 3
+   },
+   "cabinet_plain_c_r5": {
+    "w": 16,
+    "h": 48,
+    "cw": 1,
+    "ch": 3
+   },
+   "cabinet_plain_d_r1": {
+    "w": 16,
+    "h": 48,
+    "cw": 1,
+    "ch": 3
+   },
+   "cabinet_plain_d_r3": {
+    "w": 16,
+    "h": 48,
+    "cw": 1,
+    "ch": 3
+   },
+   "cabinet_plain_d_r5": {
+    "w": 16,
+    "h": 48,
+    "cw": 1,
+    "ch": 3
+   },
+   "cabinet_plain_e_r1": {
+    "w": 16,
+    "h": 48,
+    "cw": 1,
+    "ch": 3
+   },
+   "cabinet_plain_e_r3": {
+    "w": 16,
+    "h": 48,
+    "cw": 1,
+    "ch": 3
+   },
+   "cabinet_plain_e_r5": {
+    "w": 16,
+    "h": 48,
+    "cw": 1,
+    "ch": 3
+   },
+   "cabinet_tall_darkwood_narrow": {
+    "w": 16,
+    "h": 48,
+    "cw": 1,
+    "ch": 3
+   },
+   "cabinet_tall_white_narrow": {
+    "w": 16,
+    "h": 48,
+    "cw": 1,
+    "ch": 3
+   },
+   "cabinet_tall_wood_narrow": {
+    "w": 16,
+    "h": 48,
+    "cw": 1,
+    "ch": 3
+   },
+   "coat_rack_tan1": {
+    "w": 16,
+    "h": 48,
+    "cw": 1,
+    "ch": 3
+   },
+   "fmp_019": {
+    "w": 16,
+    "h": 48,
+    "cw": 1,
+    "ch": 3
+   },
+   "fmp_020": {
+    "w": 16,
+    "h": 48,
+    "cw": 1,
+    "ch": 3
+   },
+   "fmp_041": {
+    "w": 16,
+    "h": 48,
+    "cw": 1,
+    "ch": 3
+   },
+   "fmp_062": {
+    "w": 16,
+    "h": 48,
+    "cw": 1,
+    "ch": 3
+   },
+   "fmp_064": {
+    "w": 16,
+    "h": 48,
+    "cw": 1,
+    "ch": 3
+   },
+   "lamp_floor_black_cream": {
+    "w": 16,
+    "h": 48,
+    "cw": 1,
+    "ch": 3
+   },
    "lamp_floor_blue": {
+    "w": 16,
+    "h": 48,
+    "cw": 1,
+    "ch": 3
+   },
+   "lamp_floor_gold_arc": {
     "w": 16,
     "h": 48,
     "cw": 1,
@@ -1751,13 +3489,715 @@
     "cw": 1,
     "ch": 3
    },
+   "med_009": {
+    "w": 16,
+    "h": 48,
+    "cw": 1,
+    "ch": 3
+   },
+   "mirror_standing_tall": {
+    "w": 16,
+    "h": 48,
+    "cw": 1,
+    "ch": 3
+   },
+   "narrow_cabinet_olive1": {
+    "w": 16,
+    "h": 48,
+    "cw": 1,
+    "ch": 3
+   },
+   "narrow_cabinet_tan1": {
+    "w": 16,
+    "h": 48,
+    "cw": 1,
+    "ch": 3
+   },
+   "cabinet_lower_gray": {
+    "w": 128,
+    "h": 32,
+    "cw": 8,
+    "ch": 2
+   },
+   "cabinet_lower_olive": {
+    "w": 128,
+    "h": 32,
+    "cw": 8,
+    "ch": 2
+   },
+   "cabinet_lower_tan": {
+    "w": 128,
+    "h": 32,
+    "cw": 8,
+    "ch": 2
+   },
+   "cabinet_wall_glass_gray": {
+    "w": 128,
+    "h": 32,
+    "cw": 8,
+    "ch": 2
+   },
+   "cabinet_wall_glass_olive": {
+    "w": 128,
+    "h": 32,
+    "cw": 8,
+    "ch": 2
+   },
+   "cabinet_wall_glass_tan": {
+    "w": 128,
+    "h": 32,
+    "cw": 8,
+    "ch": 2
+   },
+   "bathtub_dry": {
+    "w": 80,
+    "h": 32,
+    "cw": 5,
+    "ch": 2
+   },
+   "bathtub_full": {
+    "w": 80,
+    "h": 32,
+    "cw": 5,
+    "ch": 2
+   },
+   "bathtub_red_fp": {
+    "w": 64,
+    "h": 32,
+    "cw": 4,
+    "ch": 2
+   },
+   "fmp_068": {
+    "w": 64,
+    "h": 32,
+    "cw": 4,
+    "ch": 2
+   },
+   "fmp_069": {
+    "w": 64,
+    "h": 32,
+    "cw": 4,
+    "ch": 2
+   },
+   "fmp_070": {
+    "w": 64,
+    "h": 32,
+    "cw": 4,
+    "ch": 2
+   },
+   "mat_large_blue": {
+    "w": 64,
+    "h": 32,
+    "cw": 4,
+    "ch": 2
+   },
+   "mat_large_sage": {
+    "w": 64,
+    "h": 32,
+    "cw": 4,
+    "ch": 2
+   },
+   "mat_large_teal": {
+    "w": 64,
+    "h": 32,
+    "cw": 4,
+    "ch": 2
+   },
+   "med_026": {
+    "w": 64,
+    "h": 32,
+    "cw": 4,
+    "ch": 2
+   },
+   "med_039": {
+    "w": 64,
+    "h": 32,
+    "cw": 4,
+    "ch": 2
+   },
+   "rug_rect_dotted_cream_wide": {
+    "w": 64,
+    "h": 32,
+    "cw": 4,
+    "ch": 2
+   },
+   "rug_rect_dotted_maroon": {
+    "w": 64,
+    "h": 32,
+    "cw": 4,
+    "ch": 2
+   },
+   "rug_rect_striped_maroon": {
+    "w": 64,
+    "h": 32,
+    "cw": 4,
+    "ch": 2
+   },
+   "rug_rect_striped_tan": {
+    "w": 64,
+    "h": 32,
+    "cw": 4,
+    "ch": 2
+   },
+   "sofa_blue_fp": {
+    "w": 64,
+    "h": 32,
+    "cw": 4,
+    "ch": 2
+   },
+   "sofa_teal_fp": {
+    "w": 64,
+    "h": 32,
+    "cw": 4,
+    "ch": 2
+   },
+   "bathroom_rug_fa": {
+    "w": 48,
+    "h": 32,
+    "cw": 3,
+    "ch": 2
+   },
+   "bench_ottoman_white": {
+    "w": 48,
+    "h": 32,
+    "cw": 3,
+    "ch": 2
+   },
+   "carpet_large_fa": {
+    "w": 48,
+    "h": 32,
+    "cw": 3,
+    "ch": 2
+   },
+   "carpet_medium_fa": {
+    "w": 48,
+    "h": 32,
+    "cw": 3,
+    "ch": 2
+   },
+   "commode_fa": {
+    "w": 48,
+    "h": 32,
+    "cw": 3,
+    "ch": 2
+   },
+   "console_drawer_r1": {
+    "w": 48,
+    "h": 32,
+    "cw": 3,
+    "ch": 2
+   },
+   "console_drawer_r2": {
+    "w": 48,
+    "h": 32,
+    "cw": 3,
+    "ch": 2
+   },
+   "console_drawer_r3": {
+    "w": 48,
+    "h": 32,
+    "cw": 3,
+    "ch": 2
+   },
+   "console_drawer_r4": {
+    "w": 48,
+    "h": 32,
+    "cw": 3,
+    "ch": 2
+   },
+   "console_drawer_r5": {
+    "w": 48,
+    "h": 32,
+    "cw": 3,
+    "ch": 2
+   },
+   "console_drawer_r6": {
+    "w": 48,
+    "h": 32,
+    "cw": 3,
+    "ch": 2
+   },
+   "console_shelf_r1": {
+    "w": 48,
+    "h": 32,
+    "cw": 3,
+    "ch": 2
+   },
+   "console_shelf_r2": {
+    "w": 48,
+    "h": 32,
+    "cw": 3,
+    "ch": 2
+   },
+   "console_shelf_r3": {
+    "w": 48,
+    "h": 32,
+    "cw": 3,
+    "ch": 2
+   },
+   "console_shelf_r4": {
+    "w": 48,
+    "h": 32,
+    "cw": 3,
+    "ch": 2
+   },
+   "console_shelf_r5": {
+    "w": 48,
+    "h": 32,
+    "cw": 3,
+    "ch": 2
+   },
+   "console_shelf_r6": {
+    "w": 48,
+    "h": 32,
+    "cw": 3,
+    "ch": 2
+   },
+   "couch_fa": {
+    "w": 48,
+    "h": 32,
+    "cw": 3,
+    "ch": 2
+   },
+   "decor_shelf_small": {
+    "w": 48,
+    "h": 32,
+    "cw": 3,
+    "ch": 2
+   },
+   "f03_aquarium": {
+    "w": 48,
+    "h": 32,
+    "cw": 3,
+    "ch": 2
+   },
+   "f03_rug_olive": {
+    "w": 48,
+    "h": 32,
+    "cw": 3,
+    "ch": 2
+   },
+   "fmp_059": {
+    "w": 48,
+    "h": 32,
+    "cw": 3,
+    "ch": 2
+   },
+   "fmp_060": {
+    "w": 48,
+    "h": 32,
+    "cw": 3,
+    "ch": 2
+   },
+   "fmp_061": {
+    "w": 48,
+    "h": 32,
+    "cw": 3,
+    "ch": 2
+   },
+   "fmp_073": {
+    "w": 48,
+    "h": 32,
+    "cw": 3,
+    "ch": 2
+   },
+   "fmp_086": {
+    "w": 48,
+    "h": 32,
+    "cw": 3,
+    "ch": 2
+   },
+   "garland_lights": {
+    "w": 48,
+    "h": 32,
+    "cw": 3,
+    "ch": 2
+   },
+   "kitchen_table_fa": {
+    "w": 48,
+    "h": 32,
+    "cw": 3,
+    "ch": 2
+   },
+   "med_018": {
+    "w": 48,
+    "h": 32,
+    "cw": 3,
+    "ch": 2
+   },
+   "med_027": {
+    "w": 48,
+    "h": 32,
+    "cw": 3,
+    "ch": 2
+   },
+   "med_056": {
+    "w": 48,
+    "h": 32,
+    "cw": 3,
+    "ch": 2
+   },
+   "med_067": {
+    "w": 48,
+    "h": 32,
+    "cw": 3,
+    "ch": 2
+   },
+   "painting_sunset_framed": {
+    "w": 48,
+    "h": 32,
+    "cw": 3,
+    "ch": 2
+   },
+   "rug_pattern_olive1": {
+    "w": 48,
+    "h": 32,
+    "cw": 3,
+    "ch": 2
+   },
+   "rug_pattern_tan1": {
+    "w": 48,
+    "h": 32,
+    "cw": 3,
+    "ch": 2
+   },
+   "rug_round_cream_a": {
+    "w": 48,
+    "h": 32,
+    "cw": 3,
+    "ch": 2
+   },
+   "rug_round_gray_a": {
+    "w": 48,
+    "h": 32,
+    "cw": 3,
+    "ch": 2
+   },
+   "rug_teal_rect_ti": {
+    "w": 48,
+    "h": 32,
+    "cw": 3,
+    "ch": 2
+   },
    "sofa_brown": {
     "w": 48,
     "h": 32,
     "cw": 3,
     "ch": 2
    },
+   "sofa_gray_long_pillow": {
+    "w": 48,
+    "h": 32,
+    "cw": 3,
+    "ch": 2
+   },
+   "sofa_gray_plain": {
+    "w": 48,
+    "h": 32,
+    "cw": 3,
+    "ch": 2
+   },
+   "sofa_pink_ti": {
+    "w": 48,
+    "h": 32,
+    "cw": 3,
+    "ch": 2
+   },
+   "sofa_tan_long": {
+    "w": 48,
+    "h": 32,
+    "cw": 3,
+    "ch": 2
+   },
+   "sofa_tan_plain": {
+    "w": 48,
+    "h": 32,
+    "cw": 3,
+    "ch": 2
+   },
+   "soundbar_black": {
+    "w": 48,
+    "h": 32,
+    "cw": 3,
+    "ch": 2
+   },
+   "soundbar_silver": {
+    "w": 48,
+    "h": 32,
+    "cw": 3,
+    "ch": 2
+   },
+   "table_coffee_round_brown": {
+    "w": 48,
+    "h": 32,
+    "cw": 3,
+    "ch": 2
+   },
+   "table_coffee_round_cream": {
+    "w": 48,
+    "h": 32,
+    "cw": 3,
+    "ch": 2
+   },
+   "table_coffee_round_dark": {
+    "w": 48,
+    "h": 32,
+    "cw": 3,
+    "ch": 2
+   },
+   "table_dining_dark_a": {
+    "w": 48,
+    "h": 32,
+    "cw": 3,
+    "ch": 2
+   },
+   "table_dining_medium_a": {
+    "w": 48,
+    "h": 32,
+    "cw": 3,
+    "ch": 2
+   },
+   "table_wide_olive1": {
+    "w": 48,
+    "h": 32,
+    "cw": 3,
+    "ch": 2
+   },
+   "table_wide_tan1": {
+    "w": 48,
+    "h": 32,
+    "cw": 3,
+    "ch": 2
+   },
+   "towel_rack_fa": {
+    "w": 48,
+    "h": 32,
+    "cw": 3,
+    "ch": 2
+   },
+   "tv_screen_black": {
+    "w": 48,
+    "h": 32,
+    "cw": 3,
+    "ch": 2
+   },
+   "tv_screen_on": {
+    "w": 48,
+    "h": 32,
+    "cw": 3,
+    "ch": 2
+   },
+   "window_dark_a": {
+    "w": 48,
+    "h": 32,
+    "cw": 3,
+    "ch": 2
+   },
+   "window_dark_b": {
+    "w": 48,
+    "h": 32,
+    "cw": 3,
+    "ch": 2
+   },
+   "window_dark_c": {
+    "w": 48,
+    "h": 32,
+    "cw": 3,
+    "ch": 2
+   },
+   "window_light_a": {
+    "w": 48,
+    "h": 32,
+    "cw": 3,
+    "ch": 2
+   },
+   "window_light_b": {
+    "w": 48,
+    "h": 32,
+    "cw": 3,
+    "ch": 2
+   },
+   "window_light_c": {
+    "w": 48,
+    "h": 32,
+    "cw": 3,
+    "ch": 2
+   },
+   "wall_shelf_fa": {
+    "w": 38,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "armchair_blue_fp": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "armchair_gray_plain": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "armchair_gray_small_a": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "armchair_gray_small_b": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "armchair_gray_striped": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "armchair_tan_small_a": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "armchair_tan_small_b": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "armchair_teal_fp": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "binder_stack_sm": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "book_stack_dark_fp": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "book_stack_fp": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "book_stack_purple_fp": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "book_stack_tan_fp": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "bookshelf_small_olive1": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "bookshelf_small_tan1": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
    "cabinet_light": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "cabinet_vanity_brown_a": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "cabinet_vanity_brown_b": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "cabinet_vanity_white": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "chair_black_back_b": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "chair_black_side_b": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "chair_dark_back_b": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "chair_dark_side_b": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "chair_medium_back_b": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "chair_medium_side_b": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "chair_table_olive1": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "chair_table_tan1": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "chair_white_back_b": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "chair_white_side_b": {
     "w": 32,
     "h": 32,
     "cw": 2,
@@ -1769,7 +4209,43 @@
     "cw": 2,
     "ch": 2
    },
+   "chart_board_sm": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "cleaning_rag_sm": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "coin_gold_sm": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "desk_clock_round": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
    "desk_wood": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "dresser_olive1": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "dresser_tan1": {
     "w": 32,
     "h": 32,
     "cw": 2,
@@ -1782,6 +4258,276 @@
     "ch": 2
    },
    "dresser_wood_wide": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "f03_easel_painting": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "f03_potted_plant": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "fire_extinguisher_sm": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "floor_tile_gray_office": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "fmp_007": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "fmp_008": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "fmp_011": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "fmp_012": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "fmp_014": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "fmp_015": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "fmp_016": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "fmp_017": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "fmp_021": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "fmp_023": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "fmp_066": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "framed_pic_fp1": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "framed_pic_fp2": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "keyboard_sm": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "kitchen_chair_fa": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "lamp_table_cream_dark": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "lamp_table_cream_light": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "mat_contour_blue": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "mat_contour_sage": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "mat_contour_teal": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "med_014": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "med_024": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "med_025": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "med_037": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "med_038": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "med_063": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "med_064": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "med_065": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "med_066": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "monitor_sm": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "mug_sm": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "nightstand_brown_c": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "nightstand_brown_colorful": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "nightstand_brown_d": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "nightstand_brown_g": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "nightstand_brown_h": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "nightstand_olive1": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "nightstand_tan1": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "nightstand_white_c": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "office_chair_fa": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "office_desk_sm": {
     "w": 32,
     "h": 32,
     "cw": 2,
@@ -1835,7 +4581,49 @@
     "cw": 2,
     "ch": 2
    },
+   "pencil_sm": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "plant_fp1": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "plant_fp2": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
    "plant_palm": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "round_table_fp1": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "round_table_fp2": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "round_table_olive1": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "round_table_tan1": {
     "w": 32,
     "h": 32,
     "cw": 2,
@@ -1871,7 +4659,115 @@
     "cw": 2,
     "ch": 2
    },
+   "rug_round_cream_b": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "rug_round_gray_b": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "stool_round_brown": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "stool_round_cream": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "stool_round_dark": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "table_long_tan_ti": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "table_round_dark": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "table_round_white": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "toilet_red_fp": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "toilet_white_fp": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "wallpaper_brick_office": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
    "wardrobe_mirror": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "window_blind_tan_td": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "window_blind_td": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "window_blind_white_td": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "window_grid_tan_td": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "window_grid_td": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "window_grid_white_td": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "window_small_td": {
     "w": 32,
     "h": 32,
     "cw": 2,
@@ -1883,7 +4779,247 @@
     "cw": 2,
     "ch": 2
    },
+   "bed_pink_fnp": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "book_stack_small": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "cabinet_narrow_dark": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "chair_black_back_a": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "chair_black_front": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "chair_black_plain": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "chair_black_side_a": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "chair_dark_back_a": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "chair_dark_front": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "chair_dark_plain": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "chair_dark_side_a": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "chair_medium_back_a": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "chair_medium_front": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "chair_medium_plain": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "chair_medium_side_a": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "chair_olive1_a": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "chair_olive1_b": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "chair_olive1_c": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
    "chair_red": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "chair_tan1_a": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "chair_tan1_b": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "chair_tan1_c": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "chair_white_back_a": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "chair_white_front": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "chair_white_plain": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "chair_white_side_a": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "clock_alarm_small": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "f03_hanging_pouch1": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "f03_hanging_pouch2": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "f03_tall_book_stack": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "flower_vase_tall": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "fmp_004": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "fmp_010": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "fmp_035": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "fmp_036": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "fmp_039": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "fmp_057": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "fmp_076": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "fmp_077": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "fmp_078": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "fmp_079": {
     "w": 16,
     "h": 32,
     "cw": 1,
@@ -1901,6 +5037,12 @@
     "cw": 1,
     "ch": 2
    },
+   "framed_painting_tall": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
    "globe_gold": {
     "w": 16,
     "h": 32,
@@ -1908,6 +5050,12 @@
     "ch": 2
    },
    "globe_silver": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "lamp_desk_modern": {
     "w": 16,
     "h": 32,
     "cw": 1,
@@ -1937,7 +5085,115 @@
     "cw": 1,
     "ch": 2
    },
+   "lamp_table_cream": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "lamp_table_white": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "med_004": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "med_005": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "med_059": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "med_060": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "med_061": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "med_062": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "mirror_oval_gold": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "mirror_oval_silver": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
    "mirror_wall": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "narrow_shelf_olive1": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "narrow_shelf_tan1": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "nightstand_brown_a": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "nightstand_brown_b": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "nightstand_brown_e": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "nightstand_brown_f": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "nightstand_white_a": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "nightstand_white_b": {
     "w": 16,
     "h": 32,
     "cw": 1,
@@ -1985,7 +5241,55 @@
     "cw": 1,
     "ch": 2
    },
+   "plant_lamp_ti": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
    "plant_pot": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "plant_pot_green_terracotta": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "plant_pot_leafy_tan": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "plant_pot_tall_gray": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "plant_small_blue_vase": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "plant_small_pink_vase": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "plant_small_thin_tan": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "rubber_duck_toy": {
     "w": 16,
     "h": 32,
     "cw": 1,
@@ -1997,13 +5301,697 @@
     "cw": 1,
     "ch": 2
    },
+   "sconce_candle_double": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "small_stand_ti1": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "small_stand_ti2": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "speaker_tower_black": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "speaker_tower_gray": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
    "table_wood_small": {
     "w": 16,
     "h": 32,
     "cw": 1,
     "ch": 2
    },
+   "towel_folded_white": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "towel_stack_white": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "wardrobe_fnp": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "food_spread_td": {
+    "w": 64,
+    "h": 16,
+    "cw": 4,
+    "ch": 1
+   },
+   "rug_rect_plain_tan_wide": {
+    "w": 64,
+    "h": 16,
+    "cw": 4,
+    "ch": 1
+   },
+   "rug_rect_striped_olive_wide": {
+    "w": 64,
+    "h": 16,
+    "cw": 4,
+    "ch": 1
+   },
+   "stool_bench_dark": {
+    "w": 64,
+    "h": 16,
+    "cw": 4,
+    "ch": 1
+   },
+   "stool_bench_light": {
+    "w": 64,
+    "h": 16,
+    "cw": 4,
+    "ch": 1
+   },
+   "mat_oval_blue": {
+    "w": 48,
+    "h": 16,
+    "cw": 3,
+    "ch": 1
+   },
+   "mat_oval_sage": {
+    "w": 48,
+    "h": 16,
+    "cw": 3,
+    "ch": 1
+   },
+   "mat_oval_teal": {
+    "w": 48,
+    "h": 16,
+    "cw": 3,
+    "ch": 1
+   },
+   "table_low_r1": {
+    "w": 48,
+    "h": 16,
+    "cw": 3,
+    "ch": 1
+   },
+   "table_low_r3": {
+    "w": 48,
+    "h": 16,
+    "cw": 3,
+    "ch": 1
+   },
+   "table_low_r5": {
+    "w": 48,
+    "h": 16,
+    "cw": 3,
+    "ch": 1
+   },
+   "f03_bench_narrow": {
+    "w": 32,
+    "h": 16,
+    "cw": 2,
+    "ch": 1
+   },
+   "fmp_005": {
+    "w": 32,
+    "h": 16,
+    "cw": 2,
+    "ch": 1
+   },
+   "fmp_006": {
+    "w": 32,
+    "h": 16,
+    "cw": 2,
+    "ch": 1
+   },
+   "fmp_067": {
+    "w": 32,
+    "h": 16,
+    "cw": 2,
+    "ch": 1
+   },
+   "gift_pouch_wide": {
+    "w": 32,
+    "h": 16,
+    "cw": 2,
+    "ch": 1
+   },
+   "mat_small_blue": {
+    "w": 32,
+    "h": 16,
+    "cw": 2,
+    "ch": 1
+   },
+   "mat_small_sage": {
+    "w": 32,
+    "h": 16,
+    "cw": 2,
+    "ch": 1
+   },
+   "mat_small_teal": {
+    "w": 32,
+    "h": 16,
+    "cw": 2,
+    "ch": 1
+   },
+   "med_020": {
+    "w": 32,
+    "h": 16,
+    "cw": 2,
+    "ch": 1
+   },
+   "med_021": {
+    "w": 32,
+    "h": 16,
+    "cw": 2,
+    "ch": 1
+   },
+   "med_022": {
+    "w": 32,
+    "h": 16,
+    "cw": 2,
+    "ch": 1
+   },
+   "painting_dining_scene": {
+    "w": 32,
+    "h": 16,
+    "cw": 2,
+    "ch": 1
+   },
+   "painting_landscape_hills": {
+    "w": 32,
+    "h": 16,
+    "cw": 2,
+    "ch": 1
+   },
+   "rug_oval_small_ti1": {
+    "w": 32,
+    "h": 16,
+    "cw": 2,
+    "ch": 1
+   },
+   "rug_oval_small_ti2": {
+    "w": 32,
+    "h": 16,
+    "cw": 2,
+    "ch": 1
+   },
+   "rug_oval_small_ti3": {
+    "w": 32,
+    "h": 16,
+    "cw": 2,
+    "ch": 1
+   },
+   "sink_small_gray_a": {
+    "w": 32,
+    "h": 16,
+    "cw": 2,
+    "ch": 1
+   },
+   "sink_small_gray_b": {
+    "w": 32,
+    "h": 16,
+    "cw": 2,
+    "ch": 1
+   },
+   "sink_small_olive_a": {
+    "w": 32,
+    "h": 16,
+    "cw": 2,
+    "ch": 1
+   },
+   "sink_small_olive_b": {
+    "w": 32,
+    "h": 16,
+    "cw": 2,
+    "ch": 1
+   },
+   "sink_small_tan_a": {
+    "w": 32,
+    "h": 16,
+    "cw": 2,
+    "ch": 1
+   },
+   "sink_small_tan_b": {
+    "w": 32,
+    "h": 16,
+    "cw": 2,
+    "ch": 1
+   },
+   "stool_small_a": {
+    "w": 32,
+    "h": 16,
+    "cw": 2,
+    "ch": 1
+   },
+   "stool_small_b": {
+    "w": 32,
+    "h": 16,
+    "cw": 2,
+    "ch": 1
+   },
+   "stool_small_c": {
+    "w": 32,
+    "h": 16,
+    "cw": 2,
+    "ch": 1
+   },
+   "badge_shield_red": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "badge_shield_silver": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "blue_book_stack_td": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "blue_cloth_td": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "book_brown": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "book_dark_td": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "book_open_td": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "bowl1_td": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "bowl2_td": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "bowl3_td": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "bowl4_td": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "bowl_white_td": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "bread_plate_td": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "brown_box_td": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "burger_td": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "can_blue_td": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "can_yellow_td": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "candy_piece": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "ceramic_bottle_td": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
    "chair_wood": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "choco_ball_td": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "clock_wall_round": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "coffee_cup1_td": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "coffee_cup2_td": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "coffee_cup3_td": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "coffee_cup4_td": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "cookie_plate_small": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "cookie_single": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "desk_calendar": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "diary_book": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "dog_bone_td": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "donut_pink": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "drawer_dark_td": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "drawer_wood_td": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "f03_globe_small": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "f03_small_figurine": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "f03_small_vase": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "fishbowl_td": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "flower_bunch_td": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "fmp_002": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "fmp_003": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "fmp_022": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "fmp_024": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "fmp_025": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "fmp_026": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "fmp_027": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "fmp_028": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "fmp_030": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "fmp_031": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "fmp_032": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "fmp_033": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "fmp_034": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "fmp_037": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "fmp_038": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "fmp_043": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "fmp_045": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "fmp_046": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "fmp_047": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "fmp_048": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "fmp_049": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "fmp_050": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "fmp_054": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "fmp_055": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "fmp_087": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "fmp_088": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "fmp_089": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "fmp_090": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "fmp_091": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "fmp_092": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "fmp_093": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "fmp_094": {
     "w": 16,
     "h": 16,
     "cw": 1,
@@ -2033,6 +6021,198 @@
     "cw": 1,
     "ch": 1
    },
+   "glass_blue1_td": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "glass_blue2_td": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "green_deco_td": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "hanger_td": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "ink_bottle": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "lampshade_white_td": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "med_012": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "med_013": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "med_015": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "med_016": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "med_017": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "med_032": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "med_033": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "med_034": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "med_035": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "med_036": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "med_043": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "med_044": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "med_045": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "med_046": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "med_047": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "med_048": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "med_049": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "med_050": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "med_051": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "mug_white_small": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "mug_white_td": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "nightstand_fnp": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "note_scrap_td": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "notepad_small": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "notepad_td": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "orange_cone_td": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
    "painting_moon_mini": {
     "w": 16,
     "h": 16,
@@ -2057,7 +6237,181 @@
     "cw": 1,
     "ch": 1
    },
+   "pencil_small_td": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "perfume_bottle_td": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "pie_pink_td": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "pie_yellow_td": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "plaid_box_td": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
    "plate_cookies": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "plate_white_td": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "pot_brown1_td": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "pot_brown2_td": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "pot_brown3_td": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "pot_brown4_td": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "potion_green_td": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "potion_purple": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "round_lamp_ti": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "rubber_duck_td2": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "sandwich_td": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "shelf_wall_small": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "small_bead_td": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "small_deco_td": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "small_deco_ti": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "small_flower": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "small_frame_td": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "small_potted_plant2": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "small_shelf_striped_ti": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "small_stool_td": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "small_stool_ti1": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "small_stool_ti2": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "small_stool_ti3": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "small_table_fnp": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "soup_plate_td": {
     "w": 16,
     "h": 16,
     "cw": 1,
@@ -2070,6 +6424,36 @@
     "ch": 1
    },
    "table_light_small": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "tart_pie_td": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "tea_leaf_plate_td": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "teacup_small": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "teapot_red": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "telephone_old": {
     "w": 16,
     "h": 16,
     "cw": 1,
@@ -2130,6 +6514,54 @@
     "ch": 1
    },
    "tile_wall_top": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "trinket_a": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "trinket_b": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "wall_clock_td": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "wine_glass1_td": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "wine_glass2_td": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "wine_glass3_td": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "wine_glass4_td": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "wood_crate_td": {
     "w": 16,
     "h": 16,
     "cw": 1,

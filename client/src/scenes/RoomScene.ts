@@ -4,7 +4,8 @@ import { Avatar } from "../avatar/Avatar";
 import { ensureAvatarTextures } from "../avatar/AvatarLoader";
 import { RemoteAvatars } from "../avatar/RemoteAvatars";
 import { bus, toast } from "../bus";
-import type { Catalog } from "../catalog";
+import type { Catalog, Layer } from "../catalog";
+import { TILE_DEPTH } from "../room/depth";
 import { CELL, worldToCell } from "../room/grid";
 import { ATLAS, ItemLayer } from "../room/ItemLayer";
 import { PlacementController } from "../room/Placement";
@@ -14,6 +15,8 @@ import { socket } from "../ws";
 const POLL_MS = 60_000;
 const LONG_PRESS_MS = 400;
 const TAP_SLOP = 14; // fingers wobble; keep the long-press alive within this radius
+// a plain tap only opens the menu for these; rugs/wallpaper need a long press so tapping a rug still walks there
+const TAP_MENU_LAYERS: ReadonlySet<Layer> = new Set<Layer>(["furniture", "surface_item"]);
 
 export class RoomScene extends Phaser.Scene {
   private cat!: Catalog;
@@ -25,6 +28,8 @@ export class RoomScene extends Phaser.Scene {
   private pollTimer: number | null = null;
   private press: { x: number; y: number; t: number; timer: number | null; moved: boolean } | null = null;
   private playerId: string | null = null;
+  private inflight: Promise<void> | null = null;
+  private onContextMenu = (e: Event) => e.preventDefault();
 
   constructor() {
     super("Room");
@@ -57,8 +62,11 @@ export class RoomScene extends Phaser.Scene {
 
   // ---------------------------------------------------------------- room base
 
+  /** Bakes the wall/floor tiles into one RenderTexture: 1 game object instead of cols×rows images per frame. */
   private drawRoom(): void {
     const { cols, rows, wall_rows, tiles } = this.cat.room;
+    const rt = this.add.renderTexture(0, 0, cols * CELL, rows * CELL).setOrigin(0).setDepth(TILE_DEPTH);
+    rt.beginDraw();
     for (let cy = 0; cy < rows; cy++) {
       for (let cx = 0; cx < cols; cx++) {
         let key = tiles.floor;
@@ -67,20 +75,28 @@ export class RoomScene extends Phaser.Scene {
             : cx === cols - 1 && tiles.wall_right.length ? tiles.wall_right : tiles.wall;
           key = edge[cy] ?? tiles.wall[cy];
         }
-        this.add.image(cx * CELL, cy * CELL, ATLAS, key).setOrigin(0).setDepth(-1);
+        rt.batchDrawFrame(ATLAS, key, cx * CELL, cy * CELL);
       }
     }
+    rt.endDraw();
     this.cameras.main.setBounds(0, 0, cols * CELL, rows * CELL);
   }
 
   // ---------------------------------------------------------------- data
 
-  async refreshRoom(): Promise<void> {
+  /** Fetches the room snapshot; concurrent calls share one request (place response + WS notify both ask). */
+  refreshRoom(): Promise<void> {
+    if (!this.inflight) this.inflight = this.doRefresh().finally(() => { this.inflight = null; });
+    return this.inflight;
+  }
+
+  private async doRefresh(): Promise<void> {
     try {
       const r = await api.room(state.roomVersion);
       if (!r) return; // 304
       state.roomVersion = r.version;
       this.items.sync(r.items);
+      this.placement.revalidate();
     } catch (e) {
       if (e instanceof ApiError && e.code !== "network") toast(msgFor(e.code));
     }
@@ -109,11 +125,22 @@ export class RoomScene extends Phaser.Scene {
       socket.on("leave", (m) => { this.remotes.leave(m.id); this.publishOnline(); }),
       socket.on("move", (m) => this.remotes.move(m.id, m.x, m.y, m.dir, m.moving)),
       socket.on("avatar_look", (m) => void this.remotes.look(m.id, m.avatar)),
-      socket.on("room", (m) => { if (m.version !== state.roomVersion) void this.refreshRoom(); }),
+      socket.on("room", (m) => {
+        if (typeof m.balance === "number") this.setBalance(m.balance);
+        if (m.version !== state.roomVersion) void this.refreshRoom();
+      }),
+      socket.on("money", (m) => this.setBalance(m.balance)),
       socket.on("open", () => this.publishOnline()),
       socket.on("close", () => { this.remotes.reset([]); this.publishOnline(); }),
     ];
     this.unsub.push(...offs);
+  }
+
+  /** Shared pool: everyone's balance moves when anyone buys/sells or the sheet updates. */
+  private setBalance(balance: number): void {
+    if (state.balance === balance) return;
+    state.balance = balance;
+    bus.emit("money", { balance });
   }
 
   private publishOnline(): void {
@@ -129,6 +156,7 @@ export class RoomScene extends Phaser.Scene {
       bus.on("place:begin", ({ itemId }) => this.placement.begin(itemId)),
       bus.on("place:move", ({ uid }) => { const row = this.items.get(uid); if (row) this.placement.beginMove(row); }),
       bus.on("place:confirm", () => void this.placement.confirm()),
+      bus.on("place:confirm-again", () => void this.placement.confirm(true)),
       bus.on("place:cancel", () => this.placement.cancel()),
       bus.on("room:refresh", () => void this.refreshRoom()),
       bus.on("item:remove", ({ uid }) => void this.removeItem(uid)),
@@ -157,7 +185,7 @@ export class RoomScene extends Phaser.Scene {
 
   private bindInput(): void {
     // no browser context menu / iOS callout on long press over the canvas
-    this.game.canvas.addEventListener("contextmenu", (e) => e.preventDefault());
+    this.game.canvas.addEventListener("contextmenu", this.onContextMenu);
     this.input.on(Phaser.Input.Events.POINTER_DOWN, (p: Phaser.Input.Pointer) => {
       if (this.placement.active) { this.placement.pointer(p.worldX, p.worldY); return; }
       const press = { x: p.x, y: p.y, t: p.downTime, moved: false, timer: null as number | null };
@@ -170,7 +198,8 @@ export class RoomScene extends Phaser.Scene {
       this.press = press;
     });
     this.input.on(Phaser.Input.Events.POINTER_MOVE, (p: Phaser.Input.Pointer) => {
-      if (this.placement.active) { if (p.isDown) this.placement.pointer(p.worldX, p.worldY); return; }
+      // touch: ghost follows the finger while pressed; mouse: follows hover so desktop does not look stuck
+      if (this.placement.active) { if (p.isDown || !p.wasTouch) this.placement.pointer(p.worldX, p.worldY); return; }
       if (this.press && Phaser.Math.Distance.Between(p.x, p.y, this.press.x, this.press.y) > TAP_SLOP) this.press.moved = true;
     });
     this.input.on(Phaser.Input.Events.POINTER_UP, (p: Phaser.Input.Pointer) => {
@@ -182,7 +211,7 @@ export class RoomScene extends Phaser.Scene {
       if (press.moved) return;
       const { cx, cy } = worldToCell(p.worldX, p.worldY);
       // a plain tap on a placed item opens its menu too (easier than holding on a phone)
-      if (this.items.itemAt(cx, cy) && this.openMenu(p.worldX, p.worldY, p.x, p.y)) return;
+      if (this.items.itemAt(cx, cy, TAP_MENU_LAYERS) && this.openMenu(p.worldX, p.worldY, p.x, p.y)) return;
       if (this.me && cy >= this.cat.room.wall_rows && cx >= 0 && cx < this.cat.room.cols && cy < this.cat.room.rows) {
         this.me.walkToCell(cx, cy);
       }
@@ -211,6 +240,7 @@ export class RoomScene extends Phaser.Scene {
     for (const off of this.unsub) off();
     this.unsub = [];
     if (this.pollTimer !== null) clearInterval(this.pollTimer);
+    this.game.canvas.removeEventListener("contextmenu", this.onContextMenu);
     socket.close();
     this.placement.cancel();
     this.remotes.destroy();

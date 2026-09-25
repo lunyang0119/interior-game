@@ -2,12 +2,12 @@ import { api, ApiError, msgFor } from "../api";
 import { bus, toast } from "../bus";
 import { state } from "../state";
 import * as storage from "../storage";
-import { $, closeAllPanels, show, togglePanel } from "./hud";
+import { $, closeAllPanels, guard, show, togglePanel } from "./hud";
 
 export function initAccounts(): void {
   $("btn-accounts").addEventListener("click", () => { render(); togglePanel("panel-accounts"); });
 
-  $("btn-register").addEventListener("click", async () => {
+  guard($("btn-register"), async () => {
     const input = $("register-id") as HTMLInputElement;
     const id = input.value.trim();
     if (!id) return;
@@ -32,11 +32,11 @@ export function initAccounts(): void {
       await navigator.clipboard.writeText(link);
       toast("복구 링크 복사됨.");
     } catch {
-      prompt("복구 링크 (복사해)", link);
+      prompt("복구 링크예요. 복사해 주세요", link);
     }
   });
 
-  $("btn-rotate").addEventListener("click", async () => {
+  guard($("btn-rotate"), async () => {
     if (!state.id) return;
     if (!confirm("토큰을 새로 발급하면 기존 복구 링크는 무효가 됩니다. 진행하시겠어요?")) return;
     try {
@@ -50,7 +50,7 @@ export function initAccounts(): void {
     }
   });
 
-  $("btn-logins").addEventListener("click", async () => {
+  guard($("btn-logins"), async () => {
     if (!state.id) return;
     const out = $("logins-out");
     try {

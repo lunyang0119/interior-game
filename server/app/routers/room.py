@@ -22,13 +22,23 @@ def _room_changed(conn: sqlite3.Connection) -> int:
     return v
 
 
-def _notify(version: int) -> None:
-    hub.broadcast_threadsafe({"type": "room", "version": version})
+def _notify(version: int, balance: int | None = None) -> None:
+    """Room changed. The pool balance rides along so every client's HUD/shop stays in sync."""
+    msg: dict = {"type": "room", "version": version}
+    if balance is not None:
+        msg["balance"] = balance
+    hub.broadcast_threadsafe(msg)
 
 
 @router.get("/catalog")
-def catalog(request: Request):
-    return request.app.state.catalog.public()
+def catalog(request: Request, response: Response):
+    cat = request.app.state.catalog
+    etag = cat.etag()
+    if request.headers.get("if-none-match") == etag:
+        return Response(status_code=304, headers={"ETag": etag})
+    response.headers["ETag"] = etag
+    response.headers["Cache-Control"] = "no-cache"
+    return cat.public()
 
 
 @router.get("/room")
@@ -69,8 +79,9 @@ def place(body: PlaceIn, request: Request, me: Player = Depends(current_player),
     except ApiError:
         log_access(conn, request, "place", me.id, False)
         raise
-    _notify(version)
-    return {"uid": uid, "balance": sheet.balance(conn), "version": version}
+    balance = sheet.balance(conn)
+    _notify(version, balance)
+    return {"uid": uid, "balance": balance, "version": version}
 
 
 @router.post("/room/move")
@@ -122,5 +133,6 @@ def remove(uid: int, request: Request, me: Player = Depends(current_player),
     except ApiError:
         log_access(conn, request, "remove", me.id, False)
         raise
-    _notify(version)
-    return {"balance": sheet.balance(conn), "version": version}
+    balance = sheet.balance(conn)
+    _notify(version, balance)
+    return {"balance": balance, "version": version}

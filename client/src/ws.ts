@@ -8,7 +8,8 @@ export type WsMsg =
   | { type: "leave"; id: string }
   | { type: "move"; id: string; x: number; y: number; dir: string; moving: boolean }
   | { type: "avatar_look"; id: string; avatar: AvatarLook }
-  | { type: "room"; version: number }
+  | { type: "room"; version: number; balance?: number }
+  | { type: "money"; balance: number }
   | { type: "pong" };
 
 type Handler = (msg: any) => void;

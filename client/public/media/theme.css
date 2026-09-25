@@ -1,16 +1,16 @@
 html:root {
   --font-body: "Stardust", -apple-system, "Segoe UI", system-ui, sans-serif;
   --font-size: 16px;
-  --fs-small: 13px;
+  --fs-small: 20px;
   --fs-button: 16px;
-  --fs-big: 18px;
-  --fs-title: 18px;
+  --fs-big: 50px;
+  --fs-title: 30px;
   --preview-w: 160px;
-  --label-font: "Stardust";
-  --label-size: 16;
+  --label-font: "Label";
+  --label-size: 50;
   --label-color: #ffffff;
   --label-stroke: #000000;
-  --label-scale: 0.5;
+  --label-scale: 0.8;
   --bg: #1b1b24;
   --panel: #e9d6cd;
   --chip: #e6d5be;
@@ -57,3 +57,4 @@ html #ctx { border-radius: 0; background: none; box-shadow: none; backdrop-filte
 html #toast { border-radius: 0; background: none; box-shadow: none; backdrop-filter: none; }
 @font-face { font-family: "Stardust"; font-weight: 400; src: url(/media/fonts/stardust.ttf) format("truetype"); font-display: swap; }
 @font-face { font-family: "Stardust"; font-weight: 700; src: url(/media/fonts/stardust-bold.ttf) format("truetype"); font-display: swap; }
+@font-face { font-family: "Label"; src: url(/media/fonts/stardust-s.ttf) format("truetype"); font-display: swap; }
