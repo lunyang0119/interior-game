@@ -1,0 +1,25 @@
+from pydantic import BaseModel, Field
+
+
+class RegisterIn(BaseModel):
+    id: str = Field(min_length=1, max_length=32, pattern=r"^[A-Za-z0-9_\-가-힣]+$")
+
+
+class AvatarIn(BaseModel):
+    skin: int = Field(ge=0)
+    hair: int = Field(ge=0)
+    hair_color: int = Field(ge=0)
+    outfit: int = Field(ge=0)
+    acc: int = Field(ge=0)
+
+
+class PlaceIn(BaseModel):
+    item_id: str
+    x: int
+    y: int
+
+
+class MoveIn(BaseModel):
+    uid: int
+    x: int
+    y: int
