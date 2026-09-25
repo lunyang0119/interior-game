@@ -28,7 +28,8 @@
 }
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text); font: var(--font-size)/1.4 var(--font-body); overflow: hidden; touch-action: none; overscroll-behavior: none; }
+html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text); font: var(--font-size)/1.4 var(--font-body); overflow: hidden; touch-action: none; overscroll-behavior: none; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+input { -webkit-user-select: text; user-select: text; }
 #game { position: fixed; inset: 0; }
 #game canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
 img, .framed { image-rendering: pixelated; }
@@ -98,7 +99,7 @@ input {
   border: var(--slice-ctx-px) solid transparent; border-image: var(--frame-ctx) var(--slice-ctx) fill round; image-rendering: pixelated;
 }
 #ctx-title { font-size: var(--fs-small); color: var(--muted); padding: 2px 4px; }
-#ctx button { border-radius: 8px; text-align: left; }
+#ctx button { border-radius: 8px; text-align: left; padding: 12px 14px; font-size: var(--fs-button); }
 
 #toast {
   position: fixed; top: calc(var(--safe-top) + 56px); left: 50%; transform: translateX(-50%); background: var(--chip); padding: var(--pad-toast) calc(var(--pad-toast) + 6px);

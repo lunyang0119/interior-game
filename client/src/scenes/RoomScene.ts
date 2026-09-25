@@ -12,8 +12,8 @@ import { catalog, state } from "../state";
 import { socket } from "../ws";
 
 const POLL_MS = 60_000;
-const LONG_PRESS_MS = 450;
-const TAP_SLOP = 8;
+const LONG_PRESS_MS = 400;
+const TAP_SLOP = 14; // fingers wobble; keep the long-press alive within this radius
 
 export class RoomScene extends Phaser.Scene {
   private cat!: Catalog;
@@ -141,7 +141,7 @@ export class RoomScene extends Phaser.Scene {
       const r = await api.remove(uid);
       state.balance = r.balance;
       bus.emit("money", { balance: r.balance });
-      toast("치웠어 (환불됨)");
+      toast("치웠어요 (환불됨)");
     } catch (e) {
       toast(e instanceof ApiError ? msgFor(e.code) : String(e));
     }
@@ -156,11 +156,16 @@ export class RoomScene extends Phaser.Scene {
   // ---------------------------------------------------------------- input
 
   private bindInput(): void {
+    // no browser context menu / iOS callout on long press over the canvas
+    this.game.canvas.addEventListener("contextmenu", (e) => e.preventDefault());
     this.input.on(Phaser.Input.Events.POINTER_DOWN, (p: Phaser.Input.Pointer) => {
       if (this.placement.active) { this.placement.pointer(p.worldX, p.worldY); return; }
       const press = { x: p.x, y: p.y, t: p.downTime, moved: false, timer: null as number | null };
       press.timer = window.setTimeout(() => {
-        if (this.press === press && !press.moved) { this.press = null; this.openMenu(p.worldX, p.worldY, p.x, p.y); }
+        if (this.press === press && !press.moved) {
+          this.press = null;
+          if (this.openMenu(p.worldX, p.worldY, p.x, p.y)) navigator.vibrate?.(15);
+        }
       }, LONG_PRESS_MS);
       this.press = press;
     });
@@ -176,19 +181,23 @@ export class RoomScene extends Phaser.Scene {
       if (press.timer !== null) clearTimeout(press.timer);
       if (press.moved) return;
       const { cx, cy } = worldToCell(p.worldX, p.worldY);
+      // a plain tap on a placed item opens its menu too (easier than holding on a phone)
+      if (this.items.itemAt(cx, cy) && this.openMenu(p.worldX, p.worldY, p.x, p.y)) return;
       if (this.me && cy >= this.cat.room.wall_rows && cx >= 0 && cx < this.cat.room.cols && cy < this.cat.room.rows) {
         this.me.walkToCell(cx, cy);
       }
     });
   }
 
-  private openMenu(wx: number, wy: number, sx: number, sy: number): void {
+  /** Opens the item menu at a world position. Returns false when there is no item there. */
+  private openMenu(wx: number, wy: number, sx: number, sy: number): boolean {
     const { cx, cy } = worldToCell(wx, wy);
     const row = this.items.itemAt(cx, cy);
-    if (!row || !this.playerId) return;
+    if (!row || !this.playerId) return false;
     const rect = this.game.canvas.getBoundingClientRect();
     const scale = rect.width / this.scale.width;
     bus.emit("item:menu", { item: row, screenX: rect.left + sx * scale, screenY: rect.top + sy * scale });
+    return true;
   }
 
   // ---------------------------------------------------------------- loop
