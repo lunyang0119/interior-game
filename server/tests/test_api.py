@@ -7,9 +7,27 @@ def test_register_new_nickname_creates_sheet_row(client, env):
     r = client.post("/api/register", json={"id": "새친구"})
     assert r.status_code == 200 and r.json()["created"] is True and r.json()["earned"] == 0
     members = json.loads(env["sheet"].read_text(encoding="utf-8"))["members"]
-    assert {"id": "새친구", "earned": 0} in members
+    assert any(m["id"] == "새친구" and m["earned"] == 0 for m in members)
     me = client.get("/api/me", headers=auth(r.json()["token"])).json()
     assert me["balance"] == 800 and any(c["id"] == "새친구" for c in me["contributions"])
+
+
+def test_register_partial_nickname(client, env):
+    env["sheet"].write_text(json.dumps({"members": [
+        {"id": "게쉬틴안나 보니것", "earned": 500}, {"id": "kim", "earned": 300}, {"id": "kimchi", "earned": 1}]},
+        ensure_ascii=False), encoding="utf-8")
+    r = client.post("/api/register", json={"id": "게쉬틴"})
+    assert r.status_code == 200 and r.json()["created"] is False
+    assert r.json()["name"] == "게쉬틴안나 보니것" and r.json()["earned"] == 500
+    me = client.get("/api/me", headers=auth(r.json()["token"])).json()
+    assert me["balance"] == 801 and any(c["id"] == "게쉬틴" for c in me["contributions"])
+    # the row now belongs to "게쉬틴": another id cannot claim it
+    r = client.post("/api/register", json={"id": "보니것"})
+    assert r.status_code == 409 and r.json()["error"] == "nickname_taken"
+    # "kim" is an exact match even though "kimchi" also contains it
+    assert client.post("/api/register", json={"id": "kim"}).json()["name"] == "kim"
+    r = client.post("/api/register", json={"id": "ch"})
+    assert r.status_code == 200 and r.json()["name"] == "kimchi"
 
 
 def test_register_flow(client):

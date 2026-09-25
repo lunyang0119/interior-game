@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="theme-color" content="#1b1b24" />
-  <title>우리 방</title>
+  <title>버려진 방</title>
   <link rel="icon" href="data:," />
   <link rel="stylesheet" href="/src/style.css" />
 </head>
@@ -38,7 +38,7 @@
     <div class="panel-head"><span>계정</span><button class="close" data-close="panel-accounts">✕</button></div>
     <div id="accounts-list"></div>
     <div class="row">
-      <input id="register-id" placeholder="시트에 있는 ID" autocomplete="off" autocapitalize="off" />
+      <input id="register-id" placeholder="시트 닉네임 (일부만 써도 돼)" autocomplete="off" autocapitalize="off" />
       <button id="btn-register" class="primary">등록</button>
     </div>
     <div class="row small">
@@ -58,6 +58,7 @@
 
   <div id="panel-shop" class="panel hidden">
     <div class="panel-head"><span>상점</span><button class="close" data-close="panel-shop">✕</button></div>
+    <div class="small" style="color:var(--muted)">놓인 가구를 <b>길게 누르면</b> 이동 / 팔기(전액 환불) 메뉴가 떠</div>
     <div id="shop-tabs" class="row small"></div>
     <div id="shop-grid"></div>
   </div>
@@ -65,7 +66,7 @@
   <div id="ctx" class="hidden">
     <div id="ctx-title"></div>
     <button id="ctx-move">이동</button>
-    <button id="ctx-remove">치우기 (환불)</button>
+    <button id="ctx-remove">팔기 (전액 환불)</button>
     <button id="ctx-cancel">닫기</button>
   </div>
 

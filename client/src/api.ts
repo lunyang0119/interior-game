@@ -13,6 +13,8 @@ const MESSAGES: Record<string, string> = {
   not_in_sheet: "시트에 없는 ID야",
   already_registered: "이미 등록된 ID야 (복구 링크로 들어와)",
   sheet_unavailable: "시트에 연결이 안 돼",
+  ambiguous_nickname: "닉네임이 여러 명이랑 겹쳐. 더 길게 써봐",
+  nickname_taken: "그 닉네임은 이미 다른 ID로 등록됐어",
   unknown_item: "없는 아이템",
   out_of_bounds: "방 밖이야",
   bad_cell_type: "여기엔 못 놓아",
@@ -56,7 +58,7 @@ export interface RoomResponse { version: number; items: RoomItem[] }
 
 export const api = {
   catalog: () => call<{ items: Item[]; room: Room; chars: Chars }>("GET", "/api/catalog"),
-  register: (id: string) => call<{ id: string; token: string; created: boolean; earned: number }>("POST", "/api/register", { id }),
+  register: (id: string) => call<{ id: string; token: string; created: boolean; name: string; earned: number }>("POST", "/api/register", { id }),
   me: () => call<MeResponse>("GET", "/api/me"),
   sync: () => call<{ refreshed: boolean; balance: number; contributions: Contribution[] }>("POST", "/api/sync"),
   putAvatar: (a: AvatarLook) => call<{ avatar: AvatarLook }>("PUT", "/api/avatar", a),

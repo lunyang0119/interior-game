@@ -11,8 +11,10 @@
  *
  * GET  → {"members":[{"id":"닉네임","name":"닉네임","earned":1500}, ...]}
  * POST {"action":"register","id":"닉네임","secret":"..."}
- *      → finds the id in column B (or R); writes it to R; if not found appends a new row.
- *      → {"ok":true,"id":"닉네임","created":false,"earned":1500}
+ *      → exact match on B or R, else the single row whose B contains the text; writes id to R.
+ *        Not found → appends a new row (B and R = id). Several partial matches → {"ok":false,"error":"ambiguous"}.
+ *        Row already registered under another id → {"ok":false,"error":"taken"}.
+ *      → {"ok":true,"id":"닉네임","name":"시트의 B열 값","created":false,"earned":1500}
  */
 
 const SHEET_NAME = "Characters";
@@ -47,6 +49,10 @@ function doGet() {
   return _json({ members: _members(_sheet()) });
 }
 
+function _norm(s) {
+  return String(s || "").replace(/\s+/g, "").toLowerCase();
+}
+
 function doPost(e) {
   let body;
   try {
@@ -58,24 +64,42 @@ function doPost(e) {
   if (body.action !== "register") return _json({ ok: false, error: "unknown_action" });
   const id = String(body.id || "").trim();
   if (!id) return _json({ ok: false, error: "empty_id" });
+  const key = _norm(id);
 
   const lock = LockService.getScriptLock();
   lock.waitLock(10000);
   try {
     const sheet = _sheet();
     const values = sheet.getDataRange().getValues();
+    // 1) exact match on B (nickname) or R (already-registered game id)
+    // 2) otherwise a single row whose nickname CONTAINS the typed text ("게쉬틴" → "게쉬틴안나 보니것")
+    let exact = -1;
+    const partial = [];
     for (let r = HEADER_ROWS; r < values.length; r++) {
-      const name = String(values[r][NAME_COL - 1] || "").trim();
-      const gid = String(values[r][ID_COL - 1] || "").trim();
-      if (name === id || gid === id) {
-        if (gid !== id) sheet.getRange(r + 1, ID_COL).setValue(id);
-        return _json({ ok: true, id: id, created: false, earned: Math.floor(Number(values[r][EARNED_COL - 1]) || 0) });
+      const name = _norm(values[r][NAME_COL - 1]);
+      const gid = _norm(values[r][ID_COL - 1]);
+      if (gid === key || name === key) { exact = r; break; }
+      if (name && name.indexOf(key) !== -1) partial.push(r);
+    }
+    let r = exact;
+    if (r < 0) {
+      if (partial.length > 1) {
+        return _json({ ok: false, error: "ambiguous", candidates: partial.map(function (i) { return String(values[i][NAME_COL - 1]).trim(); }) });
       }
+      if (partial.length === 1) r = partial[0];
+    }
+    if (r >= 0) {
+      const gid = String(values[r][ID_COL - 1] || "").trim();
+      if (gid && _norm(gid) !== key) return _json({ ok: false, error: "taken", name: String(values[r][NAME_COL - 1]).trim() });
+      if (gid !== id) sheet.getRange(r + 1, ID_COL).setValue(id);
+      return _json({ ok: true, id: id, name: String(values[r][NAME_COL - 1]).trim(), created: false,
+                     earned: Math.floor(Number(values[r][EARNED_COL - 1]) || 0) });
     }
     const row = new Array(Math.max(sheet.getLastColumn(), ID_COL)).fill("");
+    row[NAME_COL - 1] = id;
     row[ID_COL - 1] = id;
     sheet.appendRow(row);
-    return _json({ ok: true, id: id, created: true, earned: 0 });
+    return _json({ ok: true, id: id, name: id, created: true, earned: 0 });
   } finally {
     lock.releaseLock();
   }

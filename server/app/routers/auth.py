@@ -38,7 +38,8 @@ def register(body: RegisterIn, request: Request, conn: sqlite3.Connection = Depe
         )
         conn.execute("INSERT INTO avatars(id) VALUES (?)", (body.id,))
         log_access(conn, request, "register", body.id, True)
-    return {"id": body.id, "token": token, "created": bool(info.get("created")), "earned": info.get("earned", 0)}
+    return {"id": body.id, "token": token, "created": bool(info.get("created")),
+            "name": info.get("name", body.id), "earned": info.get("earned", 0)}
 
 
 @router.post("/token/rotate")

@@ -70,6 +70,11 @@ class SheetService:
             raise ApiError(503, "sheet_unavailable")
         if not data.get("ok"):
             log.warning("sheet register refused: %s", data)
+            err = data.get("error")
+            if err == "ambiguous":
+                raise ApiError(409, "ambiguous_nickname")
+            if err == "taken":
+                raise ApiError(409, "nickname_taken")
             raise ApiError(503, "sheet_unavailable")
         with self._lock:
             self._last_fetch = 0.0
@@ -77,13 +82,30 @@ class SheetService:
         return data
 
     def _fake_register(self, player_id: str) -> dict:
+        """Mirror of Code.gs doPost against fake_sheet.json (members may carry an optional "name")."""
+        def norm(v) -> str:
+            return "".join(str(v or "").split()).lower()
+
+        key = norm(player_id)
         data = json.loads(self.fake_path.read_text(encoding="utf-8"))
-        for m in data["members"]:
-            if str(m["id"]).strip() == player_id:
-                return {"ok": True, "id": player_id, "created": False, "earned": int(m.get("earned") or 0)}
-        data["members"].append({"id": player_id, "earned": 0})
+        members = data["members"]
+        exact = next((m for m in members if norm(m["id"]) == key or norm(m.get("name")) == key), None)
+        partial = [m for m in members if key in norm(m.get("name", m["id"]))]
+        m = exact or (partial[0] if len(partial) == 1 else None)
+        if m is None and len(partial) > 1:
+            return {"ok": False, "error": "ambiguous"}
+        if m is not None:
+            name = m.get("name", m["id"])
+            if m.get("registered") and norm(m["id"]) != key:
+                return {"ok": False, "error": "taken", "name": name}
+            m.setdefault("name", m["id"])
+            m["id"] = player_id
+            m["registered"] = True
+            self.fake_path.write_text(json.dumps(data, ensure_ascii=False, indent=1), encoding="utf-8")
+            return {"ok": True, "id": player_id, "name": name, "created": False, "earned": int(m.get("earned") or 0)}
+        members.append({"id": player_id, "name": player_id, "earned": 0, "registered": True})
         self.fake_path.write_text(json.dumps(data, ensure_ascii=False, indent=1), encoding="utf-8")
-        return {"ok": True, "id": player_id, "created": True, "earned": 0}
+        return {"ok": True, "id": player_id, "name": player_id, "created": True, "earned": 0}
 
     def refresh(self, conn: sqlite3.Connection, force: bool = False) -> bool:
         """Fetch if the cache is stale (or force). Returns True on a successful fetch."""
