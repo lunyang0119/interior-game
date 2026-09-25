@@ -39,13 +39,20 @@ npm run dev        # http://localhost:5173  (폰: 같은 와이파이에서 --ho
 
 ## 배포 (Oracle Free Tier + Caddy + DuckDNS)
 
-1. VM에 `git clone` → `/opt/interior`, Python 3.11+, Node 20+ (또는 로컬 빌드 후 `server/static` rsync), Caddy 설치.
-2. `client/public/gen/`과 `client/public/media/`(BGM·폰트·UI 프레임)는 gitignore라 PC에서 rsync:
-   `rsync -av client/public/gen/ client/public/media/ ubuntu@VM:/opt/interior/client/public/` (각각).
-3. `server/.env.example` → `server/.env` 채우기 (`SHEET_URL`, `IP_SALT`).
-4. `deploy/interior.service` → `/etc/systemd/system/`, `deploy/Caddyfile` → `/etc/caddy/Caddyfile` (도메인 수정).
-5. `deploy/duckdns.sh` 토큰 채우고 cron 등록. Oracle 보안 목록에서 80/443 열기 (+ VM 내부 iptables).
-6. `sudo systemctl enable --now interior caddy`, 이후 업데이트는 `./deploy/deploy.sh`.
+VM에는 Node가 필요 없다. 클라이언트 빌드와 gitignore된 산출물(`gen/`, `media/`, `server/static/`)은 PC에서 만들어 올린다.
+
+**최초 1회 (VM에서)**
+```bash
+curl -fsSL https://raw.githubusercontent.com/lunyang0119/interior-game/main/deploy/setup-vm.sh | bash
+nano /opt/interior/server/.env     # SHEET_URL, DUCKDNS_TOKEN 채우기 (IP_SALT는 자동 생성됨)
+```
+Oracle 콘솔에서 VCN → Security List → Ingress에 TCP 80, 443 추가 (스크립트가 VM 안 iptables는 열어줌).
+
+**배포할 때마다 (PC의 Git Bash에서)**
+```bash
+./deploy/push.sh ubuntu@<VM_IP>
+```
+빌드 → git push → gen/media/static 전송 → VM에서 git pull + 서비스 재시작까지 한 번에.
 
 Apps Script 코드는 `tools/appsscript/Code.gs` (GET = 재화 목록, POST = 등록 기록). 코드 바꾸면 반드시 새 버전으로 재배포.
 
