@@ -46,6 +46,7 @@ ANIM_STRIPS = ["run", "idle"]  # concatenated in this order → 48 frames total
 
 # Character Generator sheets (896x656): 32px rows; row 1 = idle anim, row 2 = run.
 GEN_DIR = FULL / "2_Characters" / "Character_Generator"
+CUSTOM_DIR = ASSETS_ROOT / "custom"  # assets/custom/Hairstyles/Hairstyle_30_01.png etc.
 GEN_ROWS = {"idle": 1, "run": 2}
 
 _STYLE_COLOR = re.compile(r"_(\d+)(?:_[A-Za-z_]+?)?_(\d+)\.png$")  # Outfit_03_02 / Accessory_04_Snapback_02
@@ -59,9 +60,12 @@ def _gen_layer(folder: str, prefix: str, none: bool = False, none_first: bool = 
     fully transparent "nothing" variant (hair/accessory can be absent) — index 0 stays a real
     style so fresh avatars are not bald.
     """
-    d = GEN_DIR / folder / "16x16"
+    # pack folder + your own additions in assets/custom/<folder>/ (same 896x656 layout, same naming)
+    dirs = [GEN_DIR / folder / "16x16", CUSTOM_DIR / folder]
     out: list[dict] = []
-    if d.exists():
+    for d in dirs:
+        if not d.exists():
+            continue
         for p in sorted(d.glob(f"{prefix}_*.png")):
             m = _STYLE_COLOR.search(p.name)
             if m:

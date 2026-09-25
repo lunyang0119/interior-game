@@ -78,3 +78,23 @@ python tools/preprocess/preprocess.py ui      # → client/public/media/theme.cs
 - `size` = 기본 글자(px). `sizes.small` = 상점 아이템 이름/가격·안내문, `button` = 일반 버튼, `big` = 하단 상점/아바타 버튼, `title` = 패널 제목, `preview` = 아바타 미리보기 폭(px, 높이는 4:3 자동).
 - `label` = 아바타 머리 위 이름표. `font`는 `media/fonts/`의 파일 이름(확장자 없이, 예 `stardust-s-bold`), 비우면 본문 폰트. 새 폰트를 쓰려면 ttf를 `assets/fonts/`에 넣고 `media` 실행 → 파일명이 `media/fonts/`에 아스키로 복사되니 그 이름을 적기. `size`×`scale`이 실제 게임 픽셀 높이 (16×0.5 = 8px, 화면 zoom 2배라 16px로 보임). 픽셀 폰트는 제작 크기(보통 16)로 두고 scale로 조절하는 게 깨끗함.
 - 바꾼 뒤 `python tools/preprocess/preprocess.py ui` → 새로고침. 서버 재시작 불필요.
+
+## 머리/옷/악세서리 직접 그려서 추가하기
+
+게임은 **16x16 폴더**(캔버스 896×656, 프레임 16×32)만 쓴다. 32x32/48x48은 무시.
+참고 파일은 `assets/custom/_reference/`에 모아뒀다 (팩에서 복사):
+- `Hairstyle_01_01.png`, `Outfit_01_01.png`, `Accessory_04_Snapback_01.png`, `Body_01.png`, `Eyes_01.png` — 레이어별 예시
+- `Spritesheet_animations_GUIDE.png` — 어느 줄이 무슨 애니인지
+- `Character_template_16x16.png` — 몸 템플릿
+- `blank_sheet_rows_marked.png` — 빈 시트. 빨간 격자 = 게임이 실제로 쓰는 부분 (2번째 줄 idle, 3번째 줄 run, 각 24프레임 = 오른쪽/위/왼쪽/아래 × 6프레임). **이 두 줄만 그리면 됨.** 나머지 줄은 비워둬도 됨.
+
+절차:
+1. 예시 파일을 Aseprite 등으로 열어 위에 덧그리거나, 빈 시트에 그린다 (캔버스 크기 896×656 유지, 투명 배경).
+2. 저장 위치와 이름: `assets/custom/<폴더>/<이름>.png`
+   - 머리: `assets/custom/Hairstyles/Hairstyle_30_01.png` (30 = 팩에 없는 새 스타일 번호, 01 = 색 번호. 같은 스타일의 다른 색은 `_02`, `_03`…)
+   - 옷: `assets/custom/Outfits/Outfit_34_01.png`
+   - 악세: `assets/custom/Accessories/Accessory_20_Name_01.png`
+   - 몸/눈: `assets/custom/Bodies/Body_10.png`, `assets/custom/Eyes/Eyes_08.png`
+3. `python tools/preprocess/preprocess.py build` → 에디터에 자동으로 나타남.
+
+머리는 색 01을 팔레트의 세 가지 색(밝음 204,150,89 / 중간 179,123,63 / 어둠 171,103,54)으로만 칠하면 `data/hair_palette.png`의 추가 색들이 자동으로 적용된다. 다른 색을 쓰면 그 색 그대로 한 가지만 나옴.
