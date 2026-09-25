@@ -252,7 +252,21 @@ def _strip(v: dict, anim: str) -> Image.Image:
         st = Image.open(v[anim]).convert("RGBA")
     if st.size != (expected, C.FRAME_H):
         raise SystemExit(f"{v.get('name')} {anim}: expected {expected}x{C.FRAME_H}, got {st.size}")
+    if v.get("recolor"):
+        st = recolor(st, v["recolor"])
     return st
+
+
+def recolor(im: Image.Image, mapping: dict) -> Image.Image:
+    """Exact palette swap: every pixel whose RGB is a key becomes the mapped RGB (alpha kept)."""
+    px = im.load()
+    for y in range(im.height):
+        for x in range(im.width):
+            r, g, b, a = px[x, y]
+            new = mapping.get((r, g, b))
+            if new is not None and a:
+                px[x, y] = (*new, a)
+    return im
 
 
 def build_char_layer(layer: str, variants: list[dict], out_dir: Path) -> dict:

@@ -75,13 +75,50 @@ def _gen_layer(folder: str, prefix: str, none: bool = False) -> list[dict]:
     return out
 
 
+# Extra hair colours: data/hair_palette.png is the pack's Hairstyles_palette.png (8 columns of 5px:
+# 7 hair colours + outline) with more 5px-wide columns painted to the right. Each column holds the
+# light / mid / dark shade in rows 0-2 / 3-5 / 6-8. Every hairstyle gets one recoloured variant per extra column.
+HAIR_PALETTE_FILE = REPO_ROOT / "data" / "hair_palette.png"
+HAIR_BASE_SHADES = ((204, 150, 89), (179, 123, 63), (171, 103, 54))  # colour 01 = light, mid, dark
+HAIR_PALETTE_BUILTIN_COLS = 8
+
+
+def _extra_hair_colors() -> list[tuple[tuple[int, int, int], ...]]:
+    if not HAIR_PALETTE_FILE.exists():
+        return []
+    from PIL import Image
+    im = Image.open(HAIR_PALETTE_FILE).convert("RGBA")
+    px = im.load()
+    out = []
+    for x in range(HAIR_PALETTE_BUILTIN_COLS * 5, im.width, 5):
+        shades = tuple(px[x, y][:3] for y in (0, 3, 6))
+        if all(px[x, y][3] > 0 for y in (0, 3, 6)):
+            out.append(shades)
+    return out
+
+
+def _with_extra_hair_colors(variants: list[dict]) -> list[dict]:
+    """Append a recoloured copy of each style's colour-01 sheet for every extra palette column."""
+    extras = _extra_hair_colors()
+    if not extras:
+        return variants
+    base = [v for v in variants if v.get("color") == 1]
+    for k, shades in enumerate(extras):
+        color = HAIR_PALETTE_BUILTIN_COLS + k  # 8, 9, ...
+        for v in base:
+            variants.append({"name": f"{v['name'][:-3]}_{color:02d}", "sheet": v["sheet"], "style": v["style"],
+                             "color": color, "recolor": dict(zip(HAIR_BASE_SHADES, shades))})
+    variants.sort(key=lambda v: (v["style"], v["color"]))
+    return variants
+
+
 # layer -> list of variants (index = value stored in avatars table).
 # Layers with an empty list are exposed in manifest with count 0 so the editor hides them.
 CHAR_LAYERS = {
     "skin": _gen_layer("Bodies", "Body"),
     "eyes": _gen_layer("Eyes", "Eyes"),
     "outfit": _gen_layer("Outfits", "Outfit"),
-    "hair": _gen_layer("Hairstyles", "Hairstyle", none=True),
+    "hair": _with_extra_hair_colors(_gen_layer("Hairstyles", "Hairstyle", none=True)),
     "acc": _gen_layer("Accessories", "Accessory", none=True),
 }
 
