@@ -54,8 +54,9 @@ _STYLE_ONLY = re.compile(r"_(\d+)\.png$")                          # Body_05 / E
 def _gen_layer(folder: str, prefix: str, none: bool = False) -> list[dict]:
     """All 16x16 sheets of one generator layer as variants, sorted by (style, color).
 
-    Variant: {"name", "sheet", "style", "color"}. When `none` is True, index 0 is a
-    fully transparent "nothing" variant (hair/accessory can be absent).
+    Variant: {"name", "sheet", "style", "color"}. When `none` is True, the LAST index is a
+    fully transparent "nothing" variant (hair/accessory can be absent) — index 0 stays a real
+    style so fresh avatars are not bald.
     """
     d = GEN_DIR / folder / "16x16"
     out: list[dict] = []
@@ -70,7 +71,7 @@ def _gen_layer(folder: str, prefix: str, none: bool = False) -> list[dict]:
             out.append({"name": p.stem, "sheet": p, "style": style, "color": color})
         out.sort(key=lambda v: (v["style"], v["color"]))
     if none:
-        out.insert(0, {"name": "none", "sheet": None, "style": 0, "color": 0})
+        out.append({"name": "none", "sheet": None, "style": 10_000, "color": 0})
     return out
 
 

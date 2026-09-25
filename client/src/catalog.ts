@@ -22,7 +22,7 @@ export interface Room {
   tiles: { wall: string[]; wall_left: string[]; wall_right: string[]; floor: string };
 }
 
-/** One avatar layer. `groups` = indices that share a style (colour variants); `none` = index 0 means "nothing". */
+/** One avatar layer. `groups` = indices that share a style (colour variants); `none` = the last index means "nothing". */
 export interface LayerSpec { count: number; label?: string; none?: boolean; groups?: number[][]; names?: string[] }
 
 export interface Chars {

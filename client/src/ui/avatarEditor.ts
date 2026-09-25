@@ -33,7 +33,7 @@ async function preview(): Promise<void> {
     const count = spec?.count ?? 0;
     if (count <= 0) continue;
     const idx = Math.min((draft as unknown as Record<string, number>)[layer] ?? 0, count - 1);
-    if (spec.none && idx === 0) continue;
+    if (spec.none && idx === count - 1) continue;
     images.push(await sheet(layer, idx));
   }
   if (seq !== previewSeq) return; // a newer preview started while loading
@@ -92,7 +92,7 @@ function renderControls(): void {
     };
     const styleText = () => {
       const { g } = find();
-      return spec.none && g === 0 ? `없음 (1/${groups.length})` : `${g + 1}/${groups.length}`;
+      return spec.none && g === groups.length - 1 ? `없음 (${groups.length}/${groups.length})` : `${g + 1}/${groups.length}`;
     };
     // style row: jump between groups (keep colour slot when the next style has it)
     box.appendChild(stepper(label, styleText, (d) => {

@@ -273,8 +273,8 @@ def build_char_layer(layer: str, variants: list[dict], out_dir: Path) -> dict:
         groups.setdefault(v.get("style", i), []).append(i)
         names.append(v.get("name", str(i)))
     entry: dict = {"count": len(variants), "label": C.LAYER_LABELS.get(layer, layer)}
-    if variants and variants[0].get("name") == "none":
-        entry["none"] = True
+    if variants and variants[-1].get("name") == "none":
+        entry["none"] = True  # last index = nothing
     # groups: indices sharing a style (colour variants), in style order; only useful when some group has > 1
     glist = [groups[k] for k in sorted(groups)]
     if any(len(g) > 1 for g in glist):
