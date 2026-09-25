@@ -7,6 +7,24 @@ SERVER_DIR = Path(__file__).resolve().parents[1]
 REPO_ROOT = SERVER_DIR.parent
 
 
+def _load_dotenv(path: Path) -> None:
+    """Minimal .env loader: KEY=VALUE lines, # comments, optional quotes. Real env vars win."""
+    if not path.exists():
+        return
+    for line in path.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        key, value = key.strip(), value.strip()
+        if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
+            value = value[1:-1]
+        os.environ.setdefault(key, value)
+
+
+_load_dotenv(SERVER_DIR / ".env")
+
+
 def _env_path(name: str, default: Path) -> Path:
     v = os.environ.get(name)
     return Path(v) if v else default
