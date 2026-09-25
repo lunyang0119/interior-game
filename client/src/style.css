@@ -1,0 +1,65 @@
+:root {
+  --bg: #1b1b24;
+  --panel: #262633;
+  --chip: rgba(20, 20, 30, 0.85);
+  --text: #f0f0f5;
+  --muted: #9a9ab0;
+  --primary: #4f8cff;
+  --danger: #e5534b;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text); font: 15px/1.4 -apple-system, "Segoe UI", system-ui, sans-serif; overflow: hidden; touch-action: none; overscroll-behavior: none; }
+#game { position: fixed; inset: 0; }
+#game canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
+
+.overlay { position: fixed; left: 0; right: 0; display: flex; gap: 8px; padding: 8px; align-items: center; pointer-events: none; z-index: 10; }
+.overlay > * { pointer-events: auto; }
+#hud { top: var(--safe-top); }
+#bottombar { bottom: var(--safe-bottom); justify-content: center; }
+#placebar { bottom: var(--safe-bottom); justify-content: center; background: var(--chip); backdrop-filter: blur(6px); }
+#place-label { color: var(--text); margin-right: 8px; }
+
+button, .chip { border: 0; border-radius: 999px; background: var(--chip); color: var(--text); padding: 8px 12px; font: inherit; cursor: pointer; }
+button:active { transform: scale(0.97); }
+button.big { padding: 12px 20px; font-weight: 600; background: var(--panel); box-shadow: 0 2px 8px rgba(0,0,0,.4); }
+button.primary { background: var(--primary); }
+button.danger { background: var(--danger); }
+button.close { background: transparent; font-size: 18px; }
+#hud-balance { font-weight: 700; }
+#btn-accounts { max-width: 40vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.panel { position: fixed; left: 8px; right: 8px; bottom: calc(var(--safe-bottom) + 8px); max-height: 70vh; overflow: auto; background: var(--panel); border-radius: 16px; padding: 12px; z-index: 20; box-shadow: 0 8px 30px rgba(0,0,0,.5); }
+.panel-head { display: flex; justify-content: space-between; align-items: center; font-weight: 700; margin-bottom: 8px; }
+.row { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+.row.small button { padding: 6px 10px; font-size: 13px; }
+input { flex: 1; min-width: 0; border: 0; border-radius: 10px; padding: 10px; font: inherit; background: var(--bg); color: var(--text); }
+.hidden { display: none !important; }
+
+#accounts-list .acct { display: flex; align-items: center; gap: 8px; padding: 8px; border-radius: 10px; background: var(--bg); margin-bottom: 6px; }
+#accounts-list .acct.active { outline: 2px solid var(--primary); }
+#accounts-list .acct .name { flex: 1; font-weight: 600; }
+#accounts-list .acct button { padding: 4px 10px; font-size: 13px; }
+#logins-out { background: var(--bg); padding: 8px; border-radius: 10px; font-size: 11px; max-height: 30vh; overflow: auto; white-space: pre-wrap; }
+
+#avatar-preview { display: block; margin: 0 auto 8px; width: 96px; height: 128px; image-rendering: pixelated; background: #333; border-radius: 10px; }
+#avatar-layers .layer { display: flex; align-items: center; gap: 8px; margin: 6px 0; }
+#avatar-layers .layer span { flex: 1; }
+#avatar-layers .layer button { width: 40px; }
+
+#shop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 8px; }
+.shop-item { background: var(--bg); border-radius: 10px; padding: 6px; text-align: center; cursor: pointer; }
+.shop-item canvas { width: 64px; height: 64px; image-rendering: pixelated; display: block; margin: 0 auto 4px; }
+.shop-item .n { font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.shop-item .p { font-size: 12px; color: var(--muted); }
+.shop-item.disabled { opacity: .4; }
+#shop-tabs button.on { background: var(--primary); }
+
+#ctx { position: fixed; z-index: 30; background: var(--panel); border-radius: 12px; padding: 8px; display: flex; flex-direction: column; gap: 6px; box-shadow: 0 8px 30px rgba(0,0,0,.5); min-width: 150px; }
+#ctx-title { font-size: 12px; color: var(--muted); padding: 2px 4px; }
+#ctx button { border-radius: 8px; text-align: left; }
+
+#toast { position: fixed; top: calc(var(--safe-top) + 56px); left: 50%; transform: translateX(-50%); background: var(--chip); padding: 10px 16px; border-radius: 12px; z-index: 40; max-width: 90vw; }
+#loading { position: fixed; inset: 0; display: grid; place-items: center; background: var(--bg); z-index: 50; color: var(--muted); }

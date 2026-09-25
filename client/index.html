@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="theme-color" content="#1b1b24" />
+  <title>우리 방</title>
+  <link rel="icon" href="data:," />
+  <link rel="stylesheet" href="/src/style.css" />
+</head>
+<body>
+  <div id="game"></div>
+
+  <!-- top HUD -->
+  <div id="hud" class="overlay">
+    <button id="btn-accounts" class="chip" title="계정">👤 <span id="hud-id">…</span></button>
+    <div id="hud-balance" class="chip">💰 <span id="hud-balance-val">–</span></div>
+    <div id="hud-online" class="chip" title="접속 중">🟢 <span id="hud-online-val">0</span></div>
+    <button id="btn-sync" class="chip" title="시트 동기화">🔄</button>
+  </div>
+
+  <!-- bottom bar -->
+  <div id="bottombar" class="overlay">
+    <button id="btn-shop" class="big">🛋️ 상점</button>
+    <button id="btn-avatar" class="big">🧍 아바타</button>
+  </div>
+
+  <!-- placement bar (visible while placing) -->
+  <div id="placebar" class="overlay hidden">
+    <span id="place-label"></span>
+    <button id="place-confirm" class="big primary">놓기</button>
+    <button id="place-cancel" class="big">취소</button>
+  </div>
+
+  <!-- panels -->
+  <div id="panel-accounts" class="panel hidden">
+    <div class="panel-head"><span>계정</span><button class="close" data-close="panel-accounts">✕</button></div>
+    <div id="accounts-list"></div>
+    <div class="row">
+      <input id="register-id" placeholder="시트에 있는 ID" autocomplete="off" autocapitalize="off" />
+      <button id="btn-register" class="primary">등록</button>
+    </div>
+    <div class="row small">
+      <button id="btn-recovery">복구 링크 복사</button>
+      <button id="btn-rotate">토큰 재발급</button>
+      <button id="btn-logins">접속 기록</button>
+    </div>
+    <pre id="logins-out" class="hidden"></pre>
+  </div>
+
+  <div id="panel-avatar" class="panel hidden">
+    <div class="panel-head"><span>아바타</span><button class="close" data-close="panel-avatar">✕</button></div>
+    <canvas id="avatar-preview" width="96" height="128"></canvas>
+    <div id="avatar-layers"></div>
+    <div class="row"><button id="avatar-save" class="primary">저장</button></div>
+  </div>
+
+  <div id="panel-shop" class="panel hidden">
+    <div class="panel-head"><span>상점</span><button class="close" data-close="panel-shop">✕</button></div>
+    <div id="shop-tabs" class="row small"></div>
+    <div id="shop-grid"></div>
+  </div>
+
+  <div id="ctx" class="hidden">
+    <div id="ctx-title"></div>
+    <button id="ctx-move">이동</button>
+    <button id="ctx-remove">치우기 (환불)</button>
+    <button id="ctx-cancel">닫기</button>
+  </div>
+
+  <div id="toast" class="hidden"></div>
+  <div id="loading">불러오는 중…</div>
+
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>
