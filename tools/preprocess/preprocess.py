@@ -463,8 +463,15 @@ def cmd_ui(_: argparse.Namespace) -> None:
                 raise SystemExit(f"frame '{name}': {src} not found")
             x, y, w, h = spec["x"], spec["y"], spec["w"], spec["h"]
             im = Image.open(src).convert("RGBA").crop((x, y, x + w, y + h))
-        im.save(ui_out / f"{name}.png", optimize=True)
         sl = int(spec.get("slice", 4))
+        if spec.get("fill_inner"):
+            # replace everything inside the border with the colour just inside the left edge (removes baked-in labels)
+            px = im.load()
+            fill = px[sl, im.height // 2]
+            for yy in range(sl, im.height - sl):
+                for xx in range(sl, im.width - sl):
+                    px[xx, yy] = fill
+        im.save(ui_out / f"{name}.png", optimize=True)
         css = name.replace("_", "-")
         lines.append(f"  --frame-{css}: url(/media/ui/{name}.png);")
         lines.append(f"  --slice-{css}: {sl};")

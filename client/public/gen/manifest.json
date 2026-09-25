@@ -1777,7 +1777,25 @@
     "cw": 2,
     "ch": 2
    },
+   "painting_mountain": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "painting_mushroom": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
    "painting_ocean": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2
+   },
+   "painting_window": {
     "w": 32,
     "h": 32,
     "cw": 2,
@@ -1891,6 +1909,42 @@
     "cw": 1,
     "ch": 2
    },
+   "painting_campfire": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "painting_palm": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "painting_rose": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "painting_sea_sunset": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "painting_sunflower": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
+   "painting_violet": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2
+   },
    "plant_bush": {
     "w": 16,
     "h": 32,
@@ -1940,6 +1994,30 @@
     "ch": 1
    },
    "food_salad": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "painting_moon_mini": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "painting_night_mini": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "painting_orange_mini": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "painting_tree_mini": {
     "w": 16,
     "h": 16,
     "cw": 1,

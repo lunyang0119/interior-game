@@ -1662,5 +1662,109 @@
   "y": 80,
   "w": 16,
   "h": 16
+ },
+ {
+  "key": "painting_mountain",
+  "sheet": "paintings",
+  "x": 16,
+  "y": 16,
+  "w": 32,
+  "h": 32
+ },
+ {
+  "key": "painting_window",
+  "sheet": "paintings",
+  "x": 64,
+  "y": 16,
+  "w": 32,
+  "h": 32
+ },
+ {
+  "key": "painting_mushroom",
+  "sheet": "paintings",
+  "x": 112,
+  "y": 16,
+  "w": 32,
+  "h": 32
+ },
+ {
+  "key": "painting_rose",
+  "sheet": "paintings",
+  "x": 16,
+  "y": 64,
+  "w": 16,
+  "h": 32
+ },
+ {
+  "key": "painting_violet",
+  "sheet": "paintings",
+  "x": 48,
+  "y": 64,
+  "w": 16,
+  "h": 32
+ },
+ {
+  "key": "painting_sunflower",
+  "sheet": "paintings",
+  "x": 80,
+  "y": 64,
+  "w": 16,
+  "h": 32
+ },
+ {
+  "key": "painting_sea_sunset",
+  "sheet": "paintings",
+  "x": 112,
+  "y": 64,
+  "w": 16,
+  "h": 32
+ },
+ {
+  "key": "painting_palm",
+  "sheet": "paintings",
+  "x": 144,
+  "y": 64,
+  "w": 16,
+  "h": 32
+ },
+ {
+  "key": "painting_campfire",
+  "sheet": "paintings",
+  "x": 176,
+  "y": 64,
+  "w": 16,
+  "h": 32
+ },
+ {
+  "key": "painting_moon_mini",
+  "sheet": "paintings",
+  "x": 16,
+  "y": 112,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "painting_orange_mini",
+  "sheet": "paintings",
+  "x": 48,
+  "y": 112,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "painting_tree_mini",
+  "sheet": "paintings",
+  "x": 80,
+  "y": 112,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "painting_night_mini",
+  "sheet": "paintings",
+  "x": 112,
+  "y": 112,
+  "w": 16,
+  "h": 16
  }
 ]

@@ -84,7 +84,7 @@ export class PlacementController {
 
   async confirm(): Promise<void> {
     if (!this.ghost || this.busy) return;
-    if (!this.ok) { toast("여기엔 못 놓아"); return; }
+    if (!this.ok) { toast("여기엔 못 놓아요"); return; }
     this.busy = true;
     try {
       if (this.moveUid !== null) {

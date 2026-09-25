@@ -500,7 +500,7 @@
     "h": 32
    }
   },
-  "painting_ocean": {
+  "painting_mountain": {
    "frame": {
     "x": 462,
     "y": 81,
@@ -520,7 +520,7 @@
     "h": 32
    }
   },
-  "plant_palm": {
+  "painting_mushroom": {
    "frame": {
     "x": 0,
     "y": 130,
@@ -540,7 +540,7 @@
     "h": 32
    }
   },
-  "rug_blue_small": {
+  "painting_ocean": {
    "frame": {
     "x": 33,
     "y": 130,
@@ -560,7 +560,7 @@
     "h": 32
    }
   },
-  "rug_blue_tiny": {
+  "painting_window": {
    "frame": {
     "x": 66,
     "y": 130,
@@ -580,7 +580,7 @@
     "h": 32
    }
   },
-  "rug_brown_small": {
+  "plant_palm": {
    "frame": {
     "x": 99,
     "y": 130,
@@ -600,7 +600,7 @@
     "h": 32
    }
   },
-  "rug_green_small": {
+  "rug_blue_small": {
    "frame": {
     "x": 132,
     "y": 130,
@@ -620,7 +620,7 @@
     "h": 32
    }
   },
-  "rug_green_square": {
+  "rug_blue_tiny": {
    "frame": {
     "x": 165,
     "y": 130,
@@ -640,7 +640,7 @@
     "h": 32
    }
   },
-  "wardrobe_mirror": {
+  "rug_brown_small": {
    "frame": {
     "x": 198,
     "y": 130,
@@ -660,9 +660,69 @@
     "h": 32
    }
   },
-  "window_wood": {
+  "rug_green_small": {
    "frame": {
     "x": 231,
+    "y": 130,
+    "w": 32,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 32,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 32,
+    "h": 32
+   }
+  },
+  "rug_green_square": {
+   "frame": {
+    "x": 264,
+    "y": 130,
+    "w": 32,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 32,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 32,
+    "h": 32
+   }
+  },
+  "wardrobe_mirror": {
+   "frame": {
+    "x": 297,
+    "y": 130,
+    "w": 32,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 32,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 32,
+    "h": 32
+   }
+  },
+  "window_wood": {
+   "frame": {
+    "x": 330,
     "y": 130,
     "w": 32,
     "h": 32
@@ -702,7 +762,7 @@
   },
   "frame_gold": {
    "frame": {
-    "x": 264,
+    "x": 363,
     "y": 130,
     "w": 16,
     "h": 32
@@ -722,7 +782,7 @@
   },
   "frame_small": {
    "frame": {
-    "x": 281,
+    "x": 380,
     "y": 130,
     "w": 16,
     "h": 32
@@ -742,7 +802,7 @@
   },
   "globe_gold": {
    "frame": {
-    "x": 298,
+    "x": 397,
     "y": 130,
     "w": 16,
     "h": 32
@@ -762,7 +822,7 @@
   },
   "globe_silver": {
    "frame": {
-    "x": 315,
+    "x": 414,
     "y": 130,
     "w": 16,
     "h": 32
@@ -782,7 +842,7 @@
   },
   "lamp_red_small": {
    "frame": {
-    "x": 332,
+    "x": 431,
     "y": 130,
     "w": 16,
     "h": 32
@@ -802,7 +862,7 @@
   },
   "lamp_red_small_b": {
    "frame": {
-    "x": 349,
+    "x": 448,
     "y": 130,
     "w": 16,
     "h": 32
@@ -822,7 +882,7 @@
   },
   "lamp_table_beige": {
    "frame": {
-    "x": 366,
+    "x": 465,
     "y": 130,
     "w": 16,
     "h": 32
@@ -842,7 +902,7 @@
   },
   "lamp_table_beige_b": {
    "frame": {
-    "x": 383,
+    "x": 482,
     "y": 130,
     "w": 16,
     "h": 32
@@ -862,8 +922,128 @@
   },
   "mirror_wall": {
    "frame": {
-    "x": 400,
-    "y": 130,
+    "x": 0,
+    "y": 163,
+    "w": 16,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 16,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 16,
+    "h": 32
+   }
+  },
+  "painting_campfire": {
+   "frame": {
+    "x": 17,
+    "y": 163,
+    "w": 16,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 16,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 16,
+    "h": 32
+   }
+  },
+  "painting_palm": {
+   "frame": {
+    "x": 34,
+    "y": 163,
+    "w": 16,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 16,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 16,
+    "h": 32
+   }
+  },
+  "painting_rose": {
+   "frame": {
+    "x": 51,
+    "y": 163,
+    "w": 16,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 16,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 16,
+    "h": 32
+   }
+  },
+  "painting_sea_sunset": {
+   "frame": {
+    "x": 68,
+    "y": 163,
+    "w": 16,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 16,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 16,
+    "h": 32
+   }
+  },
+  "painting_sunflower": {
+   "frame": {
+    "x": 85,
+    "y": 163,
+    "w": 16,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 16,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 16,
+    "h": 32
+   }
+  },
+  "painting_violet": {
+   "frame": {
+    "x": 102,
+    "y": 163,
     "w": 16,
     "h": 32
    },
@@ -882,8 +1062,8 @@
   },
   "plant_bush": {
    "frame": {
-    "x": 417,
-    "y": 130,
+    "x": 119,
+    "y": 163,
     "w": 16,
     "h": 32
    },
@@ -902,8 +1082,8 @@
   },
   "plant_pot": {
    "frame": {
-    "x": 434,
-    "y": 130,
+    "x": 136,
+    "y": 163,
     "w": 16,
     "h": 32
    },
@@ -922,8 +1102,8 @@
   },
   "rug_olive": {
    "frame": {
-    "x": 451,
-    "y": 130,
+    "x": 153,
+    "y": 163,
     "w": 16,
     "h": 32
    },
@@ -942,8 +1122,8 @@
   },
   "table_wood_small": {
    "frame": {
-    "x": 468,
-    "y": 130,
+    "x": 170,
+    "y": 163,
     "w": 16,
     "h": 32
    },
@@ -961,246 +1141,6 @@
    }
   },
   "chair_wood": {
-   "frame": {
-    "x": 485,
-    "y": 130,
-    "w": 16,
-    "h": 16
-   },
-   "rotated": false,
-   "trimmed": false,
-   "spriteSourceSize": {
-    "x": 0,
-    "y": 0,
-    "w": 16,
-    "h": 16
-   },
-   "sourceSize": {
-    "w": 16,
-    "h": 16
-   }
-  },
-  "food_bowl": {
-   "frame": {
-    "x": 0,
-    "y": 163,
-    "w": 16,
-    "h": 16
-   },
-   "rotated": false,
-   "trimmed": false,
-   "spriteSourceSize": {
-    "x": 0,
-    "y": 0,
-    "w": 16,
-    "h": 16
-   },
-   "sourceSize": {
-    "w": 16,
-    "h": 16
-   }
-  },
-  "food_cake": {
-   "frame": {
-    "x": 17,
-    "y": 163,
-    "w": 16,
-    "h": 16
-   },
-   "rotated": false,
-   "trimmed": false,
-   "spriteSourceSize": {
-    "x": 0,
-    "y": 0,
-    "w": 16,
-    "h": 16
-   },
-   "sourceSize": {
-    "w": 16,
-    "h": 16
-   }
-  },
-  "food_pizza": {
-   "frame": {
-    "x": 34,
-    "y": 163,
-    "w": 16,
-    "h": 16
-   },
-   "rotated": false,
-   "trimmed": false,
-   "spriteSourceSize": {
-    "x": 0,
-    "y": 0,
-    "w": 16,
-    "h": 16
-   },
-   "sourceSize": {
-    "w": 16,
-    "h": 16
-   }
-  },
-  "food_salad": {
-   "frame": {
-    "x": 51,
-    "y": 163,
-    "w": 16,
-    "h": 16
-   },
-   "rotated": false,
-   "trimmed": false,
-   "spriteSourceSize": {
-    "x": 0,
-    "y": 0,
-    "w": 16,
-    "h": 16
-   },
-   "sourceSize": {
-    "w": 16,
-    "h": 16
-   }
-  },
-  "plate_cookies": {
-   "frame": {
-    "x": 68,
-    "y": 163,
-    "w": 16,
-    "h": 16
-   },
-   "rotated": false,
-   "trimmed": false,
-   "spriteSourceSize": {
-    "x": 0,
-    "y": 0,
-    "w": 16,
-    "h": 16
-   },
-   "sourceSize": {
-    "w": 16,
-    "h": 16
-   }
-  },
-  "stool_round": {
-   "frame": {
-    "x": 85,
-    "y": 163,
-    "w": 16,
-    "h": 16
-   },
-   "rotated": false,
-   "trimmed": false,
-   "spriteSourceSize": {
-    "x": 0,
-    "y": 0,
-    "w": 16,
-    "h": 16
-   },
-   "sourceSize": {
-    "w": 16,
-    "h": 16
-   }
-  },
-  "table_light_small": {
-   "frame": {
-    "x": 102,
-    "y": 163,
-    "w": 16,
-    "h": 16
-   },
-   "rotated": false,
-   "trimmed": false,
-   "spriteSourceSize": {
-    "x": 0,
-    "y": 0,
-    "w": 16,
-    "h": 16
-   },
-   "sourceSize": {
-    "w": 16,
-    "h": 16
-   }
-  },
-  "tile_floor_brick": {
-   "frame": {
-    "x": 119,
-    "y": 163,
-    "w": 16,
-    "h": 16
-   },
-   "rotated": false,
-   "trimmed": false,
-   "spriteSourceSize": {
-    "x": 0,
-    "y": 0,
-    "w": 16,
-    "h": 16
-   },
-   "sourceSize": {
-    "w": 16,
-    "h": 16
-   }
-  },
-  "tile_floor_cream": {
-   "frame": {
-    "x": 136,
-    "y": 163,
-    "w": 16,
-    "h": 16
-   },
-   "rotated": false,
-   "trimmed": false,
-   "spriteSourceSize": {
-    "x": 0,
-    "y": 0,
-    "w": 16,
-    "h": 16
-   },
-   "sourceSize": {
-    "w": 16,
-    "h": 16
-   }
-  },
-  "tile_floor_gray": {
-   "frame": {
-    "x": 153,
-    "y": 163,
-    "w": 16,
-    "h": 16
-   },
-   "rotated": false,
-   "trimmed": false,
-   "spriteSourceSize": {
-    "x": 0,
-    "y": 0,
-    "w": 16,
-    "h": 16
-   },
-   "sourceSize": {
-    "w": 16,
-    "h": 16
-   }
-  },
-  "tile_floor_wood": {
-   "frame": {
-    "x": 170,
-    "y": 163,
-    "w": 16,
-    "h": 16
-   },
-   "rotated": false,
-   "trimmed": false,
-   "spriteSourceSize": {
-    "x": 0,
-    "y": 0,
-    "w": 16,
-    "h": 16
-   },
-   "sourceSize": {
-    "w": 16,
-    "h": 16
-   }
-  },
-  "tile_wall_bottom": {
    "frame": {
     "x": 187,
     "y": 163,
@@ -1220,7 +1160,7 @@
     "h": 16
    }
   },
-  "tile_wall_left_bottom": {
+  "food_bowl": {
    "frame": {
     "x": 204,
     "y": 163,
@@ -1240,7 +1180,7 @@
     "h": 16
    }
   },
-  "tile_wall_left_top": {
+  "food_cake": {
    "frame": {
     "x": 221,
     "y": 163,
@@ -1260,7 +1200,7 @@
     "h": 16
    }
   },
-  "tile_wall_right_bottom": {
+  "food_pizza": {
    "frame": {
     "x": 238,
     "y": 163,
@@ -1280,7 +1220,7 @@
     "h": 16
    }
   },
-  "tile_wall_right_top": {
+  "food_salad": {
    "frame": {
     "x": 255,
     "y": 163,
@@ -1300,10 +1240,330 @@
     "h": 16
    }
   },
-  "tile_wall_top": {
+  "painting_moon_mini": {
    "frame": {
     "x": 272,
     "y": 163,
+    "w": 16,
+    "h": 16
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 16,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 16,
+    "h": 16
+   }
+  },
+  "painting_night_mini": {
+   "frame": {
+    "x": 289,
+    "y": 163,
+    "w": 16,
+    "h": 16
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 16,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 16,
+    "h": 16
+   }
+  },
+  "painting_orange_mini": {
+   "frame": {
+    "x": 306,
+    "y": 163,
+    "w": 16,
+    "h": 16
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 16,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 16,
+    "h": 16
+   }
+  },
+  "painting_tree_mini": {
+   "frame": {
+    "x": 323,
+    "y": 163,
+    "w": 16,
+    "h": 16
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 16,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 16,
+    "h": 16
+   }
+  },
+  "plate_cookies": {
+   "frame": {
+    "x": 340,
+    "y": 163,
+    "w": 16,
+    "h": 16
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 16,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 16,
+    "h": 16
+   }
+  },
+  "stool_round": {
+   "frame": {
+    "x": 357,
+    "y": 163,
+    "w": 16,
+    "h": 16
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 16,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 16,
+    "h": 16
+   }
+  },
+  "table_light_small": {
+   "frame": {
+    "x": 374,
+    "y": 163,
+    "w": 16,
+    "h": 16
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 16,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 16,
+    "h": 16
+   }
+  },
+  "tile_floor_brick": {
+   "frame": {
+    "x": 391,
+    "y": 163,
+    "w": 16,
+    "h": 16
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 16,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 16,
+    "h": 16
+   }
+  },
+  "tile_floor_cream": {
+   "frame": {
+    "x": 408,
+    "y": 163,
+    "w": 16,
+    "h": 16
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 16,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 16,
+    "h": 16
+   }
+  },
+  "tile_floor_gray": {
+   "frame": {
+    "x": 425,
+    "y": 163,
+    "w": 16,
+    "h": 16
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 16,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 16,
+    "h": 16
+   }
+  },
+  "tile_floor_wood": {
+   "frame": {
+    "x": 442,
+    "y": 163,
+    "w": 16,
+    "h": 16
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 16,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 16,
+    "h": 16
+   }
+  },
+  "tile_wall_bottom": {
+   "frame": {
+    "x": 459,
+    "y": 163,
+    "w": 16,
+    "h": 16
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 16,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 16,
+    "h": 16
+   }
+  },
+  "tile_wall_left_bottom": {
+   "frame": {
+    "x": 476,
+    "y": 163,
+    "w": 16,
+    "h": 16
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 16,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 16,
+    "h": 16
+   }
+  },
+  "tile_wall_left_top": {
+   "frame": {
+    "x": 493,
+    "y": 163,
+    "w": 16,
+    "h": 16
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 16,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 16,
+    "h": 16
+   }
+  },
+  "tile_wall_right_bottom": {
+   "frame": {
+    "x": 0,
+    "y": 196,
+    "w": 16,
+    "h": 16
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 16,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 16,
+    "h": 16
+   }
+  },
+  "tile_wall_right_top": {
+   "frame": {
+    "x": 17,
+    "y": 196,
+    "w": 16,
+    "h": 16
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 16,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 16,
+    "h": 16
+   }
+  },
+  "tile_wall_top": {
+   "frame": {
+    "x": 34,
+    "y": 196,
     "w": 16,
     "h": 16
    },
@@ -1325,7 +1585,7 @@
   "image": "interiors.png",
   "size": {
    "w": 512,
-   "h": 179
+   "h": 212
   },
   "scale": "1"
  }

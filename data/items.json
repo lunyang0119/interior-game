@@ -615,6 +615,149 @@
    "layer": "furniture",
    "is_surface": false,
    "surface_offset_y": 0
+  },
+  {
+   "id": "painting_mountain",
+   "name": "산 풍경화",
+   "price": 60,
+   "sprite": "painting_mountain",
+   "w": 2,
+   "h": 2,
+   "layer": "wall",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "painting_window",
+   "name": "창가 그림",
+   "price": 60,
+   "sprite": "painting_window",
+   "w": 2,
+   "h": 2,
+   "layer": "wall",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "painting_mushroom",
+   "name": "버섯 숲 그림",
+   "price": 60,
+   "sprite": "painting_mushroom",
+   "w": 2,
+   "h": 2,
+   "layer": "wall",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "painting_rose",
+   "name": "장미 그림",
+   "price": 40,
+   "sprite": "painting_rose",
+   "w": 1,
+   "h": 2,
+   "layer": "wall",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "painting_violet",
+   "name": "보라꽃 그림",
+   "price": 40,
+   "sprite": "painting_violet",
+   "w": 1,
+   "h": 2,
+   "layer": "wall",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "painting_sunflower",
+   "name": "해바라기 그림",
+   "price": 40,
+   "sprite": "painting_sunflower",
+   "w": 1,
+   "h": 2,
+   "layer": "wall",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "painting_sea_sunset",
+   "name": "노을 바다 그림",
+   "price": 40,
+   "sprite": "painting_sea_sunset",
+   "w": 1,
+   "h": 2,
+   "layer": "wall",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "painting_palm",
+   "name": "야자수 그림",
+   "price": 40,
+   "sprite": "painting_palm",
+   "w": 1,
+   "h": 2,
+   "layer": "wall",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "painting_campfire",
+   "name": "모닥불 그림",
+   "price": 40,
+   "sprite": "painting_campfire",
+   "w": 1,
+   "h": 2,
+   "layer": "wall",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "painting_moon_mini",
+   "name": "달 미니 액자",
+   "price": 25,
+   "sprite": "painting_moon_mini",
+   "w": 1,
+   "h": 1,
+   "layer": "wall",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "painting_orange_mini",
+   "name": "오렌지 미니 액자",
+   "price": 25,
+   "sprite": "painting_orange_mini",
+   "w": 1,
+   "h": 1,
+   "layer": "wall",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "painting_tree_mini",
+   "name": "나무 미니 액자",
+   "price": 25,
+   "sprite": "painting_tree_mini",
+   "w": 1,
+   "h": 1,
+   "layer": "wall",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "painting_night_mini",
+   "name": "밤 미니 액자",
+   "price": 25,
+   "sprite": "painting_night_mini",
+   "w": 1,
+   "h": 1,
+   "layer": "wall",
+   "is_surface": false,
+   "surface_offset_y": 0
   }
  ]
 }

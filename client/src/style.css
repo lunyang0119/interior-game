@@ -9,6 +9,7 @@
   --muted: #9a9ab0;
   --primary: #4f8cff;
   --danger: #e5534b;
+  --card: #1b1b24; /* inner cards inside panels (shop items, account rows, inputs) */
   --font-body: -apple-system, "Segoe UI", system-ui, sans-serif;
   --font-size: 15px;
   --safe-top: env(safe-area-inset-top, 0px);
@@ -63,30 +64,30 @@ button.close { background: transparent; border: 0; border-image: none; font-size
 .small { font-size: 13px; }
 .credits { color: var(--muted); margin-top: 10px; font-size: 11px; }
 input {
-  flex: 1; min-width: 0; border-radius: 10px; padding: var(--pad-input); font: inherit; background: var(--bg); color: var(--text);
+  flex: 1; min-width: 0; border-radius: 10px; padding: var(--pad-input); font: inherit; background: var(--card); color: var(--text);
   border: var(--slice-input-px) solid transparent; border-image: var(--frame-input) var(--slice-input) fill round;
 }
 .hidden { display: none !important; }
 
-#accounts-list .acct { display: flex; align-items: center; gap: 8px; padding: 8px; border-radius: 10px; background: var(--bg); margin-bottom: 6px; }
+#accounts-list .acct { display: flex; align-items: center; gap: 8px; padding: 8px; border-radius: 10px; background: var(--card); margin-bottom: 6px; }
 #accounts-list .acct.active { outline: 2px solid var(--primary); }
 #accounts-list .acct .name { flex: 1; font-weight: 700; }
 #accounts-list .acct button { padding: 4px 10px; font-size: 13px; }
-#logins-out { background: var(--bg); padding: 8px; border-radius: 10px; font-size: 11px; max-height: 30vh; overflow: auto; white-space: pre-wrap; }
+#logins-out { background: var(--card); padding: 8px; border-radius: 10px; font-size: 11px; max-height: 30vh; overflow: auto; white-space: pre-wrap; }
 
-#avatar-preview { display: block; margin: 0 auto 8px; width: 96px; height: 128px; image-rendering: pixelated; background: #333; border-radius: 10px; }
+#avatar-preview { display: block; margin: 0 auto 8px; width: 96px; height: 128px; image-rendering: pixelated; background: var(--card); border-radius: 10px; }
 #avatar-layers .layer { display: flex; align-items: center; gap: 8px; margin: 6px 0; }
 #avatar-layers .layer.sub { margin-left: 16px; color: var(--muted); }
 #avatar-layers .layer span { flex: 1; }
 #avatar-layers .layer button { width: 44px; padding: 6px 0; text-align: center; }
 
 #shop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 8px; }
-.shop-item { background: var(--bg); border-radius: 10px; padding: 6px; text-align: center; cursor: pointer; }
+.shop-item { background: var(--card); border-radius: 10px; padding: 6px; text-align: center; cursor: pointer; }
 .shop-item canvas { width: 64px; height: 64px; image-rendering: pixelated; display: block; margin: 0 auto 4px; }
 .shop-item .n { font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .shop-item .p { font-size: 12px; color: var(--muted); }
 .shop-item.disabled { opacity: .4; }
-#shop-tabs button.on { background: var(--primary); }
+#shop-tabs button.on { background: var(--primary); filter: brightness(0.8); }
 
 #ctx {
   position: fixed; z-index: 30; background: var(--panel); border-radius: 12px; padding: var(--pad-ctx); display: flex; flex-direction: column; gap: 6px;

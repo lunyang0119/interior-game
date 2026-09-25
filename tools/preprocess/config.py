@@ -34,6 +34,7 @@ SHEETS = {
     "interiors": FREE / "Interiors_free" / "16x16" / "Interiors_free_16x16.png",
     "room_builder": FREE / "Interiors_free" / "16x16" / "Room_Builder_free_16x16.png",
     "kitchen": ASSETS / "Kitchen and more tileset [16x16]" / "tileset.png",
+    "paintings": ASSETS / "Paintings" / "Paintings_1.png",
 }
 
 # Character frames. Every variant yields one horizontal sheet of ANIM_STRIPS

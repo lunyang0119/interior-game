@@ -2,12 +2,48 @@ html:root {
   --font-body: "Stardust", -apple-system, "Segoe UI", system-ui, sans-serif;
   --font-size: 16px;
   --bg: #1b1b24;
-  --panel: #262633;
-  --chip: rgba(20, 20, 30, 0.85);
-  --text: #f0f0f5;
-  --muted: #9a9ab0;
-  --primary: #4f8cff;
-  --danger: #e5534b;
+  --panel: #e9d6cd;
+  --chip: #e6d5be;
+  --card: #f4e9e2;
+  --text: #3a2626;
+  --muted: #8b6b66;
+  --primary: #c98a7a;
+  --danger: #b5504a;
+  --frame-panel: url(/media/ui/panel.png);
+  --slice-panel: 8;
+  --slice-panel-px: 16px;
+  --pad-panel: 20px;
+  --frame-button: url(/media/ui/button.png);
+  --slice-button: 6;
+  --slice-button-px: 12px;
+  --pad-button: 6px;
+  --frame-button-primary: url(/media/ui/button_primary.png);
+  --slice-button-primary: 6;
+  --slice-button-primary-px: 12px;
+  --pad-button-primary: 6px;
+  --frame-chip: url(/media/ui/chip.png);
+  --slice-chip: 5;
+  --slice-chip-px: 10px;
+  --pad-chip: 4px;
+  --frame-input: url(/media/ui/input.png);
+  --slice-input: 6;
+  --slice-input-px: 12px;
+  --pad-input: 10px;
+  --frame-ctx: url(/media/ui/ctx.png);
+  --slice-ctx: 8;
+  --slice-ctx-px: 16px;
+  --pad-ctx: 12px;
+  --frame-toast: url(/media/ui/toast.png);
+  --slice-toast: 6;
+  --slice-toast-px: 12px;
+  --pad-toast: 8px;
 }
+html .panel { border-radius: 0; background: none; box-shadow: none; backdrop-filter: none; }
+html button, html button.big { border-radius: 0; background: none; box-shadow: none; backdrop-filter: none; }
+html button.primary { border-radius: 0; background: none; box-shadow: none; backdrop-filter: none; }
+html .chip { border-radius: 0; background: none; box-shadow: none; backdrop-filter: none; }
+html input { border-radius: 0; background: none; box-shadow: none; backdrop-filter: none; }
+html #ctx { border-radius: 0; background: none; box-shadow: none; backdrop-filter: none; }
+html #toast { border-radius: 0; background: none; box-shadow: none; backdrop-filter: none; }
 @font-face { font-family: "Stardust"; font-weight: 400; src: url(/media/fonts/stardust.ttf) format("truetype"); font-display: swap; }
 @font-face { font-family: "Stardust"; font-weight: 700; src: url(/media/fonts/stardust-bold.ttf) format("truetype"); font-display: swap; }
