@@ -50,13 +50,13 @@ export function initHud(): void {
   $("place-cancel").addEventListener("click", () => bus.emit("place:cancel"));
 
   $("btn-sync").addEventListener("click", async () => {
-    if (!state.token) { bus.emit("toast", { text: "먼저 계정을 골라" }); return; }
+    if (!state.token) { bus.emit("toast", { text: "먼저 계정을 골라주세요" }); return; }
     try {
       const r = await api.sync();
       state.balance = r.balance;
       state.contributions = r.contributions;
       bus.emit("money", { balance: r.balance });
-      bus.emit("toast", { text: r.refreshed ? "시트 동기화 완료" : "방금 했어, 잠깐 있다 다시" });
+      bus.emit("toast", { text: r.refreshed ? "시트 동기화 완료" : "잠시 뒤에 다시 시도해주세요" });
     } catch (e) {
       bus.emit("toast", { text: e instanceof ApiError ? msgFor(e.code) : String(e) });
     }

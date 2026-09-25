@@ -41,6 +41,8 @@ def create_app() -> FastAPI:
     # Generated sprites are served from the same origin in production. In dev Vite serves them.
     if config.GEN_DIR.exists():
         app.mount("/gen", StaticFiles(directory=config.GEN_DIR), name="gen")
+    if config.MEDIA_DIR.exists():
+        app.mount("/media", StaticFiles(directory=config.MEDIA_DIR), name="media")
     if config.STATIC_DIR.exists():
         app.mount("/", StaticFiles(directory=config.STATIC_DIR, html=True), name="static")
     return app

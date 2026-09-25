@@ -105,13 +105,18 @@ def test_insufficient_funds(client, env):
 
 def test_avatar_validation(client):
     lun = register(client, "lun")
-    ok = {"skin": 1, "hair": 0, "hair_color": 0, "outfit": 0, "acc": 0}
+    ok = {"skin": 1, "eyes": 2, "hair": 1, "outfit": 0, "acc": 0}
     assert client.put("/api/avatar", json=ok, headers=auth(lun)).status_code == 200
-    assert client.get("/api/me", headers=auth(lun)).json()["avatar"]["skin"] == 1
+    got = client.get("/api/me", headers=auth(lun)).json()["avatar"]
+    assert got["skin"] == 1 and got["eyes"] == 2 and got["hair"] == 1 and got["hair_color"] == 0
     bad = dict(ok, skin=2)
     assert client.put("/api/avatar", json=bad, headers=auth(lun)).json()["error"] == "bad_skin"
-    bad = dict(ok, hair=1)  # layer has 0 variants
-    assert client.put("/api/avatar", json=bad, headers=auth(lun)).json()["error"] == "bad_hair"
+    bad = dict(ok, eyes=3)
+    assert client.put("/api/avatar", json=bad, headers=auth(lun)).json()["error"] == "bad_eyes"
+    bad = dict(ok, outfit=1)  # layer has 0 variants
+    assert client.put("/api/avatar", json=bad, headers=auth(lun)).json()["error"] == "bad_outfit"
+    bad = dict(ok, hair_color=1)  # legacy column: must stay 0
+    assert client.put("/api/avatar", json=bad, headers=auth(lun)).json()["error"] == "bad_hair_color"
 
 
 def test_rotate_and_logins(client):

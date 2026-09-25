@@ -1,0 +1,15 @@
+{
+ "_help": "python tools/preprocess/preprocess.py ui 로 적용. frames 에는 panel / button / button_primary / chip / input / ctx / toast 를 넣을 수 있음. file = assets/ 기준 PNG, 또는 sheet + x,y,w,h 로 시트에서 잘라냄. slice = 9-slice 테두리 두께(px), pad = 안쪽 여백(px, 기본 slice). scale = 화면 배율.",
+ "font": {"body": "stardust", "bold": "stardust-bold", "size": 16},
+ "colors": {
+  "bg": "#1b1b24",
+  "panel": "#262633",
+  "chip": "rgba(20, 20, 30, 0.85)",
+  "text": "#f0f0f5",
+  "muted": "#9a9ab0",
+  "primary": "#4f8cff",
+  "danger": "#e5534b"
+ },
+ "frames": {},
+ "scale": 2
+}

@@ -7,8 +7,9 @@ class RegisterIn(BaseModel):
 
 class AvatarIn(BaseModel):
     skin: int = Field(ge=0)
+    eyes: int = Field(ge=0, default=0)
     hair: int = Field(ge=0)
-    hair_color: int = Field(ge=0)
+    hair_color: int = Field(ge=0, default=0)  # legacy column, no longer a layer
     outfit: int = Field(ge=0)
     acc: int = Field(ge=0)
 

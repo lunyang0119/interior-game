@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import { api, ApiError, msgFor } from "./api";
+import { initBgm } from "./audio/bgm";
 import { bus, toast } from "./bus";
 import { makeCatalog } from "./catalog";
 import { CELL } from "./room/grid";
@@ -30,7 +31,7 @@ async function loadAccount(id: string | null): Promise<void> {
   } catch (e) {
     state.token = null;
     if (e instanceof ApiError && e.status === 401) {
-      toast(`${acct.id} 토큰이 더 이상 유효하지 않아. 계정에서 지우고 복구 링크로 다시 들어와`);
+      toast(`${acct.id} 토큰이 더 이상 유효하지 않아요. 스프레드 시트에서 계정을 지우고 복구 링크로 다시 들어와주세요.`);
     } else {
       toast(e instanceof ApiError ? msgFor(e.code) : String(e));
     }
@@ -45,14 +46,18 @@ async function boot(): Promise<void> {
     try {
       const me = await api.meWith(recovered);
       storage.addAccount({ id: me.id, token: recovered });
-      toast(`${me.id} 계정으로 들어왔어`);
+      toast(`${me.id} 계정으로 들어왔어요`);
     } catch {
-      toast("복구 링크가 유효하지 않아");
+      toast("복구 링크가 유효하지 않아요");
     }
   }
 
-  // 2. catalog (public)
-  state.catalog = makeCatalog(await api.catalog());
+  // 2. catalog (public) + pixel font (so the first frame already uses it; ignore failures)
+  const [cat] = await Promise.all([
+    api.catalog(),
+    document.fonts.load('16px "Stardust"').catch(() => undefined),
+  ]);
+  state.catalog = makeCatalog(cat);
   const room = state.catalog.room;
 
   // 3. active account
@@ -64,6 +69,7 @@ async function boot(): Promise<void> {
   initAvatarEditor();
   initShop();
   initContextMenu();
+  void initBgm();
 
   // 5. game
   const game = new Phaser.Game({
@@ -79,6 +85,7 @@ async function boot(): Promise<void> {
     scene: [BootScene, RoomScene],
   });
   game.scene.start("Boot", { id: state.id });
+  (window as unknown as { __game: Phaser.Game }).__game = game; // debugging / e2e hooks
 
   bus.on("account:switch", async ({ id }) => {
     await loadAccount(id || null);
@@ -90,5 +97,5 @@ async function boot(): Promise<void> {
 }
 
 boot().catch((e) => {
-  $("loading").textContent = `시작 실패: ${e instanceof ApiError ? msgFor(e.code) : e}`;
+  $("loading").textContent = `시작 실패. 게오에게 멘션주세요: ${e instanceof ApiError ? msgFor(e.code) : e}`;
 });

@@ -1,4 +1,4 @@
-import type { AvatarLook, Catalog } from "./catalog";
+import { DEFAULT_LOOK, type AvatarLook, type Catalog } from "./catalog";
 
 export interface Contribution { id: string; earned: number }
 
@@ -9,7 +9,7 @@ export const state = {
   token: null as string | null,
   balance: 0,
   contributions: [] as Contribution[],
-  avatar: { skin: 0, hair: 0, hair_color: 0, outfit: 0, acc: 0 } as AvatarLook,
+  avatar: { ...DEFAULT_LOOK } as AvatarLook,
   online: 0,
   roomVersion: -1,
 };

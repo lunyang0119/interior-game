@@ -20,7 +20,7 @@ export function initContextMenu(): void {
   $("ctx-remove").addEventListener("click", () => {
     if (!current) return;
     const it = catalog().byId.get(current.item_id);
-    if (confirm(`${it?.name ?? current.item_id} 치울까? ${it?.price ?? 0}💰 환불돼.`)) bus.emit("item:remove", { uid: current.uid });
+    if (confirm(`${it?.name ?? current.item_id} 치울까요? ${it?.price ?? 0}💰 환불되어요.`)) bus.emit("item:remove", { uid: current.uid });
     close();
   });
   $("ctx-cancel").addEventListener("click", close);

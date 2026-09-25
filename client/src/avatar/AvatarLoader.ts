@@ -15,8 +15,9 @@ export function sheetsFor(look: AvatarLook, chars: Chars): { layer: string; idx:
   for (const layer of chars.layerOrder) {
     const count = chars.layers[layer]?.count ?? 0;
     if (count <= 0) continue;
-    const idx = (look as unknown as Record<string, number>)[layer] ?? 0;
-    out.push({ layer, idx: Math.min(Math.max(idx, 0), count - 1) });
+    const idx = Math.min(Math.max((look as unknown as Record<string, number>)[layer] ?? 0, 0), count - 1);
+    if (chars.layers[layer]?.none && idx === 0) continue; // "nothing" variant: no sheet to draw
+    out.push({ layer, idx });
   }
   return out;
 }

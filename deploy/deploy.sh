@@ -8,8 +8,9 @@ cd "$(dirname "$0")/.."
 git pull --ff-only
 
 if [[ "${1:-}" != "--no-build" ]]; then
-  # Generated sprites are gitignored: copy them from your PC once with
-  #   rsync -av client/public/gen/ ubuntu@VM:/opt/interior/client/public/gen/
+  # Generated sprites / media are gitignored: copy them from your PC with
+  #   rsync -av client/public/gen/   ubuntu@VM:/opt/interior/client/public/gen/
+  #   rsync -av client/public/media/ ubuntu@VM:/opt/interior/client/public/media/
   (cd client && npm ci --silent && npm run build)
 fi
 

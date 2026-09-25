@@ -6,6 +6,8 @@ import { animKey, sheetsFor, texKey } from "./AvatarLoader";
 
 const SPEED = 48; // px per second
 const REMOTE_SPEED = 64;
+const LABEL_DEPTH = 1_000_000; // always above furniture
+const LABEL_FONT = 16; // rendered at 16px then scaled 0.5 → crisp 8px pixel font at zoom 2
 
 export type Dir = "right" | "up" | "left" | "down";
 
@@ -19,13 +21,30 @@ export class Avatar extends Phaser.GameObjects.Container {
   onArrive: (() => void) | null = null;
   onStep: ((x: number, y: number, dir: Dir, moving: boolean) => void) | null = null;
   private stepAcc = 0;
+  private label: Phaser.GameObjects.Text;
 
-  constructor(scene: Phaser.Scene, private chars: Chars, look: AvatarLook, cellX: number, cellY: number, remote = false) {
+  constructor(scene: Phaser.Scene, private chars: Chars, look: AvatarLook, cellX: number, cellY: number,
+              name = "", remote = false) {
     super(scene, (cellX + 0.5) * CELL, (cellY + 1) * CELL);
     this.speed = remote ? REMOTE_SPEED : SPEED;
     scene.add.existing(this);
+    // name tag lives outside the container so its depth is independent of the y-sort
+    this.label = scene.add.text(0, 0, name, {
+      fontFamily: '"Stardust", sans-serif', fontSize: `${LABEL_FONT}px`, color: "#ffffff",
+      stroke: "#000000", strokeThickness: 3, resolution: 2,
+    }).setOrigin(0.5, 1).setScale(0.5).setDepth(LABEL_DEPTH).setVisible(name !== "");
     this.setLook(look);
     this.refreshDepth();
+    this.syncLabel();
+  }
+
+  private syncLabel(): void {
+    this.label.setPosition(Math.round(this.x), Math.round(this.y - this.chars.frameH - 1));
+  }
+
+  destroy(fromScene?: boolean): void {
+    this.label.destroy();
+    super.destroy(fromScene);
   }
 
   /** Requires textures to be loaded already (ensureAvatarTextures). */
@@ -93,6 +112,7 @@ export class Avatar extends Phaser.GameObjects.Container {
         }
       }
       this.refreshDepth();
+      this.syncLabel();
     }
   }
 

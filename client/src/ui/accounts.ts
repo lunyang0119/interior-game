@@ -16,7 +16,7 @@ export function initAccounts(): void {
       storage.addAccount({ id: r.id, token: r.token });
       input.value = "";
       const who = r.created ? "시트에 새 행 추가됨" : `시트의 "${r.name}"에 연결됨`;
-      toast(`${r.id} 등록 완료 (${who}). 복구 링크를 어딘가 저장해둬`);
+      toast(`${r.id} 등록 완료 (${who}). 복구 링크를 어딘가 저장해주세요`);
       bus.emit("account:switch", { id: r.id });
       closeAllPanels();
     } catch (e) {
@@ -26,11 +26,11 @@ export function initAccounts(): void {
 
   $("btn-recovery").addEventListener("click", async () => {
     const acct = storage.activeAccount();
-    if (!acct) { toast("계정이 없어"); return; }
+    if (!acct) { toast("계정이 없네요"); return; }
     const link = storage.recoveryLink(acct.token);
     try {
       await navigator.clipboard.writeText(link);
-      toast("복구 링크 복사됨. 남한테 주면 그 사람이 네 계정으로 들어와");
+      toast("복구 링크 복사됨.");
     } catch {
       prompt("복구 링크 (복사해)", link);
     }
@@ -38,7 +38,7 @@ export function initAccounts(): void {
 
   $("btn-rotate").addEventListener("click", async () => {
     if (!state.id) return;
-    if (!confirm("토큰을 새로 발급하면 기존 복구 링크는 무효가 돼. 진행?")) return;
+    if (!confirm("토큰을 새로 발급하면 기존 복구 링크는 무효가 됩니다. 진행하시겠어요?")) return;
     try {
       const r = await api.rotate();
       storage.updateToken(r.id, r.token);
@@ -69,7 +69,7 @@ function render(): void {
   list.innerHTML = "";
   const accounts = storage.accounts();
   if (accounts.length === 0) {
-    list.innerHTML = `<div class="small" style="color:var(--muted)">아직 계정이 없어. 시트 닉네임으로 등록해 (일부만 써도 돼).</div>`;
+    list.innerHTML = `<div class="small" style="color:var(--muted)">아직 계정이 없어요. 시트 닉네임으로 등록해주세요 (닉네임의 일부만 써도 된답니다).</div>`;
     return;
   }
   for (const a of accounts) {
@@ -86,7 +86,7 @@ function render(): void {
     const rm = document.createElement("button");
     rm.textContent = "삭제";
     rm.addEventListener("click", () => {
-      if (!confirm(`${a.id}를 이 기기에서 지울까? (복구 링크 없으면 못 돌아와)`)) return;
+      if (!confirm(`${a.id}를 이 기기에서 지울까요? (복구 링크 없으면 못 돌아와요)`)) return;
       storage.removeAccount(a.id);
       const next = storage.activeAccount();
       bus.emit("account:switch", { id: next?.id ?? "" });

@@ -22,12 +22,15 @@ export interface Room {
   tiles: { wall: string[]; wall_left: string[]; wall_right: string[]; floor: string };
 }
 
+/** One avatar layer. `groups` = indices that share a style (colour variants); `none` = index 0 means "nothing". */
+export interface LayerSpec { count: number; label?: string; none?: boolean; groups?: number[][]; names?: string[] }
+
 export interface Chars {
   frameW: number;
   frameH: number;
   anims: Record<string, [number, number]>;
   layerOrder: string[];
-  layers: Record<string, { count: number }>;
+  layers: Record<string, LayerSpec>;
 }
 
 export interface Catalog {
@@ -50,13 +53,15 @@ export interface RoomItem {
 
 export interface AvatarLook {
   skin: number;
+  eyes: number;
   hair: number;
-  hair_color: number;
+  hair_color: number; // legacy, always 0
   outfit: number;
   acc: number;
 }
 
-export const AVATAR_LAYERS: (keyof AvatarLook)[] = ["skin", "hair", "hair_color", "outfit", "acc"];
+export const AVATAR_LAYERS: (keyof AvatarLook)[] = ["skin", "eyes", "outfit", "hair", "acc"];
+export const DEFAULT_LOOK: AvatarLook = { skin: 0, eyes: 0, hair: 0, hair_color: 0, outfit: 0, acc: 0 };
 
 export const Z_SCALE: Record<Layer, number> = { wall: 0, floor: 0, furniture: 10, surface_item: 20 };
 export const Z_AVATAR = 15;

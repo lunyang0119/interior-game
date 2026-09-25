@@ -22,7 +22,7 @@ export class RemoteAvatars {
     if (!latest) return; // left while loading
     this.pending.delete(s.id);
     this.avatars.get(s.id)?.destroy();
-    const a = new Avatar(this.scene, this.chars, latest.avatar, 0, 0, true);
+    const a = new Avatar(this.scene, this.chars, latest.avatar, 0, 0, latest.id, true);
     a.applyRemote(latest.x, latest.y, latest.dir, false);
     a.update(0, 1_000_000); // snap to position
     this.avatars.set(s.id, a);

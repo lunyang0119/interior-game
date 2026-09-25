@@ -1,0 +1,42 @@
+{
+ "day": [
+  {
+   "file": "day/01-snoozy-beats-chase-that-feeling-summer-t.mp3",
+   "title": "snoozy beats - chase that feeling [summer travel vlog music]"
+  },
+  {
+   "file": "day/02-snoozy-beats-green-valley.mp3",
+   "title": "snoozy beats - green valley"
+  },
+  {
+   "file": "day/03-snoozy-beats-moonlit-whisper.mp3",
+   "title": "snoozy beats - Moonlit Whisper"
+  },
+  {
+   "file": "day/04-snoozy-beats-see-you-again.mp3",
+   "title": "snoozy beats - see you again"
+  },
+  {
+   "file": "day/05-snoozy-beats-sunny-days.mp3",
+   "title": "snoozy beats - Sunny Days"
+  }
+ ],
+ "night": [
+  {
+   "file": "night/01-snoozy-beats-card-games-lofi-chill.mp3",
+   "title": "snoozy beats - card games (lofi chill)"
+  },
+  {
+   "file": "night/02-snoozy-beats-cherry-blossom.mp3",
+   "title": "snoozy beats - cherry blossom"
+  },
+  {
+   "file": "night/03-snoozy-beats-dreams-in-slow-motion.mp3",
+   "title": "snoozy beats - dreams in slow motion"
+  },
+  {
+   "file": "night/04-snoozy-beats-sunny-vibes.mp3",
+   "title": "snoozy beats - Sunny Vibes"
+  }
+ ]
+}

@@ -68,7 +68,7 @@ function render(): void {
 
 export function initShop(): void {
   $("btn-shop").addEventListener("click", async () => {
-    if (!state.id) { toast("먼저 계정을 골라"); return; }
+    if (!state.id) { toast("먼저 계정을 골라주세요"); return; }
     await loadAtlas();
     render();
     togglePanel("panel-shop");

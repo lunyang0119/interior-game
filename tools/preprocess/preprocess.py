@@ -13,12 +13,22 @@ Usage (from repo root):
 
     python tools/preprocess/preprocess.py scaffold
         Adds a placeholder items.json entry for every atlas key that has none.
+
+    python tools/preprocess/preprocess.py media
+        Copies BGM (assets/BGM/{day,night}/*.mp3) and fonts (assets/fonts/*.ttf)
+        into client/public/media/ with ASCII names and writes media/bgm.json.
+
+    python tools/preprocess/preprocess.py ui
+        Reads data/ui_theme.json, cuts the 9-slice frame PNGs into
+        client/public/media/ui/ and writes client/public/media/theme.css.
 """
 
 from __future__ import annotations
 
 import argparse
 import json
+import re
+import shutil
 import sys
 from collections import deque
 from pathlib import Path
@@ -42,12 +52,25 @@ def load_slices() -> list[dict]:
 
 
 def save_slices(slices: list[dict]) -> None:
-    slices.sort(key=lambda s: (s["sheet"], s["y"], s["x"]))
+    slices.sort(key=lambda s: (s.get("sheet", "~file"), s.get("y", 0), s.get("x", 0), s["key"]))
     C.SLICES_FILE.write_text(json.dumps(slices, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
 
 
 def slice_rect(s: dict) -> tuple[int, int, int, int]:
     return s["x"], s["y"], s["w"], s["h"]
+
+
+def slice_image(s: dict, sheets: dict[str, Image.Image]) -> Image.Image:
+    """Crop for a slice: either a rect on a named sheet or a standalone PNG (`file`, relative to assets/graphic)."""
+    if "file" in s:
+        path = C.ASSETS / s["file"]
+        if not path.exists():
+            raise SystemExit(f"file for slice '{s['key']}' not found: {path}")
+        return Image.open(path).convert("RGBA")
+    if s["sheet"] not in sheets:
+        raise SystemExit(f"sheet '{s['sheet']}' for slice '{s['key']}' not found")
+    x, y, w, h = slice_rect(s)
+    return sheets[s["sheet"]].crop((x, y, x + w, y + h))
 
 
 # ----------------------------------------------------------------------------
@@ -128,9 +151,9 @@ def cmd_scan(args: argparse.Namespace) -> None:
     boxes.sort(key=lambda b: (b[1], b[0]))
 
     existing = load_slices()
-    by_rect = {(s["sheet"], *slice_rect(s)): s for s in existing}
-    kept = [s for s in existing if s["sheet"] != sheet]
-    named_on_sheet = [s for s in existing if s["sheet"] == sheet and not s["key"].startswith("auto_")]
+    by_rect = {(s["sheet"], *slice_rect(s)): s for s in existing if "sheet" in s}
+    kept = [s for s in existing if s.get("sheet") != sheet]
+    named_on_sheet = [s for s in existing if s.get("sheet") == sheet and not s["key"].startswith("auto_")]
     result = list(kept) + named_on_sheet
     named_rects = [slice_rect(s) for s in named_on_sheet]
 
@@ -154,7 +177,7 @@ def cmd_scan(args: argparse.Namespace) -> None:
 
     save_slices(result)
     print(f"{len(boxes)} regions found, {n_new} new auto entries → {C.SLICES_FILE.name}")
-    render_contact_sheet(sheet, [s for s in result if s["sheet"] == sheet])
+    render_contact_sheet(sheet, [s for s in result if s.get("sheet") == sheet])
 
 
 def render_contact_sheet(sheet: str, slices: list[dict], scale: int = 3) -> None:
@@ -182,12 +205,7 @@ def render_contact_sheet(sheet: str, slices: list[dict], scale: int = 3) -> None
 def pack_atlas(slices: list[dict]) -> tuple[Image.Image, dict]:
     """Simple shelf packing. Returns (atlas image, Phaser JSON-hash atlas)."""
     sheets = {name: Image.open(p).convert("RGBA") for name, p in C.SHEETS.items() if p.exists()}
-    crops = []
-    for s in slices:
-        if s["sheet"] not in sheets:
-            raise SystemExit(f"sheet '{s['sheet']}' for slice '{s['key']}' not found")
-        x, y, w, h = slice_rect(s)
-        crops.append((s["key"], sheets[s["sheet"]].crop((x, y, x + w, y + h))))
+    crops = [(s["key"], slice_image(s, sheets)) for s in slices]
     crops.sort(key=lambda kc: (-kc[1].height, -kc[1].width, kc[0]))
 
     max_w = 512
@@ -221,21 +239,48 @@ def pack_atlas(slices: list[dict]) -> tuple[Image.Image, dict]:
     return atlas, {"frames": frames, "meta": meta}
 
 
-def build_char_layer(layer: str, variants: list[dict], out_dir: Path) -> int:
+def _strip(v: dict, anim: str) -> Image.Image:
+    """One 24-frame strip (384x32) for a variant: cropped from a generator sheet or an explicit file."""
+    expected = C.FRAME_W * C.FRAMES_PER_DIR * len(C.DIRS)
+    if v.get("sheet") is None and anim not in v:
+        return Image.new("RGBA", (expected, C.FRAME_H), (0, 0, 0, 0))  # "none" variant
+    if "sheet" in v:
+        row = C.GEN_ROWS[anim]
+        im = Image.open(v["sheet"]).convert("RGBA")
+        st = im.crop((0, row * C.FRAME_H, expected, (row + 1) * C.FRAME_H))
+    else:
+        st = Image.open(v[anim]).convert("RGBA")
+    if st.size != (expected, C.FRAME_H):
+        raise SystemExit(f"{v.get('name')} {anim}: expected {expected}x{C.FRAME_H}, got {st.size}")
+    return st
+
+
+def build_char_layer(layer: str, variants: list[dict], out_dir: Path) -> dict:
+    """Write chars/<layer>/<i>.png (ANIM_STRIPS concatenated) and return the manifest entry."""
     out_dir.mkdir(parents=True, exist_ok=True)
+    for stale in out_dir.glob("*.png"):
+        stale.unlink()
+    groups: dict[int, list[int]] = {}
+    names = []
     for i, v in enumerate(variants):
-        strips = [Image.open(v[a]).convert("RGBA") for a in C.ANIM_STRIPS]
-        for a, st in zip(C.ANIM_STRIPS, strips):
-            expected = C.FRAME_W * C.FRAMES_PER_DIR * len(C.DIRS)
-            if st.size != (expected, C.FRAME_H):
-                raise SystemExit(f"{layer}[{i}] {a}: expected {expected}x{C.FRAME_H}, got {st.size}")
-        sheet = Image.new("RGBA", (sum(s.width for s in strips), C.FRAME_H), (0, 0, 0, 0))
+        strips = [_strip(v, a) for a in C.ANIM_STRIPS]
+        sheet = Image.new("RGBA", (sum(st.width for st in strips), C.FRAME_H), (0, 0, 0, 0))
         x = 0
         for st in strips:
             sheet.paste(st, (x, 0))
             x += st.width
-        sheet.save(out_dir / f"{i}.png")
-    return len(variants)
+        sheet.save(out_dir / f"{i}.png", optimize=True)
+        groups.setdefault(v.get("style", i), []).append(i)
+        names.append(v.get("name", str(i)))
+    entry: dict = {"count": len(variants), "label": C.LAYER_LABELS.get(layer, layer)}
+    if variants and variants[0].get("name") == "none":
+        entry["none"] = True
+    # groups: indices sharing a style (colour variants), in style order; only useful when some group has > 1
+    glist = [groups[k] for k in sorted(groups)]
+    if any(len(g) > 1 for g in glist):
+        entry["groups"] = glist
+    entry["names"] = names
+    return entry
 
 
 def anim_table() -> dict:
@@ -261,9 +306,11 @@ def cmd_build(_: argparse.Namespace) -> None:
 
     layers = {}
     for layer, variants in C.CHAR_LAYERS.items():
-        n = build_char_layer(layer, variants, C.OUT_DIR / "chars" / layer) if variants else 0
-        layers[layer] = {"count": n}
-        print(f"chars/{layer}: {n} variants")
+        if variants:
+            layers[layer] = build_char_layer(layer, variants, C.OUT_DIR / "chars" / layer)
+        else:
+            layers[layer] = {"count": 0, "label": C.LAYER_LABELS.get(layer, layer)}
+        print(f"chars/{layer}: {layers[layer]['count']} variants, {len(layers[layer].get('groups', []))} styles")
 
     manifest = {
         "chars": {
@@ -274,8 +321,9 @@ def cmd_build(_: argparse.Namespace) -> None:
         },
         "interiors": {
             "atlas": "gen/interiors.json",
-            "keys": {s["key"]: {"w": s["w"], "h": s["h"], "cw": s["w"] // C.CELL, "ch": s["h"] // C.CELL}
-                     for s in slices},
+            "keys": {k: {"w": f["frame"]["w"], "h": f["frame"]["h"],
+                         "cw": f["frame"]["w"] // C.CELL, "ch": f["frame"]["h"] // C.CELL}
+                     for k, f in atlas_json["frames"].items()},
         },
     }
     (C.OUT_DIR / "manifest.json").write_text(json.dumps(manifest, indent=1), encoding="utf-8")
@@ -297,7 +345,11 @@ def cmd_scaffold(_: argparse.Namespace) -> None:
         key = s["key"]
         if key in have or key.startswith("auto_") or key.startswith(TILE_PREFIX):
             continue
-        cw, ch = s["w"] // C.CELL, s["h"] // C.CELL
+        if "file" in s:
+            w, h = Image.open(C.ASSETS / s["file"]).size
+        else:
+            w, h = s["w"], s["h"]
+        cw, ch = max(1, w // C.CELL), max(1, h // C.CELL)
         data["items"].append({
             "id": key, "name": key.replace("_", " "), "price": 50, "sprite": key,
             "w": cw, "h": min(ch, 2) if ch > 1 else 1,  # tall furniture usually occupies less floor than its image
@@ -309,6 +361,113 @@ def cmd_scaffold(_: argparse.Namespace) -> None:
     print(f"{added} placeholder items added → {C.ITEMS_FILE.relative_to(C.REPO_ROOT)} (edit name/price/w/h/layer)")
 
 
+# ----------------------------------------------------------------------------
+# media: BGM + fonts
+# ----------------------------------------------------------------------------
+
+FONT_NAMES = {  # source stem (lowercased, spaces removed) -> published stem
+    "pf스타더스트3.0": "stardust",
+    "pf스타더스트3.0bold": "stardust-bold",
+    "pf스타더스트3.0extrabold": "stardust-extrabold",
+    "pf스타더스트3.0s": "stardust-s",
+    "pf스타더스트3.0sbold": "stardust-s-bold",
+    "pf스타더스트3.0sextrabold": "stardust-s-extrabold",
+}
+
+
+def _ascii_slug(text: str) -> str:
+    slug = re.sub(r"[^a-z0-9]+", "-", text.lower()).strip("-")
+    return slug or "x"
+
+
+def cmd_media(_: argparse.Namespace) -> None:
+    bgm_out = C.MEDIA_DIR / "bgm"
+    manifest: dict[str, list[dict]] = {}
+    for period in ("day", "night"):
+        src = C.BGM_DIR / period
+        dst = bgm_out / period
+        dst.mkdir(parents=True, exist_ok=True)
+        for stale in dst.glob("*.mp3"):
+            stale.unlink()
+        tracks = []
+        for i, f in enumerate(sorted(src.glob("*.mp3")) if src.exists() else [], start=1):
+            name = f"{i:02d}-{_ascii_slug(f.stem)[:40]}.mp3"
+            shutil.copyfile(f, dst / name)
+            tracks.append({"file": f"{period}/{name}", "title": f.stem})
+        manifest[period] = tracks
+        print(f"bgm/{period}: {len(tracks)} tracks")
+    (C.MEDIA_DIR / "bgm.json").write_text(json.dumps(manifest, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
+
+    fonts_out = C.MEDIA_DIR / "fonts"
+    fonts_out.mkdir(parents=True, exist_ok=True)
+    n = 0
+    for f in sorted(C.FONTS_DIR.glob("*.ttf")) if C.FONTS_DIR.exists() else []:
+        key = f.stem.lower().replace(" ", "")
+        stem = FONT_NAMES.get(key, _ascii_slug(f.stem))
+        shutil.copyfile(f, fonts_out / f"{stem}.ttf")
+        n += 1
+    print(f"fonts: {n} files → media/fonts/")
+
+
+# ----------------------------------------------------------------------------
+# ui: 9-slice frames + theme.css from data/ui_theme.json
+# ----------------------------------------------------------------------------
+
+# element selectors whose rounded default look is dropped once a frame is defined for them
+FRAME_SELECTORS = {
+    "panel": ".panel", "button": "button, button.big", "button_primary": "button.primary", "chip": ".chip",
+    "input": "input", "ctx": "#ctx", "toast": "#toast",
+}
+
+
+def cmd_ui(_: argparse.Namespace) -> None:
+    theme = json.loads(C.UI_THEME_FILE.read_text(encoding="utf-8"))
+    ui_out = C.MEDIA_DIR / "ui"
+    ui_out.mkdir(parents=True, exist_ok=True)
+    for stale in ui_out.glob("*.png"):
+        stale.unlink()
+    scale = int(theme.get("scale", 2))
+    font = theme.get("font", {})
+    body = font.get("body", "stardust")
+    bold = font.get("bold", body)
+    # html:root / html-prefixed selectors: theme.css may end up before the bundled style.css, so win on specificity
+    lines = ["html:root {"]
+    lines.append('  --font-body: "Stardust", -apple-system, "Segoe UI", system-ui, sans-serif;')
+    lines.append(f"  --font-size: {int(font.get('size', 15))}px;")
+    for k, v in theme.get("colors", {}).items():
+        lines.append(f"  --{k}: {v};")
+    frames = theme.get("frames", {})
+    for name, spec in frames.items():
+        if "file" in spec:
+            src = C.ASSETS_ROOT / spec["file"]
+            if not src.exists():
+                raise SystemExit(f"frame '{name}': {src} not found")
+            im = Image.open(src).convert("RGBA")
+        else:
+            src = C.ASSETS_ROOT / spec["sheet"]
+            if not src.exists():
+                raise SystemExit(f"frame '{name}': {src} not found")
+            x, y, w, h = spec["x"], spec["y"], spec["w"], spec["h"]
+            im = Image.open(src).convert("RGBA").crop((x, y, x + w, y + h))
+        im.save(ui_out / f"{name}.png", optimize=True)
+        sl = int(spec.get("slice", 4))
+        css = name.replace("_", "-")
+        lines.append(f"  --frame-{css}: url(/media/ui/{name}.png);")
+        lines.append(f"  --slice-{css}: {sl};")
+        lines.append(f"  --slice-{css}-px: {sl * scale}px;")
+        lines.append(f"  --pad-{css}: {int(spec.get('pad', sl)) * scale}px;")
+    lines.append("}")
+    for name in frames:
+        sel = FRAME_SELECTORS.get(name)
+        if sel:
+            sel = ", ".join("html " + part.strip() for part in sel.split(","))
+            lines.append(f"{sel} {{ border-radius: 0; background: none; box-shadow: none; backdrop-filter: none; }}")
+    lines.append('@font-face { font-family: "Stardust"; font-weight: 400; src: url(/media/fonts/%s.ttf) format("truetype"); font-display: swap; }' % body)
+    lines.append('@font-face { font-family: "Stardust"; font-weight: 700; src: url(/media/fonts/%s.ttf) format("truetype"); font-display: swap; }' % bold)
+    (C.MEDIA_DIR / "theme.css").write_text("\n".join(lines) + "\n", encoding="utf-8")
+    print(f"{len(frames)} frames → media/ui/, theme.css written")
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -318,6 +477,8 @@ def main() -> None:
     p.set_defaults(fn=cmd_scan)
     sub.add_parser("build").set_defaults(fn=cmd_build)
     sub.add_parser("scaffold").set_defaults(fn=cmd_scaffold)
+    sub.add_parser("media").set_defaults(fn=cmd_media)
+    sub.add_parser("ui").set_defaults(fn=cmd_ui)
     args = ap.parse_args()
     args.fn(args)
 

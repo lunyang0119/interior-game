@@ -34,6 +34,8 @@ DB_PATH = _env_path("DB_PATH", SERVER_DIR / "interior.db")
 DATA_DIR = _env_path("DATA_DIR", REPO_ROOT / "data")
 GEN_DIR = _env_path("GEN_DIR", REPO_ROOT / "client" / "public" / "gen")
 STATIC_DIR = _env_path("STATIC_DIR", SERVER_DIR / "static")
+# BGM, fonts, UI frames produced by `preprocess.py media` / `ui` (gitignored binaries, rsynced to the VM).
+MEDIA_DIR = _env_path("MEDIA_DIR", REPO_ROOT / "client" / "public" / "media")
 
 # Apps Script web-app URL. Never sent to clients.
 SHEET_URL = os.environ.get("SHEET_URL", "")

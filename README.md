@@ -9,8 +9,10 @@
 ## 로컬 개발
 
 ```bash
-# 0. 에셋 (한 번만) — assets/ 에 LimeZu 팩을 둔 뒤
-python tools/preprocess/preprocess.py build
+# 0. 에셋 (한 번만) — assets/ 에 LimeZu 팩, BGM, 폰트를 둔 뒤
+python tools/preprocess/preprocess.py build    # 가구 아틀라스 + 캐릭터 레이어 → client/public/gen/
+python tools/preprocess/preprocess.py media    # BGM/폰트 → client/public/media/
+python tools/preprocess/preprocess.py ui       # data/ui_theme.json → media/theme.css (+ 9-slice 프레임)
 
 # 1. 서버 (가짜 시트 data/fake_sheet.json 사용)
 cd server
@@ -29,12 +31,17 @@ npm run dev        # http://localhost:5173  (폰: 같은 와이파이에서 --ho
 ## 카탈로그 편집
 
 `data/items.json`이 유일한 소스. 새 가구 추가 절차는 `tools/preprocess/README.md` 참고.
-방 크기/타일은 `data/room.json`.
+방 크기/타일은 `data/room.json`. UI 색/폰트/프레임은 `data/ui_theme.json` (같은 README의 "UI 스킨" 절).
+
+## BGM
+
+`assets/BGM/day/`, `assets/BGM/night/`의 mp3가 한국시간 08:00–18:00 / 그 외로 나뉘어 랜덤 재생된다. 첫 터치 후 시작, HUD 🔊 버튼으로 끄면 기억됨. 테스트용 `?bgm=day|night` 쿼리로 강제 가능.
 
 ## 배포 (Oracle Free Tier + Caddy + DuckDNS)
 
 1. VM에 `git clone` → `/opt/interior`, Python 3.11+, Node 20+ (또는 로컬 빌드 후 `server/static` rsync), Caddy 설치.
-2. `client/public/gen/`은 gitignore라 PC에서 한 번 rsync.
+2. `client/public/gen/`과 `client/public/media/`(BGM·폰트·UI 프레임)는 gitignore라 PC에서 rsync:
+   `rsync -av client/public/gen/ client/public/media/ ubuntu@VM:/opt/interior/client/public/` (각각).
 3. `server/.env.example` → `server/.env` 채우기 (`SHEET_URL`, `IP_SALT`).
 4. `deploy/interior.service` → `/etc/systemd/system/`, `deploy/Caddyfile` → `/etc/caddy/Caddyfile` (도메인 수정).
 5. `deploy/duckdns.sh` 토큰 채우고 cron 등록. Oracle 보안 목록에서 80/443 열기 (+ VM 내부 iptables).

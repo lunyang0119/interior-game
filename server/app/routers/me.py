@@ -10,11 +10,11 @@ from ..schemas import AvatarIn
 
 router = APIRouter(prefix="/api")
 
-AVATAR_FIELDS = ("skin", "hair", "hair_color", "outfit", "acc")
+AVATAR_FIELDS = ("skin", "eyes", "hair", "hair_color", "outfit", "acc")
 
 
 def load_avatar(conn: sqlite3.Connection, player_id: str) -> dict:
-    row = conn.execute("SELECT skin, hair, hair_color, outfit, acc FROM avatars WHERE id = ?", (player_id,)).fetchone()
+    row = conn.execute("SELECT skin, eyes, hair, hair_color, outfit, acc FROM avatars WHERE id = ?", (player_id,)).fetchone()
     return dict(row) if row else {f: 0 for f in AVATAR_FIELDS}
 
 
@@ -48,8 +48,8 @@ def put_avatar(body: AvatarIn, request: Request, me: Player = Depends(current_pl
             raise ApiError(400, f"bad_{f}")
     with transaction(conn):
         conn.execute(
-            "UPDATE avatars SET skin=?, hair=?, hair_color=?, outfit=?, acc=? WHERE id=?",
-            (body.skin, body.hair, body.hair_color, body.outfit, body.acc, me.id),
+            "UPDATE avatars SET skin=?, eyes=?, hair=?, hair_color=?, outfit=?, acc=? WHERE id=?",
+            (body.skin, body.eyes, body.hair, body.hair_color, body.outfit, body.acc, me.id),
         )
     avatar = body.model_dump()
     if me.id in hub.online:

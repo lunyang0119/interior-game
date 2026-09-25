@@ -90,7 +90,7 @@ export class RoomScene extends Phaser.Scene {
     await ensureAvatarTextures(this, state.avatar, this.cat.chars);
     if (!this.scene.isActive()) return;
     const s = this.cat.room.spawn;
-    this.me = new Avatar(this, this.cat.chars, state.avatar, s.x, s.y);
+    this.me = new Avatar(this, this.cat.chars, state.avatar, s.x, s.y, this.playerId ?? "");
     this.me.onStep = (x, y, dir, moving) => socket.sendMove(x, y, dir, moving);
     this.publishOnline();
   }

@@ -35,8 +35,8 @@ def env(tmp_path, monkeypatch):
         "tiles": {"wall": ["tile_wall"], "floor": "tile_floor"},
     }), encoding="utf-8")
     (gen / "manifest.json").write_text(json.dumps({
-        "chars": {"frameW": 16, "frameH": 32, "anims": {}, "layerOrder": ["skin"],
-                  "layers": {"skin": {"count": 2}, "hair": {"count": 0}, "hair_color": {"count": 0},
+        "chars": {"frameW": 16, "frameH": 32, "anims": {}, "layerOrder": ["skin", "eyes", "hair"],
+                  "layers": {"skin": {"count": 2}, "eyes": {"count": 3}, "hair": {"count": 2, "none": True},
                              "outfit": {"count": 0}, "acc": {"count": 0}}},
         "interiors": {"atlas": "gen/interiors.json",
                       "keys": {k: {} for k in ["table", "chair", "cup", "tray", "rug", "frame", "tile_wall", "tile_floor"]}},

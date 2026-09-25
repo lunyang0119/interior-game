@@ -1,0 +1,13 @@
+html:root {
+  --font-body: "Stardust", -apple-system, "Segoe UI", system-ui, sans-serif;
+  --font-size: 16px;
+  --bg: #1b1b24;
+  --panel: #262633;
+  --chip: rgba(20, 20, 30, 0.85);
+  --text: #f0f0f5;
+  --muted: #9a9ab0;
+  --primary: #4f8cff;
+  --danger: #e5534b;
+}
+@font-face { font-family: "Stardust"; font-weight: 400; src: url(/media/fonts/stardust.ttf) format("truetype"); font-display: swap; }
+@font-face { font-family: "Stardust"; font-weight: 700; src: url(/media/fonts/stardust-bold.ttf) format("truetype"); font-display: swap; }
