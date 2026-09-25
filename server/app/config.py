@@ -37,6 +37,8 @@ STATIC_DIR = _env_path("STATIC_DIR", SERVER_DIR / "static")
 
 # Apps Script web-app URL. Never sent to clients.
 SHEET_URL = os.environ.get("SHEET_URL", "")
+# Optional shared secret checked by the Apps Script doPost (SECRET constant there).
+SHEET_SECRET = os.environ.get("SHEET_SECRET", "")
 # Local JSON with the same shape as the Apps Script response; used when SHEET_URL is empty.
 FAKE_SHEET_PATH = _env_path("FAKE_SHEET_PATH", DATA_DIR / "fake_sheet.json")
 SHEET_CACHE_SECONDS = int(os.environ.get("SHEET_CACHE_SECONDS", "60"))

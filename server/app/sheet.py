@@ -22,8 +22,10 @@ log = logging.getLogger("sheet")
 
 
 class SheetService:
-    def __init__(self, url: str = "", fake_path=None, cache_seconds: int = 60, cooldown_seconds: int = 30):
+    def __init__(self, url: str = "", fake_path=None, cache_seconds: int = 60, cooldown_seconds: int = 30,
+                 secret: str = ""):
         self.url = url
+        self.secret = secret
         self.fake_path = fake_path
         self.cache_seconds = cache_seconds
         self.cooldown_seconds = cooldown_seconds
@@ -48,6 +50,40 @@ class SheetService:
                 continue
             out.append({"id": pid, "earned": int(m.get("earned") or 0)})
         return out
+
+    def register(self, conn: sqlite3.Connection, player_id: str) -> dict:
+        """Ask the sheet to record this id (column R), creating a row if the nickname is unknown.
+
+        Returns the Apps Script response ({ok, id, created, earned}). Raises ApiError(503) on failure.
+        The snapshot is force-refreshed afterwards so the new member is visible immediately.
+        """
+        try:
+            if self.url:
+                r = httpx.post(self.url, json={"action": "register", "id": player_id, "secret": self.secret},
+                               timeout=15.0, follow_redirects=True)
+                r.raise_for_status()
+                data = r.json()
+            else:
+                data = self._fake_register(player_id)
+        except Exception as e:
+            log.warning("sheet register failed: %s", e)
+            raise ApiError(503, "sheet_unavailable")
+        if not data.get("ok"):
+            log.warning("sheet register refused: %s", data)
+            raise ApiError(503, "sheet_unavailable")
+        with self._lock:
+            self._last_fetch = 0.0
+        self.refresh(conn, force=True)
+        return data
+
+    def _fake_register(self, player_id: str) -> dict:
+        data = json.loads(self.fake_path.read_text(encoding="utf-8"))
+        for m in data["members"]:
+            if str(m["id"]).strip() == player_id:
+                return {"ok": True, "id": player_id, "created": False, "earned": int(m.get("earned") or 0)}
+        data["members"].append({"id": player_id, "earned": 0})
+        self.fake_path.write_text(json.dumps(data, ensure_ascii=False, indent=1), encoding="utf-8")
+        return {"ok": True, "id": player_id, "created": True, "earned": 0}
 
     def refresh(self, conn: sqlite3.Connection, force: bool = False) -> bool:
         """Fetch if the cache is stale (or force). Returns True on a successful fetch."""
@@ -109,4 +145,5 @@ def from_config() -> SheetService:
         fake_path=config.FAKE_SHEET_PATH,
         cache_seconds=config.SHEET_CACHE_SECONDS,
         cooldown_seconds=config.SHEET_SYNC_COOLDOWN_SECONDS,
+        secret=config.SHEET_SECRET,
     )

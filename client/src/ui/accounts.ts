@@ -15,7 +15,7 @@ export function initAccounts(): void {
       const r = await api.register(id);
       storage.addAccount({ id: r.id, token: r.token });
       input.value = "";
-      toast(`${r.id} 등록 완료. 복구 링크를 어딘가 저장해둬`);
+      toast(r.created ? `${r.id} 등록 완료 (시트에 새 행 추가됨). 복구 링크를 저장해둬` : `${r.id} 등록 완료. 복구 링크를 어딘가 저장해둬`);
       bus.emit("account:switch", { id: r.id });
       closeAllPanels();
     } catch (e) {

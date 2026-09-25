@@ -56,7 +56,7 @@ export interface RoomResponse { version: number; items: RoomItem[] }
 
 export const api = {
   catalog: () => call<{ items: Item[]; room: Room; chars: Chars }>("GET", "/api/catalog"),
-  register: (id: string) => call<{ id: string; token: string }>("POST", "/api/register", { id }),
+  register: (id: string) => call<{ id: string; token: string; created: boolean; earned: number }>("POST", "/api/register", { id }),
   me: () => call<MeResponse>("GET", "/api/me"),
   sync: () => call<{ refreshed: boolean; balance: number; contributions: Contribution[] }>("POST", "/api/sync"),
   putAvatar: (a: AvatarLook) => call<{ avatar: AvatarLook }>("PUT", "/api/avatar", a),

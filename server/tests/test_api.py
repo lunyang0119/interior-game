@@ -3,10 +3,16 @@ import json
 from conftest import auth, register
 
 
-def test_register_flow(client):
-    r = client.post("/api/register", json={"id": "nobody"})
-    assert r.status_code == 403 and r.json()["error"] == "not_in_sheet"
+def test_register_new_nickname_creates_sheet_row(client, env):
+    r = client.post("/api/register", json={"id": "새친구"})
+    assert r.status_code == 200 and r.json()["created"] is True and r.json()["earned"] == 0
+    members = json.loads(env["sheet"].read_text(encoding="utf-8"))["members"]
+    assert {"id": "새친구", "earned": 0} in members
+    me = client.get("/api/me", headers=auth(r.json()["token"])).json()
+    assert me["balance"] == 800 and any(c["id"] == "새친구" for c in me["contributions"])
 
+
+def test_register_flow(client):
     token = register(client, "lun")
     assert len(token) > 30
     assert client.post("/api/register", json={"id": "lun"}).status_code == 409
@@ -24,9 +30,9 @@ def test_register_flow(client):
 
 
 def test_register_rate_limit(client):
-    for _ in range(5):
-        client.post("/api/register", json={"id": "nobody"})
-    assert client.post("/api/register", json={"id": "nobody"}).status_code == 429
+    for i in range(5):
+        client.post("/api/register", json={"id": f"n{i}"})
+    assert client.post("/api/register", json={"id": "n9"}).status_code == 429
 
 
 def test_place_stack_remove_refund(client):

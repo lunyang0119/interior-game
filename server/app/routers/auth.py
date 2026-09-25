@@ -20,13 +20,15 @@ def register(body: RegisterIn, request: Request, conn: sqlite3.Connection = Depe
         raise ApiError(429, "rate_limited")
 
     sheet = request.app.state.sheet
-    sheet.require_snapshot(conn)
-    if not sheet.is_member(conn, body.id):
-        log_access(conn, request, "register", body.id, False)
-        raise ApiError(403, "not_in_sheet")
     if conn.execute("SELECT 1 FROM players WHERE id = ?", (body.id,)).fetchone():
         log_access(conn, request, "register", body.id, False)
         raise ApiError(409, "already_registered")
+    # The sheet is the member list: it records the id in column R (or appends a row for a new nickname).
+    try:
+        info = sheet.register(conn, body.id)
+    except ApiError:
+        log_access(conn, request, "register", body.id, False)
+        raise
 
     token = new_token()
     with transaction(conn):
@@ -36,7 +38,7 @@ def register(body: RegisterIn, request: Request, conn: sqlite3.Connection = Depe
         )
         conn.execute("INSERT INTO avatars(id) VALUES (?)", (body.id,))
         log_access(conn, request, "register", body.id, True)
-    return {"id": body.id, "token": token}
+    return {"id": body.id, "token": token, "created": bool(info.get("created")), "earned": info.get("earned", 0)}
 
 
 @router.post("/token/rotate")

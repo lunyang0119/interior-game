@@ -40,13 +40,13 @@ npm run dev        # http://localhost:5173  (폰: 같은 와이파이에서 --ho
 5. `deploy/duckdns.sh` 토큰 채우고 cron 등록. Oracle 보안 목록에서 80/443 열기 (+ VM 내부 iptables).
 6. `sudo systemctl enable --now interior caddy`, 이후 업데이트는 `./deploy/deploy.sh`.
 
-Apps Script 코드는 `tools/appsscript/Code.gs`. 시트 탭 이름/컬럼만 상수로 맞추면 됨.
+Apps Script 코드는 `tools/appsscript/Code.gs` (GET = 재화 목록, POST = 등록 기록). 코드 바꾸면 반드시 새 버전으로 재배포.
 
 ## API 요약
 
 | 메서드 | 경로 | 설명 |
 |---|---|---|
-| POST | `/api/register` | 시트에 있는 ID로 등록 → 토큰 1회 발급 |
+| POST | `/api/register` | 닉네임(시트 B열)으로 등록 → 시트 R열에 기록(없으면 새 행) → 토큰 1회 발급 |
 | GET | `/api/me` | 내 정보 + 공용 잔액 + 기여 목록 |
 | POST | `/api/sync` | 시트 강제 동기화 |
 | PUT | `/api/avatar` | 아바타 레이어 인덱스 |
