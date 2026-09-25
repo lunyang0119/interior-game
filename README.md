@@ -16,7 +16,7 @@ python tools/preprocess/preprocess.py ui       # data/ui_theme.json → media/th
 
 # 1. 서버 (가짜 시트 data/fake_sheet.json 사용)
 cd server
-python -m venv .venv && .venv/Scripts/pip install -e ".[dev]"   # mac/linux: .venv/bin/pip
+python -m venv .venv && .venv/Scripts/pip install -e ".[dev]"   # mac/linux: .venv/bin/pip  (pillow 포함 → preprocess 도구도 이 venv로)
 .venv/Scripts/python -m pytest -q
 .venv/Scripts/python -m uvicorn app.main:app --port 8000 --reload
 
