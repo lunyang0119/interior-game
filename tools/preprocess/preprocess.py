@@ -103,12 +103,28 @@ class SourceMissing(Exception):
     """The sheet or file a slice points at is not on disk."""
 
 
+class SheetStore:
+    """name → RGBA image, opened on first use (the discovered sheet list is long; only touched ones load)."""
+
+    def __init__(self, paths: dict[str, Path]):
+        self.paths = paths
+        self.cache: dict[str, Image.Image] = {}
+
+    def __contains__(self, name: object) -> bool:
+        return name in self.paths and self.paths[name].exists()
+
+    def __getitem__(self, name: str) -> Image.Image:
+        if name not in self.cache:
+            self.cache[name] = Image.open(self.paths[name]).convert("RGBA")
+        return self.cache[name]
+
+
 def _slice_from_source(s: dict, sheets: dict[str, Image.Image], file_base: Path) -> Image.Image:
     if "file" in s:
         path = file_base / s["file"]
         if not path.exists():
             raise SourceMissing(f"file for slice '{s['key']}' not found: {path}")
-        return Image.open(path).convert("RGBA")
+        return rescale(Image.open(path).convert("RGBA"), s.get("scale"))
     if "parts" in s:
         crops = [_slice_from_source({"key": s["key"], **part}, sheets, file_base) for part in s["parts"]]
         out = Image.new("RGBA", (max(c.width for c in crops), sum(c.height for c in crops)))
@@ -123,7 +139,15 @@ def _slice_from_source(s: dict, sheets: dict[str, Image.Image], file_base: Path)
     im = sheets[s["sheet"]].crop((x, y, x + w, y + h))
     if s.get("transparent"):
         im = knock_out(im, tuple(s["transparent"]))
-    return im
+    return rescale(im, s.get("scale"))
+
+
+def rescale(im: Image.Image, scale) -> Image.Image:
+    """`scale` on a slice shrinks/enlarges the crop with nearest-neighbour (32px tiles → 0.5 for the 16px grid)."""
+    if not scale or float(scale) == 1:
+        return im
+    f = float(scale)
+    return im.resize((max(1, round(im.width * f)), max(1, round(im.height * f))), Image.NEAREST)
 
 
 def knock_out(im: Image.Image, rgb: tuple[int, ...]) -> Image.Image:
@@ -294,9 +318,9 @@ def pack_atlas(slices: list[dict], sheet_paths: dict[str, Path] | None = None, i
                file_base: Path | None = None, frozen: tuple[Image.Image, dict] | None = None) -> tuple[Image.Image, dict]:
     """Simple shelf packing. Returns (atlas image, Phaser JSON-hash atlas).
     Slices whose source is missing fall back to `frozen` (see slice_image); FROZEN_USED lists them afterwards."""
-    sheet_paths = C.SHEETS if sheet_paths is None else sheet_paths
+    sheet_paths = C.all_sheets() if sheet_paths is None else sheet_paths
     FROZEN_USED.clear()
-    sheets = {name: Image.open(p).convert("RGBA") for name, p in sheet_paths.items() if p.exists()}
+    sheets = SheetStore(sheet_paths)
     crops = [(s["key"], slice_image(s, sheets, file_base=file_base, frozen=frozen)) for s in slices]
     crops.sort(key=lambda kc: (-kc[1].height, -kc[1].width, kc[0]))
 
@@ -452,7 +476,7 @@ def build_map_atlas() -> dict | None:
     if not slices:
         return None
     frozen = load_frozen(C.OUT_DIR / "map.json", C.OUT_DIR / "map.png")
-    atlas, atlas_json = pack_atlas(slices, C.MAP_SHEETS, "map.png", file_base=C.ASSETS, frozen=frozen)
+    atlas, atlas_json = pack_atlas(slices, C.all_sheets(), "map.png", file_base=C.ASSETS, frozen=frozen)
     atlas.save(C.OUT_DIR / "map.png", optimize=True)
     (C.OUT_DIR / "map.json").write_text(json.dumps(atlas_json, indent=1), encoding="utf-8")
     print(f"map atlas {atlas.size} with {len(slices)} frames → gen/map.png")

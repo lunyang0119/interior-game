@@ -5,10 +5,10 @@
 <title>slice editor</title>
 <style>
   :root { color-scheme: dark; --bg: #1e1e26; --panel: #272733; --line: #3a3a4a; --fg: #e8e8f0; --dim: #9a9ab0;
-          --green: #6fd36f; --grey: #8a8a9a; --blue: #6fb3ff; --sel: #ffd35c; --red: #ff6b6b; }
+          --green: #6fd36f; --grey: #8a8a9a; --blue: #6fb3ff; --sel: #ffd35c; --red: #ff6b6b; --pink: #ff9ad5; }
   * { box-sizing: border-box; }
   body { margin: 0; font: 13px/1.4 system-ui, sans-serif; background: var(--bg); color: var(--fg);
-         display: grid; grid-template-columns: 240px 1fr 340px; grid-template-rows: 1fr auto; height: 100vh; }
+         display: grid; grid-template-columns: 260px 1fr 340px; grid-template-rows: 1fr auto; height: 100vh; }
   #left, #right { background: var(--panel); overflow: auto; padding: 8px; border-right: 1px solid var(--line); }
   #right { border-right: 0; border-left: 1px solid var(--line); }
   #center { position: relative; overflow: auto; background: #111 repeating-conic-gradient(#1a1a1a 0 25%, #202020 0 50%) 0 0/16px 16px; }
@@ -17,15 +17,17 @@
   #log { flex: 1; margin: 0; max-height: 120px; overflow: auto; font: 11px/1.3 ui-monospace, monospace; color: var(--dim); white-space: pre-wrap; }
   h3 { margin: 10px 0 4px; font-size: 12px; color: var(--dim); text-transform: uppercase; letter-spacing: .05em; }
   label { display: flex; align-items: center; gap: 6px; margin: 3px 0; }
-  label span { width: 90px; color: var(--dim); }
+  label span { width: 90px; color: var(--dim); flex-shrink: 0; }
   input, select, button { font: inherit; color: var(--fg); background: #1a1a22; border: 1px solid var(--line); border-radius: 4px; padding: 3px 6px; }
   input[type=number] { width: 70px; }
   input[type=text] { flex: 1; min-width: 0; }
+  select { max-width: 100%; }
   button { cursor: pointer; background: #33334a; }
   button:hover { background: #40405a; }
   button.primary { background: #2f6f3f; }
   button.danger { background: #6f2f2f; }
   button:disabled { opacity: .5; cursor: default; }
+  a { color: var(--blue); }
   .row { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin: 4px 0; }
   #list { list-style: none; margin: 4px 0; padding: 0; }
   #list li { padding: 2px 4px; cursor: pointer; border-radius: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -34,44 +36,78 @@
   #list li.named { color: var(--green); }
   #list li.auto { color: var(--grey); }
   #list li.tile { color: var(--blue); }
+  #list li.map { color: var(--pink); }
   #stage { position: relative; display: inline-block; }
   #sheet { display: block; image-rendering: pixelated; }
   #overlay { position: absolute; left: 0; top: 0; cursor: crosshair; }
-  #preview img, #roomprev img { image-rendering: pixelated; max-width: 100%; border: 1px solid var(--line); background: #111; }
+  #preview img, #roomprev img, #pairImg { image-rendering: pixelated; max-width: 100%; border: 1px solid var(--line); background: #111; }
   #roomprev img { width: 100%; }
   .parts { border: 1px solid var(--line); border-radius: 4px; padding: 4px; margin: 4px 0; }
-  .parts .part { display: flex; gap: 4px; align-items: center; margin: 2px 0; }
+  .parts .part { display: flex; gap: 4px; align-items: center; margin: 2px 0; flex-wrap: wrap; }
   .parts .part.sel { outline: 1px solid var(--sel); }
   .parts input[type=number] { width: 54px; }
+  .parts select { max-width: 150px; }
   .dim { color: var(--dim); }
   .hint { color: var(--dim); font-size: 11px; }
-  #tabs { display: flex; gap: 4px; margin-bottom: 8px; }
+  .tag { display: inline-block; padding: 0 5px; border-radius: 8px; background: #3a3a5a; font-size: 11px; margin-right: 3px; }
+  .tag.ruined { background: #6f2f2f; }
+  #tabs { display: flex; gap: 4px; margin-bottom: 8px; flex-wrap: wrap; }
   #tabs button.on { background: #4a4a2a; color: var(--sel); }
-  body.chars #furnLeft, body.chars #stage, body.chars #furnHint, body.chars #right { display: none; }
-  body:not(.chars) #charPanel { display: none; }
-  #charPanel { padding: 12px; }
+  /* tabs: body[data-tab] = furn | items | singles | chars */
+  body:not([data-tab=furn]) #furnLeft, body:not([data-tab=furn]) #stage, body:not([data-tab=furn]) #furnHint { display: none; }
+  body:not([data-tab=chars]) #charPanel, body:not([data-tab=chars]) #charLeft { display: none; }
+  body:not([data-tab=items]) #itemsPanel, body:not([data-tab=items]) #itemsLeft { display: none; }
+  body:not([data-tab=singles]) #singlesPanel, body:not([data-tab=singles]) #singlesLeft { display: none; }
+  body[data-tab=chars] #right { display: none; }
+  #charPanel, #itemsPanel, #singlesPanel { padding: 12px; }
   .thumbs { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 10px; }
   .thumb { width: 48px; height: 96px; background-repeat: no-repeat; image-rendering: pixelated; border: 1px solid var(--line); background-color: #1a1a22; border-radius: 3px; }
   .thumb.none { opacity: .3; }
   .files li { margin: 2px 0; }
   .files .bad { color: var(--red); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, 96px); gap: 8px; }
+  .card { width: 96px; border: 1px solid var(--line); border-radius: 4px; background: #1a1a22; cursor: pointer; padding: 4px; font-size: 11px; overflow: hidden; }
+  .card:hover { border-color: var(--sel); }
+  .card.sel { outline: 2px solid var(--sel); }
+  .card canvas, .card img { display: block; width: 88px; height: 64px; object-fit: contain; image-rendering: pixelated; background: #111; margin-bottom: 3px; }
+  .card .nm { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .card.sliced { border-color: var(--green); }
+  .card.ruined { border-color: var(--red); }
 </style>
 </head>
-<body>
+<body data-tab="furn">
 <div id="left">
-  <div id="tabs"><button id="tabFurn" class="on">가구·슬라이스</button><button id="tabChars">캐릭터</button></div>
+  <div id="tabs">
+    <button id="tabFurn" class="on">시트·슬라이스</button><button id="tabItems">아이템</button>
+    <button id="tabSingles">낱개</button><button id="tabChars">캐릭터</button>
+    <a href="/world" style="align-self:center;margin-left:auto">방·맵 에디터 →</a>
+  </div>
   <div id="furnLeft">
+  <input type="text" id="sheetFilter" placeholder="시트 이름 걸러내기… (예: Basement)" style="width:100%">
   <label><span>시트</span><select id="sheetSel"></select></label>
   <div class="row">
-    <label><span>줌</span><select id="zoomSel"><option>2</option><option selected>3</option><option>4</option><option>6</option></select></label>
+    <label><span>줌</span><select id="zoomSel"><option>1</option><option>2</option><option selected>3</option><option>4</option><option>6</option></select></label>
     <label><input type="checkbox" id="gridChk" checked> 격자</label>
-    <label><span>스냅</span><select id="snapSel"><option>16</option><option>1</option></select></label>
+    <label><span>스냅</span><select id="snapSel"><option>16</option><option>8</option><option>1</option></select></label>
   </div>
   <input type="text" id="search" placeholder="키 검색…" style="width:100%">
-  <div class="hint">초록=이름 있음 · 회색=auto_ · 파랑=tile_ · ⚠ 아이템 없음 · ● 저장 안 됨</div>
+  <div class="hint">초록=이름 있음 · 회색=auto_ · 파랑=tile_ · 분홍=맵 슬라이스 · ⚠ 아이템 없음 · ● 저장 안 됨</div>
   <ul id="list"></ul>
   </div>
-  <div id="charLeft" class="hint" style="display:none">
+  <div id="itemsLeft">
+    <input type="text" id="itemSearch" placeholder="아이템 id/이름 검색…" style="width:100%">
+    <label><span>태그</span><select id="itemTagSel"><option value="">(전부)</option></select></label>
+    <label><span>레이어</span><select id="itemLayerSel"><option value="">(전부)</option></select></label>
+    <label><input type="checkbox" id="itemNoPair"> 쌍(pair) 없는 것만</label>
+    <div class="hint">썸네일은 마지막 <b>빌드</b> 결과(gen/interiors.png)에서 가져와요. 새 슬라이스는 빌드 후에 보여요.<br>카드 클릭 → 해당 슬라이스 선택 (오른쪽에서 태그·쌍 편집).</div>
+    <div id="itemsCount" class="dim"></div>
+  </div>
+  <div id="singlesLeft">
+    <label><span>테마</span><select id="singlesTheme"></select></label>
+    <input type="text" id="singlesSearch" placeholder="파일 이름 검색…" style="width:100%">
+    <div class="hint">정식 팩의 낱개 PNG(Theme_Sorter_Singles). 카드를 클릭하면 <code>file</code> 슬라이스로 추가돼요. 초록 테두리 = 이미 슬라이스 있음.</div>
+  </div>
+  <div id="charLeft" class="hint">
     캐릭터 에셋은 픽셀 지정이 필요 없어요. <code>assets/custom/&lt;폴더&gt;/</code>에 896×656 시트를 넣고(여기서 업로드 가능) <b>빌드</b>하면 자동으로 들어가요.<br><br>
     빌드 후 VM에 올릴 것: <code>client/public/gen/chars/</code> 폴더 전체 + <code>client/public/gen/manifest.json</code>. 서버 재시작은 필요 없고 새로고침만.
   </div>
@@ -79,7 +115,9 @@
 
 <div id="center">
   <div id="stage"><img id="sheet"><canvas id="overlay"></canvas></div>
-  <div id="furnHint" class="hint" style="padding:6px">빈 곳 드래그=새 슬라이스 · 클릭=선택 · 드래그=이동 · 모서리=크기 · 방향키=이동 · Delete=삭제</div>
+  <div id="furnHint" class="hint" style="padding:6px">빈 곳 드래그=새 슬라이스 · 클릭=선택 · 드래그=이동 · 모서리=크기 · 방향키=이동 · Delete=삭제 · 맵 시트에서 만든 슬라이스는 map_slices.json으로</div>
+  <div id="itemsPanel"><div id="itemsGrid" class="grid"></div></div>
+  <div id="singlesPanel"><div id="singlesGrid" class="grid"></div></div>
   <div id="charPanel">
     <div class="row">
       <b>내 시트 추가</b>
@@ -96,7 +134,7 @@
 <div id="right">
   <div id="none" class="dim">슬라이스를 선택하거나 시트에서 드래그하세요.</div>
   <div id="sliceForm" style="display:none">
-    <h3>슬라이스</h3>
+    <h3>슬라이스 <span id="sliceGroup" class="tag"></span></h3>
     <label><span>key</span><input type="text" id="sKey"></label>
     <div id="rectForm">
       <div class="row">
@@ -105,12 +143,14 @@
       <div class="row">
         <label><span>w</span><input type="number" id="sW" min="1"></label><label><span>h</span><input type="number" id="sH" min="1"></label>
       </div>
+      <label><span>배경색 제거</span><input type="text" id="sTransp" placeholder="r,g,b (비우면 없음)"><button id="sPick" title="시트에서 클릭한 픽셀 색을 씀">찍기</button></label>
     </div>
     <div id="partsForm" class="parts" style="display:none">
       <div class="hint">parts: 위→아래로 이어 붙임. 캔버스는 선택한 조각을 움직여요.</div>
       <div id="partsList"></div>
       <button id="partAdd">조각 추가</button>
     </div>
+    <label><span>scale</span><input type="number" id="sScale" step="0.25" min="0.125" max="8" placeholder="1"><span class="hint" style="width:auto">32px 타일은 0.5</span></label>
     <div class="row">
       <button id="toParts">parts로 변환</button>
       <button id="sDel" class="danger">슬라이스 삭제</button>
@@ -120,6 +160,7 @@
     <h3>잘린 결과</h3>
     <div id="preview"><img id="prevImg"><div id="prevInfo" class="dim"></div></div>
 
+    <div id="itemSection">
     <h3>아이템 (items.json)</h3>
     <div id="itemNone"><button id="itemCreate">아이템 만들기</button> <span class="hint">이 키로 상점 항목 생성</span></div>
     <div id="itemForm" style="display:none">
@@ -134,6 +175,12 @@
       <label><span>layer</span><select id="iLayer"></select></label>
       <label><input type="checkbox" id="iSurface"> is_surface (위에 소품 올릴 수 있음)</label>
       <label><span>surface_offset_y</span><input type="number" id="iOff"></label>
+      <label><span>태그</span><input type="text" id="iTags" placeholder="ruined, fixed, stairs (쉼표)"></label>
+      <label><input type="checkbox" id="iRuined"> <b>ruined</b> (부서진 가구: 팔 수만 있고 못 삼)</label>
+      <label><span>쌍(pair)</span><input type="text" id="iPair" list="itemIds" placeholder="짝이 되는 아이템 id"><button id="iPairGo" title="짝 아이템으로 이동">→</button></label>
+      <datalist id="itemIds"></datalist>
+      <div id="pairBox" class="row" style="display:none"><img id="pairImg" style="max-height:64px"><span id="pairInfo" class="hint"></span></div>
+      <div class="hint">pair는 양방향으로 저장돼요 (부서진 침대 ↔ 멀쩡한 침대).</div>
       <div class="row"><button id="iDel" class="danger">아이템 삭제</button></div>
     </div>
 
@@ -146,6 +193,8 @@
       <label><span>폭(칸)</span><input type="range" id="rSpan" min="1" max="20" value="4"><b id="rSpanVal">4</b></label>
     </div>
     <div id="roomprev"><img id="roomImg"></div>
+    </div>
+    <div id="mapNote" class="hint" style="display:none">맵 슬라이스는 items.json 항목이 없어요. 빌드하면 gen/map.png에 들어가고 방·맵 에디터의 타일 팔레트에 나와요.</div>
   </div>
 </div>
 
@@ -164,36 +213,51 @@
 
   // ---- state
   let S = null;                 // /api/state payload
-  let slices = [];              // working copy
+  let slices = [];              // working copy of slices.json (interior atlas)
+  let mapSlices = [];           // working copy of map_slices.json (map atlas)
   let items = [];               // working copy
   let sheet = null;             // current sheet name
   let zoom = 3, grid = true, snap = 16;
-  let sel = null;               // selected slice object (reference into `slices`)
+  let sel = null;               // selected slice object (reference into slices/mapSlices)
   let partIdx = 0;              // which part of a parts slice the canvas edits
   let dirtySlices = false, dirtyItems = false;
+  let pickColor = false;        // next click on the sheet sets `transparent`
   const unsaved = new Set();    // keys edited since last save
   let sheetImg = $("sheet"), ov = $("overlay"), ctx = ov.getContext("2d");
   let drag = null;              // {mode:'new'|'move'|'resize', ...}
+  let sheetPixels = null;       // ImageData of the current sheet (for the colour picker)
 
   const log = (m) => { const el = $("log"); el.textContent += m + "\n"; el.scrollTop = el.scrollHeight; };
+  const allSlices = () => slices.concat(mapSlices);
+  const listOf = (s) => mapSlices.includes(s) ? mapSlices : slices;
+  const isMapSlice = (s) => mapSlices.includes(s);
   const rectOf = (s) => ("parts" in s) ? s.parts[Math.min(partIdx, s.parts.length - 1)] : s;
   const rectsOf = (s) => ("parts" in s) ? s.parts : [s];
   const sheetOf = (s) => ("file" in s) ? FILE_SHEET : ("parts" in s) ? (s.parts[0] && s.parts[0].sheet) : s.sheet;
-  const itemOf = (s) => items.find((it) => it.sprite === s.key);
-  const cls = (s) => s.key.startsWith("auto_") ? "auto" : s.key.startsWith("tile_") ? "tile" : "named";
+  const itemOf = (s) => s && items.find((it) => it.sprite === s.key);
+  const itemById = (id) => items.find((it) => it.id === id);
+  const cls = (s) => isMapSlice(s) ? "map" : s.key.startsWith("auto_") ? "auto" : s.key.startsWith("tile_") ? "tile" : "named";
   const snapv = (v) => Math.round(v / snap) * snap;
   const mark = (s) => { unsaved.add(s.key); dirtySlices = true; renderList(); };
+  const sheetInfo = (name) => S.sheets.find((x) => x.name === name);
+  const groupOf = (name) => name === FILE_SHEET ? "interior" : (sheetInfo(name) || {}).group || "interior";
+  const tagsOf = (it) => (it && it.tags) || [];
+
+  // ---- tabs
+  function setTab(tab) {
+    document.body.dataset.tab = tab;
+    for (const [id, t] of [["tabFurn", "furn"], ["tabItems", "items"], ["tabSingles", "singles"], ["tabChars", "chars"]]) $(id).classList.toggle("on", t === tab);
+    if (tab === "chars") loadChars();
+    if (tab === "items") renderItemsGrid();
+    if (tab === "singles") renderSingles();
+  }
+  $("tabFurn").onclick = () => setTab("furn");
+  $("tabItems").onclick = () => setTab("items");
+  $("tabSingles").onclick = () => setTab("singles");
+  $("tabChars").onclick = () => setTab("chars");
 
   // ---- character tab (no pixel picking: lists what a build produces + custom sheets on disk)
   let CH = null;
-  function setTab(chars) {
-    document.body.classList.toggle("chars", chars);
-    $("tabFurn").classList.toggle("on", !chars); $("tabChars").classList.toggle("on", chars);
-    $("charLeft").style.display = chars ? "" : "none";
-    if (chars) loadChars();
-  }
-  $("tabFurn").onclick = () => setTab(false);
-  $("tabChars").onclick = () => setTab(true);
   async function loadChars() {
     CH = await (await fetch("/api/chars")).json();
     const sel_ = $("cLayer");
@@ -251,51 +315,167 @@
   };
   $("cBuild").onclick = () => $("build").click();
 
+  // ---- atlas thumbnails (from the last build): interior + map
+  const atlas = { interior: null, map: null }; // {img, frames}
+  async function loadAtlas(which) {
+    if (atlas[which]) return atlas[which];
+    const file = which === "interior" ? "interiors" : "map";
+    try {
+      const js = await (await fetch(`/gen/${file}.json?t=${Date.now()}`)).json();
+      const img = new Image(); img.src = `/gen/${file}.png?t=${Date.now()}`;
+      await new Promise((ok, no) => { img.onload = ok; img.onerror = no; });
+      atlas[which] = { img, frames: js.frames };
+    } catch (e) { atlas[which] = { img: null, frames: {} }; }
+    return atlas[which];
+  }
+  function drawFrame(canvas, at, key) {
+    const f = at.frames[key]; const c = canvas.getContext("2d");
+    c.imageSmoothingEnabled = false; c.clearRect(0, 0, canvas.width, canvas.height);
+    if (!f || !at.img) return false;
+    const fr = f.frame, scale = Math.max(1, Math.min(Math.floor(canvas.width / fr.w), Math.floor(canvas.height / fr.h)));
+    const w = fr.w * scale, h = fr.h * scale;
+    c.drawImage(at.img, fr.x, fr.y, fr.w, fr.h, (canvas.width - w) / 2, (canvas.height - h) / 2, w, h);
+    return true;
+  }
+
+  // ---- items tab
+  async function renderItemsGrid() {
+    const at = await loadAtlas("interior");
+    const q = $("itemSearch").value.trim().toLowerCase(), tag = $("itemTagSel").value, layer = $("itemLayerSel").value, noPair = $("itemNoPair").checked;
+    const tags = new Set(); items.forEach((it) => tagsOf(it).forEach((t) => tags.add(t)));
+    const tsel = $("itemTagSel"), cur = tsel.value;
+    tsel.innerHTML = `<option value="">(전부)</option>` + [...tags].sort().map((t) => `<option${t === cur ? " selected" : ""}>${t}</option>`).join("");
+    const grid = $("itemsGrid"); grid.innerHTML = "";
+    let n = 0;
+    for (const it of items) {
+      if (q && !it.id.toLowerCase().includes(q) && !(it.name || "").toLowerCase().includes(q)) continue;
+      if (tag && !tagsOf(it).includes(tag)) continue;
+      if (layer && it.layer !== layer) continue;
+      if (noPair && it.pair) continue;
+      n++;
+      const card = document.createElement("div");
+      card.className = "card" + (tagsOf(it).includes("ruined") ? " ruined" : "") + (sel && sel.key === it.sprite ? " sel" : "");
+      const cv = document.createElement("canvas"); cv.width = 88; cv.height = 64; card.appendChild(cv);
+      if (!drawFrame(cv, at, it.sprite)) { const c = cv.getContext("2d"); c.fillStyle = "#666"; c.fillText("빌드 필요", 20, 36); }
+      const nm = document.createElement("div"); nm.className = "nm"; nm.title = it.id; nm.textContent = it.name || it.id; card.appendChild(nm);
+      const meta = document.createElement("div"); meta.className = "hint";
+      meta.innerHTML = tagsOf(it).map((t) => `<span class="tag ${t}">${t}</span>`).join("") + (it.pair ? `<span class="tag" title="pair">↔ ${it.pair}</span>` : "");
+      card.appendChild(meta);
+      card.onclick = () => { const s = allSlices().find((x) => x.key === it.sprite); if (s) { goTo(s); } else alert(`슬라이스 '${it.sprite}'가 없어요`); };
+      grid.appendChild(card);
+    }
+    $("itemsCount").textContent = `${n} / ${items.length}개`;
+  }
+  for (const id of ["itemSearch", "itemTagSel", "itemLayerSel", "itemNoPair"]) $(id).addEventListener("input", renderItemsGrid);
+
+  // ---- singles tab
+  let singlesCache = {};
+  async function renderSingles() {
+    const theme = $("singlesTheme").value; if (!theme) return;
+    if (!singlesCache[theme]) singlesCache[theme] = (await (await fetch(`/api/singles?theme=${encodeURIComponent(theme)}`)).json()).files;
+    const q = $("singlesSearch").value.trim().toLowerCase();
+    const byFile = {}; for (const s of slices) if (s.file) byFile[s.file] = s;
+    const grid = $("singlesGrid"); grid.innerHTML = "";
+    for (const f of singlesCache[theme]) {
+      if (q && !f.name.toLowerCase().includes(q)) continue;
+      const have = byFile[f.file];
+      const card = document.createElement("div"); card.className = "card" + (have ? " sliced" : "");
+      const img = document.createElement("img"); img.loading = "lazy"; img.src = `/single/${encodeURIComponent(f.file)}`; card.appendChild(img);
+      const nm = document.createElement("div"); nm.className = "nm"; nm.title = f.name; nm.textContent = have ? have.key : f.name.replace(/\.png$/, ""); card.appendChild(nm);
+      const meta = document.createElement("div"); meta.className = "hint"; meta.textContent = `${f.w}×${f.h} = ${Math.ceil(f.w / S.cell)}×${Math.ceil(f.h / S.cell)}칸`; card.appendChild(meta);
+      card.onclick = () => {
+        if (have) { goTo(have); return; }
+        let n = 1; while (allSlices().some((s) => s.key === `new_${n}`)) n++;
+        const s = { key: `new_${n}`, file: f.file };
+        slices.push(s); byFile[f.file] = s; mark(s); card.classList.add("sliced"); nm.textContent = s.key;
+        goTo(s); $("sKey").focus(); $("sKey").select();
+      };
+      grid.appendChild(card);
+    }
+  }
+  $("singlesTheme").onchange = renderSingles;
+  $("singlesSearch").oninput = renderSingles;
+
+  function goTo(s) {
+    setTab("furn");
+    const sh = sheetOf(s);
+    if (sh !== sheet) setSheet(sh, s); else { select(s); scrollTo(s); }
+  }
+
   // ---- load
   async function load() {
     S = await (await fetch("/api/state")).json();
-    slices = S.slices; items = S.items;
-    const sel_ = $("sheetSel");
-    sel_.innerHTML = "";
-    for (const sh of S.sheets) {
-      const o = document.createElement("option");
-      o.value = sh.name; o.textContent = sh.exists ? `${sh.name} (${sh.w}×${sh.h})` : `${sh.name} (없음)`;
-      o.disabled = !sh.exists; sel_.appendChild(o);
-    }
-    const fo = document.createElement("option"); fo.value = FILE_SHEET; fo.textContent = FILE_SHEET; sel_.appendChild(fo);
+    slices = S.slices; mapSlices = S.map_slices || []; items = S.items;
     $("iLayer").innerHTML = S.layers.map((l) => `<option>${l}</option>`).join("");
+    $("itemLayerSel").innerHTML = `<option value="">(전부)</option>` + S.layers.map((l) => `<option>${l}</option>`).join("");
     $("rSpan").max = S.room.cols || 20;
+    $("singlesTheme").innerHTML = (S.singles || []).map((t) => `<option value="${t.name}">${t.name} (${t.count})</option>`).join("");
+    fillSheetSelect();
     setSheet(S.sheets.find((s) => s.exists)?.name || FILE_SHEET);
   }
+  function fillSheetSelect() {
+    const q = $("sheetFilter").value.trim().toLowerCase();
+    const sel_ = $("sheetSel"); const cur = sel_.value; sel_.innerHTML = "";
+    const groups = [["실내 · 이름 있는 시트", (s) => s.group === "interior" && s.named], ["실내 · 팩 전체", (s) => s.group === "interior" && !s.named],
+                    ["맵", (s) => s.group === "map"]];
+    for (const [label, f] of groups) {
+      const og = document.createElement("optgroup"); og.label = label;
+      for (const sh of S.sheets) {
+        if (!f(sh) || (q && !sh.name.toLowerCase().includes(q))) continue;
+        const o = document.createElement("option");
+        o.value = sh.name; o.textContent = sh.exists ? `${sh.name} (${sh.w}×${sh.h})` : `${sh.name} (원본 없음 · 동결)`;
+        og.appendChild(o);
+      }
+      if (og.children.length) sel_.appendChild(og);
+    }
+    const fo = document.createElement("option"); fo.value = FILE_SHEET; fo.textContent = FILE_SHEET + " 낱개 파일 슬라이스"; sel_.appendChild(fo);
+    if ([...sel_.options].some((o) => o.value === cur)) sel_.value = cur;
+  }
+  $("sheetFilter").oninput = fillSheetSelect;
 
-  function setSheet(name) {
-    sheet = name; sel = null; drag = null;
+  function setSheet(name, thenSelect = null) {
+    sheet = name; sel = null; drag = null; sheetPixels = null;
     $("sheetSel").value = name;
-    if (name === FILE_SHEET) { sheetImg.removeAttribute("src"); sheetImg.style.width = sheetImg.style.height = "0"; ov.width = ov.height = 0; }
-    else {
-      sheetImg.onload = () => { layout(); draw(); };
-      sheetImg.src = `/sheet/${name}?t=${Date.now()}`;
+    const info = sheetInfo(name);
+    if (name === FILE_SHEET || (info && !info.exists)) {
+      sheetImg.removeAttribute("src"); sheetImg.style.width = sheetImg.style.height = "0"; ov.width = ov.height = 0;
+      $("furnHint").textContent = name === FILE_SHEET ? "낱개 파일 슬라이스 목록. '낱개' 탭에서 추가할 수 있어요." : "이 시트는 원본이 없어요. 슬라이스는 직전 아틀라스에서 동결 복사돼요 (좌표 편집 불가, 이름·아이템은 편집 가능).";
+      if (thenSelect) select(thenSelect);
+    } else {
+      $("furnHint").textContent = "빈 곳 드래그=새 슬라이스 · 클릭=선택 · 드래그=이동 · 모서리=크기 · 방향키=이동 · Delete=삭제 · 맵 시트에서 만든 슬라이스는 map_slices.json으로";
+      sheetImg.onload = () => { layout(); draw(); if (thenSelect) { select(thenSelect); scrollTo(thenSelect); } };
+      sheetImg.src = `/sheet/${encodeURIComponent(name)}?t=${Date.now()}`;
     }
     renderList(); renderPanel();
   }
 
+  const noImage = () => sheet === FILE_SHEET || !(sheetInfo(sheet) || {}).exists;
   function layout() {
-    if (sheet === FILE_SHEET) return;
+    if (noImage()) return;
     const w = sheetImg.naturalWidth * zoom, h = sheetImg.naturalHeight * zoom;
     sheetImg.style.width = w + "px"; sheetImg.style.height = h + "px";
     ov.width = w; ov.height = h;
+  }
+  function pixelAt(sx, sy) {
+    if (!sheetPixels) {
+      const c = document.createElement("canvas"); c.width = sheetImg.naturalWidth; c.height = sheetImg.naturalHeight;
+      const g = c.getContext("2d"); g.drawImage(sheetImg, 0, 0); sheetPixels = g.getImageData(0, 0, c.width, c.height);
+    }
+    const i = (sy * sheetPixels.width + sx) * 4, d = sheetPixels.data;
+    return [d[i], d[i + 1], d[i + 2], d[i + 3]];
   }
 
   // ---- list
   function renderList() {
     const q = $("search").value.trim().toLowerCase();
     const ul = $("list"); ul.innerHTML = "";
-    for (const s of slices) {
+    for (const s of allSlices()) {
       if (sheetOf(s) !== sheet) continue;
       if (q && !s.key.toLowerCase().includes(q)) continue;
       const li = document.createElement("li");
       li.className = cls(s) + (s === sel ? " sel" : "");
-      li.textContent = (unsaved.has(s.key) ? "● " : "") + s.key + (itemOf(s) || s.key.startsWith("tile_") || s.key.startsWith("auto_") ? "" : " ⚠");
+      const it = itemOf(s);
+      li.textContent = (unsaved.has(s.key) ? "● " : "") + s.key + (it || isMapSlice(s) || s.key.startsWith("tile_") || s.key.startsWith("auto_") ? "" : " ⚠") + (it && tagsOf(it).includes("ruined") ? " 💥" : "");
       li.onclick = () => { select(s); scrollTo(s); };
       ul.appendChild(li);
     }
@@ -308,7 +488,7 @@
 
   // ---- canvas
   function draw() {
-    if (sheet === FILE_SHEET) return;
+    if (noImage()) return;
     ctx.clearRect(0, 0, ov.width, ov.height);
     if (grid) {
       ctx.strokeStyle = "rgba(255,255,255,.12)"; ctx.lineWidth = 1; ctx.beginPath();
@@ -316,9 +496,9 @@
       for (let y = 0; y <= ov.height; y += S.cell * zoom) { ctx.moveTo(0, y + .5); ctx.lineTo(ov.width, y + .5); }
       ctx.stroke();
     }
-    const color = { named: "#6fd36f", auto: "#8a8a9a", tile: "#6fb3ff" };
+    const color = { named: "#6fd36f", auto: "#8a8a9a", tile: "#6fb3ff", map: "#ff9ad5" };
     ctx.font = `${Math.max(10, 3 * zoom)}px sans-serif`;
-    for (const s of slices) {
+    for (const s of allSlices()) {
       if (sheetOf(s) !== sheet) continue;
       const isSel = s === sel;
       rectsOf(s).forEach((r, i) => {
@@ -353,7 +533,7 @@
   function hitSlice(sx, sy) {
     // topmost = smallest area wins so tiny slices inside big ones stay clickable
     let best = null, bestA = Infinity;
-    for (const s of slices) {
+    for (const s of allSlices()) {
       if (sheetOf(s) !== sheet) continue;
       rectsOf(s).forEach((r, i) => {
         if (r.sheet !== sheet) return;
@@ -364,8 +544,13 @@
   }
 
   ov.addEventListener("mousedown", (e) => {
-    if (sheet === FILE_SHEET) return;
+    if (noImage()) return;
     const px = e.offsetX, py = e.offsetY, sx = Math.floor(px / zoom), sy = Math.floor(py / zoom);
+    if (pickColor && sel) {
+      const [r, g, b, a] = pixelAt(sx, sy); pickColor = false; ov.style.cursor = "crosshair";
+      if (a === 0) { alert("투명 픽셀이에요"); return; }
+      sel.transparent = [r, g, b]; $("sTransp").value = `${r},${g},${b}`; mark(sel); refreshPreview(); return;
+    }
     const h = hitHandle(px, py);
     if (h) { const r = rectOf(sel); drag = { mode: "resize", ...h, start: { ...r }, px, py }; return; }
     const hit = hitSlice(sx, sy);
@@ -377,7 +562,7 @@
     drag = { mode: "new", ox: snapv(sx), oy: snapv(sy), rect: null };
   });
   ov.addEventListener("mousemove", (e) => {
-    if (!drag) { const h = hitHandle(e.offsetX, e.offsetY); ov.style.cursor = h ? (h.dx * h.dy ? "nwse-resize" : h.dx ? "ew-resize" : "ns-resize") : "crosshair"; return; }
+    if (!drag) { const h = hitHandle(e.offsetX, e.offsetY); ov.style.cursor = pickColor ? "copy" : h ? (h.dx * h.dy ? "nwse-resize" : h.dx ? "ew-resize" : "ns-resize") : "crosshair"; return; }
     const px = e.offsetX, py = e.offsetY, sx = Math.floor(px / zoom), sy = Math.floor(py / zoom);
     if (drag.mode === "new") {
       const x0 = Math.min(drag.ox, snapv(sx)), y0 = Math.min(drag.oy, snapv(sy));
@@ -420,9 +605,9 @@
   });
 
   function createSlice(rect) {
-    let n = 1; while (slices.some((s) => s.key === `new_${n}`)) n++;
+    let n = 1; while (allSlices().some((s) => s.key === `new_${n}`)) n++;
     const s = { key: `new_${n}`, sheet, x: rect.x, y: rect.y, w: rect.w, h: rect.h };
-    slices.push(s); mark(s); select(s);
+    (groupOf(sheet) === "map" ? mapSlices : slices).push(s); mark(s); select(s);
     $("sKey").focus(); $("sKey").select();
   }
   function deleteSlice() {
@@ -430,17 +615,20 @@
     if (!confirm(`'${sel.key}' 슬라이스를 지울까요?` + (itemOf(sel) ? " (items.json 항목도 같이 지워요)" : ""))) return;
     const it = itemOf(sel);
     if (it) { items.splice(items.indexOf(it), 1); dirtyItems = true; }
-    slices.splice(slices.indexOf(sel), 1); unsaved.delete(sel.key); dirtySlices = true;
+    const arr = listOf(sel); arr.splice(arr.indexOf(sel), 1); unsaved.delete(sel.key); dirtySlices = true;
     sel = null; renderList(); renderPanel(); draw();
   }
 
   // ---- panel
-  function select(s) { sel = s; partIdx = 0; renderList(); renderPanel(); draw(); }
+  function select(s) { sel = s; partIdx = 0; pickColor = false; renderList(); renderPanel(); draw(); }
 
   function renderPanel() {
     const has = !!sel;
     $("none").style.display = has ? "none" : ""; $("sliceForm").style.display = has ? "" : "none";
     if (!has) return;
+    const mp = isMapSlice(sel);
+    $("sliceGroup").textContent = mp ? "map_slices.json → gen/map.png" : "slices.json → gen/interiors.png";
+    $("itemSection").style.display = mp ? "none" : ""; $("mapNote").style.display = mp ? "" : "none";
     $("sKey").value = sel.key;
     const isFile = "file" in sel, isParts = "parts" in sel;
     $("rectForm").style.display = (isFile || isParts) ? "none" : "";
@@ -449,6 +637,8 @@
     if (isFile) $("fileNote").textContent = `파일 슬라이스: ${sel.file} (좌표 편집 없음)`;
     $("toParts").textContent = isParts ? "단일 사각형으로" : "parts로 변환";
     $("toParts").disabled = isFile;
+    $("sScale").value = sel.scale && sel.scale !== 1 ? sel.scale : "";
+    $("sTransp").value = sel.transparent ? sel.transparent.join(",") : "";
     if (isParts) renderParts(); else fillRectForm();
     renderItem(); refreshPreview();
   }
@@ -458,13 +648,17 @@
     if (!("x" in sel)) return;
     $("sX").value = sel.x; $("sY").value = sel.y; $("sW").value = sel.w; $("sH").value = sel.h;
   }
+  function sheetOptions(cur) {
+    const g = groupOf(cur);
+    return S.sheets.filter((s) => s.exists && s.group === g).map((s) => `<option${s.name === cur ? " selected" : ""}>${s.name}</option>`).join("");
+  }
   function renderParts(rebuild = true) {
     const box = $("partsList");
     if (rebuild) {
       box.innerHTML = "";
       sel.parts.forEach((p, i) => {
         const div = document.createElement("div"); div.className = "part" + (i === partIdx ? " sel" : "");
-        div.innerHTML = `<b>#${i + 1}</b> <select data-f="sheet">${S.sheets.filter((s) => s.exists).map((s) => `<option${s.name === p.sheet ? " selected" : ""}>${s.name}</option>`).join("")}</select>
+        div.innerHTML = `<b>#${i + 1}</b> <select data-f="sheet">${sheetOptions(p.sheet)}</select>
           x<input type="number" data-f="x" value="${p.x}"> y<input type="number" data-f="y" value="${p.y}"> w<input type="number" data-f="w" value="${p.w}" min="1"> h<input type="number" data-f="h" value="${p.h}" min="1">
           <button data-a="up">↑</button><button data-a="down">↓</button><button data-a="del">✕</button>`;
         div.onclick = (e) => { if (e.target.tagName === "DIV" || e.target.tagName === "B") { partIdx = i; renderParts(); draw(); } };
@@ -499,7 +693,7 @@
       const p = sel.parts[0]; delete sel.parts; Object.assign(sel, { sheet: p.sheet, x: p.x, y: p.y, w: p.w, h: p.h });
     } else {
       const p = { sheet: sel.sheet, x: sel.x, y: sel.y, w: sel.w, h: sel.h };
-      for (const f of ["sheet", "x", "y", "w", "h"]) delete sel[f];
+      for (const f of ["sheet", "x", "y", "w", "h", "transparent"]) delete sel[f];
       sel.parts = [p];
     }
     partIdx = 0; mark(sel); renderPanel(); draw();
@@ -507,7 +701,8 @@
   $("sKey").addEventListener("change", () => {
     const k = $("sKey").value.trim();
     if (!k) { $("sKey").value = sel.key; return; }
-    if (slices.some((s) => s !== sel && s.key === k)) { alert(`'${k}'는 이미 있어요`); $("sKey").value = sel.key; return; }
+    if (allSlices().some((s) => s !== sel && s.key === k)) { alert(`'${k}'는 이미 있어요`); $("sKey").value = sel.key; return; }
+    if (/sheet/i.test(k)) { alert("key에 'sheet'라는 단어는 못 써요 (서버 테스트가 카탈로그에서 그 단어를 금지해요)"); $("sKey").value = sel.key; return; }
     const it = itemOf(sel);
     if (it) { it.sprite = k; if (it.id === sel.key) it.id = k; dirtyItems = true; }
     unsaved.delete(sel.key); sel.key = k; mark(sel); renderPanel(); draw();
@@ -517,6 +712,18 @@
     sel[f.toLowerCase()] = f === "W" || f === "H" ? Math.max(1, v) : Math.max(0, v);
     mark(sel); draw(); refreshPreview();
   });
+  $("sScale").addEventListener("change", () => {
+    const v = parseFloat($("sScale").value);
+    if (!v || v === 1) delete sel.scale; else sel.scale = v;
+    mark(sel); refreshPreview();
+  });
+  $("sTransp").addEventListener("change", () => {
+    const v = $("sTransp").value.trim();
+    if (!v) delete sel.transparent;
+    else { const m = v.split(/[,\s]+/).map((x) => parseInt(x, 10)); if (m.length !== 3 || m.some(isNaN)) { alert("r,g,b 형식"); return; } sel.transparent = m; }
+    mark(sel); refreshPreview();
+  });
+  $("sPick").onclick = () => { if (noImage()) return; pickColor = true; ov.style.cursor = "copy"; log("시트에서 배경색 픽셀을 클릭하세요"); };
   $("sDel").onclick = deleteSlice;
 
   // ---- preview
@@ -534,7 +741,7 @@
       };
       img.onerror = () => { $("prevInfo").textContent = "미리보기 실패 (좌표/시트 확인)"; };
       img.src = `/api/preview?spec=${spec}&t=${Date.now()}`;
-      refreshRoom(spec);
+      if (!isMapSlice(sel)) refreshRoom(spec);
     }, 120);
   }
   function refreshRoom(spec) {
@@ -546,7 +753,7 @@
     const x = parseInt($("rX").value, 10) || 0, y = parseInt($("rY").value, 10) || 0;
     $("roomImg").src = `/api/room-preview?spec=${spec}&x=${x}&y=${y}&layer=${layer}&w=${w}&h=${h}&span=${span}&t=${Date.now()}`;
   }
-  for (const id of ["rX", "rY", "rSpan"]) $(id).addEventListener("input", () => { if (sel) refreshRoom(encodeURIComponent(JSON.stringify(sel))); });
+  for (const id of ["rX", "rY", "rSpan"]) $(id).addEventListener("input", () => { if (sel && !isMapSlice(sel)) refreshRoom(encodeURIComponent(JSON.stringify(sel))); });
 
   // ---- item
   function renderItem() {
@@ -556,9 +763,22 @@
     $("iId").value = it.id; $("iName").value = it.name; $("iPrice").value = it.price; $("iW").value = it.w; $("iH").value = it.h;
     $("iLayer").value = it.layer; $("iSurface").checked = !!it.is_surface; $("iOff").value = it.surface_offset_y || 0;
     $("iSurface").disabled = it.layer !== "furniture"; // the server only accepts surfaces on furniture
+    $("iTags").value = tagsOf(it).join(", "); $("iRuined").checked = tagsOf(it).includes("ruined");
+    $("iPair").value = it.pair || "";
+    $("itemIds").innerHTML = items.filter((o) => o !== it).map((o) => `<option value="${o.id}">${o.name || ""}</option>`).join("");
+    renderPair(it);
   }
+  async function renderPair(it) {
+    const p = it.pair && itemById(it.pair);
+    $("pairBox").style.display = p ? "" : "none";
+    if (!p) return;
+    const at = await loadAtlas("interior"); const f = at.frames[p.sprite];
+    const cv = document.createElement("canvas"); cv.width = 96; cv.height = 64; drawFrame(cv, at, p.sprite);
+    $("pairImg").src = f ? cv.toDataURL() : ""; $("pairInfo").textContent = `${p.name || p.id} (${p.id})` + (tagsOf(p).length ? " · " + tagsOf(p).join(", ") : "");
+  }
+  $("iPairGo").onclick = () => { const it = itemOf(sel); const p = it && it.pair && itemById(it.pair); if (!p) return; const s = allSlices().find((x) => x.key === p.sprite); if (s) goTo(s); };
   $("itemCreate").onclick = () => {
-    if (sel.key.startsWith("auto_")) { alert("auto_ 이름은 아틀라스에 안 들어가요. 먼저 key를 진짜 이름으로 바꿔주세요"); return; }
+    if (sel.key.startsWith("auto_") || sel.key.startsWith("new_")) { alert("auto_/new_ 이름은 아틀라스에 안 들어가요. 먼저 key를 진짜 이름으로 바꿔주세요"); return; }
     const img = $("prevImg");
     const cw = Math.max(1, Math.ceil(img.naturalWidth / S.cell)), ch = Math.max(1, Math.ceil(img.naturalHeight / S.cell));
     items.push({ id: sel.key, name: sel.key.replace(/_/g, " "), price: 50, sprite: sel.key, w: cw, h: ch > 1 ? Math.min(ch, 2) : 1,
@@ -575,14 +795,38 @@
     const it = itemOf(sel), el = $(id);
     let v = el.type === "checkbox" ? el.checked : el.type === "number" ? (parseInt(el.value, 10) || 0) : el.value.trim();
     if (f === "id" && (!v || items.some((o) => o !== it && o.id === v))) { alert("id가 비었거나 겹쳐요"); el.value = it.id; return; }
+    if (f === "id") items.forEach((o) => { if (o.pair === it.id) o.pair = v; }); // keep pairs pointing at the renamed item
     if ((f === "w" || f === "h") && v < 1) v = 1;
     it[f] = v;
     if (f === "layer" && v !== "furniture") it.is_surface = false;
     if (f === "is_surface" && v && it.layer !== "furniture") { it.is_surface = false; alert("is_surface는 가구만 켤 수 있어요"); }
     dirtyItems = true; renderList(); renderItem(); refreshPreview();
   });
+  function setTags(it, tags) {
+    tags = [...new Set(tags.map((t) => t.trim().toLowerCase()).filter(Boolean))].sort();
+    const bad = tags.filter((t) => !/^[a-z0-9_]+$/.test(t));
+    if (bad.length) { alert("태그는 영문 소문자/숫자/_ 만: " + bad.join(", ")); return false; }
+    if (tags.length) it.tags = tags; else delete it.tags;
+    return true;
+  }
+  $("iTags").addEventListener("change", () => { const it = itemOf(sel); if (setTags(it, $("iTags").value.split(","))) { dirtyItems = true; } renderList(); renderItem(); });
+  $("iRuined").addEventListener("change", () => {
+    const it = itemOf(sel); const t = tagsOf(it).filter((x) => x !== "ruined"); if ($("iRuined").checked) t.push("ruined");
+    setTags(it, t); dirtyItems = true; renderList(); renderItem();
+  });
+  $("iPair").addEventListener("change", () => {
+    const it = itemOf(sel), v = $("iPair").value.trim();
+    const old = it.pair && itemById(it.pair);
+    if (old && old.pair === it.id) delete old.pair;            // unlink the previous partner
+    if (!v) { delete it.pair; dirtyItems = true; renderItem(); return; }
+    const p = itemById(v);
+    if (!p || p === it) { alert(`'${v}' 아이템이 없거나 자기 자신이에요`); $("iPair").value = it.pair || ""; return; }
+    if (p.pair && p.pair !== it.id) { const other = itemById(p.pair); if (other && other.pair === p.id) delete other.pair; }
+    it.pair = p.id; p.pair = it.id; dirtyItems = true; renderItem();
+  });
   $("iDel").onclick = () => {
     const it = itemOf(sel); if (!it || !confirm(`아이템 '${it.id}'를 지울까요? (슬라이스는 남아요)`)) return;
+    items.forEach((o) => { if (o.pair === it.id) delete o.pair; });
     items.splice(items.indexOf(it), 1); dirtyItems = true; renderList(); renderItem();
   };
 
@@ -595,27 +839,28 @@
   }
   $("saveSlices").onclick = async () => {
     try {
-      const j = await put("/api/slices", slices);
+      const j = await put("/api/slices", { slices, map_slices: mapSlices });
       const selKey = sel && sel.key;
-      slices = j.slices; unsaved.clear(); dirtySlices = false;
-      sel = selKey ? slices.find((s) => s.key === selKey) || null : null;
-      renderList(); renderPanel(); draw(); log(`slices.json 저장 (${slices.length}개)`);
+      slices = j.slices; mapSlices = j.map_slices; unsaved.clear(); dirtySlices = false;
+      sel = selKey ? allSlices().find((s) => s.key === selKey) || null : null;
+      renderList(); renderPanel(); draw(); log(`slices.json 저장 (${slices.length}개) · map_slices.json (${mapSlices.length}개)`);
     } catch (e) { alert("저장 실패: " + e.message); }
   };
   // Same checks the game server runs at startup, so a save here can't produce a catalog the server refuses.
   function itemProblems() {
     const keys = new Set(slices.map((s) => s.key));
-    const auto = items.filter((it) => it.sprite.startsWith("auto_"));
-    const missing = items.filter((it) => !it.sprite.startsWith("auto_") && !keys.has(it.sprite));
+    const auto = items.filter((it) => it.sprite.startsWith("auto_") || it.sprite.startsWith("new_"));
+    const missing = items.filter((it) => !auto.includes(it) && !keys.has(it.sprite));
     const surface = items.filter((it) => it.is_surface && it.layer !== "furniture");
     const badLayer = items.filter((it) => !S.layers.includes(it.layer));
-    return { auto, missing, surface, badLayer };
+    const badPair = items.filter((it) => it.pair && !itemById(it.pair));
+    return { auto, missing, surface, badLayer, badPair };
   }
   $("saveItems").onclick = async () => {
     const pr = itemProblems();
     if (pr.auto.length) {
       const names = pr.auto.map((it) => it.id).join(", ");
-      if (!confirm(`auto_ 이름 그대로인 아이템 ${pr.auto.length}개는 아틀라스에 안 들어가서 서버가 못 떠요.
+      if (!confirm(`auto_/new_ 이름 그대로인 아이템 ${pr.auto.length}개는 아틀라스에 안 들어가서 서버가 못 떠요.
 (${names})
 
 이 아이템들을 자동으로 삭제하고 저장할까요? (슬라이스는 남아요. 취소하면 저장 안 함)`)) return;
@@ -627,6 +872,7 @@
     if (pr.missing.length) stop.push(`슬라이스가 없는 sprite: ${pr.missing.map((it) => it.id).join(", ")}`);
     if (pr.surface.length) stop.push(`가구가 아닌데 is_surface: ${pr.surface.map((it) => it.id).join(", ")}`);
     if (pr.badLayer.length) stop.push(`모르는 layer: ${pr.badLayer.map((it) => it.id).join(", ")}`);
+    if (pr.badPair.length) stop.push(`없는 아이템을 pair로 가리킴: ${pr.badPair.map((it) => it.id).join(", ")}`);
     if (stop.length) { alert("저장 못 해요. 먼저 고쳐주세요:\n" + stop.join("\n")); return; }
     try { await put("/api/items", items); dirtyItems = false; log(`items.json 저장 (${items.length}개)`); }
     catch (e) { alert("저장 실패: " + e.message); }
@@ -634,9 +880,9 @@
   $("build").onclick = async () => {
     if (dirtySlices || dirtyItems) { if (!confirm("저장 안 한 변경이 있어요. 저장된 내용으로 빌드할까요?")) return; }
     $("build").disabled = true; log("빌드 중…");
-    try { const j = await (await fetch("/api/build", { method: "POST" })).json(); log(j.log || JSON.stringify(j)); }
+    try { const j = await (await fetch("/api/build", { method: "POST" })).json(); log(j.log || JSON.stringify(j)); atlas.interior = atlas.map = null; }
     catch (e) { log("빌드 실패: " + e.message); }
-    finally { $("build").disabled = false; if (document.body.classList.contains("chars")) loadChars(); }
+    finally { $("build").disabled = false; const t = document.body.dataset.tab; if (t === "chars") loadChars(); if (t === "items") renderItemsGrid(); }
   };
   window.addEventListener("beforeunload", (e) => { if (dirtySlices || dirtyItems) { e.preventDefault(); e.returnValue = ""; } });
 

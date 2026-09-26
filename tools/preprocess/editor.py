@@ -1,12 +1,14 @@
-"""Browser-based editor for slices.json + data/items.json.
+"""Browser-based editor for slices.json / map_slices.json, data/items.json, data/rooms/*.json and data/map.json.
 
     python tools/preprocess/editor.py                 # opens http://127.0.0.1:8765/
     python tools/preprocess/editor.py --port 9000 --no-browser
     python tools/preprocess/preprocess.py editor      # same thing
 
-Pick a sheet, drag a rectangle on it (snapped to the 16px grid), give it a key, save. The same page edits
-the matching items.json row (name / price / footprint / layer), previews the crop and how it sits in the
-room, and can run `build`. Local dev tool only: stdlib http.server + Pillow, nothing is needed at runtime.
+/        editor.html  — sheets (every PNG under assets/graphic/Interior + Map), slices, items (tags, pair),
+                        single-object PNG browser, character sheets
+/world   world.html   — room editor (size, tiles, seeded items, exits) and map editor (tiles, places)
+
+Local dev tool only: stdlib http.server + Pillow, nothing is needed at runtime.
 """
 
 from __future__ import annotations
@@ -23,7 +25,7 @@ import webbrowser
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from urllib.parse import parse_qs, urlparse
+from urllib.parse import parse_qs, unquote, urlparse
 
 from PIL import Image, ImageDraw
 
@@ -32,8 +34,15 @@ import config as C  # noqa: E402
 import preprocess as P  # noqa: E402
 
 HTML_FILE = Path(__file__).with_name("editor.html")
-ROOM_FILE = C.REPO_ROOT / "data" / "room.json"
+WORLD_FILE = Path(__file__).with_name("world.html")
+ROOM_FILE = C.REPO_ROOT / "data" / "room.json"          # legacy single room the game server still reads (mirror of rooms/inn.json)
+ROOMS_DIR = C.REPO_ROOT / "data" / "rooms"
+MAP_FILE = C.REPO_ROOT / "data" / "map.json"
 LAYERS = ["furniture", "surface_item", "floor", "wall", "wallpaper"]
+TAG_RE = re.compile(r"^[a-z0-9_]+$")
+ROOM_ID_RE = re.compile(r"^[a-z][a-z0-9_]*$")
+# fields the game server's Room model knows; everything else (name, exits, seed) is for later phases
+LEGACY_ROOM_FIELDS = ("cols", "rows", "wall_rows", "spawn", "blocked", "zoom", "tiles")
 
 # character layer → assets/custom/<folder> + required file-name prefix (same rules as config._gen_layer)
 CHAR_FOLDERS = {
@@ -73,18 +82,61 @@ _sheet_cache: dict[str, Image.Image] = {}
 _lock = threading.Lock()
 
 
+def sheet_path(name: str) -> Path | None:
+    p = C.all_sheets().get(name)
+    return p if p and p.exists() else None
+
+
 def sheet_image(name: str) -> Image.Image:
     with _lock:
         im = _sheet_cache.get(name)
         if im is None:
-            im = Image.open(C.SHEETS[name]).convert("RGBA")
+            im = Image.open(sheet_path(name)).convert("RGBA")
             _sheet_cache[name] = im
         return im
 
 
 def sheets_for(spec: dict) -> dict[str, Image.Image]:
     names = {r.get("sheet") for r in spec.get("parts", [spec])}
-    return {n: sheet_image(n) for n in names if n in C.SHEETS and C.SHEETS[n].exists()}
+    return {n: sheet_image(n) for n in names if n and sheet_path(n)}
+
+
+def sheet_list() -> list[dict]:
+    """Every sheet the editor can show: named interior sheets, named map sheets, then discovered ones."""
+    out = []
+    for n, p in C.all_sheets().items():
+        group = "map" if C.sheet_group(n) == "map" else "interior"
+        named = n in C.SHEETS or n in C.MAP_SHEETS
+        entry = {"name": n, "exists": p.exists(), "group": group, "named": named}
+        if p.exists():
+            try:
+                with Image.open(p) as im:
+                    entry.update(w=im.width, h=im.height)
+            except Exception:
+                entry["exists"] = False
+        out.append(entry)
+    return out
+
+
+def singles_themes() -> list[dict]:
+    if not C.SINGLES_DIR.exists():
+        return []
+    return [{"name": d.name, "count": sum(1 for _ in d.glob("*.png"))} for d in sorted(C.SINGLES_DIR.iterdir()) if d.is_dir()]
+
+
+def singles_files(theme: str) -> list[dict]:
+    d = C.SINGLES_DIR / theme
+    if "/" in theme or "\\" in theme or not d.is_dir():
+        return []
+    out = []
+    for p in sorted(d.glob("*.png"), key=lambda q: (len(q.stem), q.stem)):
+        try:
+            with Image.open(p) as im:
+                w, h = im.size
+        except Exception:
+            continue
+        out.append({"name": p.name, "w": w, "h": h, "file": p.relative_to(C.INTERIOR).as_posix()})
+    return out
 
 
 _frozen: list = []  # [(image, frames)] cached previous interiors atlas, for slices whose source is gone
@@ -110,7 +162,106 @@ def png_bytes(im: Image.Image) -> bytes:
 
 
 def load_room() -> dict:
+    rooms = load_rooms()
+    if "inn" in rooms:
+        return rooms["inn"]
     return json.loads(ROOM_FILE.read_text(encoding="utf-8")) if ROOM_FILE.exists() else {}
+
+
+def load_rooms() -> dict[str, dict]:
+    """data/rooms/<id>.json. Falls back to the legacy data/room.json as room 'inn' when the folder is empty."""
+    rooms: dict[str, dict] = {}
+    if ROOMS_DIR.exists():
+        for p in sorted(ROOMS_DIR.glob("*.json")):
+            try:
+                rooms[p.stem] = json.loads(p.read_text(encoding="utf-8"))
+            except Exception:
+                continue
+    if not rooms and ROOM_FILE.exists():
+        legacy = json.loads(ROOM_FILE.read_text(encoding="utf-8"))
+        rooms["inn"] = {"id": "inn", "name": "여관", **legacy, "exits": [], "seed": []}
+    return rooms
+
+
+def validate_room(rid: str, room: dict, all_ids: set[str], item_ids: set[str], tile_keys: set[str]) -> str | None:
+    if not ROOM_ID_RE.match(rid):
+        return f"방 id는 영문 소문자/숫자/_ 로 시작은 영문: {rid}"
+    for f in ("cols", "rows", "wall_rows"):
+        v = room.get(f)
+        if not isinstance(v, int) or isinstance(v, bool) or v < 0:
+            return f"{rid}: {f}가 정수가 아니에요"
+    if room["cols"] < 4 or room["rows"] < 2 or room["wall_rows"] >= room["rows"]:
+        return f"{rid}: 크기가 이상해요 (cols≥4, rows≥2, wall_rows<rows)"
+    sp = room.get("spawn") or {}
+    if not (0 <= int(sp.get("x", -1)) < room["cols"] and room["wall_rows"] <= int(sp.get("y", -1)) < room["rows"]):
+        return f"{rid}: spawn이 바닥 안에 있어야 해요"
+    tiles = room.get("tiles") or {}
+    if len(tiles.get("wall", [])) != room["wall_rows"]:
+        return f"{rid}: tiles.wall 길이는 wall_rows({room['wall_rows']})와 같아야 해요"
+    for k in ("wall", "wall_left", "wall_right"):
+        for t in tiles.get(k, []):
+            if t not in tile_keys:
+                return f"{rid}: 모르는 타일 '{t}' ({k})"
+    if tiles.get("floor") not in tile_keys:
+        return f"{rid}: 모르는 바닥 타일 '{tiles.get('floor')}'"
+    for e in room.get("exits", []):
+        if e.get("to") not in all_ids and e.get("to") != "map":
+            return f"{rid}: 출구가 모르는 방 '{e.get('to')}'로 가요"
+        for f in ("x", "y", "w", "h"):
+            if not isinstance(e.get(f), int) or e[f] < 0:
+                return f"{rid}: 출구 {f}가 정수가 아니에요"
+    for sd in room.get("seed", []):
+        if sd.get("item_id") not in item_ids:
+            return f"{rid}: 시드에 모르는 아이템 '{sd.get('item_id')}'"
+        if not isinstance(sd.get("x"), int) or not isinstance(sd.get("y"), int):
+            return f"{rid}: 시드 좌표가 정수가 아니에요"
+    return None
+
+
+def save_rooms(rooms: dict[str, dict]) -> None:
+    ROOMS_DIR.mkdir(parents=True, exist_ok=True)
+    for stale in ROOMS_DIR.glob("*.json"):
+        if stale.stem not in rooms:
+            stale.unlink()
+    for rid, room in rooms.items():
+        room = {"id": rid, **{k: v for k, v in room.items() if k != "id"}}
+        (ROOMS_DIR / f"{rid}.json").write_text(json.dumps(room, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
+    # the game server (until the multi-room phase) reads data/room.json: keep it equal to the inn
+    if "inn" in rooms:
+        legacy = {k: rooms["inn"][k] for k in LEGACY_ROOM_FIELDS if k in rooms["inn"]}
+        ROOM_FILE.write_text(json.dumps(legacy, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
+
+
+def load_map() -> dict:
+    if MAP_FILE.exists():
+        return json.loads(MAP_FILE.read_text(encoding="utf-8"))
+    return {"cols": 32, "rows": 18, "spawn": {"x": 4, "y": 4}, "layers": {"ground": [], "deco": []}, "blocked": [], "places": []}
+
+
+def validate_map(m: dict, room_ids: set[str], map_keys: set[str]) -> str | None:
+    cols, rows = m.get("cols"), m.get("rows")
+    if not isinstance(cols, int) or not isinstance(rows, int) or cols < 4 or rows < 4 or cols > 400 or rows > 400:
+        return "맵 크기는 4~400칸"
+    for lname, grid in (m.get("layers") or {}).items():
+        if len(grid) != rows or any(len(r) != cols for r in grid):
+            return f"layers.{lname} 크기가 cols×rows와 달라요"
+        for r in grid:
+            for k in r:
+                if k is not None and k not in map_keys:
+                    return f"layers.{lname}: 모르는 타일 '{k}' (맵 슬라이스에 없음 — 빌드했나요?)"
+    for pl in m.get("places", []):
+        if pl.get("room") not in room_ids and pl.get("room") != "dock":
+            return f"장소 '{pl.get('name')}'가 모르는 방 '{pl.get('room')}'로 가요"
+        if pl.get("sprite") and pl["sprite"] not in map_keys:
+            return f"장소 '{pl.get('name')}': 모르는 스프라이트 '{pl['sprite']}'"
+    return None
+
+
+def atlas_keys(name: str) -> set[str]:
+    p = C.OUT_DIR / f"{name}.json"
+    if not p.exists():
+        return set()
+    return set(json.loads(p.read_text(encoding="utf-8")).get("frames", {}))
 
 
 def load_items() -> dict:
@@ -123,8 +274,9 @@ def save_items(data: dict) -> None:
     C.ITEMS_FILE.write_text(json.dumps(data, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
 
 
-def validate_slices(slices: list) -> str | None:
-    seen: set[str] = set()
+def validate_slices(slices: list, seen: set[str] | None = None) -> str | None:
+    seen = set() if seen is None else seen
+    sheets = C.all_sheets()
     for s in slices:
         key = s.get("key")
         if not key or not isinstance(key, str):
@@ -132,13 +284,15 @@ def validate_slices(slices: list) -> str | None:
         if key in seen:
             return f"key가 겹쳐요: {key}"
         seen.add(key)
+        if "scale" in s and (not isinstance(s["scale"], (int, float)) or not 0 < s["scale"] <= 8):
+            return f"{key}: scale은 0보다 크고 8 이하"
         if "file" in s:
             continue
         rects = s["parts"] if "parts" in s else [s]
         if not rects:
             return f"{key}: parts가 비어 있어요"
         for r in rects:
-            if r.get("sheet") not in C.SHEETS:
+            if r.get("sheet") not in sheets:
                 return f"{key}: 모르는 sheet '{r.get('sheet')}'"
             for f in ("x", "y", "w", "h"):
                 if not isinstance(r.get(f), int) or isinstance(r.get(f), bool):
@@ -217,6 +371,7 @@ def run_build() -> str:
             _sheet_cache.clear()
             _frozen.clear()
         importlib.reload(C)  # re-scan assets/custom so sheets uploaded since startup are included
+        C.all_sheets(refresh=True)
         P.cmd_build(argparse.Namespace())
     except SystemExit as e:
         print(f"ERROR: {e}")
@@ -261,26 +416,50 @@ class Handler(BaseHTTPRequestHandler):
         try:
             if u.path == "/":
                 self.send_bytes(HTML_FILE.read_bytes(), "text/html; charset=utf-8")
+            elif u.path == "/world":
+                self.send_bytes(WORLD_FILE.read_bytes(), "text/html; charset=utf-8")
             elif u.path == "/api/state":
-                sheets = []
-                for n, p in C.SHEETS.items():
-                    entry = {"name": n, "exists": p.exists()}
-                    if p.exists():
-                        im = sheet_image(n)
-                        entry.update(w=im.width, h=im.height)
-                    sheets.append(entry)
                 room = load_room()
                 self.send_json({
-                    "sheets": sheets, "slices": P.load_slices(), "items": load_items()["items"],
-                    "layers": LAYERS, "cell": C.CELL,
+                    "sheets": sheet_list(), "slices": P.load_slices(), "map_slices": P.load_slices(C.MAP_SLICES_FILE),
+                    "items": load_items()["items"], "layers": LAYERS, "cell": C.CELL,
                     "room": {k: room.get(k) for k in ("cols", "rows", "wall_rows", "tiles")},
+                    "singles": singles_themes(),
+                    "atlas": {"interior": (C.OUT_DIR / "interiors.json").exists(), "map": (C.OUT_DIR / "map.json").exists()},
                 })
-            elif u.path.startswith("/sheet/"):
-                name = u.path[len("/sheet/"):]
-                if name not in C.SHEETS or not C.SHEETS[name].exists():
+            elif u.path == "/api/world":
+                manifest = C.OUT_DIR / "manifest.json"
+                chars = json.loads(manifest.read_text(encoding="utf-8"))["chars"] if manifest.exists() else None
+                self.send_json({
+                    "rooms": load_rooms(), "map": load_map(), "items": load_items()["items"], "cell": C.CELL,
+                    "layers": LAYERS, "chars": chars,
+                    "map_slices": [s for s in P.load_slices(C.MAP_SLICES_FILE) if not s["key"].startswith("auto_")],
+                    "tile_keys": sorted(s["key"] for s in P.load_slices() if s["key"].startswith(P.TILE_PREFIX)),
+                    "atlas": {"interior": (C.OUT_DIR / "interiors.json").exists(), "map": (C.OUT_DIR / "map.json").exists()},
+                })
+            elif u.path == "/api/singles":
+                self.send_json({"files": singles_files(unquote(q.get("theme", [""])[0]))})
+            elif u.path.startswith("/single/"):
+                rel = Path(unquote(u.path[len("/single/"):]))
+                p = (C.INTERIOR / rel).resolve()
+                if not p.is_relative_to(C.INTERIOR.resolve()) or not p.exists() or p.suffix.lower() != ".png":
                     self.send_error(HTTPStatus.NOT_FOUND)
                     return
-                self.send_bytes(C.SHEETS[name].read_bytes(), "image/png")
+                self.send_bytes(p.read_bytes(), "image/png")
+            elif u.path.startswith("/gen/"):
+                rel = Path(unquote(u.path[len("/gen/"):]))
+                p = (C.OUT_DIR / rel).resolve()
+                if not p.is_relative_to(C.OUT_DIR.resolve()) or not p.exists():
+                    self.send_error(HTTPStatus.NOT_FOUND)
+                    return
+                self.send_bytes(p.read_bytes(), "image/png" if p.suffix == ".png" else "application/json; charset=utf-8")
+            elif u.path.startswith("/sheet/"):
+                name = unquote(u.path[len("/sheet/"):])
+                p = sheet_path(name)
+                if not p:
+                    self.send_error(HTTPStatus.NOT_FOUND)
+                    return
+                self.send_bytes(p.read_bytes(), "image/png")
             elif u.path == "/api/chars":
                 self.send_json(char_state())
             elif u.path.startswith("/chars/"):
@@ -308,15 +487,44 @@ class Handler(BaseHTTPRequestHandler):
         try:
             body = self.read_json()
             if u.path == "/api/slices":
-                if not isinstance(body, list):
-                    self.send_json({"error": "list가 아니에요"}, 400)
+                # {"slices": [...], "map_slices": [...]} — a bare list is the old interior-only form
+                if isinstance(body, list):
+                    body = {"slices": body, "map_slices": P.load_slices(C.MAP_SLICES_FILE)}
+                interior, mp = body.get("slices"), body.get("map_slices")
+                if not isinstance(interior, list) or not isinstance(mp, list):
+                    self.send_json({"error": "slices / map_slices가 list가 아니에요"}, 400)
                     return
-                err = validate_slices(body)
+                seen: set[str] = set()
+                err = validate_slices(interior, seen) or validate_slices(mp, seen)
                 if err:
                     self.send_json({"error": err}, 400)
                     return
-                P.save_slices(body)
-                self.send_json({"ok": True, "slices": P.load_slices()})
+                P.save_slices(interior)
+                P.save_slices(mp, C.MAP_SLICES_FILE)
+                self.send_json({"ok": True, "slices": P.load_slices(), "map_slices": P.load_slices(C.MAP_SLICES_FILE)})
+            elif u.path == "/api/rooms":
+                if not isinstance(body, dict) or not body:
+                    self.send_json({"error": "rooms가 비었어요"}, 400)
+                    return
+                if "inn" not in body:
+                    self.send_json({"error": "거점 방 'inn'은 지울 수 없어요"}, 400)
+                    return
+                item_ids = {it["id"] for it in load_items()["items"]}
+                tile_keys = {s["key"] for s in P.load_slices() if s["key"].startswith(P.TILE_PREFIX)}
+                for rid, room in body.items():
+                    err = validate_room(rid, room, set(body), item_ids, tile_keys)
+                    if err:
+                        self.send_json({"error": err}, 400)
+                        return
+                save_rooms(body)
+                self.send_json({"ok": True, "rooms": load_rooms()})
+            elif u.path == "/api/map":
+                err = validate_map(body, set(load_rooms()), atlas_keys("map"))
+                if err:
+                    self.send_json({"error": err}, 400)
+                    return
+                MAP_FILE.write_text(json.dumps(body, ensure_ascii=False, separators=(",", ":")) + "\n", encoding="utf-8")
+                self.send_json({"ok": True})
             elif u.path == "/api/items":
                 if not isinstance(body, list):
                     self.send_json({"error": "list가 아니에요"}, 400)
@@ -339,6 +547,20 @@ class Handler(BaseHTTPRequestHandler):
                 if bad:
                     self.send_json({"error": "모르는 layer: " + ", ".join(bad)}, 400)
                     return
+                for it in body:
+                    tags = it.get("tags")
+                    if tags is None or tags == []:
+                        it.pop("tags", None)
+                    elif not isinstance(tags, list) or not all(isinstance(t, str) and TAG_RE.match(t) for t in tags):
+                        self.send_json({"error": f"{it['id']}: tags는 영문 소문자/숫자/_ 목록이어야 해요"}, 400)
+                        return
+                    else:
+                        it["tags"] = sorted(set(tags))
+                    if not it.get("pair"):
+                        it.pop("pair", None)
+                    elif it["pair"] not in ids or it["pair"] == it["id"]:
+                        self.send_json({"error": f"{it['id']}: pair '{it['pair']}'가 없거나 자기 자신이에요"}, 400)
+                        return
                 data = load_items()
                 data["items"] = body
                 save_items(data)

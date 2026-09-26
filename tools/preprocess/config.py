@@ -98,6 +98,53 @@ MAP_SHEETS = {
 MAP_ICONS_DIR = GUI / "Map Legend Icons" / "Icons"   # 16x24 marker icons, referenced as `file` slices
 DOCK_DIR = MAP / "Dock"                              # 0.png .. 8.png, 384x216 parallax layers (back → front)
 
+# Every other PNG under Interior/ and Map/ is also a sheet, named by its path relative to assets/graphic
+# (forward slashes), e.g. "Interior/moderninteriors-win/1_Interiors/16x16/Theme_Sorter/14_Basement_16x16.png".
+# Folders that are not sheets (single-object PNGs, characters, other tile sizes) are pruned.
+DISCOVER_ROOTS = ("Interior", "Map")
+DISCOVER_SKIP_DIRS = {"Theme_Sorter_Singles", "Theme_Sorter_Black_Shadow_Singles", "Theme_Sorter_Shadowless_Singles",
+                      "2_Characters", "3_Animated_objects", "4_User_Interface_Elements", "6_Home_Designs", "Palettes",
+                      "32x32", "48x48", "Old stuff", "Old_Stuff", "Screenshots", "Dock", "_reference"}
+SINGLES_DIR = FULL / "1_Interiors" / "16x16" / "Theme_Sorter_Singles"   # one PNG per object, browsed in the editor
+
+
+def discover_sheets() -> dict[str, Path]:
+    import os
+    out: dict[str, Path] = {}
+    known = {p.resolve() for p in (*SHEETS.values(), *MAP_SHEETS.values())}
+    for root in DISCOVER_ROOTS:
+        base = ASSETS / root
+        if not base.exists():
+            continue
+        for dirpath, dirnames, filenames in os.walk(base):
+            dirnames[:] = sorted(d for d in dirnames if d not in DISCOVER_SKIP_DIRS)
+            for f in sorted(filenames):
+                if not f.lower().endswith(".png"):
+                    continue
+                p = Path(dirpath) / f
+                if p.resolve() in known:
+                    continue
+                out[p.relative_to(ASSETS).as_posix()] = p
+    return out
+
+
+_ALL_SHEETS: dict[str, Path] | None = None
+
+
+def all_sheets(refresh: bool = False) -> dict[str, Path]:
+    """Named sheets (SHEETS + MAP_SHEETS) followed by every discovered sheet."""
+    global _ALL_SHEETS
+    if _ALL_SHEETS is None or refresh:
+        _ALL_SHEETS = {**SHEETS, **MAP_SHEETS, **discover_sheets()}
+    return _ALL_SHEETS
+
+
+def sheet_group(name: str) -> str:
+    """'interior' | 'map' — which atlas a slice on this sheet belongs to."""
+    if name in MAP_SHEETS or name.startswith("Map/"):
+        return "map"
+    return "interior"
+
 # Character frames. Every variant yields one horizontal sheet of ANIM_STRIPS
 # concatenated in order; each strip is FRAMES_PER_DIR * len(DIRS) frames.
 FRAME_W, FRAME_H = 16, 32

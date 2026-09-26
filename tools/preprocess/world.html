@@ -1,0 +1,572 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>world editor</title>
+<style>
+  :root { color-scheme: dark; --bg: #1e1e26; --panel: #272733; --line: #3a3a4a; --fg: #e8e8f0; --dim: #9a9ab0;
+          --green: #6fd36f; --blue: #6fb3ff; --sel: #ffd35c; --red: #ff6b6b; --pink: #ff9ad5; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 13px/1.4 system-ui, sans-serif; background: var(--bg); color: var(--fg);
+         display: grid; grid-template-columns: 280px 1fr 300px; grid-template-rows: 1fr auto; height: 100vh; }
+  #left, #right { background: var(--panel); overflow: auto; padding: 8px; }
+  #left { border-right: 1px solid var(--line); } #right { border-left: 1px solid var(--line); }
+  #center { position: relative; overflow: auto; background: #111 repeating-conic-gradient(#1a1a1a 0 25%, #202020 0 50%) 0 0/16px 16px; }
+  #bottom { grid-column: 1 / -1; border-top: 1px solid var(--line); background: var(--panel); padding: 6px 8px; display: flex; gap: 8px; align-items: flex-start; }
+  #log { flex: 1; margin: 0; max-height: 100px; overflow: auto; font: 11px/1.3 ui-monospace, monospace; color: var(--dim); white-space: pre-wrap; }
+  h3 { margin: 10px 0 4px; font-size: 12px; color: var(--dim); text-transform: uppercase; letter-spacing: .05em; }
+  label { display: flex; align-items: center; gap: 6px; margin: 3px 0; }
+  label span { width: 80px; color: var(--dim); flex-shrink: 0; }
+  input, select, button { font: inherit; color: var(--fg); background: #1a1a22; border: 1px solid var(--line); border-radius: 4px; padding: 3px 6px; }
+  input[type=number] { width: 64px; } input[type=text] { flex: 1; min-width: 0; } select { max-width: 100%; }
+  button { cursor: pointer; background: #33334a; } button:hover { background: #40405a; }
+  button.primary { background: #2f6f3f; } button.danger { background: #6f2f2f; } button.on { background: #4a4a2a; color: var(--sel); }
+  button:disabled { opacity: .5; cursor: default; }
+  a { color: var(--blue); }
+  .row { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin: 4px 0; }
+  .hint { color: var(--dim); font-size: 11px; } .dim { color: var(--dim); }
+  #tabs { display: flex; gap: 4px; margin-bottom: 8px; }
+  body:not([data-mode=room]) .room-only { display: none !important; }
+  body:not([data-mode=map]) .map-only { display: none !important; }
+  #stage { position: relative; display: inline-block; margin: 8px; }
+  #cv { display: block; image-rendering: pixelated; cursor: crosshair; }
+  .tools { display: flex; flex-wrap: wrap; gap: 4px; margin: 4px 0; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, 64px); gap: 6px; }
+  .card { width: 64px; border: 1px solid var(--line); border-radius: 4px; background: #1a1a22; cursor: pointer; padding: 3px; font-size: 10px; overflow: hidden; }
+  .card:hover { border-color: var(--sel); } .card.sel { outline: 2px solid var(--sel); }
+  .card canvas { display: block; width: 56px; height: 48px; image-rendering: pixelated; background: #111; }
+  .card .nm { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .card.ruined { border-color: var(--red); }
+  ul.plain { list-style: none; margin: 4px 0; padding: 0; } ul.plain li { padding: 2px 4px; cursor: pointer; border-radius: 3px; }
+  ul.plain li:hover { background: #33334a; } ul.plain li.sel { background: #4a4a2a; }
+  .tag { display: inline-block; padding: 0 5px; border-radius: 8px; background: #3a3a5a; font-size: 11px; margin-right: 3px; }
+</style>
+</head>
+<body data-mode="room">
+<div id="left">
+  <div id="tabs"><button id="tabRoom" class="on">방</button><button id="tabMap">맵</button><a href="/" style="align-self:center;margin-left:auto">← 슬라이스 에디터</a></div>
+
+  <div class="room-only">
+    <label><span>방</span><select id="roomSel"></select></label>
+    <div class="row"><button id="roomNew">새 방</button><button id="roomDup">복제</button><button id="roomDel" class="danger">삭제</button></div>
+    <label><span>id</span><input type="text" id="rId" placeholder="inn_2f"></label>
+    <label><span>이름</span><input type="text" id="rName"></label>
+    <div class="row">
+      <label><span>cols</span><input type="number" id="rCols" min="4" max="80"></label>
+      <label><span>rows</span><input type="number" id="rRows" min="2" max="60"></label>
+    </div>
+    <div class="row">
+      <label><span>wall_rows</span><input type="number" id="rWall" min="0" max="10"></label>
+      <label><span>zoom</span><input type="number" id="rZoom" min="1" max="4"></label>
+    </div>
+    <h3>타일</h3>
+    <div id="wallTiles"></div>
+    <label><span>바닥</span><select id="tFloor"></select></label>
+    <div class="hint">벽 타일은 wall_rows 줄 수만큼 위→아래. 왼쪽/오른쪽 끝 열은 wall_left / wall_right.</div>
+    <h3>출구 (기믹)</h3>
+    <ul id="exitList" class="plain"></ul>
+    <div id="exitForm" style="display:none">
+      <label><span>→ 방</span><select id="eTo"></select></label>
+      <div class="row">
+        <label><span>x</span><input type="number" id="eX" min="0"></label><label><span>y</span><input type="number" id="eY" min="0"></label>
+        <label><span>w</span><input type="number" id="eW" min="1"></label><label><span>h</span><input type="number" id="eH" min="1"></label>
+      </div>
+      <div class="row">
+        <label><span>도착 x</span><input type="number" id="eSX" min="0"></label><label><span>도착 y</span><input type="number" id="eSY" min="0"></label>
+        <button id="eDel" class="danger">출구 삭제</button>
+      </div>
+      <div class="hint">아바타가 이 칸에 도착하면 → 방으로 이동해서 도착 좌표에 서요. 계단 스프라이트는 시드로 같은 자리에 놓고 <code>stairs, fixed</code> 태그.</div>
+    </div>
+    <h3>시드 (처음부터 놓인 물건)</h3>
+    <div class="hint">놓인 물건은 <code>$seed</code> 소유라 게임에선 "???"로 보여요. ruined 태그면 팔 수 있고, fixed면 못 건드려요.</div>
+    <ul id="seedList" class="plain"></ul>
+  </div>
+
+  <div class="map-only">
+    <div class="row">
+      <label><span>cols</span><input type="number" id="mCols" min="4" max="400"></label>
+      <label><span>rows</span><input type="number" id="mRows" min="4" max="400"></label>
+      <button id="mResize">크기 적용</button>
+    </div>
+    <div class="hint">줄이면 오른쪽/아래가 잘려요. 늘리면 빈 칸.</div>
+    <h3>장소</h3>
+    <ul id="placeList" class="plain"></ul>
+    <div id="placeForm" style="display:none">
+      <label><span>이름</span><input type="text" id="pName"></label>
+      <label><span>→ 방</span><select id="pRoom"></select></label>
+      <label><span>스프라이트</span><input type="text" id="pSprite" readonly></label>
+      <div class="row">
+        <label><span>x</span><input type="number" id="pX" min="0"></label><label><span>y</span><input type="number" id="pY" min="0"></label>
+        <label><span>w</span><input type="number" id="pW" min="1"></label><label><span>h</span><input type="number" id="pH" min="1"></label>
+      </div>
+      <div class="row">
+        <label><span>문 x</span><input type="number" id="pDX" min="0"></label><label><span>문 y</span><input type="number" id="pDY" min="0"></label>
+        <button id="pDoor">문 칸 찍기</button><button id="pDel" class="danger">장소 삭제</button>
+      </div>
+      <div class="hint">아바타가 문 칸에 도착하면 "들어가시겠습니까?"가 떠요. → 방이 <code>dock</code>이면 부두 씬.</div>
+    </div>
+  </div>
+</div>
+
+<div id="center">
+  <div id="stage"><canvas id="cv"></canvas></div>
+  <div class="hint" style="padding:6px" id="stageHint"></div>
+</div>
+
+<div id="right">
+  <div class="row">
+    <label><span>줌</span><select id="zoomSel"><option>1</option><option selected>2</option><option>3</option><option>4</option></select></label>
+    <label><input type="checkbox" id="gridChk" checked> 격자</label>
+    <label><input type="checkbox" id="charChk" checked> 비교용 캐릭터</label>
+  </div>
+  <h3>도구</h3>
+  <div class="tools room-only">
+    <button data-tool="select" class="on">선택/이동</button><button data-tool="seed">시드 놓기</button><button data-tool="exit">출구 그리기</button>
+    <button data-tool="blocked">막힌 칸</button><button data-tool="spawn">스폰</button>
+  </div>
+  <div class="tools map-only">
+    <button data-tool="select" class="on">선택/이동</button><button data-tool="paint">칠하기</button><button data-tool="erase">지우개</button>
+    <button data-tool="place">장소 놓기</button><button data-tool="blocked">막힌 칸</button><button data-tool="spawn">스폰</button>
+  </div>
+  <div class="map-only row"><span class="dim">레이어</span><button id="layGround" class="on">ground</button><button id="layDeco">deco</button></div>
+  <div class="room-only" id="seedProps" style="display:none">
+    <h3>선택한 시드</h3>
+    <div id="seedInfo"></div>
+    <div class="row" id="seedSpanRow" style="display:none"><span class="dim">벽지 폭</span><button id="spanMinus">−</button><b id="spanVal"></b><button id="spanPlus">+</button></div>
+    <div class="row"><button id="seedDel" class="danger">시드 삭제</button></div>
+  </div>
+  <h3>팔레트</h3>
+  <input type="text" id="palSearch" placeholder="검색…" style="width:100%">
+  <label class="room-only"><span>태그</span><select id="palTag"><option value="">(전부)</option></select></label>
+  <div id="palNote" class="hint"></div>
+  <div id="palette" class="grid"></div>
+</div>
+
+<div id="bottom">
+  <button id="save" class="primary">저장</button>
+  <button id="reload">다시 불러오기</button>
+  <span class="hint">방은 data/rooms/&lt;id&gt;.json (+ inn은 data/room.json에도 복사) · 맵은 data/map.json · 저장 후 게임 서버 재시작</span>
+  <pre id="log"></pre>
+</div>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const log = (m) => { const el = $("log"); el.textContent += m + "\n"; el.scrollTop = el.scrollHeight; };
+  let W = null;                       // /api/world
+  let rooms = {}, map = null, items = [];
+  let mode = "room", tool = "select", zoom = 2, showGrid = true, showChar = true;
+  let roomId = "inn", room = null;    // current room object
+  let selSeed = null, selExit = null, selPlace = null;
+  let palKey = null;                  // palette selection: item id (room) or map slice key (map)
+  let mapLayer = "ground";
+  let dirty = false, drag = null;
+  const cv = $("cv"), g = cv.getContext("2d");
+  const CELL = 16;
+  const WALL_LAYERS = new Set(["wall", "wallpaper"]);
+  const itemById = (id) => items.find((it) => it.id === id);
+  const tagsOf = (it) => (it && it.tags) || [];
+  const atlas = { interior: null, map: null };
+  const charImgs = {};
+
+  // ---- assets
+  async function loadAtlas(which) {
+    if (atlas[which]) return atlas[which];
+    const file = which === "interior" ? "interiors" : "map";
+    try {
+      const js = await (await fetch(`/gen/${file}.json?t=${Date.now()}`)).json();
+      const img = new Image(); img.src = `/gen/${file}.png?t=${Date.now()}`;
+      await new Promise((ok, no) => { img.onload = ok; img.onerror = no; });
+      atlas[which] = { img, frames: js.frames };
+    } catch (e) { atlas[which] = { img: null, frames: {} }; }
+    return atlas[which];
+  }
+  function frameOf(which, key) { const a = atlas[which]; return a && a.frames[key] ? a.frames[key].frame : null; }
+  function drawKey(which, key, x, y, w, h) {
+    const a = atlas[which], f = frameOf(which, key);
+    if (!f || !a.img) { g.fillStyle = "rgba(255,0,255,.4)"; g.fillRect(x, y, w || CELL * zoom, h || CELL * zoom); return; }
+    g.drawImage(a.img, f.x, f.y, f.w, f.h, x, y, w || f.w * zoom, h || f.h * zoom);
+  }
+  async function loadChar() {
+    if (!W.chars) return;
+    for (const layer of ["skin", "eyes", "outfit", "hair"]) {
+      if (!(W.chars.layers[layer] || {}).count) continue;
+      const img = new Image(); img.src = `/chars/${layer}/0.png`;
+      await new Promise((ok) => { img.onload = ok; img.onerror = ok; });
+      charImgs[layer] = img;
+    }
+  }
+  function drawChar(cx, cy) {
+    // idle facing down = frame 42 (run 0-23, idle 24-47); feet at the bottom-centre of the cell like Avatar.ts
+    if (!showChar || !W.chars) return;
+    const fw = W.chars.frameW, fh = W.chars.frameH, fx = 42 * fw;
+    const x = (cx * CELL + CELL / 2 - fw / 2) * zoom, y = ((cy + 1) * CELL - fh) * zoom;
+    for (const layer of ["skin", "eyes", "outfit", "hair"]) { const im = charImgs[layer]; if (im && im.width) g.drawImage(im, fx, 0, fw, fh, x, y, fw * zoom, fh * zoom); }
+    g.strokeStyle = "rgba(255,255,255,.5)"; g.strokeRect(x + .5, y + .5, fw * zoom - 1, fh * zoom - 1);
+  }
+  function thumbCanvas(which, key) {
+    const c = document.createElement("canvas"); c.width = 56; c.height = 48; const t = c.getContext("2d"); t.imageSmoothingEnabled = false;
+    const a = atlas[which], f = frameOf(which, key);
+    if (f && a.img) { const s = Math.max(1, Math.min(Math.floor(56 / f.w), Math.floor(48 / f.h))); t.drawImage(a.img, f.x, f.y, f.w, f.h, (56 - f.w * s) / 2, (48 - f.h * s) / 2, f.w * s, f.h * s); }
+    else { t.fillStyle = "#666"; t.fillText("빌드 필요", 6, 28); }
+    return c;
+  }
+
+  // ---- load / save
+  async function load() {
+    W = await (await fetch("/api/world")).json();
+    rooms = W.rooms; map = W.map; items = W.items;
+    if (!map.layers) map.layers = { ground: [], deco: [] };
+    for (const l of ["ground", "deco"]) map.layers[l] = fitGrid(map.layers[l] || [], map.cols, map.rows);
+    map.blocked = map.blocked || []; map.places = map.places || [];
+    await Promise.all([loadAtlas("interior"), loadAtlas("map"), loadChar()]);
+    if (!rooms[roomId]) roomId = Object.keys(rooms)[0];
+    dirty = false;
+    setRoom(roomId); renderPalette(); setMode(mode);
+    if (!W.atlas.interior) log("gen/interiors.json이 없어요 — 슬라이스 에디터에서 빌드하세요");
+    if (!W.atlas.map) log("gen/map.json이 없어요 — 맵 타일이 안 보여요. 빌드하세요");
+  }
+  async function save() {
+    try {
+      let r = await fetch("/api/rooms", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(rooms) });
+      let j = await r.json(); if (j.error) throw new Error("방: " + j.error);
+      r = await fetch("/api/map", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(map) });
+      j = await r.json(); if (j.error) throw new Error("맵: " + j.error);
+      dirty = false; log(`저장 완료 (방 ${Object.keys(rooms).length}개, 맵 ${map.cols}×${map.rows})`);
+    } catch (e) { alert("저장 실패: " + e.message); }
+  }
+  $("save").onclick = save;
+  $("reload").onclick = () => { if (!dirty || confirm("저장 안 한 변경을 버릴까요?")) load(); };
+  window.addEventListener("beforeunload", (e) => { if (dirty) { e.preventDefault(); e.returnValue = ""; } });
+  const touch = () => { dirty = true; };
+
+  // ---- mode / tools
+  function setMode(m) {
+    mode = m; document.body.dataset.mode = m;
+    $("tabRoom").classList.toggle("on", m === "room"); $("tabMap").classList.toggle("on", m === "map");
+    setTool("select"); renderPalette(); layout(); draw(); renderSide();
+    $("stageHint").textContent = m === "room"
+      ? "선택: 시드/출구 클릭·드래그 이동 · 시드 놓기: 팔레트 아이템 고르고 클릭 · 출구: 드래그로 사각형 · Delete=삭제"
+      : "칠하기: 클릭/드래그 · 우클릭=지우개 · 장소 놓기: 팔레트 스프라이트 고르고 클릭 · 선택: 장소 드래그 이동 · Delete=삭제";
+  }
+  function setTool(t) {
+    tool = t;
+    document.querySelectorAll(".tools button").forEach((b) => b.classList.toggle("on", b.dataset.tool === t && b.closest(`.${mode}-only`)));
+    cv.style.cursor = t === "select" ? "default" : "crosshair";
+  }
+  document.querySelectorAll(".tools button").forEach((b) => b.onclick = () => setTool(b.dataset.tool));
+  $("tabRoom").onclick = () => setMode("room"); $("tabMap").onclick = () => setMode("map");
+  $("zoomSel").onchange = () => { zoom = parseInt($("zoomSel").value, 10); layout(); draw(); };
+  $("gridChk").onchange = () => { showGrid = $("gridChk").checked; draw(); };
+  $("charChk").onchange = () => { showChar = $("charChk").checked; draw(); };
+  $("layGround").onclick = () => { mapLayer = "ground"; $("layGround").classList.add("on"); $("layDeco").classList.remove("on"); };
+  $("layDeco").onclick = () => { mapLayer = "deco"; $("layDeco").classList.add("on"); $("layGround").classList.remove("on"); };
+
+  // ---- palette
+  function renderPalette() {
+    const q = $("palSearch").value.trim().toLowerCase();
+    const pal = $("palette"); pal.innerHTML = "";
+    if (mode === "room") {
+      const tag = $("palTag").value;
+      const tags = new Set(); items.forEach((it) => tagsOf(it).forEach((t) => tags.add(t)));
+      const cur = $("palTag").value; $("palTag").innerHTML = `<option value="">(전부)</option>` + [...tags].sort().map((t) => `<option${t === cur ? " selected" : ""}>${t}</option>`).join("");
+      $("palNote").textContent = "아이템을 고른 뒤 '시드 놓기'로 방에 클릭. 썸네일은 마지막 빌드 기준.";
+      let n = 0;
+      for (const it of items) {
+        if (q && !it.id.toLowerCase().includes(q) && !(it.name || "").toLowerCase().includes(q)) continue;
+        if (tag && !tagsOf(it).includes(tag)) continue;
+        if (++n > 400) break;
+        const c = document.createElement("div"); c.className = "card" + (tagsOf(it).includes("ruined") ? " ruined" : "") + (palKey === it.id ? " sel" : "");
+        c.appendChild(thumbCanvas("interior", it.sprite));
+        const nm = document.createElement("div"); nm.className = "nm"; nm.title = `${it.id} · ${it.layer} ${it.w}×${it.h}`; nm.textContent = it.name || it.id; c.appendChild(nm);
+        c.onclick = () => { palKey = it.id; setTool("seed"); renderPalette(); };
+        pal.appendChild(c);
+      }
+    } else {
+      $("palNote").textContent = "타일은 '칠하기', 집/표지판은 '장소 놓기'. gen/map.png에 있는 맵 슬라이스만 보여요.";
+      for (const s of W.map_slices) {
+        if (q && !s.key.toLowerCase().includes(q)) continue;
+        const c = document.createElement("div"); c.className = "card" + (palKey === s.key ? " sel" : "");
+        c.appendChild(thumbCanvas("map", s.key));
+        const f = frameOf("map", s.key);
+        const nm = document.createElement("div"); nm.className = "nm"; nm.title = s.key + (f ? ` ${f.w}×${f.h}` : ""); nm.textContent = s.key; c.appendChild(nm);
+        c.onclick = () => { palKey = s.key; const big = f && (f.w > CELL || f.h > CELL); setTool(big ? "place" : "paint"); renderPalette(); };
+        pal.appendChild(c);
+      }
+    }
+  }
+  $("palSearch").oninput = renderPalette; $("palTag").onchange = renderPalette;
+
+  // ---- room side panel
+  function setRoom(id) {
+    roomId = id; room = rooms[id]; selSeed = selExit = null;
+    room.exits = room.exits || []; room.seed = room.seed || []; room.blocked = room.blocked || [];
+    room.tiles = room.tiles || { wall: [], wall_left: [], wall_right: [], floor: "" };
+    renderSide(); layout(); draw();
+  }
+  function renderSide() {
+    if (mode === "room") renderRoomSide(); else renderMapSide();
+  }
+  function renderRoomSide() {
+    const sel = $("roomSel"); sel.innerHTML = Object.keys(rooms).map((id) => `<option value="${id}"${id === roomId ? " selected" : ""}>${id} · ${rooms[id].name || ""}</option>`).join("");
+    $("rId").value = roomId; $("rName").value = room.name || ""; $("rCols").value = room.cols; $("rRows").value = room.rows; $("rWall").value = room.wall_rows; $("rZoom").value = room.zoom || 2;
+    $("roomDel").disabled = roomId === "inn";
+    const tiles = W.tile_keys;
+    const opt = (cur) => tiles.map((k) => `<option${k === cur ? " selected" : ""}>${k}</option>`).join("");
+    const wt = $("wallTiles"); wt.innerHTML = "";
+    for (const col of ["wall", "wall_left", "wall_right"]) {
+      const arr = room.tiles[col] = (room.tiles[col] || []).slice(0, room.wall_rows);
+      while (arr.length < room.wall_rows) arr.push(arr[arr.length - 1] || tiles[0] || "");
+      for (let i = 0; i < room.wall_rows; i++) {
+        const lb = document.createElement("label"); lb.innerHTML = `<span>${col}[${i}]</span><select></select>`;
+        const s = lb.querySelector("select"); s.innerHTML = opt(arr[i]); s.onchange = () => { arr[i] = s.value; touch(); draw(); };
+        wt.appendChild(lb);
+      }
+    }
+    $("tFloor").innerHTML = opt(room.tiles.floor); $("tFloor").onchange = () => { room.tiles.floor = $("tFloor").value; touch(); draw(); };
+    // exits
+    const el = $("exitList"); el.innerHTML = "";
+    room.exits.forEach((e, i) => { const li = document.createElement("li"); li.className = e === selExit ? "sel" : ""; li.textContent = `#${i + 1} (${e.x},${e.y}) ${e.w}×${e.h} → ${e.to}`; li.onclick = () => { selExit = e; selSeed = null; renderSide(); draw(); }; el.appendChild(li); });
+    $("exitForm").style.display = selExit ? "" : "none";
+    if (selExit) {
+      const targets = Object.keys(rooms).filter((id) => id !== roomId).concat(["map"]);
+      $("eTo").innerHTML = targets.map((t) => `<option${t === selExit.to ? " selected" : ""}>${t}</option>`).join("");
+      $("eX").value = selExit.x; $("eY").value = selExit.y; $("eW").value = selExit.w; $("eH").value = selExit.h;
+      $("eSX").value = (selExit.spawn || {}).x ?? 0; $("eSY").value = (selExit.spawn || {}).y ?? 0;
+    }
+    // seeds
+    const sl = $("seedList"); sl.innerHTML = "";
+    room.seed.forEach((s, i) => { const it = itemById(s.item_id); const li = document.createElement("li"); li.className = s === selSeed ? "sel" : "";
+      li.innerHTML = `${it ? (it.name || it.id) : s.item_id} <span class="dim">(${s.x},${s.y})</span> ` + tagsOf(it).map((t) => `<span class="tag">${t}</span>`).join("");
+      li.onclick = () => { selSeed = s; selExit = null; renderSide(); draw(); }; sl.appendChild(li); });
+    renderSeedProps();
+  }
+  function renderSeedProps() {
+    $("seedProps").style.display = selSeed ? "" : "none";
+    if (!selSeed) return;
+    const it = itemById(selSeed.item_id);
+    $("seedInfo").innerHTML = `<b>${it ? it.name : "?"}</b> <span class="dim">${selSeed.item_id}</span><br>${it ? `${it.layer} · ${it.w}×${it.h}칸` : "items.json에 없음"} · (${selSeed.x}, ${selSeed.y})`;
+    const wp = it && it.layer === "wallpaper";
+    $("seedSpanRow").style.display = wp ? "" : "none";
+    if (wp) $("spanVal").textContent = selSeed.span || it.w;
+  }
+  $("spanMinus").onclick = () => { const it = itemById(selSeed.item_id); selSeed.span = Math.max(1, (selSeed.span || it.w) - 1); touch(); renderSeedProps(); draw(); };
+  $("spanPlus").onclick = () => { const it = itemById(selSeed.item_id); selSeed.span = Math.min(room.cols, (selSeed.span || it.w) + 1); touch(); renderSeedProps(); draw(); };
+  $("seedDel").onclick = () => { room.seed.splice(room.seed.indexOf(selSeed), 1); selSeed = null; touch(); renderSide(); draw(); };
+  $("roomSel").onchange = () => setRoom($("roomSel").value);
+  $("rId").onchange = () => {
+    const v = $("rId").value.trim();
+    if (!/^[a-z][a-z0-9_]*$/.test(v)) { alert("id는 영문 소문자로 시작, 영문/숫자/_"); $("rId").value = roomId; return; }
+    if (roomId === "inn") { alert("거점 'inn'의 id는 못 바꿔요"); $("rId").value = roomId; return; }
+    if (rooms[v]) { alert("이미 있는 id"); $("rId").value = roomId; return; }
+    rooms[v] = room; delete rooms[roomId]; room.id = v;
+    for (const r of Object.values(rooms)) for (const e of r.exits || []) if (e.to === roomId) e.to = v;
+    for (const p of map.places) if (p.room === roomId) p.room = v;
+    roomId = v; touch(); renderSide();
+  };
+  $("rName").onchange = () => { room.name = $("rName").value.trim(); touch(); renderSide(); };
+  for (const [id, f] of [["rCols", "cols"], ["rRows", "rows"], ["rWall", "wall_rows"], ["rZoom", "zoom"]]) $(id).onchange = () => {
+    const v = parseInt($(id).value, 10); if (isNaN(v)) return;
+    room[f] = v;
+    if (room.wall_rows >= room.rows) room.wall_rows = Math.max(0, room.rows - 1);
+    room.spawn = room.spawn || { x: 0, y: 0 };
+    room.spawn.x = Math.min(room.spawn.x, room.cols - 1); room.spawn.y = Math.max(room.wall_rows, Math.min(room.spawn.y, room.rows - 1));
+    touch(); renderSide(); layout(); draw();
+  };
+  for (const [id, f] of [["eX", "x"], ["eY", "y"], ["eW", "w"], ["eH", "h"]]) $(id).onchange = () => { selExit[f] = Math.max(f === "w" || f === "h" ? 1 : 0, parseInt($(id).value, 10) || 0); touch(); renderSide(); draw(); };
+  $("eSX").onchange = () => { selExit.spawn = selExit.spawn || {}; selExit.spawn.x = parseInt($("eSX").value, 10) || 0; touch(); };
+  $("eSY").onchange = () => { selExit.spawn = selExit.spawn || {}; selExit.spawn.y = parseInt($("eSY").value, 10) || 0; touch(); };
+  $("eTo").onchange = () => { selExit.to = $("eTo").value; const t = rooms[selExit.to]; if (t && t.spawn) selExit.spawn = { ...t.spawn }; touch(); renderSide(); draw(); };
+  $("eDel").onclick = () => { room.exits.splice(room.exits.indexOf(selExit), 1); selExit = null; touch(); renderSide(); draw(); };
+  $("roomNew").onclick = () => {
+    let n = 2; while (rooms[`room_${n}`]) n++;
+    const id = prompt("새 방 id (영문 소문자/숫자/_)", `room_${n}`); if (!id) return;
+    if (!/^[a-z][a-z0-9_]*$/.test(id) || rooms[id]) { alert("잘못됐거나 이미 있는 id"); return; }
+    const base = rooms.inn;
+    rooms[id] = { id, name: id, cols: 12, rows: 10, wall_rows: base.wall_rows, spawn: { x: 6, y: 6 }, blocked: [], zoom: 2,
+                  tiles: JSON.parse(JSON.stringify(base.tiles)), exits: [], seed: [] };
+    touch(); setRoom(id);
+  };
+  $("roomDup").onclick = () => {
+    let n = 2; while (rooms[`${roomId}_${n}`]) n++;
+    const id = prompt("복제할 방 id", `${roomId}_${n}`); if (!id) return;
+    if (!/^[a-z][a-z0-9_]*$/.test(id) || rooms[id]) { alert("잘못됐거나 이미 있는 id"); return; }
+    rooms[id] = JSON.parse(JSON.stringify(room)); rooms[id].id = id; rooms[id].name = (room.name || id) + " 복제";
+    touch(); setRoom(id);
+  };
+  $("roomDel").onclick = () => {
+    if (roomId === "inn" || !confirm(`방 '${roomId}'를 지울까요? (다른 방의 출구/맵 장소가 여기를 가리키면 저장이 막혀요)`)) return;
+    delete rooms[roomId]; touch(); setRoom("inn");
+  };
+
+  // ---- map side panel
+  function renderMapSide() {
+    $("mCols").value = map.cols; $("mRows").value = map.rows;
+    const pl = $("placeList"); pl.innerHTML = "";
+    map.places.forEach((p, i) => { const li = document.createElement("li"); li.className = p === selPlace ? "sel" : ""; li.textContent = `${p.name || "?"} → ${p.room} (${p.x},${p.y})`; li.onclick = () => { selPlace = p; renderMapSide(); draw(); }; pl.appendChild(li); });
+    $("placeForm").style.display = selPlace ? "" : "none";
+    if (selPlace) {
+      const targets = Object.keys(rooms).concat(["dock"]);
+      $("pRoom").innerHTML = targets.map((t) => `<option${t === selPlace.room ? " selected" : ""}>${t}</option>`).join("");
+      $("pName").value = selPlace.name || ""; $("pSprite").value = selPlace.sprite || "";
+      $("pX").value = selPlace.x; $("pY").value = selPlace.y; $("pW").value = selPlace.w; $("pH").value = selPlace.h;
+      $("pDX").value = (selPlace.door || {}).x ?? 0; $("pDY").value = (selPlace.door || {}).y ?? 0;
+    }
+  }
+  $("mResize").onclick = () => {
+    const c = parseInt($("mCols").value, 10), r = parseInt($("mRows").value, 10);
+    if (!(c >= 4 && r >= 4 && c <= 400 && r <= 400)) { alert("4~400"); return; }
+    for (const l of Object.keys(map.layers)) map.layers[l] = fitGrid(map.layers[l], c, r);
+    map.cols = c; map.rows = r; map.blocked = map.blocked.filter(([x, y]) => x < c && y < r);
+    map.spawn = map.spawn || { x: 0, y: 0 }; map.spawn.x = Math.min(map.spawn.x, c - 1); map.spawn.y = Math.min(map.spawn.y, r - 1);
+    touch(); layout(); draw();
+  };
+  function fitGrid(grid, cols, rows) {
+    const out = [];
+    for (let y = 0; y < rows; y++) { const row = (grid[y] || []).slice(0, cols); while (row.length < cols) row.push(null); out.push(row); }
+    return out;
+  }
+  $("pName").onchange = () => { selPlace.name = $("pName").value.trim(); touch(); renderMapSide(); };
+  $("pRoom").onchange = () => { selPlace.room = $("pRoom").value; touch(); renderMapSide(); };
+  for (const [id, f] of [["pX", "x"], ["pY", "y"], ["pW", "w"], ["pH", "h"]]) $(id).onchange = () => { selPlace[f] = Math.max(f === "w" || f === "h" ? 1 : 0, parseInt($(id).value, 10) || 0); touch(); renderMapSide(); draw(); };
+  $("pDX").onchange = () => { selPlace.door = selPlace.door || {}; selPlace.door.x = parseInt($("pDX").value, 10) || 0; touch(); draw(); };
+  $("pDY").onchange = () => { selPlace.door = selPlace.door || {}; selPlace.door.y = parseInt($("pDY").value, 10) || 0; touch(); draw(); };
+  let doorPick = false;
+  $("pDoor").onclick = () => { doorPick = true; cv.style.cursor = "copy"; log("맵에서 문 칸을 클릭하세요"); };
+  $("pDel").onclick = () => { map.places.splice(map.places.indexOf(selPlace), 1); selPlace = null; touch(); renderMapSide(); draw(); };
+
+  // ---- canvas
+  function dims() { return mode === "room" ? [room.cols, room.rows] : [map.cols, map.rows]; }
+  function layout() { const [c, r] = dims(); cv.width = c * CELL * zoom; cv.height = r * CELL * zoom; g.imageSmoothingEnabled = false; }
+  function draw() {
+    g.imageSmoothingEnabled = false; g.clearRect(0, 0, cv.width, cv.height);
+    const [cols, rows] = dims(), cz = CELL * zoom;
+    if (mode === "room") drawRoom(cols, rows, cz); else drawMap(cols, rows, cz);
+    if (showGrid) {
+      g.strokeStyle = "rgba(255,255,255,.12)"; g.lineWidth = 1; g.beginPath();
+      for (let x = 0; x <= cols; x++) { g.moveTo(x * cz + .5, 0); g.lineTo(x * cz + .5, rows * cz); }
+      for (let y = 0; y <= rows; y++) { g.moveTo(0, y * cz + .5); g.lineTo(cols * cz, y * cz + .5); }
+      g.stroke();
+    }
+  }
+  function drawRoom(cols, rows, cz) {
+    const t = room.tiles;
+    for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) {
+      let key;
+      if (y < room.wall_rows) { const col = x === 0 ? t.wall_left : x === cols - 1 ? t.wall_right : t.wall; key = (col && col[y]) || (t.wall || [])[y]; }
+      else key = t.floor;
+      if (key) drawKey("interior", key, x * cz, y * cz, cz, cz);
+    }
+    for (const [bx, by] of room.blocked) { g.fillStyle = "rgba(255,60,60,.35)"; g.fillRect(bx * cz, by * cz, cz, cz); }
+    // seeds sorted like the game: wall layers first (row -1), then by bottom row
+    const order = { wallpaper: 0, wall: 1, floor: 2, furniture: 3, surface_item: 4 };
+    const seeds = room.seed.map((s) => ({ s, it: itemById(s.item_id) })).filter((o) => o.it);
+    seeds.sort((a, b) => (WALL_LAYERS.has(a.it.layer) || a.it.layer === "floor" ? -1 : a.s.y + a.it.h) - (WALL_LAYERS.has(b.it.layer) || b.it.layer === "floor" ? -1 : b.s.y + b.it.h) || order[a.it.layer] - order[b.it.layer]);
+    for (const { s, it } of seeds) {
+      const f = frameOf("interior", it.sprite);
+      const w = (it.layer === "wallpaper" ? (s.span || it.w) : it.w);
+      if (it.layer === "wallpaper" && f) { for (let ox = 0; ox < w * CELL; ox += f.w) drawKey("interior", it.sprite, (s.x * CELL + ox) * zoom, s.y * cz, Math.min(f.w, w * CELL - ox) * zoom, f.h * zoom); }
+      else if (WALL_LAYERS.has(it.layer)) drawKey("interior", it.sprite, s.x * cz, s.y * cz);
+      else drawKey("interior", it.sprite, s.x * cz, (s.y + it.h) * cz - (f ? f.h * zoom : cz));
+      g.strokeStyle = s === selSeed ? "#ffd35c" : tagsOf(it).includes("ruined") ? "rgba(255,90,90,.8)" : "rgba(255,255,255,.25)"; g.lineWidth = s === selSeed ? 2 : 1;
+      g.strokeRect(s.x * cz + .5, s.y * cz + .5, w * cz - 1, it.h * cz - 1);
+    }
+    for (const e of room.exits) {
+      g.fillStyle = e === selExit ? "rgba(255,211,92,.35)" : "rgba(111,179,255,.3)"; g.fillRect(e.x * cz, e.y * cz, e.w * cz, e.h * cz);
+      g.strokeStyle = e === selExit ? "#ffd35c" : "#6fb3ff"; g.lineWidth = 2; g.strokeRect(e.x * cz + 1, e.y * cz + 1, e.w * cz - 2, e.h * cz - 2);
+      g.fillStyle = "#fff"; g.font = `${Math.max(9, 5 * zoom)}px sans-serif`; g.fillText("→ " + e.to, e.x * cz + 3, e.y * cz + 5 * zoom + 4);
+    }
+    if (drag && drag.mode === "exit" && drag.rect) { const r = drag.rect; g.strokeStyle = "#fff"; g.setLineDash([4, 3]); g.strokeRect(r.x * cz + .5, r.y * cz + .5, r.w * cz, r.h * cz); g.setLineDash([]); }
+    if (room.spawn) { g.strokeStyle = "#6fd36f"; g.lineWidth = 2; g.strokeRect(room.spawn.x * cz + 2, room.spawn.y * cz + 2, cz - 4, cz - 4); drawChar(room.spawn.x, room.spawn.y); }
+    if (tool === "seed" && palKey && hover) { const it = itemById(palKey); if (it) { g.strokeStyle = "rgba(255,255,255,.6)"; g.setLineDash([3, 3]); g.strokeRect(hover.x * cz + .5, hover.y * cz + .5, it.w * cz, it.h * cz); g.setLineDash([]); } }
+  }
+  function drawMap(cols, rows, cz) {
+    for (const l of ["ground", "deco"]) { const grid = map.layers[l]; for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) { const k = grid[y] && grid[y][x]; if (k) drawKey("map", k, x * cz, y * cz, cz, cz); } }
+    for (const [bx, by] of map.blocked) { g.fillStyle = "rgba(255,60,60,.35)"; g.fillRect(bx * cz, by * cz, cz, cz); }
+    const places = map.places.slice().sort((a, b) => (a.y + a.h) - (b.y + b.h));
+    for (const p of places) {
+      if (p.sprite) { const f = frameOf("map", p.sprite); drawKey("map", p.sprite, p.x * cz, (p.y + p.h) * cz - (f ? f.h * zoom : cz)); }
+      g.strokeStyle = p === selPlace ? "#ffd35c" : "rgba(255,255,255,.3)"; g.lineWidth = p === selPlace ? 2 : 1; g.strokeRect(p.x * cz + .5, p.y * cz + .5, p.w * cz - 1, p.h * cz - 1);
+      if (p.door) { g.fillStyle = "rgba(255,211,92,.5)"; g.fillRect(p.door.x * cz, p.door.y * cz, cz, cz); }
+      g.fillStyle = "#fff"; g.font = `${Math.max(9, 5 * zoom)}px sans-serif`; g.fillText(`${p.name || "?"} → ${p.room}`, p.x * cz + 3, p.y * cz - 3);
+    }
+    if (map.spawn) { g.strokeStyle = "#6fd36f"; g.lineWidth = 2; g.strokeRect(map.spawn.x * cz + 2, map.spawn.y * cz + 2, cz - 4, cz - 4); drawChar(map.spawn.x, map.spawn.y); }
+    if (tool === "place" && palKey && hover) { const f = frameOf("map", palKey); if (f) { const w = Math.ceil(f.w / CELL), h = Math.ceil(f.h / CELL); g.strokeStyle = "rgba(255,255,255,.6)"; g.setLineDash([3, 3]); g.strokeRect(hover.x * cz + .5, hover.y * cz + .5, w * cz, h * cz); g.setLineDash([]); } }
+    if (tool === "paint" && palKey && hover) { g.globalAlpha = .6; drawKey("map", palKey, hover.x * cz, hover.y * cz, cz, cz); g.globalAlpha = 1; }
+  }
+
+  // ---- input
+  let hover = null;
+  const cellAt = (e) => { const r = cv.getBoundingClientRect(); return { x: Math.floor((e.clientX - r.left) / (CELL * zoom)), y: Math.floor((e.clientY - r.top) / (CELL * zoom)) }; };
+  const inside = (c) => { const [cols, rows] = dims(); return c.x >= 0 && c.y >= 0 && c.x < cols && c.y < rows; };
+  const hitSeed = (c) => { let best = null; for (const s of room.seed) { const it = itemById(s.item_id); if (!it) continue; const w = it.layer === "wallpaper" ? (s.span || it.w) : it.w; if (c.x >= s.x && c.x < s.x + w && c.y >= s.y && c.y < s.y + it.h) best = s; } return best; };
+  const hitExit = (c) => room.exits.find((e) => c.x >= e.x && c.x < e.x + e.w && c.y >= e.y && c.y < e.y + e.h);
+  const hitPlace = (c) => map.places.find((p) => c.x >= p.x && c.x < p.x + p.w && c.y >= p.y && c.y < p.y + p.h);
+  const toggleBlocked = (arr, c) => { const i = arr.findIndex(([x, y]) => x === c.x && y === c.y); if (i >= 0) arr.splice(i, 1); else arr.push([c.x, c.y]); };
+  function paint(c, erase) { const grid = map.layers[mapLayer]; if (!grid[c.y]) return; const v = erase ? null : palKey; if (grid[c.y][c.x] !== v) { grid[c.y][c.x] = v; touch(); } }
+
+  cv.addEventListener("contextmenu", (e) => e.preventDefault());
+  cv.addEventListener("mousedown", (e) => {
+    const c = cellAt(e); if (!inside(c)) return;
+    if (mode === "map" && doorPick && selPlace) { selPlace.door = { x: c.x, y: c.y }; doorPick = false; cv.style.cursor = "crosshair"; touch(); renderMapSide(); draw(); return; }
+    const right = e.button === 2;
+    if (mode === "room") {
+      if (tool === "spawn") { room.spawn = { x: c.x, y: Math.max(room.wall_rows, c.y) }; touch(); draw(); return; }
+      if (tool === "blocked") { toggleBlocked(room.blocked, c); drag = { mode: "blocked", last: c }; touch(); draw(); return; }
+      if (tool === "seed" && palKey && !right) { const it = itemById(palKey); const s = { item_id: it.id, x: c.x, y: c.y }; if (it.layer === "wallpaper") s.span = it.w; room.seed.push(s); selSeed = s; selExit = null; touch(); renderSide(); draw(); return; }
+      if (tool === "exit") { drag = { mode: "exit", ox: c.x, oy: c.y, rect: null }; return; }
+      const s = hitSeed(c), ex = hitExit(c);
+      if (s) { selSeed = s; selExit = null; drag = { mode: "move", obj: s, ox: c.x - s.x, oy: c.y - s.y }; }
+      else if (ex) { selExit = ex; selSeed = null; drag = { mode: "move", obj: ex, ox: c.x - ex.x, oy: c.y - ex.y }; }
+      else { selSeed = selExit = null; }
+      renderSide(); draw();
+    } else {
+      if (tool === "spawn") { map.spawn = { x: c.x, y: c.y }; touch(); draw(); return; }
+      if (tool === "blocked") { toggleBlocked(map.blocked, c); drag = { mode: "blocked", last: c }; touch(); draw(); return; }
+      if (tool === "paint" || tool === "erase" || right) { if (!palKey && !right && tool === "paint") { alert("팔레트에서 타일을 고르세요"); return; } paint(c, right || tool === "erase"); drag = { mode: "paint", erase: right || tool === "erase" }; draw(); return; }
+      if (tool === "place" && palKey) {
+        const f = frameOf("map", palKey); const w = f ? Math.ceil(f.w / CELL) : 1, h = f ? Math.ceil(f.h / CELL) : 1;
+        const p = { room: Object.keys(rooms).find((id) => !map.places.some((q) => q.room === id)) || "dock", name: palKey, sprite: palKey, x: c.x, y: c.y, w, h, door: { x: c.x + Math.floor(w / 2), y: c.y + h } };
+        map.places.push(p); selPlace = p; touch(); renderMapSide(); draw(); return;
+      }
+      const p = hitPlace(c);
+      selPlace = p || null; if (p) drag = { mode: "move", obj: p, ox: c.x - p.x, oy: c.y - p.y, door: p.door ? { dx: p.door.x - p.x, dy: p.door.y - p.y } : null };
+      renderMapSide(); draw();
+    }
+  });
+  cv.addEventListener("mousemove", (e) => {
+    const c = cellAt(e); hover = inside(c) ? c : null;
+    if (drag) {
+      if (drag.mode === "move") {
+        const o = drag.obj; const nx = Math.max(0, c.x - drag.ox), ny = Math.max(0, c.y - drag.oy);
+        if (nx !== o.x || ny !== o.y) { o.x = nx; o.y = ny; if (drag.door) o.door = { x: nx + drag.door.dx, y: ny + drag.door.dy }; touch(); if (mode === "room") renderSide(); else renderMapSide(); }
+      } else if (drag.mode === "exit") {
+        const x0 = Math.min(drag.ox, c.x), y0 = Math.min(drag.oy, c.y); drag.rect = { x: x0, y: y0, w: Math.abs(c.x - drag.ox) + 1, h: Math.abs(c.y - drag.oy) + 1 };
+      } else if (drag.mode === "paint" && hover) paint(c, drag.erase);
+      else if (drag.mode === "blocked" && hover && (c.x !== drag.last.x || c.y !== drag.last.y)) { toggleBlocked(mode === "room" ? room.blocked : map.blocked, c); drag.last = c; touch(); }
+    }
+    draw();
+  });
+  window.addEventListener("mouseup", () => {
+    if (!drag) return; const d = drag; drag = null;
+    if (d.mode === "exit" && d.rect) {
+      const targets = Object.keys(rooms).filter((id) => id !== roomId).concat(["map"]);
+      const to = targets[0]; const t = rooms[to];
+      const e = { ...d.rect, to, spawn: t && t.spawn ? { ...t.spawn } : { x: 0, y: 0 } };
+      room.exits.push(e); selExit = e; selSeed = null; touch(); renderSide();
+    }
+    draw();
+  });
+  window.addEventListener("keydown", (e) => {
+    if (["INPUT", "SELECT", "TEXTAREA"].includes(document.activeElement.tagName)) return;
+    if (e.key === "Delete") {
+      if (mode === "room" && selSeed) $("seedDel").click(); else if (mode === "room" && selExit) $("eDel").click(); else if (mode === "map" && selPlace) $("pDel").click();
+    }
+    if (e.key === "Escape") { selSeed = selExit = selPlace = null; setTool("select"); renderSide(); draw(); }
+  });
+
+  load().catch((e) => log("로드 실패: " + e.message));
+})();
+</script>
+</body>
+</html>
