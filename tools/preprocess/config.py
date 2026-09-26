@@ -14,12 +14,20 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[2]
 ASSETS_ROOT = REPO_ROOT / "assets"
 ASSETS = ASSETS_ROOT / "graphic"
-FREE = ASSETS / "Modern tiles_Free"
-FULL = ASSETS / "moderninteriors-win"
+# assets/graphic is split by purpose: Interior/ (rooms, furniture, characters), Map/ (overworld
+# tiles, dock backdrop), GUI/ (frames, icons).
+INTERIOR = ASSETS / "Interior"
+MAP = ASSETS / "Map"
+GUI = ASSETS / "GUI"
+# Free starter pack. It is no longer on disk; its slices are frozen from the previous atlas (see
+# preprocess.load_frozen). Drop the pack back here to re-cut them from source.
+FREE = INTERIOR / "Modern tiles_Free"
+FULL = INTERIOR / "moderninteriors-win"
 
 OUT_DIR = REPO_ROOT / "client" / "public" / "gen"
 MEDIA_DIR = REPO_ROOT / "client" / "public" / "media"
 SLICES_FILE = Path(__file__).with_name("slices.json")
+MAP_SLICES_FILE = Path(__file__).with_name("map_slices.json")
 CONTACT_SHEET = Path(__file__).with_name("contact_sheet.png")
 ITEMS_FILE = REPO_ROOT / "data" / "items.json"
 UI_THEME_FILE = REPO_ROOT / "data" / "ui_theme.json"
@@ -33,41 +41,62 @@ CELL = 16
 SHEETS = {
     "interiors": FREE / "Interiors_free" / "16x16" / "Interiors_free_16x16.png",
     "room_builder": FREE / "Interiors_free" / "16x16" / "Room_Builder_free_16x16.png",
-    "kitchen": ASSETS / "Kitchen and more tileset [16x16]" / "tileset.png",
-    "paintings": ASSETS / "Paintings" / "Paintings_1.png",
-    "pi_beds_br": ASSETS / "pixelinterior" / "beds_BR.png",
-    "pi_cabinets_ba": ASSETS / "pixelinterior" / "cabinets_BA.png",
-    "pi_cabinets_lrk": ASSETS / "pixelinterior" / "cabinets_LRK.png",
-    "pi_decorations_br": ASSETS / "pixelinterior" / "decorations_BR.png",
-    "pi_decorations_lrk": ASSETS / "pixelinterior" / "decorations_LRK.png",
-    "pi_doorswindowsstairs_lrk": ASSETS / "pixelinterior" / "doorswindowsstairs_LRK.png",
-    "pi_fixtures_ba": ASSETS / "pixelinterior" / "fixtures_BA.png",
-    "pi_floorswalls_lrk": ASSETS / "pixelinterior" / "floorswalls_LRK.png",
-    "pi_kitchen_lrk": ASSETS / "pixelinterior" / "kitchen_LRK.png",
-    "pi_livingroom_lrk": ASSETS / "pixelinterior" / "livingroom_LRK.png",
-    "pi_textiles_ba": ASSETS / "pixelinterior" / "textiles_BA.png",
-    "pi_wardrobes_br": ASSETS / "pixelinterior" / "wardrobes_BR.png",
-    "floors_walls02": ASSETS / "floors-walls02.png",
-    "furniture03": ASSETS / "furniture03.png",
-    "interior_tiles_lite": ASSETS / "InteriorTilesLITE.png",
-    "small_items02": ASSETS / "small-items02.png",
-    "topdown_doors_windows": ASSETS / "Top-Down_Retro_Interior" / "TopDownHouse_DoorsAndWindows.png",
-    "topdown_floors_walls": ASSETS / "Top-Down_Retro_Interior" / "TopDownHouse_FloorsAndWalls.png",
-    "topdown_floors_walls_open": ASSETS / "Top-Down_Retro_Interior" / "TopDownHouse_FloorsAndWalls_OpenDoors.png",
-    "topdown_furniture1": ASSETS / "Top-Down_Retro_Interior" / "TopDownHouse_FurnitureState1.png",
-    "topdown_furniture2": ASSETS / "Top-Down_Retro_Interior" / "TopDownHouse_FurnitureState2.png",
-    "topdown_small_items": ASSETS / "Top-Down_Retro_Interior" / "TopDownHouse_SmallItems.png",
-    "freepixel": ASSETS / "FreePixel.png",
-    "furnipixel_free": ASSETS / "furnipixel-free.png",
-    "spritesheet_misc": ASSETS / "spritesheet.png",
-    "tiles_and_items": ASSETS / "tiles and items.png",
-    "axulart_all": ASSETS / "AxulArt・_Basic-Top-down-interior_ALL_By_AxulArt.png",
-    "axulart_basic": ASSETS / "AxulArt・_Basic-Top-down-interior_By_AxulArt.png",
-    "walls_and_floors": ASSETS / "Walls and floors.png",
-    "free_modern_pack": ASSETS / "Free Modern Pack ( Dev Essentials ).png",
-    "medieval_pack": ASSETS / "Medieval Free Pack ( Dev Essentials ).png",
-    "interior_no_shadow": ASSETS / "Interior without swadows.png",
+    "kitchen": INTERIOR / "Kitchen and more tileset [16x16]" / "tileset.png",
+    "paintings": INTERIOR / "Paintings" / "Paintings_1.png",
+    "pi_beds_br": INTERIOR / "pixelinterior" / "beds_BR.png",
+    "pi_cabinets_ba": INTERIOR / "pixelinterior" / "cabinets_BA.png",
+    "pi_cabinets_lrk": INTERIOR / "pixelinterior" / "cabinets_LRK.png",
+    "pi_decorations_br": INTERIOR / "pixelinterior" / "decorations_BR.png",
+    "pi_decorations_lrk": INTERIOR / "pixelinterior" / "decorations_LRK.png",
+    "pi_doorswindowsstairs_lrk": INTERIOR / "pixelinterior" / "doorswindowsstairs_LRK.png",
+    "pi_fixtures_ba": INTERIOR / "pixelinterior" / "fixtures_BA.png",
+    "pi_floorswalls_lrk": INTERIOR / "pixelinterior" / "floorswalls_LRK.png",
+    "pi_kitchen_lrk": INTERIOR / "pixelinterior" / "kitchen_LRK.png",
+    "pi_livingroom_lrk": INTERIOR / "pixelinterior" / "livingroom_LRK.png",
+    "pi_textiles_ba": INTERIOR / "pixelinterior" / "textiles_BA.png",
+    "pi_wardrobes_br": INTERIOR / "pixelinterior" / "wardrobes_BR.png",
+    "floors_walls02": INTERIOR / "floors-walls02.png",
+    "furniture03": INTERIOR / "furniture03.png",
+    "interior_tiles_lite": INTERIOR / "InteriorTilesLITE.png",
+    "small_items02": INTERIOR / "small-items02.png",
+    "topdown_doors_windows": INTERIOR / "Top-Down_Retro_Interior" / "TopDownHouse_DoorsAndWindows.png",
+    "topdown_floors_walls": INTERIOR / "Top-Down_Retro_Interior" / "TopDownHouse_FloorsAndWalls.png",
+    "topdown_floors_walls_open": INTERIOR / "Top-Down_Retro_Interior" / "TopDownHouse_FloorsAndWalls_OpenDoors.png",
+    "topdown_furniture1": INTERIOR / "Top-Down_Retro_Interior" / "TopDownHouse_FurnitureState1.png",
+    "topdown_furniture2": INTERIOR / "Top-Down_Retro_Interior" / "TopDownHouse_FurnitureState2.png",
+    "topdown_small_items": INTERIOR / "Top-Down_Retro_Interior" / "TopDownHouse_SmallItems.png",
+    "freepixel": INTERIOR / "FreePixel.png",
+    "furnipixel_free": INTERIOR / "furnipixel-free.png",
+    "spritesheet_misc": INTERIOR / "spritesheet.png",
+    "tiles_and_items": INTERIOR / "tiles and items.png",
+    "axulart_all": INTERIOR / "AxulArt・_Basic-Top-down-interior_ALL_By_AxulArt.png",
+    "axulart_basic": INTERIOR / "AxulArt・_Basic-Top-down-interior_By_AxulArt.png",
+    "walls_and_floors": INTERIOR / "Walls and floors.png",
+    "free_modern_pack": INTERIOR / "Free Modern Pack ( Dev Essentials ).png",
+    "medieval_pack": INTERIOR / "Medieval Free Pack ( Dev Essentials ).png",
+    "interior_no_shadow": INTERIOR / "Interior without swadows.png",
 }
+
+# Overworld map sheets (`scan --map`, packed into gen/map.png by `build`). Keys must not contain
+# the word "sheet": /api/catalog output is checked for it in the server tests.
+_SPROUT = MAP / "Sprout Lands - Sprites - Basic pack"
+MAP_SHEETS = {
+    "sprout_grass": _SPROUT / "Tilesets" / "Grass.png",
+    "sprout_water": _SPROUT / "Tilesets" / "Water.png",
+    "sprout_hills": _SPROUT / "Tilesets" / "Hills.png",
+    "sprout_dirt": _SPROUT / "Tilesets" / "Tilled_Dirt.png",
+    "sprout_paths": _SPROUT / "Objects" / "Paths.png",
+    "sprout_bridge": _SPROUT / "Objects" / "Wood_Bridge.png",
+    "sprout_fences": _SPROUT / "Tilesets" / "Fences.png",
+    "sprout_grass_things": _SPROUT / "Objects" / "Basic_Grass_Biom_things.png",
+    "sprout_plants": _SPROUT / "Objects" / "Basic_Plants.png",
+    "houses": ASSETS / "Houses.png",
+    "plains": MAP / "Pixel Plains Free Pack" / "All free tiles.png",
+    "nature_trees": MAP / "Nature_MP" / "Nature_MP_Trees.png",
+    "nature_rocks": MAP / "Nature_MP" / "Nature_MP_Rocks.png",
+}
+MAP_ICONS_DIR = GUI / "Map Legend Icons" / "Icons"   # 16x24 marker icons, referenced as `file` slices
+DOCK_DIR = MAP / "Dock"                              # 0.png .. 8.png, 384x216 parallax layers (back → front)
 
 # Character frames. Every variant yields one horizontal sheet of ANIM_STRIPS
 # concatenated in order; each strip is FRAMES_PER_DIR * len(DIRS) frames.

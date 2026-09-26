@@ -1,15 +1,22 @@
 """Preprocess raw LimeZu assets into clean sprite sheets + manifest.json.
 
 Usage (from repo root):
-    python tools/preprocess/preprocess.py scan [--sheet interiors] [--min-cells 1]
+    python tools/preprocess/preprocess.py scan [--sheet interiors] [--min-cells 1] [--map]
         Finds opaque regions on a sheet, snaps them to the 16px grid, and writes
         candidate slices to slices.json (existing named entries are preserved).
-        Also renders contact_sheet.png with every slice outlined and labelled.
+        Also renders contact_<sheet>.png with every slice outlined and labelled.
+        --map scans a MAP_SHEETS sheet into map_slices.json instead.
 
-    python tools/preprocess/preprocess.py build
+    python tools/preprocess/preprocess.py build [--allow-shrink]
         Packs every slice in slices.json into client/public/gen/interiors.png +
         interiors.json (Phaser atlas), builds per-layer character sheets under
-        client/public/gen/chars/<layer>/<n>.png, and writes manifest.json.
+        client/public/gen/chars/<layer>/<n>.png, packs map_slices.json into
+        gen/map.png + map.json, copies the dock backdrop to gen/dock/, and
+        writes manifest.json.
+        Slices whose source sheet/file is missing are copied ("frozen") from the
+        previous atlas so a pack that went away does not lose items.
+        The build refuses to shrink a character layer (that would shift avatar
+        indices stored in the DB) unless --allow-shrink is given.
 
     python tools/preprocess/preprocess.py scaffold
         Adds a placeholder items.json entry for every atlas key that has none.
@@ -48,31 +55,62 @@ TILE_PREFIX = "tile_"  # slices with this prefix are room tiles, not shop items
 # slices.json helpers
 # ----------------------------------------------------------------------------
 
-def load_slices() -> list[dict]:
-    if C.SLICES_FILE.exists():
-        return json.loads(C.SLICES_FILE.read_text(encoding="utf-8"))
+def load_slices(path: Path | None = None) -> list[dict]:
+    path = path or C.SLICES_FILE
+    if path.exists():
+        return json.loads(path.read_text(encoding="utf-8"))
     return []
 
 
-def save_slices(slices: list[dict]) -> None:
+def save_slices(slices: list[dict], path: Path | None = None) -> None:
+    path = path or C.SLICES_FILE
     slices.sort(key=lambda s: (s.get("sheet", "~file"), s.get("y", 0), s.get("x", 0), s["key"]))
-    C.SLICES_FILE.write_text(json.dumps(slices, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
+    path.write_text(json.dumps(slices, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
+
+
+# ----------------------------------------------------------------------------
+# frozen atlas: fallback for slices whose source is gone
+# ----------------------------------------------------------------------------
+
+# keys that the current build had to copy from the previous atlas (reset by pack_atlas)
+FROZEN_USED: list[str] = []
+
+
+def load_frozen(json_path: Path, png_path: Path) -> tuple[Image.Image, dict] | None:
+    """The previously built atlas, fully loaded into memory so the build can overwrite the files.
+    Returns (image, frames) or None when there is no previous atlas."""
+    if not json_path.exists() or not png_path.exists():
+        return None
+    frames = json.loads(json_path.read_text(encoding="utf-8")).get("frames", {})
+    with Image.open(png_path) as im:
+        image = im.convert("RGBA")
+        image.load()
+    return image, frames
+
+
+def _frozen_crop(key: str, frozen: tuple[Image.Image, dict] | None) -> Image.Image | None:
+    if frozen is None or key not in frozen[1]:
+        return None
+    f = frozen[1][key]["frame"]
+    return frozen[0].crop((f["x"], f["y"], f["x"] + f["w"], f["y"] + f["h"]))
 
 
 def slice_rect(s: dict) -> tuple[int, int, int, int]:
     return s["x"], s["y"], s["w"], s["h"]
 
 
-def slice_image(s: dict, sheets: dict[str, Image.Image]) -> Image.Image:
-    """Crop for a slice: a rect on a named sheet, a standalone PNG (`file`, relative to assets/graphic),
-    or `parts` — a list of rects stacked top-to-bottom (for strips split by transparent separators)."""
+class SourceMissing(Exception):
+    """The sheet or file a slice points at is not on disk."""
+
+
+def _slice_from_source(s: dict, sheets: dict[str, Image.Image], file_base: Path) -> Image.Image:
     if "file" in s:
-        path = C.ASSETS / s["file"]
+        path = file_base / s["file"]
         if not path.exists():
-            raise SystemExit(f"file for slice '{s['key']}' not found: {path}")
+            raise SourceMissing(f"file for slice '{s['key']}' not found: {path}")
         return Image.open(path).convert("RGBA")
     if "parts" in s:
-        crops = [slice_image({"key": s["key"], **part}, sheets) for part in s["parts"]]
+        crops = [_slice_from_source({"key": s["key"], **part}, sheets, file_base) for part in s["parts"]]
         out = Image.new("RGBA", (max(c.width for c in crops), sum(c.height for c in crops)))
         y = 0
         for c in crops:
@@ -80,9 +118,41 @@ def slice_image(s: dict, sheets: dict[str, Image.Image]) -> Image.Image:
             y += c.height
         return out
     if s["sheet"] not in sheets:
-        raise SystemExit(f"sheet '{s['sheet']}' for slice '{s['key']}' not found")
+        raise SourceMissing(f"sheet '{s['sheet']}' for slice '{s['key']}' not found")
     x, y, w, h = slice_rect(s)
-    return sheets[s["sheet"]].crop((x, y, x + w, y + h))
+    im = sheets[s["sheet"]].crop((x, y, x + w, y + h))
+    if s.get("transparent"):
+        im = knock_out(im, tuple(s["transparent"]))
+    return im
+
+
+def knock_out(im: Image.Image, rgb: tuple[int, ...]) -> Image.Image:
+    """Make every pixel of exactly this RGB colour transparent (for sheets drawn on a solid backdrop)."""
+    im = im.copy()
+    px = im.load()
+    r, g, b = rgb[:3]
+    for y in range(im.height):
+        for x in range(im.width):
+            if px[x, y][:3] == (r, g, b):
+                px[x, y] = (0, 0, 0, 0)
+    return im
+
+
+def slice_image(s: dict, sheets: dict[str, Image.Image], file_base: Path | None = None,
+                frozen: tuple[Image.Image, dict] | None = None) -> Image.Image:
+    """Crop for a slice: a rect on a named sheet (optionally with `transparent: [r,g,b]`, a backdrop
+    colour to knock out), a standalone PNG (`file`, relative to `file_base`, default assets/graphic/Interior),
+    or `parts` — rects stacked top-to-bottom (for strips split by transparent separators). When the source is missing and `frozen` (a previous atlas) has the key,
+    the old frame is reused and the key is recorded in FROZEN_USED."""
+    file_base = file_base or C.INTERIOR
+    try:
+        return _slice_from_source(s, sheets, file_base)
+    except SourceMissing as e:
+        old = _frozen_crop(s["key"], frozen)
+        if old is None:
+            raise SystemExit(str(e)) from None
+        FROZEN_USED.append(s["key"])
+        return old
 
 
 # ----------------------------------------------------------------------------
@@ -154,7 +224,13 @@ def merge_overlapping(boxes: list[tuple[int, int, int, int]]) -> list[tuple[int,
 
 def cmd_scan(args: argparse.Namespace) -> None:
     sheet = args.sheet
-    path = C.SHEETS[sheet]
+    table = C.MAP_SHEETS if args.map else C.SHEETS
+    slices_file = C.MAP_SLICES_FILE if args.map else C.SLICES_FILE
+    if sheet not in table:
+        raise SystemExit(f"unknown {'map ' if args.map else ''}sheet '{sheet}' (choices: {', '.join(table)})")
+    path = table[sheet]
+    if not path.exists():
+        raise SystemExit(f"sheet '{sheet}' not on disk: {path}")
     im = Image.open(path).convert("RGBA")
     print(f"scanning {sheet}: {path.name} {im.size}")
 
@@ -162,7 +238,7 @@ def cmd_scan(args: argparse.Namespace) -> None:
     boxes = [b for b in boxes if (b[2] // C.CELL) * (b[3] // C.CELL) >= args.min_cells]
     boxes.sort(key=lambda b: (b[1], b[0]))
 
-    existing = load_slices()
+    existing = load_slices(slices_file)
     by_rect = {(s["sheet"], *slice_rect(s)): s for s in existing if "sheet" in s}
     kept = [s for s in existing if s.get("sheet") != sheet]
     named_on_sheet = [s for s in existing if s.get("sheet") == sheet and not s["key"].startswith("auto_")]
@@ -187,13 +263,13 @@ def cmd_scan(args: argparse.Namespace) -> None:
         counter += 1
         n_new += 1
 
-    save_slices(result)
-    print(f"{len(boxes)} regions found, {n_new} new auto entries → {C.SLICES_FILE.name}")
-    render_contact_sheet(sheet, [s for s in result if s.get("sheet") == sheet])
+    save_slices(result, slices_file)
+    print(f"{len(boxes)} regions found, {n_new} new auto entries → {slices_file.name}")
+    render_contact_sheet(sheet, [s for s in result if s.get("sheet") == sheet], path=path)
 
 
-def render_contact_sheet(sheet: str, slices: list[dict], scale: int = 3) -> None:
-    im = Image.open(C.SHEETS[sheet]).convert("RGBA")
+def render_contact_sheet(sheet: str, slices: list[dict], scale: int = 3, path: Path | None = None) -> None:
+    im = Image.open(path or C.SHEETS[sheet]).convert("RGBA")
     big = im.resize((im.width * scale, im.height * scale), Image.NEAREST)
     bg = Image.new("RGBA", big.size, (255, 255, 255, 255))
     bg.alpha_composite(big)
@@ -214,10 +290,14 @@ def render_contact_sheet(sheet: str, slices: list[dict], scale: int = 3) -> None
 # build
 # ----------------------------------------------------------------------------
 
-def pack_atlas(slices: list[dict]) -> tuple[Image.Image, dict]:
-    """Simple shelf packing. Returns (atlas image, Phaser JSON-hash atlas)."""
-    sheets = {name: Image.open(p).convert("RGBA") for name, p in C.SHEETS.items() if p.exists()}
-    crops = [(s["key"], slice_image(s, sheets)) for s in slices]
+def pack_atlas(slices: list[dict], sheet_paths: dict[str, Path] | None = None, image_name: str = "interiors.png",
+               file_base: Path | None = None, frozen: tuple[Image.Image, dict] | None = None) -> tuple[Image.Image, dict]:
+    """Simple shelf packing. Returns (atlas image, Phaser JSON-hash atlas).
+    Slices whose source is missing fall back to `frozen` (see slice_image); FROZEN_USED lists them afterwards."""
+    sheet_paths = C.SHEETS if sheet_paths is None else sheet_paths
+    FROZEN_USED.clear()
+    sheets = {name: Image.open(p).convert("RGBA") for name, p in sheet_paths.items() if p.exists()}
+    crops = [(s["key"], slice_image(s, sheets, file_base=file_base, frozen=frozen)) for s in slices]
     crops.sort(key=lambda kc: (-kc[1].height, -kc[1].width, kc[0]))
 
     max_w = 512
@@ -247,8 +327,31 @@ def pack_atlas(slices: list[dict]) -> tuple[Image.Image, dict]:
             "spriteSourceSize": {"x": 0, "y": 0, "w": w, "h": h},
             "sourceSize": {"w": w, "h": h},
         }
-    meta = {"image": "interiors.png", "size": {"w": atlas.width, "h": atlas.height}, "scale": "1"}
+    meta = {"image": image_name, "size": {"w": atlas.width, "h": atlas.height}, "scale": "1"}
     return atlas, {"frames": frames, "meta": meta}
+
+
+def report_frozen(what: str, slices: list[dict]) -> None:
+    """Loud warning listing every slice that was copied from the previous atlas, grouped by source."""
+    if not FROZEN_USED:
+        return
+    by_src: dict[str, list[str]] = {}
+    spec = {s["key"]: s for s in slices}
+    for key in FROZEN_USED:
+        s = spec.get(key, {})
+        src = s.get("sheet") or (s["parts"][0].get("sheet") if s.get("parts") else None) or f"file:{s.get('file')}"
+        by_src.setdefault(str(src), []).append(key)
+    print(f"WARNING: {len(FROZEN_USED)} {what} slices copied from the previous atlas because their source is missing:")
+    for src, keys in sorted(by_src.items()):
+        shown = ", ".join(keys[:8]) + (f", … (+{len(keys) - 8})" if len(keys) > 8 else "")
+        print(f"  {src} ({len(keys)}): {shown}")
+    print("  (editing those slices' rects has no effect until the source is back on disk)")
+
+
+def atlas_keys(atlas_json: dict) -> dict:
+    return {k: {"w": f["frame"]["w"], "h": f["frame"]["h"],
+                "cw": f["frame"]["w"] // C.CELL, "ch": f["frame"]["h"] // C.CELL}
+            for k, f in atlas_json["frames"].items()}
 
 
 def _strip(v: dict, anim: str) -> Image.Image:
@@ -324,16 +427,86 @@ def anim_table() -> dict:
     return anims
 
 
-def cmd_build(_: argparse.Namespace) -> None:
+def check_char_shrink(layers_now: dict[str, list], allow: bool) -> None:
+    """Refuse to rebuild a character layer with fewer variants than the shipped manifest: avatar
+    indices stored in the DB would silently point at different hair/outfits."""
+    manifest = C.OUT_DIR / "manifest.json"
+    if not manifest.exists():
+        return
+    old = json.loads(manifest.read_text(encoding="utf-8")).get("chars", {}).get("layers", {})
+    shrunk = {k: (v.get("count", 0), len(layers_now.get(k, []))) for k, v in old.items()
+              if len(layers_now.get(k, [])) < v.get("count", 0)}
+    if not shrunk:
+        return
+    msg = ", ".join(f"{k}: {a} → {b}" for k, (a, b) in shrunk.items())
+    if allow:
+        print(f"WARNING: character layers shrink ({msg}); stored avatar indices may shift")
+        return
+    raise SystemExit(f"refusing to shrink character layers ({msg}). Is {C.GEN_DIR} on disk? "
+                     f"Re-run with --allow-shrink if this is intended.")
+
+
+def build_map_atlas() -> dict | None:
+    """gen/map.png + map.json from map_slices.json. Returns the manifest entry, or None when there are no slices."""
+    slices = [s for s in load_slices(C.MAP_SLICES_FILE) if not s["key"].startswith("auto_")]
+    if not slices:
+        return None
+    frozen = load_frozen(C.OUT_DIR / "map.json", C.OUT_DIR / "map.png")
+    atlas, atlas_json = pack_atlas(slices, C.MAP_SHEETS, "map.png", file_base=C.ASSETS, frozen=frozen)
+    atlas.save(C.OUT_DIR / "map.png", optimize=True)
+    (C.OUT_DIR / "map.json").write_text(json.dumps(atlas_json, indent=1), encoding="utf-8")
+    print(f"map atlas {atlas.size} with {len(slices)} frames → gen/map.png")
+    report_frozen("map", slices)
+    return {"atlas": "gen/map.json", "keys": atlas_keys(atlas_json)}
+
+
+def copy_dock() -> dict | None:
+    """Dock backdrop layers → gen/dock/<i>.png (plain copies; full-screen layers gain nothing from an atlas)."""
+    out = C.OUT_DIR / "dock"
+    if not C.DOCK_DIR.exists():
+        if out.exists():
+            print("WARNING: assets/graphic/Map/Dock missing; keeping the existing gen/dock/")
+            layers = sorted(out.glob("*.png"), key=lambda p: int(p.stem))
+            if layers:
+                with Image.open(layers[0]) as im:
+                    return {"layers": len(layers), "w": im.width, "h": im.height}
+        else:
+            print("WARNING: assets/graphic/Map/Dock missing; no dock backdrop built")
+        return None
+    srcs = sorted((p for p in C.DOCK_DIR.glob("*.png") if p.stem.isdigit()), key=lambda p: int(p.stem))
+    if not srcs:
+        print("WARNING: no N.png layers in assets/graphic/Map/Dock")
+        return None
+    out.mkdir(parents=True, exist_ok=True)
+    for stale in out.glob("*.png"):
+        stale.unlink()
+    size = None
+    for i, p in enumerate(srcs):
+        with Image.open(p) as im:
+            if size is None:
+                size = im.size
+            elif im.size != size:
+                raise SystemExit(f"dock layer {p.name} is {im.size}, expected {size}")
+        shutil.copyfile(p, out / f"{i}.png")
+    print(f"dock: {len(srcs)} layers {size[0]}x{size[1]} → gen/dock/")
+    return {"layers": len(srcs), "w": size[0], "h": size[1]}
+
+
+def cmd_build(args: argparse.Namespace) -> None:
     slices = [s for s in load_slices() if not s["key"].startswith("auto_")]
     if not slices:
         raise SystemExit("no named slices in slices.json — run `scan`, then rename the auto_ entries you want")
     C.OUT_DIR.mkdir(parents=True, exist_ok=True)
+    if not C.GEN_DIR.exists():
+        raise SystemExit(f"character generator folder missing: {C.GEN_DIR}")
+    check_char_shrink(C.CHAR_LAYERS, getattr(args, "allow_shrink", False))
 
-    atlas, atlas_json = pack_atlas(slices)
+    frozen = load_frozen(C.OUT_DIR / "interiors.json", C.OUT_DIR / "interiors.png")
+    atlas, atlas_json = pack_atlas(slices, frozen=frozen)
     atlas.save(C.OUT_DIR / "interiors.png", optimize=True)
     (C.OUT_DIR / "interiors.json").write_text(json.dumps(atlas_json, indent=1), encoding="utf-8")
     print(f"atlas {atlas.size} with {len(slices)} frames → gen/interiors.png")
+    report_frozen("interior", slices)
 
     layers = {}
     for layer, variants in C.CHAR_LAYERS.items():
@@ -350,13 +523,14 @@ def cmd_build(_: argparse.Namespace) -> None:
             "layerOrder": C.LAYER_ORDER,
             "layers": layers,
         },
-        "interiors": {
-            "atlas": "gen/interiors.json",
-            "keys": {k: {"w": f["frame"]["w"], "h": f["frame"]["h"],
-                         "cw": f["frame"]["w"] // C.CELL, "ch": f["frame"]["h"] // C.CELL}
-                     for k, f in atlas_json["frames"].items()},
-        },
+        "interiors": {"atlas": "gen/interiors.json", "keys": atlas_keys(atlas_json)},
     }
+    map_entry = build_map_atlas()
+    if map_entry:
+        manifest["map"] = map_entry
+    dock_entry = copy_dock()
+    if dock_entry:
+        manifest["dock"] = dock_entry
     (C.OUT_DIR / "manifest.json").write_text(json.dumps(manifest, indent=1), encoding="utf-8")
     print("manifest → gen/manifest.json")
 
@@ -377,7 +551,7 @@ def cmd_scaffold(_: argparse.Namespace) -> None:
         if key in have or key.startswith("auto_") or key.startswith(TILE_PREFIX):
             continue
         if "file" in s:
-            w, h = Image.open(C.ASSETS / s["file"]).size
+            w, h = Image.open(C.INTERIOR / s["file"]).size
         elif "parts" in s:
             w, h = max(p["w"] for p in s["parts"]), sum(p["h"] for p in s["parts"])
         else:
@@ -530,10 +704,13 @@ def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="cmd", required=True)
     p = sub.add_parser("scan")
-    p.add_argument("--sheet", default="interiors", choices=list(C.SHEETS))
+    p.add_argument("--sheet", default="interiors", help="key in SHEETS (or MAP_SHEETS with --map)")
     p.add_argument("--min-cells", type=int, default=1)
+    p.add_argument("--map", action="store_true", help="scan a MAP_SHEETS sheet into map_slices.json")
     p.set_defaults(fn=cmd_scan)
-    sub.add_parser("build").set_defaults(fn=cmd_build)
+    p = sub.add_parser("build")
+    p.add_argument("--allow-shrink", action="store_true", help="allow a character layer to lose variants")
+    p.set_defaults(fn=cmd_build)
     sub.add_parser("scaffold").set_defaults(fn=cmd_scaffold)
     sub.add_parser("media").set_defaults(fn=cmd_media)
     sub.add_parser("ui").set_defaults(fn=cmd_ui)

@@ -1,0 +1,271 @@
+[
+ {
+  "key": "mtile_grass",
+  "sheet": "sprout_grass",
+  "x": 16,
+  "y": 16,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "mtile_water",
+  "sheet": "sprout_water",
+  "x": 0,
+  "y": 0,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "mtile_path",
+  "sheet": "sprout_paths",
+  "x": 0,
+  "y": 0,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "mtile_bridge",
+  "sheet": "sprout_bridge",
+  "x": 0,
+  "y": 0,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "icon_exclamation",
+  "file": "GUI/Map Legend Icons/Icons/Exclamation.png"
+ },
+ {
+  "key": "icon_house",
+  "file": "GUI/Map Legend Icons/Icons/House.png"
+ },
+ {
+  "key": "icon_bridge",
+  "file": "GUI/Map Legend Icons/Icons/Bridge.png"
+ },
+ {
+  "key": "icon_question",
+  "file": "GUI/Map Legend Icons/Icons/Question.png"
+ },
+ {
+  "key": "house_01",
+  "sheet": "houses",
+  "x": 16,
+  "y": 12,
+  "w": 158,
+  "h": 165,
+  "transparent": [
+   202,
+   226,
+   234
+  ]
+ },
+ {
+  "key": "house_02",
+  "sheet": "houses",
+  "x": 192,
+  "y": 12,
+  "w": 158,
+  "h": 165,
+  "transparent": [
+   202,
+   226,
+   234
+  ]
+ },
+ {
+  "key": "house_03",
+  "sheet": "houses",
+  "x": 368,
+  "y": 12,
+  "w": 274,
+  "h": 176,
+  "transparent": [
+   202,
+   226,
+   234
+  ]
+ },
+ {
+  "key": "house_04",
+  "sheet": "houses",
+  "x": 656,
+  "y": 12,
+  "w": 274,
+  "h": 176,
+  "transparent": [
+   202,
+   226,
+   234
+  ]
+ },
+ {
+  "key": "house_05",
+  "sheet": "houses",
+  "x": 990,
+  "y": 12,
+  "w": 158,
+  "h": 165,
+  "transparent": [
+   202,
+   226,
+   234
+  ]
+ },
+ {
+  "key": "house_06",
+  "sheet": "houses",
+  "x": 1159,
+  "y": 12,
+  "w": 158,
+  "h": 164,
+  "transparent": [
+   202,
+   226,
+   234
+  ]
+ },
+ {
+  "key": "house_07",
+  "sheet": "houses",
+  "x": 1354,
+  "y": 20,
+  "w": 276,
+  "h": 176,
+  "transparent": [
+   202,
+   226,
+   234
+  ]
+ },
+ {
+  "key": "house_08",
+  "sheet": "houses",
+  "x": 1643,
+  "y": 20,
+  "w": 276,
+  "h": 176,
+  "transparent": [
+   202,
+   226,
+   234
+  ]
+ },
+ {
+  "key": "house_09",
+  "sheet": "houses",
+  "x": 16,
+  "y": 204,
+  "w": 158,
+  "h": 165,
+  "transparent": [
+   202,
+   226,
+   234
+  ]
+ },
+ {
+  "key": "house_10",
+  "sheet": "houses",
+  "x": 193,
+  "y": 204,
+  "w": 158,
+  "h": 165,
+  "transparent": [
+   202,
+   226,
+   234
+  ]
+ },
+ {
+  "key": "house_11",
+  "sheet": "houses",
+  "x": 392,
+  "y": 216,
+  "w": 274,
+  "h": 176,
+  "transparent": [
+   202,
+   226,
+   234
+  ]
+ },
+ {
+  "key": "house_12",
+  "sheet": "houses",
+  "x": 688,
+  "y": 216,
+  "w": 274,
+  "h": 176,
+  "transparent": [
+   202,
+   226,
+   234
+  ]
+ },
+ {
+  "key": "house_13",
+  "sheet": "houses",
+  "x": 989,
+  "y": 241,
+  "w": 222,
+  "h": 153,
+  "transparent": [
+   202,
+   226,
+   234
+  ]
+ },
+ {
+  "key": "house_14",
+  "sheet": "houses",
+  "x": 1235,
+  "y": 239,
+  "w": 222,
+  "h": 153,
+  "transparent": [
+   202,
+   226,
+   234
+  ]
+ },
+ {
+  "key": "house_15",
+  "sheet": "houses",
+  "x": 1511,
+  "y": 246,
+  "w": 169,
+  "h": 153,
+  "transparent": [
+   202,
+   226,
+   234
+  ]
+ },
+ {
+  "key": "house_16",
+  "sheet": "houses",
+  "x": 1701,
+  "y": 246,
+  "w": 167,
+  "h": 153,
+  "transparent": [
+   202,
+   226,
+   234
+  ]
+ },
+ {
+  "key": "house_17",
+  "sheet": "houses",
+  "x": 1886,
+  "y": 246,
+  "w": 167,
+  "h": 153,
+  "transparent": [
+   202,
+   226,
+   234
+  ]
+ }
+]

@@ -1,10 +1,13 @@
 # preprocess
 
-Turns the raw LimeZu pack in `assets/` (gitignored) into clean sheets under `client/public/gen/`.
+Turns the raw packs in `assets/` (gitignored) into clean sheets under `client/public/gen/`.
+
+`assets/graphic/`은 용도별로 세 폴더: `Interior/`(방·가구·캐릭터 팩), `Map/`(바깥 맵 타일, 부두 배경), `GUI/`(프레임·아이콘).
+`config.py`의 `SHEETS`(실내)와 `MAP_SHEETS`(맵)가 각 시트 경로를 잡고 있다.
 
 ```
 python tools/preprocess/preprocess.py scan --sheet interiors   # find pieces → slices.json + contact_interiors.png
-python tools/preprocess/preprocess.py build                    # named slices → interiors.png/.json, chars/, manifest.json
+python tools/preprocess/preprocess.py build                    # named slices → interiors.png/.json, chars/, map.png/.json, dock/, manifest.json
 python tools/preprocess/preprocess.py scaffold                 # add placeholder items.json rows for new keys
 ```
 
@@ -29,14 +32,36 @@ Character strips: 24 frames = 6 per direction in order right, up, left, down. `r
 
 ## 정식 팩 낱개 가구 (Theme_Sorter_Singles)
 
-`assets/graphic/moderninteriors-win/1_Interiors/16x16/Theme_Sorter_Singles/<테마>/`에 가구가 한 장씩 PNG로 있다 (탐색기에서 미리보기로 고르면 됨).
+`assets/graphic/Interior/moderninteriors-win/1_Interiors/16x16/Theme_Sorter_Singles/<테마>/`에 가구가 한 장씩 PNG로 있다 (탐색기에서 미리보기로 고르면 됨).
 `slices.json`에 좌표 대신 파일로 추가:
 
 ```json
 {"key": "bed_blue", "file": "moderninteriors-win/1_Interiors/16x16/Theme_Sorter_Singles/4_Bedroom_Singles/Bedroom_Singles_12.png"}
 ```
 
-경로는 `assets/graphic/` 기준. 그 다음 `build` → `scaffold` → `data/items.json`에서 이름/가격 편집 (footprint w/h는 내가 잡음).
+경로는 `assets/graphic/Interior/` 기준. 그 다음 `build` → `scaffold` → `data/items.json`에서 이름/가격 편집 (footprint w/h는 내가 잡음).
+
+## 동결(freeze): 소스 팩이 사라진 슬라이스
+
+`build`는 슬라이스의 시트/파일이 디스크에 없으면 **직전 아틀라스(`gen/interiors.png`)의 프레임을 그대로 복사**한다.
+끝나면 `WARNING: N interior slices copied from the previous atlas ...`로 어떤 시트의 어떤 키가 동결됐는지 찍힌다.
+지금은 `Modern tiles_Free` 팩(`interiors`, `room_builder` 시트, 184개)이 그렇다. 동결된 슬라이스는 에디터에서 좌표를 바꿔도 반영되지 않는다.
+팩을 다시 `assets/graphic/Interior/Modern tiles_Free/`에 넣으면 다음 빌드부터 원본에서 잘린다.
+아틀라스와 직전 아틀라스 둘 다에 없는 키는 예전처럼 빌드가 멈춘다.
+
+캐릭터 레이어는 **줄어들면 빌드가 거부**된다 (`refusing to shrink character layers`). 캐릭터 생성기 폴더가 없는 PC에서 빌드하면
+머리 508종이 사라지고 DB에 저장된 아바타 인덱스가 밀리기 때문. 정말 줄이려는 거면 `build --allow-shrink`.
+
+## 맵 · 부두 에셋 (`map_slices.json`, `gen/map.*`, `gen/dock/`)
+
+```
+python tools/preprocess/preprocess.py scan --map --sheet houses   # MAP_SHEETS 시트를 map_slices.json으로 스캔
+python tools/preprocess/preprocess.py build                        # map_slices.json → gen/map.png + map.json, Map/Dock/N.png → gen/dock/N.png
+```
+- `map_slices.json`은 `slices.json`과 같은 형식. `file` 경로는 `assets/graphic/` 기준 (예: `GUI/Map Legend Icons/Icons/Exclamation.png`).
+- 배경이 단색으로 칠해진 시트(`Houses.png`)는 슬라이스에 `"transparent": [202, 226, 234]`를 주면 그 색이 투명으로 빠진다.
+- 키에 `sheet`라는 단어는 쓰지 말 것 (서버 테스트가 `/api/catalog` 출력에 그 문자열이 없는지 검사한다).
+- manifest에 `map: {atlas, keys}`, `dock: {layers, w, h}`가 추가된다. 부두 레이어는 0(뒤) → 8(앞) 순서, 전부 같은 크기여야 한다.
 
 ## 캐릭터 레이어
 
@@ -59,12 +84,12 @@ python tools/preprocess/preprocess.py media
 python tools/preprocess/preprocess.py ui      # → client/public/media/theme.css + media/ui/*.png
 ```
 
-1. 프레임 PNG를 구한다. 예: `assets/graphic/Pocket GUI/DIY_16x16.png`를 Aseprite/그림판으로 열어 원하는 박스의 **x, y, w, h**와 테두리 두께(**slice**, 모서리가 늘어나지 않는 픽셀 수)를 적는다.
+1. 프레임 PNG를 구한다. 예: `assets/graphic/GUI/Pocket GUI/DIY_16x16.png`를 Aseprite/그림판으로 열어 원하는 박스의 **x, y, w, h**와 테두리 두께(**slice**, 모서리가 늘어나지 않는 픽셀 수)를 적는다.
    직접 잘라 저장했으면 `assets/ui/<이름>.png`로 두고 `file`로 지정해도 된다.
 2. `data/ui_theme.json`의 `frames`에 넣는다. 쓸 수 있는 이름: `panel`, `button`, `button_primary`, `chip`, `input`, `ctx`(길게 누르면 뜨는 메뉴), `toast`.
    ```json
    "frames": {
-     "panel":  {"sheet": "graphic/Pocket GUI/DIY_16x16.png", "x": 0, "y": 0, "w": 48, "h": 48, "slice": 8},
+     "panel":  {"sheet": "graphic/GUI/Pocket GUI/DIY_16x16.png", "x": 0, "y": 0, "w": 48, "h": 48, "slice": 8},
      "button": {"file": "ui/button.png", "slice": 6, "pad": 8}
    }
    ```

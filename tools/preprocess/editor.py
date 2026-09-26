@@ -87,9 +87,20 @@ def sheets_for(spec: dict) -> dict[str, Image.Image]:
     return {n: sheet_image(n) for n in names if n in C.SHEETS and C.SHEETS[n].exists()}
 
 
+_frozen: list = []  # [(image, frames)] cached previous interiors atlas, for slices whose source is gone
+
+
+def frozen_atlas():
+    with _lock:
+        if not _frozen:
+            _frozen.append(P.load_frozen(C.OUT_DIR / "interiors.json", C.OUT_DIR / "interiors.png"))
+        return _frozen[0]
+
+
 def crop_of(spec: dict) -> Image.Image:
+    # the preview key must be the real key so a frozen frame can be found
     spec = {"key": "preview", **spec}
-    return P.slice_image(spec, sheets_for(spec))
+    return P.slice_image(spec, sheets_for(spec), frozen=frozen_atlas())
 
 
 def png_bytes(im: Image.Image) -> bytes:
@@ -204,6 +215,7 @@ def run_build() -> str:
     try:
         with _lock:
             _sheet_cache.clear()
+            _frozen.clear()
         importlib.reload(C)  # re-scan assets/custom so sheets uploaded since startup are included
         P.cmd_build(argparse.Namespace())
     except SystemExit as e:
