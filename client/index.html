@@ -17,12 +17,19 @@
   <div id="hud" class="overlay">
     <button id="btn-accounts" class="chip" title="계정">👤 <span id="hud-id">…</span></button>
     <div id="hud-balance" class="chip">💰 <span id="hud-balance-val">–</span></div>
-    <div id="hud-online" class="chip" title="접속 중">🟢 <span id="hud-online-val">0</span></div>
+    <div id="hud-online" class="chip" title="이 방에 있는 사람">🟢 <span id="hud-online-val">0</span></div>
+    <div id="hud-room" class="chip hidden" title="지금 있는 방 · 남은 부서진 물건">🏠 <span id="hud-room-val"></span><span id="hud-room-ruined"></span></div>
     <button id="btn-sync" class="chip" title="시트 동기화">🔄</button>
     <button id="btn-bgm" class="chip" title="음악">🔊</button>
   </div>
 
   <!-- bottom bar -->
+  <!-- dock (부두) bar: top-left, only while the dock scene is up -->
+  <div id="dockbar" class="overlay hidden">
+    <button id="btn-dock-exit" class="big">← 나가기</button>
+    <button id="btn-dock-fish" class="big" title="준비 중">🎣 낚시</button>
+  </div>
+
   <div id="bottombar" class="overlay">
     <button id="btn-shop" class="big">🛋️ 상점</button>
     <button id="btn-avatar" class="big">🧍 아바타</button>

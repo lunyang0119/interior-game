@@ -139,7 +139,10 @@ def test_rotate_and_logins(client):
 def test_catalog_has_no_secrets(client):
     body = client.get("/api/catalog").json()
     assert {i["id"] for i in body["items"]} >= {"table", "cup"}
-    assert body["room"]["cols"] == 8
+    assert body["room"]["cols"] == 8 and [r["id"] for r in body["rooms"]] == ["house_a", "inn"]
+    junk = next(i for i in body["items"] if i["id"] == "junk")
+    assert junk["tags"] == ["ruined"] and junk["pair"] == "chair"
+    assert next(i for i in body["items"] if i["id"] == "chair")["tags"] == []
     assert body["chars"]["layers"]["skin"]["count"] == 2
     assert "sheet" not in json.dumps(body).lower()
 
@@ -150,7 +153,7 @@ def test_ws_presence(client):
     with client.websocket_connect("/ws") as a:
         a.send_text(json.dumps({"type": "auth", "token": lun}))
         hello = a.receive_json()
-        assert hello["type"] == "hello" and hello["you"] == "lun" and hello["online"] == []
+        assert hello["type"] == "hello" and hello["you"] == "lun" and hello["online"] == [] and hello["room"] == "inn"
         with client.websocket_connect("/ws") as b:
             b.send_text(json.dumps({"type": "auth", "token": kim}))
             hello_b = b.receive_json()
@@ -162,7 +165,7 @@ def test_ws_presence(client):
             # REST change pushes a room version
             client.post("/api/room/place", json={"item_id": "chair", "x": 1, "y": 1}, headers=auth(lun))
             # ...with the shared pool balance so every client's HUD follows (800 - chair 50)
-            assert a.receive_json() == {"type": "room", "version": 1, "balance": 750}
+            assert a.receive_json() == {"type": "room", "room": "inn", "version": 1, "balance": 750}
         assert a.receive_json()["type"] == "leave"
 
 
@@ -206,10 +209,10 @@ def test_reconcile_removes_items_invalidated_by_room_change(env):
         assert r.status_code == 200
         version = r.json()["version"]
 
-    room = json.loads((env["data"] / "room.json").read_text(encoding="utf-8"))
+    room = json.loads((env["rooms"] / "inn.json").read_text(encoding="utf-8"))
     room["wall_rows"] = 2
     room["tiles"]["wall"] = ["tile_wall", "tile_wall"]
-    (env["data"] / "room.json").write_text(json.dumps(room), encoding="utf-8")
+    (env["rooms"] / "inn.json").write_text(json.dumps(room), encoding="utf-8")
     import importlib, sys
     importlib.reload(sys.modules["app.catalog"])
 

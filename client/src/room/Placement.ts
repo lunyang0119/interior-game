@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 import { api, ApiError, msgFor } from "../api";
 import { bus, toast } from "../bus";
-import { Z_SCALE, priceOf, widthOf, type Catalog, type RoomItem } from "../catalog";
+import { Z_SCALE, priceOf, widthOf, type Catalog, type Room, type RoomItem } from "../catalog";
 import { state } from "../state";
 import { depthOf, isWallLayer, sortRowFor } from "./depth";
 import { anchorUnderPointer, CELL } from "./grid";
@@ -29,7 +29,7 @@ export class PlacementController {
   /** Called when a fresh ghost is created after "+1" so the scene can re-enable hover-follow. */
   onRestart: (() => void) | null = null;
 
-  constructor(private scene: Phaser.Scene, private cat: Catalog, private items: ItemLayer) {}
+  constructor(private scene: Phaser.Scene, private cat: Catalog, private room: Room, private items: ItemLayer) {}
 
   get active(): boolean {
     return this.ghost !== null;
@@ -40,9 +40,9 @@ export class PlacementController {
     this.itemId = itemId;
     this.moveUid = null;
     const it = this.cat.byId.get(itemId)!;
-    this.span = it.layer === "wallpaper" ? Math.min(this.lastSpan.get(itemId) ?? it.w, this.cat.room.cols) : null;
+    this.span = it.layer === "wallpaper" ? Math.min(this.lastSpan.get(itemId) ?? it.w, this.room.cols) : null;
     this.makeGhost();
-    const s = this.cat.room.spawn;
+    const s = this.room.spawn;
     this.setCell(s.x, s.y);
     this.publish();
   }
@@ -62,7 +62,7 @@ export class PlacementController {
   /** Wallpaper width −/+ from the placement bar. */
   setSpan(delta: number): void {
     if (!this.ghost || this.span === null) return;
-    const next = Phaser.Math.Clamp(this.span + delta, 1, this.cat.room.cols);
+    const next = Phaser.Math.Clamp(this.span + delta, 1, this.room.cols);
     if (next === this.span) return;
     this.span = next;
     this.lastSpan.set(this.itemId, next);
@@ -96,7 +96,7 @@ export class PlacementController {
     const it = this.cat.byId.get(this.itemId)!;
     this.cell = { cx, cy };
     const others = this.items.rows.filter((r) => r.uid !== this.moveUid);
-    const check = checkPlace(this.cat, others, this.itemId, cx, cy, this.span);
+    const check = checkPlace(this.cat, this.room, others, this.itemId, cx, cy, this.span);
     this.ok = check.ok;
     let y = isWallLayer(it.layer) ? cy * CELL : (cy + it.h) * CELL;
     let sortRow = sortRowFor(it.layer, cy + it.h - 1);
@@ -124,7 +124,7 @@ export class PlacementController {
     const key = `${this.active}|${label}|${this.ok}|${mode}|${this.busy}|${this.span}`;
     if (key === this.lastState) return; // nothing changed → no DOM work
     this.lastState = key;
-    bus.emit("place:state", { active: this.active, label, ok: this.ok, mode, busy: this.busy, span: this.span, spanMax: this.cat.room.cols });
+    bus.emit("place:state", { active: this.active, label, ok: this.ok, mode, busy: this.busy, span: this.span, spanMax: this.room.cols });
   }
 
   /** `again`: after a successful placement keep a fresh ghost of the same item (rugs, wallpaper, chairs…). */
@@ -142,11 +142,11 @@ export class PlacementController {
         const r = await api.move(this.moveUid, cx, cy, span);
         if (typeof r.balance === "number") { state.balance = r.balance; bus.emit("money", { balance: r.balance }); } // older servers omit it
       } else {
-        const r = await api.place(itemId, cx, cy, span);
+        const r = await api.place(this.room.id, itemId, cx, cy, span);
         state.balance = r.balance;
         bus.emit("money", { balance: r.balance });
         // show the placed item immediately so the "+1" ghost sees it as occupied before the snapshot lands
-        this.items.sync([...this.items.rows, { uid: r.uid, item_id: itemId, x: cx, y: cy, z: 0, parent_uid: null, placed_by: state.id ?? "", ts: 0, span }]);
+        this.items.sync([...this.items.rows, { uid: r.uid, item_id: itemId, x: cx, y: cy, z: 0, parent_uid: null, placed_by: state.id ?? "", ts: 0, span, room_id: this.room.id }]);
       }
       this.cancel();
       bus.emit("room:refresh"); // when the snapshot lands, RoomScene calls revalidate() so the new ghost sees the placed item
@@ -159,7 +159,7 @@ export class PlacementController {
         // start next to what was just placed (right, then below); fall back to the same cell, shown red
         const w = this.width();
         const h = it?.h ?? 1;
-        const next = [[cx + w, cy], [cx, cy + h], [cx - w, cy]].find(([x, y]) => checkPlace(this.cat, this.items.rows, itemId, x, y, span).ok);
+        const next = [[cx + w, cy], [cx, cy + h], [cx - w, cy]].find(([x, y]) => checkPlace(this.cat, this.room, this.items.rows, itemId, x, y, span).ok);
         this.setCell(next?.[0] ?? cx, next?.[1] ?? cy);
         this.publish();
       }

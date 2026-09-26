@@ -250,16 +250,26 @@ def cmd_scan(args: argparse.Namespace) -> None:
     sheet = args.sheet
     table = C.MAP_SHEETS if args.map else C.SHEETS
     slices_file = C.MAP_SLICES_FILE if args.map else C.SLICES_FILE
-    if sheet not in table:
-        raise SystemExit(f"unknown {'map ' if args.map else ''}sheet '{sheet}' (choices: {', '.join(table)})")
-    path = table[sheet]
+    path = table.get(sheet) or C.all_sheets().get(sheet)
+    if path is None:
+        raise SystemExit(f"unknown {'map ' if args.map else ''}sheet '{sheet}' (choices: {', '.join(table)}, "
+                         f"or any path from `discover_sheets()`)")
     if not path.exists():
         raise SystemExit(f"sheet '{sheet}' not on disk: {path}")
+    safe_name = sheet.replace("/", "_")
     im = Image.open(path).convert("RGBA")
     print(f"scanning {sheet}: {path.name} {im.size}")
 
-    boxes = merge_overlapping(snap(b) for b in find_components(im))
-    boxes = [b for b in boxes if (b[2] // C.CELL) * (b[3] // C.CELL) >= args.min_cells]
+    if args.raw:
+        # skip 16px-grid snapping AND the overlap-merge pass: for tightly-packed non-LimeZu sheets,
+        # snapping bridges small gaps between sprites, and merging by bounding-RECTANGLE overlap
+        # (rather than actual touching pixels) falsely fuses non-adjacent sprites whose rects overlap
+        # because of irregular silhouettes/packing. Raw flood-fill components are already disjoint.
+        boxes = find_components(im)
+        boxes = [b for b in boxes if b[2] * b[3] >= args.min_cells * C.CELL * C.CELL]
+    else:
+        boxes = merge_overlapping(snap(b) for b in find_components(im))
+        boxes = [b for b in boxes if (b[2] // C.CELL) * (b[3] // C.CELL) >= args.min_cells]
     boxes.sort(key=lambda b: (b[1], b[0]))
 
     existing = load_slices(slices_file)
@@ -280,19 +290,21 @@ def cmd_scan(args: argparse.Namespace) -> None:
         # skip auto boxes that overlap a manually named slice (user already split/renamed it)
         if any(overlaps(b, r) for r in named_rects):
             continue
-        while any(s["key"] == f"auto_{sheet}_{counter:03d}" for s in result):
+        while any(s["key"] == f"auto_{safe_name}_{counter:03d}" for s in result):
             counter += 1
-        result.append({"key": f"auto_{sheet}_{counter:03d}", "sheet": sheet,
+        result.append({"key": f"auto_{safe_name}_{counter:03d}", "sheet": sheet,
                        "x": b[0], "y": b[1], "w": b[2], "h": b[3]})
         counter += 1
         n_new += 1
 
     save_slices(result, slices_file)
     print(f"{len(boxes)} regions found, {n_new} new auto entries → {slices_file.name}")
-    render_contact_sheet(sheet, [s for s in result if s.get("sheet") == sheet], path=path)
+    render_contact_sheet(sheet, [s for s in result if s.get("sheet") == sheet], path=path, safe_name=safe_name)
 
 
-def render_contact_sheet(sheet: str, slices: list[dict], scale: int = 3, path: Path | None = None) -> None:
+def render_contact_sheet(sheet: str, slices: list[dict], scale: int = 3, path: Path | None = None,
+                         safe_name: str | None = None) -> None:
+    safe_name = safe_name or sheet
     im = Image.open(path or C.SHEETS[sheet]).convert("RGBA")
     big = im.resize((im.width * scale, im.height * scale), Image.NEAREST)
     bg = Image.new("RGBA", big.size, (255, 255, 255, 255))
@@ -302,10 +314,10 @@ def render_contact_sheet(sheet: str, slices: list[dict], scale: int = 3, path: P
         x, y, w, h = slice_rect(s)
         color = (0, 160, 0, 255) if not s["key"].startswith("auto_") else (220, 0, 0, 255)
         d.rectangle([x * scale, y * scale, (x + w) * scale - 1, (y + h) * scale - 1], outline=color)
-        label = s["key"].replace(f"auto_{sheet}_", "#")
+        label = s["key"].replace(f"auto_{safe_name}_", "#")
         d.rectangle([x * scale, y * scale, x * scale + 6 * len(label) + 2, y * scale + 10], fill=(255, 255, 255, 220))
         d.text((x * scale + 1, y * scale), label, fill=color)
-    out = C.CONTACT_SHEET.with_name(f"contact_{sheet}.png")
+    out = C.CONTACT_SHEET.with_name(f"contact_{safe_name}.png")
     bg.save(out)
     print(f"contact sheet → {out}")
 
@@ -513,7 +525,28 @@ def copy_dock() -> dict | None:
                 raise SystemExit(f"dock layer {p.name} is {im.size}, expected {size}")
         shutil.copyfile(p, out / f"{i}.png")
     print(f"dock: {len(srcs)} layers {size[0]}x{size[1]} → gen/dock/")
+    write_dock_layout(len(srcs), size)
     return {"layers": len(srcs), "w": size[0], "h": size[1]}
+
+
+def default_dock_layout(n_images: int, size: tuple[int, int]) -> dict:
+    """All N.png images back→front, nothing else."""
+    return {"w": size[0], "h": size[1],
+            "layers": [{"kind": "image", "src": i, "x": 0, "y": 0, "visible": True} for i in range(n_images)]}
+
+
+def write_dock_layout(n_images: int, size: tuple[int, int]) -> dict:
+    """gen/dock.json = data/dock.json (editor) or the default stack. The client reads only gen/dock.json."""
+    layout = default_dock_layout(n_images, size)
+    if C.DOCK_FILE.exists():
+        layout = json.loads(C.DOCK_FILE.read_text(encoding="utf-8"))
+        layout["w"], layout["h"] = size
+        kept = [l for l in layout.get("layers", []) if l.get("kind") != "image" or 0 <= int(l.get("src", -1)) < n_images]
+        if len(kept) != len(layout.get("layers", [])):
+            print("WARNING: data/dock.json referenced image layers that no longer exist; dropped")
+        layout["layers"] = kept
+    (C.OUT_DIR / "dock.json").write_text(json.dumps(layout, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+    return layout
 
 
 def cmd_build(args: argparse.Namespace) -> None:
@@ -731,6 +764,8 @@ def main() -> None:
     p.add_argument("--sheet", default="interiors", help="key in SHEETS (or MAP_SHEETS with --map)")
     p.add_argument("--min-cells", type=int, default=1)
     p.add_argument("--map", action="store_true", help="scan a MAP_SHEETS sheet into map_slices.json")
+    p.add_argument("--raw", action="store_true",
+                   help="skip 16px-grid snapping (for tightly-packed sheets where snapping merges neighbours)")
     p.set_defaults(fn=cmd_scan)
     p = sub.add_parser("build")
     p.add_argument("--allow-shrink", action="store_true", help="allow a character layer to lose variants")

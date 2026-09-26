@@ -41,6 +41,11 @@ export function initHud(): void {
 
   bus.on("money", ({ balance }) => { $("hud-balance-val").textContent = balance.toLocaleString(); });
   bus.on("online", ({ count }) => { $("hud-online-val").textContent = String(count); });
+  bus.on("room:changed", ({ name, id, ruined }) => {
+    $("hud-room-val").textContent = name || id;
+    $("hud-room-ruined").textContent = ruined > 0 ? ` · 🧹 ${ruined}` : "";
+    show("hud-room", true);
+  });
   bus.on("toast", ({ text, ms }) => {
     const t = $("toast");
     t.textContent = text;
@@ -67,6 +72,12 @@ export function initHud(): void {
   $("place-confirm").addEventListener("click", () => bus.emit("place:confirm"));
   $("place-again").addEventListener("click", () => bus.emit("place:confirm-again"));
   $("place-cancel").addEventListener("click", () => bus.emit("place:cancel"));
+  // dock: hide the room-only bottom bar, show 나가기/낚시 at the top-left
+  bus.on("dock:enter", () => { closeAllPanels(); show("bottombar", false); show("placebar", false); show("dockbar", true); show("hud-room", false); });
+  bus.on("dock:exit", () => { show("dockbar", false); show("bottombar", true); });
+  bus.on("dock:fish", () => bus.emit("toast", { text: "낚시는 준비 중이에요" }));
+  $("btn-dock-exit").addEventListener("click", () => bus.emit("dock:exit"));
+  $("btn-dock-fish").addEventListener("click", () => bus.emit("dock:fish"));
   $("place-span-dec").addEventListener("click", () => bus.emit("place:span", { delta: -1 }));
   $("place-span-inc").addEventListener("click", () => bus.emit("place:span", { delta: 1 }));
 

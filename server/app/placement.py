@@ -7,13 +7,15 @@ Rules (see plan §3):
    (so frames, doors and chalkboards can hang over wallpaper)
 4. surface_item needs exactly one is_surface furniture under every cell, the same
    one for all cells, and no other surface_item in those cells
+
+`others` must be the rows of the same room; the caller filters by room_id.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass
 
-from .catalog import Catalog, Item, WALL_LAYERS, Z_OF_LAYER
+from .catalog import DEFAULT_ROOM, Catalog, Item, WALL_LAYERS, Z_OF_LAYER
 from .errors import ApiError
 
 
@@ -28,6 +30,7 @@ class ItemRow:
     placed_by: str
     ts: int
     span: int | None = None  # wallpaper only: width in cells chosen at placement
+    room_id: str = DEFAULT_ROOM
 
 
 @dataclass(frozen=True)
@@ -62,11 +65,13 @@ def footprint_of(catalog: Catalog, row: ItemRow) -> list[Cell]:
 
 
 def validate_place(catalog: Catalog, others: list[ItemRow], item_id: str, x: int, y: int,
-                   span: int | None = None) -> Placement:
+                   span: int | None = None, room_id: str | None = None) -> Placement:
     it: Item | None = catalog.get(item_id)
     if it is None:
         raise fail("unknown_item")
-    room = catalog.room
+    room = catalog.room if room_id is None else catalog.room_of(room_id)
+    if room is None:
+        raise ApiError(404, "unknown_room")
     if span is not None and (it.layer != "wallpaper" or not 1 <= span <= room.cols):
         raise fail("bad_span")
     cells = footprint(x, y, width_of(it, span), it.h)

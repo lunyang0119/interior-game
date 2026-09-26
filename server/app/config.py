@@ -48,6 +48,11 @@ SHEET_SYNC_COOLDOWN_SECONDS = int(os.environ.get("SHEET_SYNC_COOLDOWN_SECONDS", 
 
 IP_SALT = os.environ.get("IP_SALT", "dev-salt-change-me")
 
+# Owner of items pre-placed by data/rooms/<id>.json "seed" (migration 005). Shown as "???" in the client.
+SEED_PLAYER = "$seed"
+# Presence rooms that are not grid rooms (no items, free coordinates).
+SCENE_ROOMS = ("map", "dock")
+
 # Rate limits: (requests, per_seconds)
 RATE_PLAYER = (120, 60)
 RATE_REGISTER_IP = (5, 60)

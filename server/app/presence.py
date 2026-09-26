@@ -1,5 +1,8 @@
 """Online players + WebSocket hub (memory only, one worker).
 
+Every online player is in exactly one presence room: a grid room id, "map" or "dock". Presence messages
+(join/leave/move) only go to that room; global ones (room versions, money) go to everyone.
+
 REST handlers run in a threadpool, so they hand messages to the event loop with
 run_coroutine_threadsafe via `hub.broadcast_threadsafe`.
 """
@@ -25,9 +28,11 @@ class Online:
     dir: str = "down"
     moving: bool = False
     avatar: dict = field(default_factory=dict)
+    room: str = "inn"
 
     def state(self) -> dict:
-        return {"id": self.id, "x": self.x, "y": self.y, "dir": self.dir, "moving": self.moving, "avatar": self.avatar}
+        return {"id": self.id, "x": self.x, "y": self.y, "dir": self.dir, "moving": self.moving,
+                "avatar": self.avatar, "room": self.room}
 
 
 class Hub:
@@ -47,24 +52,38 @@ class Hub:
                 await prev.ws.close(code=4000, reason="replaced")
             except Exception:
                 pass
+            await self.broadcast({"type": "leave", "id": o.id}, room=prev.room)
         self.online[o.id] = o
-        await self.broadcast({"type": "join", **o.state()}, exclude=o.id)
+        await self.broadcast({"type": "join", **o.state()}, room=o.room, exclude=o.id)
 
     async def leave(self, o: Online) -> None:
         if self.online.get(o.id) is o:
             del self.online[o.id]
-            await self.broadcast({"type": "leave", "id": o.id})
+            await self.broadcast({"type": "leave", "id": o.id}, room=o.room)
 
-    def snapshot(self, exclude: str | None = None) -> list[dict]:
-        return [o.state() for pid, o in self.online.items() if pid != exclude]
+    async def move_room(self, o: Online, room: str, x: float, y: float) -> None:
+        """Walk through an exit: leave the old presence room, appear in the new one."""
+        if o.room == room:
+            o.x, o.y, o.moving = x, y, False
+            return
+        old = o.room
+        o.room, o.x, o.y, o.moving = room, x, y, False
+        await self.broadcast({"type": "leave", "id": o.id}, room=old)
+        await self.broadcast({"type": "join", **o.state()}, room=room, exclude=o.id)
+
+    def snapshot(self, room: str | None = None, exclude: str | None = None) -> list[dict]:
+        return [o.state() for pid, o in self.online.items() if pid != exclude and (room is None or o.room == room)]
+
+    def count(self, room: str) -> int:
+        return sum(1 for o in self.online.values() if o.room == room)
 
     # -- messaging -------------------------------------------------------------
 
     SEND_TIMEOUT = 2.0  # a stalled socket (phone asleep, bad tunnel) must not delay everyone else
 
-    async def broadcast(self, msg: dict, exclude: str | None = None) -> None:
+    async def broadcast(self, msg: dict, exclude: str | None = None, room: str | None = None) -> None:
         data = json.dumps(msg)
-        targets = [o for pid, o in self.online.items() if pid != exclude]
+        targets = [o for pid, o in self.online.items() if pid != exclude and (room is None or o.room == room)]
         if not targets:
             return
         results = await asyncio.gather(

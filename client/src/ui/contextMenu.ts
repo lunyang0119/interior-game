@@ -1,5 +1,5 @@
 import { bus } from "../bus";
-import { priceOf, type RoomItem } from "../catalog";
+import { hasTag, priceOf, SEED_PLAYER, TAG_RUINED, type RoomItem } from "../catalog";
 import { catalog } from "../state";
 import { $, show } from "./hud";
 
@@ -10,7 +10,10 @@ export function initContextMenu(): void {
   bus.on("item:menu", ({ item, screenX, screenY }) => {
     current = item;
     const it = catalog().byId.get(item.item_id);
-    $("ctx-title").textContent = `${it?.name ?? item.item_id} · ${item.placed_by}가 놓음`;
+    const ruined = hasTag(it, TAG_RUINED);
+    const who = item.placed_by === SEED_PLAYER ? "처음부터 있던 물건" : `${item.placed_by}가 놓음`;
+    $("ctx-title").textContent = `${it?.name ?? item.item_id} · ${who}`;
+    $("ctx-remove").textContent = ruined ? `팔기 (+${it ? priceOf(it, item.span) : 0}💰)` : "팔기 (전액 환불)";
     show("ctx", true);
     const w = ctx.offsetWidth, h = ctx.offsetHeight;
     ctx.style.left = `${Math.min(screenX, innerWidth - w - 8)}px`;
@@ -20,7 +23,9 @@ export function initContextMenu(): void {
   $("ctx-remove").addEventListener("click", () => {
     if (!current) return;
     const it = catalog().byId.get(current.item_id);
-    if (confirm(`${it?.name ?? current.item_id} 치울까요? ${it ? priceOf(it, current.span) : 0}💰 환불되어요.`)) bus.emit("item:remove", { uid: current.uid });
+    const price = it ? priceOf(it, current.span) : 0;
+    const q = hasTag(it, TAG_RUINED) ? `${it?.name ?? current.item_id} 팔까요? ${price}💰 들어와요.` : `${it?.name ?? current.item_id} 치울까요? ${price}💰 환불되어요.`;
+    if (confirm(q)) bus.emit("item:remove", { uid: current.uid });
     close();
   });
   $("ctx-cancel").addEventListener("click", close);

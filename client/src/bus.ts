@@ -16,6 +16,12 @@ export interface Events {
   "place:span": { delta: number };
   "place:state": { active: boolean; label: string; ok: boolean; mode: "place" | "move" | null; busy?: boolean; span?: number | null; spanMax?: number };
   "room:refresh": void;
+  "room:changed": { id: string; name: string; ruined: number }; // the Room scene shows another room / junk count moved
+  "room:exit": { from: string; to: string; spawn: { x: number; y: number } }; // avatar stepped on an exit
+  "dock:enter": void;
+  "dock:exit": void;
+  "dock:ready": void;
+  "dock:fish": void; // placeholder: fishing is not implemented yet
   "item:menu": { item: RoomItem; screenX: number; screenY: number };
   "item:remove": { uid: number };
 }

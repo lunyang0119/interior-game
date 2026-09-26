@@ -1,5 +1,5 @@
 import { bus, toast } from "../bus";
-import { priceOf, type Item, type Layer } from "../catalog";
+import { forSale, priceOf, type Item, type Layer } from "../catalog";
 import { catalog, state } from "../state";
 import { $, togglePanel } from "./hud";
 
@@ -49,6 +49,7 @@ function build(): void {
   const grid = $("shop-grid");
   grid.innerHTML = "";
   for (const item of catalog().items) {
+    if (!forSale(item)) continue; // junk and room fixtures are not in the shop
     const el = document.createElement("div");
     el.className = "shop-item";
     el.appendChild(thumb(item));

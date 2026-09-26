@@ -76,10 +76,18 @@ def get_db() -> Iterator[sqlite3.Connection]:
                 pass
 
 
-def room_version(conn: sqlite3.Connection) -> int:
-    return conn.execute("SELECT v FROM room_meta WHERE k = 'version'").fetchone()[0]
+def room_version(conn: sqlite3.Connection, room_id: str = "inn") -> int:
+    row = conn.execute("SELECT v FROM room_meta WHERE k = ?", (f"version:{room_id}",)).fetchone()
+    return row[0] if row else 0
 
 
-def bump_room_version(conn: sqlite3.Connection) -> int:
-    conn.execute("UPDATE room_meta SET v = v + 1 WHERE k = 'version'")
-    return room_version(conn)
+def bump_room_version(conn: sqlite3.Connection, room_id: str = "inn") -> int:
+    conn.execute("INSERT INTO room_meta(k, v) VALUES (?, 0) ON CONFLICT(k) DO NOTHING", (f"version:{room_id}",))
+    conn.execute("UPDATE room_meta SET v = v + 1 WHERE k = ?", (f"version:{room_id}",))
+    return room_version(conn, room_id)
+
+
+def ensure_room_meta(conn: sqlite3.Connection, room_ids: list[str]) -> None:
+    """A version row per room so GET /api/rooms never sees a missing counter."""
+    for rid in room_ids:
+        conn.execute("INSERT INTO room_meta(k, v) VALUES (?, 0) ON CONFLICT(k) DO NOTHING", (f"version:{rid}",))

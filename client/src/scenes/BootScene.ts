@@ -10,7 +10,7 @@ export class BootScene extends Phaser.Scene {
     this.load.atlas(ATLAS, "/gen/interiors.png", "/gen/interiors.json");
   }
 
-  create(data: { id: string | null }): void {
+  create(data: object): void {
     this.scene.start("Room", data);
   }
 }

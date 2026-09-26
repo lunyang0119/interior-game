@@ -11,7 +11,11 @@ export const state = {
   contributions: [] as Contribution[],
   avatar: { ...DEFAULT_LOOK } as AvatarLook,
   online: 0,
+  /** Grid room the Room scene shows (id from the catalog). */
+  roomId: "inn",
   roomVersion: -1,
+  /** ruined-tagged items left in the current room. */
+  ruined: 0,
 };
 
 export function catalog(): Catalog {

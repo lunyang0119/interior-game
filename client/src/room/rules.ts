@@ -1,6 +1,6 @@
 /** Client mirror of server/app/placement.py. Only used to colour the ghost; the server decides. */
 
-import { widthOf, type Catalog, type RoomItem } from "../catalog";
+import { widthOf, type Catalog, type Room, type RoomItem } from "../catalog";
 import { isWallLayer } from "./depth";
 import { footprint } from "./grid";
 
@@ -16,10 +16,9 @@ export function footprintOf(cat: Catalog, row: RoomItem): [number, number][] {
   return footprint(row.x, row.y, widthOf(it, row.span), it.h);
 }
 
-export function checkPlace(cat: Catalog, others: RoomItem[], itemId: string, x: number, y: number, span?: number | null): Check {
+export function checkPlace(cat: Catalog, room: Room, others: RoomItem[], itemId: string, x: number, y: number, span?: number | null): Check {
   const it = cat.byId.get(itemId);
   if (!it) return { ok: false, code: "unknown_item", parentUid: null };
-  const room = cat.room;
   if (span != null && (it.layer !== "wallpaper" || span < 1 || span > room.cols)) return { ok: false, code: "bad_span", parentUid: null };
   const cells = footprint(x, y, widthOf(it, span), it.h);
   const blocked = new Set(room.blocked.map((b) => key([b[0], b[1]])));

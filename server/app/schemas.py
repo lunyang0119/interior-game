@@ -17,6 +17,7 @@ class AvatarIn(BaseModel):
 
 class PlaceIn(BaseModel):
     item_id: str
+    room_id: str = "inn"
     x: int
     y: int
     span: int | None = Field(default=None, ge=1)  # wallpaper width in cells

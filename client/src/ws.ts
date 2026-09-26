@@ -1,14 +1,15 @@
 import type { AvatarLook } from "./catalog";
 
-export interface OnlineState { id: string; x: number; y: number; dir: string; moving: boolean; avatar: AvatarLook }
+export interface OnlineState { id: string; x: number; y: number; dir: string; moving: boolean; avatar: AvatarLook; room?: string }
 
 export type WsMsg =
-  | { type: "hello"; you: string; online: OnlineState[]; room_version: number }
+  | { type: "hello"; you: string; room: string; online: OnlineState[]; room_version: number }
+  | { type: "entered"; room: string; online: OnlineState[]; room_version: number }
   | ({ type: "join" } & OnlineState)
   | { type: "leave"; id: string }
   | { type: "move"; id: string; x: number; y: number; dir: string; moving: boolean }
   | { type: "avatar_look"; id: string; avatar: AvatarLook }
-  | { type: "room"; version: number; balance?: number }
+  | { type: "room"; room?: string; version: number; balance?: number; ruined?: number }
   | { type: "money"; balance: number }
   | { type: "pong" };
 
@@ -65,6 +66,11 @@ export class GameSocket {
 
   sendMove(x: number, y: number, dir: string, moving: boolean): void {
     this.send({ type: "move", x: +x.toFixed(2), y: +y.toFixed(2), dir, moving });
+  }
+
+  /** Presence room change (grid room id, "map" or "dock"); the server answers with "entered". */
+  sendEnter(room: string, x = 0, y = 0): void {
+    this.send({ type: "enter", room, x: +x.toFixed(2), y: +y.toFixed(2) });
   }
 
   private open(): void {

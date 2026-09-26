@@ -8,10 +8,11 @@ from fastapi.staticfiles import StaticFiles
 
 from . import catalog as catalog_mod
 from . import config, sheet
-from .db import connect, migrate, now, transaction
+from .db import connect, ensure_room_meta, migrate, now, transaction
 from .errors import ApiError
 from .presence import hub
 from .reconcile import reconcile_items
+from .seed import seed_room
 from .routers import auth, me, room, ws
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s %(message)s")
@@ -48,7 +49,10 @@ async def lifespan(app: FastAPI):
     migrate(conn)
     app.state.catalog = catalog_mod.load()
     with transaction(conn):
+        ensure_room_meta(conn, list(app.state.catalog.rooms))
         reconcile_items(conn, app.state.catalog)
+        for room in app.state.catalog.rooms.values():
+            seed_room(conn, app.state.catalog, room)
     conn.close()
     app.state.sheet = sheet.from_config()
     hub.bind_loop()

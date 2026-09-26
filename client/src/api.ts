@@ -1,4 +1,4 @@
-import type { AvatarLook, Chars, Item, Room, RoomItem } from "./catalog";
+import type { AvatarLook, RawCatalog, RoomItem } from "./catalog";
 import { state, type Contribution } from "./state";
 
 export class ApiError extends Error {
@@ -25,6 +25,9 @@ const MESSAGES: Record<string, string> = {
   has_children: "위에 올린 걸 먼저 치운 다음 다시 시도해주세요",
   not_found: "이미 없어진 아이템이에요",
   bad_span: "벽지 폭이 이상해요",
+  not_for_sale: "파는 물건이 아니에요",
+  fixed_item: "이건 방의 일부라 손댈 수 없어요",
+  unknown_room: "없는 방이에요",
   network: "네트워크 오류네요",
 };
 
@@ -54,22 +57,24 @@ async function call<T>(method: string, path: string, body?: unknown, extra: Reco
 }
 
 export interface MeResponse { id: string; balance: number; contributions: Contribution[]; avatar: AvatarLook }
-export interface RoomResponse { version: number; items: RoomItem[] }
+export interface RoomResponse { room: string; version: number; items: RoomItem[]; ruined: number }
+export interface RoomSummary { id: string; name: string; version: number; ruined: number; online: number }
 
 export const api = {
-  catalog: () => call<{ items: Item[]; room: Room; chars: Chars }>("GET", "/api/catalog"),
+  catalog: () => call<RawCatalog>("GET", "/api/catalog"),
+  rooms: () => call<{ rooms: RoomSummary[] }>("GET", "/api/rooms"),
   register: (id: string) => call<{ id: string; token: string; existing: boolean; created: boolean; name: string; earned: number }>("POST", "/api/register", { id }),
   me: () => call<MeResponse>("GET", "/api/me"),
   sync: () => call<{ refreshed: boolean; balance: number; contributions: Contribution[] }>("POST", "/api/sync"),
   putAvatar: (a: AvatarLook) => call<{ avatar: AvatarLook }>("PUT", "/api/avatar", a),
-  room: (etagVersion?: number) =>
-    call<RoomResponse | null>("GET", "/api/room", undefined,
+  room: (roomId: string, etagVersion?: number) =>
+    call<RoomResponse | null>("GET", `/api/room/${encodeURIComponent(roomId)}`, undefined,
       etagVersion === undefined || etagVersion < 0 ? {} : { "If-None-Match": `"${etagVersion}"` }),
-  place: (item_id: string, x: number, y: number, span?: number | null) =>
-    call<{ uid: number; balance: number; version: number }>("POST", "/api/room/place", { item_id, x, y, span: span ?? undefined }),
+  place: (room_id: string, item_id: string, x: number, y: number, span?: number | null) =>
+    call<{ uid: number; balance: number; version: number; room: string }>("POST", "/api/room/place", { room_id, item_id, x, y, span: span ?? undefined }),
   move: (uid: number, x: number, y: number, span?: number | null) =>
     call<{ uid: number; version: number; balance: number }>("POST", "/api/room/move", { uid, x, y, span: span ?? undefined }),
-  remove: (uid: number) => call<{ balance: number; version: number }>("DELETE", `/api/room/item/${uid}`),
+  remove: (uid: number) => call<{ balance: number; version: number; room?: string; ruined?: number }>("DELETE", `/api/room/item/${uid}`),
   rotate: () => call<{ id: string; token: string }>("POST", "/api/token/rotate"),
   logins: () => call<{ logins: { ts: number; action: string; ip_hash: string; ua: string; ok: number }[] }>("GET", "/api/me/logins"),
   /** Verify a token without touching global state. */

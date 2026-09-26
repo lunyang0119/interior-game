@@ -107,7 +107,11 @@ def sheet_list() -> list[dict]:
     for n, p in C.all_sheets().items():
         group = "map" if C.sheet_group(n) == "map" else "interior"
         named = n in C.SHEETS or n in C.MAP_SHEETS
-        entry = {"name": n, "exists": p.exists(), "group": group, "named": named}
+        try:
+            rel = p.resolve().relative_to(C.ASSETS.resolve()).as_posix()  # "Interior/pixelinterior/beds_BR.png"
+        except ValueError:
+            rel = p.name
+        entry = {"name": n, "exists": p.exists(), "group": group, "named": named, "rel": rel}
         if p.exists():
             try:
                 with Image.open(p) as im:
@@ -183,6 +187,31 @@ def load_rooms() -> dict[str, dict]:
     return rooms
 
 
+def seed_problem(s: dict, room: dict, items: dict[str, dict], others: list[dict]) -> str | None:
+    """Why the game server would skip this seed (mirrors server/app/placement.py)."""
+    it = items.get(s.get("item_id"))
+    if it is None:
+        return "모르는 아이템"
+    wall = it["layer"] in ("wall", "wallpaper")
+    w = (s.get("span") or it["w"]) if it["layer"] == "wallpaper" else it["w"]
+    h = it["h"]
+    x, y = s["x"], s["y"]
+    if x < 0 or y < 0 or x + w > room["cols"] or y + h > room["rows"]:
+        return "방 밖"
+    if (y + h > room["wall_rows"]) if wall else (y < room["wall_rows"]):
+        return "벽 칸에만" if wall else "바닥 칸에만 (발 위치 기준)"
+    if any(x <= bx < x + w and y <= by < y + h for bx, by in room.get("blocked", [])):
+        return "막힌 칸"
+    for o in others:
+        oi = items.get(o.get("item_id"))
+        if o is s or oi is None or oi["layer"] != it["layer"] or it["layer"] == "surface_item":
+            continue
+        ow = (o.get("span") or oi["w"]) if oi["layer"] == "wallpaper" else oi["w"]
+        if x < o["x"] + ow and o["x"] < x + w and y < o["y"] + oi["h"] and o["y"] < y + h:
+            return f"{o['item_id']} ({o['x']},{o['y']})와 겹침"
+    return None
+
+
 def validate_room(rid: str, room: dict, all_ids: set[str], item_ids: set[str], tile_keys: set[str]) -> str | None:
     if not ROOM_ID_RE.match(rid):
         return f"방 id는 영문 소문자/숫자/_ 로 시작은 영문: {rid}"
@@ -218,6 +247,16 @@ def validate_room(rid: str, room: dict, all_ids: set[str], item_ids: set[str], t
     return None
 
 
+def seed_warnings(rid: str, room: dict, items: dict[str, dict]) -> list[str]:
+    """Seeds the game server will skip. Not an error (the editor asks before saving), but printed to the log."""
+    out = []
+    for sd in room.get("seed", []):
+        why = seed_problem(sd, room, items, room.get("seed", []))
+        if why:
+            out.append(f"{rid}: 시드 {sd['item_id']} ({sd['x']},{sd['y']}) — {why}")
+    return out
+
+
 def save_rooms(rooms: dict[str, dict]) -> None:
     ROOMS_DIR.mkdir(parents=True, exist_ok=True)
     for stale in ROOMS_DIR.glob("*.json"):
@@ -235,7 +274,7 @@ def save_rooms(rooms: dict[str, dict]) -> None:
 def load_map() -> dict:
     if MAP_FILE.exists():
         return json.loads(MAP_FILE.read_text(encoding="utf-8"))
-    return {"cols": 32, "rows": 18, "spawn": {"x": 4, "y": 4}, "layers": {"ground": [], "deco": []}, "blocked": [], "places": []}
+    return {"cols": 32, "rows": 18, "spawn": {"x": 4, "y": 4}, "layers": {"ground": [], "deco": []}, "blocked": [], "places": [], "decos": []}
 
 
 def validate_map(m: dict, room_ids: set[str], map_keys: set[str]) -> str | None:
@@ -249,11 +288,76 @@ def validate_map(m: dict, room_ids: set[str], map_keys: set[str]) -> str | None:
             for k in r:
                 if k is not None and k not in map_keys:
                     return f"layers.{lname}: 모르는 타일 '{k}' (맵 슬라이스에 없음 — 빌드했나요?)"
+    def cell_ok(c) -> bool:
+        return isinstance(c, (list, tuple)) and len(c) == 2 and all(isinstance(v, int) and v >= 0 for v in c) and c[0] < cols and c[1] < rows
+
+    def rot_ok(o: dict) -> bool:
+        return o.get("rot", 0) in (0, 90, 180, 270) and isinstance(o.get("flip", False), bool)
+
     for pl in m.get("places", []):
         if pl.get("room") not in room_ids and pl.get("room") != "dock":
             return f"장소 '{pl.get('name')}'가 모르는 방 '{pl.get('room')}'로 가요"
         if pl.get("sprite") and pl["sprite"] not in map_keys:
             return f"장소 '{pl.get('name')}': 모르는 스프라이트 '{pl['sprite']}'"
+        if not rot_ok(pl):
+            return f"장소 '{pl.get('name')}': rot은 0/90/180/270, flip은 true/false"
+        if not all(cell_ok(c) for c in pl.get("doors", [])):
+            return f"장소 '{pl.get('name')}': 문 칸이 맵 밖이에요"
+        sp = pl.get("spawn")
+        if sp is not None and not cell_ok([sp.get("x"), sp.get("y")]):
+            return f"장소 '{pl.get('name')}': 스폰이 맵 밖이에요"
+    for d in m.get("decos", []):
+        if d.get("sprite") not in map_keys:
+            return f"데코: 모르는 스프라이트 '{d.get('sprite')}'"
+        if not cell_ok([d.get("x"), d.get("y")]):
+            return f"데코 '{d.get('sprite')}': 위치가 맵 밖이에요"
+        if not rot_ok(d):
+            return f"데코 '{d.get('sprite')}': rot은 0/90/180/270, flip은 true/false"
+    return None
+
+
+def dock_state() -> dict:
+    """Editor view of the dock: layout (data/dock.json or default), available N.png images, atlas keys."""
+    n, size = 0, (0, 0)
+    imgs = sorted((p for p in C.DOCK_DIR.glob("*.png") if p.stem.isdigit()), key=lambda p: int(p.stem)) if C.DOCK_DIR.exists() else []
+    if imgs:
+        with Image.open(imgs[0]) as im:
+            size = im.size
+        n = len(imgs)
+    else:
+        gen = C.OUT_DIR / "dock"
+        built = sorted(gen.glob("*.png"), key=lambda p: int(p.stem)) if gen.exists() else []
+        if built:
+            with Image.open(built[0]) as im:
+                size = im.size
+            n = len(built)
+    layout = P.default_dock_layout(n, size)
+    if C.DOCK_FILE.exists():
+        layout = json.loads(C.DOCK_FILE.read_text(encoding="utf-8"))
+        layout["w"], layout["h"] = size
+    return {"dock": layout, "images": n, "w": size[0], "h": size[1],
+            "built": (C.OUT_DIR / "dock").exists()}
+
+
+def validate_dock(d: dict, n_images: int, keys: dict[str, set[str]]) -> str | None:
+    layers = d.get("layers")
+    if not isinstance(layers, list):
+        return "layers가 없어요"
+    for i, l in enumerate(layers):
+        kind = l.get("kind")
+        if kind == "image":
+            if not isinstance(l.get("src"), int) or not 0 <= l["src"] < n_images:
+                return f"레이어 {i}: 없는 이미지 {l.get('src')}.png"
+        elif kind == "slice":
+            if l.get("atlas") not in keys or l.get("key") not in keys[l["atlas"]]:
+                return f"레이어 {i}: 모르는 슬라이스 '{l.get('key')}' ({l.get('atlas')}) — 빌드했나요?"
+            sc = l.get("scale", 1)
+            if not isinstance(sc, (int, float)) or sc <= 0 or sc > 16:
+                return f"레이어 {i}: scale은 0보다 크고 16 이하"
+        else:
+            return f"레이어 {i}: kind는 image 또는 slice"
+        if not isinstance(l.get("x", 0), int) or not isinstance(l.get("y", 0), int):
+            return f"레이어 {i}: x/y는 정수"
     return None
 
 
@@ -437,6 +541,8 @@ class Handler(BaseHTTPRequestHandler):
                     "tile_keys": sorted(s["key"] for s in P.load_slices() if s["key"].startswith(P.TILE_PREFIX)),
                     "atlas": {"interior": (C.OUT_DIR / "interiors.json").exists(), "map": (C.OUT_DIR / "map.json").exists()},
                 })
+            elif u.path == "/api/dock":
+                self.send_json(dock_state())
             elif u.path == "/api/singles":
                 self.send_json({"files": singles_files(unquote(q.get("theme", [""])[0]))})
             elif u.path.startswith("/single/"):
@@ -509,15 +615,31 @@ class Handler(BaseHTTPRequestHandler):
                 if "inn" not in body:
                     self.send_json({"error": "거점 방 'inn'은 지울 수 없어요"}, 400)
                     return
-                item_ids = {it["id"] for it in load_items()["items"]}
+                items_by_id = {it["id"]: it for it in load_items()["items"]}
+                item_ids = set(items_by_id)
                 tile_keys = {s["key"] for s in P.load_slices() if s["key"].startswith(P.TILE_PREFIX)}
+                warnings: list[str] = []
                 for rid, room in body.items():
                     err = validate_room(rid, room, set(body), item_ids, tile_keys)
                     if err:
                         self.send_json({"error": err}, 400)
                         return
+                    warnings += seed_warnings(rid, room, items_by_id)
                 save_rooms(body)
-                self.send_json({"ok": True, "rooms": load_rooms()})
+                for w in warnings:
+                    print("WARNING (seed skipped in game):", w)
+                self.send_json({"ok": True, "rooms": load_rooms(), "warnings": warnings})
+            elif u.path == "/api/dock":
+                st = dock_state()
+                err = validate_dock(body, st["images"], {"interior": atlas_keys("interiors"), "map": atlas_keys("map")})
+                if err:
+                    self.send_json({"error": err}, 400)
+                    return
+                body["w"], body["h"] = st["w"], st["h"]
+                C.DOCK_FILE.write_text(json.dumps(body, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+                if st["built"]:  # the game reads gen/dock.json; keep it in sync without a full build
+                    P.write_dock_layout(st["images"], (st["w"], st["h"]))
+                self.send_json({"ok": True})
             elif u.path == "/api/map":
                 err = validate_map(body, set(load_rooms()), atlas_keys("map"))
                 if err:

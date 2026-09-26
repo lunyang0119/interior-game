@@ -91,6 +91,10 @@
     <label><span>스냅</span><select id="snapSel"><option>16</option><option>8</option><option>1</option></select></label>
   </div>
   <input type="text" id="search" placeholder="키 검색…" style="width:100%">
+  <div class="row small" style="margin:4px 0">
+    <button id="chkAll" title="목록에 보이는 것 전부">☑ 전체</button><button id="chkAuto" title="목록의 auto_ 만">☑ auto</button><button id="chkNone">☐ 해제</button>
+    <button id="batchRename" class="primary" title="체크한 auto_ 슬라이스의 key를 [폴더_]시트4글자_원래이름 으로">이름 일괄 변경</button>
+  </div>
   <div class="hint">초록=이름 있음 · 회색=auto_ · 파랑=tile_ · 분홍=맵 슬라이스 · ⚠ 아이템 없음 · ● 저장 안 됨</div>
   <ul id="list"></ul>
   </div>
@@ -475,7 +479,10 @@
       const li = document.createElement("li");
       li.className = cls(s) + (s === sel ? " sel" : "");
       const it = itemOf(s);
-      li.textContent = (unsaved.has(s.key) ? "● " : "") + s.key + (it || isMapSlice(s) || s.key.startsWith("tile_") || s.key.startsWith("auto_") ? "" : " ⚠") + (it && tagsOf(it).includes("ruined") ? " 💥" : "");
+      const cb = document.createElement("input"); cb.type = "checkbox"; cb.checked = checked.has(s); cb.style.marginRight = "4px";
+      cb.onclick = (e) => { e.stopPropagation(); if (cb.checked) checked.add(s); else checked.delete(s); updateBatchBtn(); };
+      li.appendChild(cb);
+      li.appendChild(document.createTextNode((unsaved.has(s.key) ? "● " : "") + s.key + (it || isMapSlice(s) || s.key.startsWith("tile_") || s.key.startsWith("auto_") ? "" : " ⚠") + (it && tagsOf(it).includes("ruined") ? " 💥" : "")));
       li.onclick = () => { select(s); scrollTo(s); };
       ul.appendChild(li);
     }
@@ -698,6 +705,54 @@
     }
     partIdx = 0; mark(sel); renderPanel(); draw();
   };
+  // ---- multi-select + batch rename: auto_<sheet>_NNN → [folder_]<sheet 4 chars>_<original>
+  const checked = new Set();
+  const visible = () => allSlices().filter((s) => sheetOf(s) === sheet && (!$("search").value.trim() || s.key.toLowerCase().includes($("search").value.trim().toLowerCase())));
+  const updateBatchBtn = () => { $("batchRename").textContent = checked.size ? `이름 일괄 변경 (${checked.size})` : "이름 일괄 변경"; };
+  const safeKey = (t) => t.toLowerCase().replace(/[^a-z0-9_]+/g, "_").replace(/^_+|_+$/g, "");
+  /** Proposed key for a slice, or null when it is not an auto_/new_ slice. */
+  function autoName(s) {
+    if (!/^(auto|new)_/.test(s.key)) return null;
+    const info = sheetInfo(sheetOf(s));
+    const rel = (info && info.rel) || sheetOf(s) || "";
+    const parts = rel.split("/");
+    const folder = parts.length > 1 && parts[0] !== "Interior" ? safeKey(parts[0]) : "";
+    const stem = parts[parts.length - 1].replace(/\.[^.]+$/, "");
+    const sheet4 = safeKey(stem).replace(/_/g, "").slice(0, 4);
+    let orig = s.key.replace(/^(auto|new)_/, "");
+    const sheetSafe = (s.sheet || "").replace(/\//g, "_");
+    if (sheetSafe && orig.startsWith(sheetSafe + "_")) orig = orig.slice(sheetSafe.length + 1); // auto_<sheet>_017 → 017
+    return [folder, sheet4, safeKey(orig)].filter(Boolean).join("_");
+  }
+  function renameSlice(s, k) {
+    const it = itemOf(s);
+    if (it) { it.sprite = k; if (it.id === s.key) it.id = k; dirtyItems = true; }
+    unsaved.delete(s.key); s.key = k; unsaved.add(k); dirtySlices = true;
+  }
+  $("chkAll").onclick = () => { for (const s of visible()) checked.add(s); renderList(); updateBatchBtn(); };
+  $("chkAuto").onclick = () => { for (const s of visible()) if (/^(auto|new)_/.test(s.key)) checked.add(s); renderList(); updateBatchBtn(); };
+  $("chkNone").onclick = () => { checked.clear(); renderList(); updateBatchBtn(); };
+  $("batchRename").onclick = () => {
+    const targets = [...checked].filter((s) => allSlices().includes(s));
+    if (!targets.length) { alert("먼저 목록에서 체크하세요 (☑ auto 버튼이면 auto_ 전부)"); return; }
+    const taken = new Set(allSlices().map((s) => s.key));
+    const plan = [], skipped = [];
+    for (const s of targets) {
+      const base = autoName(s);
+      if (!base) { skipped.push(s.key); continue; }
+      let k = base, n = 2;
+      while (taken.has(k) || /sheet/i.test(k)) k = `${base}_${n++}`;
+      taken.delete(s.key); taken.add(k);
+      plan.push([s, k]);
+    }
+    if (!plan.length) { alert("체크한 것 중 auto_/new_ 슬라이스가 없어요 (이미 이름 있는 건 건드리지 않아요)"); return; }
+    const lines = plan.slice(0, 15).map(([s, k]) => `${s.key} → ${k}`).join("\n") + (plan.length > 15 ? `\n… 외 ${plan.length - 15}개` : "");
+    if (!confirm(`${plan.length}개 이름을 바꿀까요?${skipped.length ? ` (이름 있는 ${skipped.length}개는 건너뜀)` : ""}\n\n${lines}`)) return;
+    for (const [s, k] of plan) renameSlice(s, k);
+    checked.clear(); renderList(); renderPanel(); draw(); updateBatchBtn();
+    log(`이름 ${plan.length}개 변경 — 저장 버튼으로 slices.json/items.json에 반영`);
+  };
+
   $("sKey").addEventListener("change", () => {
     const k = $("sKey").value.trim();
     if (!k) { $("sKey").value = sel.key; return; }

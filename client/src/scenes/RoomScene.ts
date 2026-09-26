@@ -4,7 +4,7 @@ import { Avatar } from "../avatar/Avatar";
 import { ensureAvatarTextures } from "../avatar/AvatarLoader";
 import { RemoteAvatars } from "../avatar/RemoteAvatars";
 import { bus, toast } from "../bus";
-import type { Catalog, Layer } from "../catalog";
+import { exitAt, hasTag, TAG_FIXED, type Catalog, type Layer, type Room } from "../catalog";
 import { TILE_DEPTH } from "../room/depth";
 import { CELL, worldToCell } from "../room/grid";
 import { ATLAS, ItemLayer } from "../room/ItemLayer";
@@ -18,8 +18,11 @@ const TAP_SLOP = 14; // fingers wobble; keep the long-press alive within this ra
 // a plain tap only opens the menu for these; rugs/wallpaper need a long press so tapping a rug still walks there
 const TAP_MENU_LAYERS: ReadonlySet<Layer> = new Set<Layer>(["furniture", "surface_item"]);
 
+export interface RoomSceneData { id: string | null; room?: string; spawn?: { x: number; y: number } }
+
 export class RoomScene extends Phaser.Scene {
   private cat!: Catalog;
+  private room!: Room;
   private items!: ItemLayer;
   private placement!: PlacementController;
   private me: Avatar | null = null;
@@ -28,26 +31,36 @@ export class RoomScene extends Phaser.Scene {
   private pollTimer: number | null = null;
   private press: { x: number; y: number; t: number; timer: number | null; moved: boolean } | null = null;
   private playerId: string | null = null;
+  private spawn = { x: 0, y: 0 };
   private inflight: Promise<void> | null = null;
   /** Desktop: the ghost follows the mouse until the first click pins it; a drag moves it again. */
   private hoverFollow = false;
+  private leaving = false;
   private onContextMenu = (e: Event) => e.preventDefault();
 
   constructor() {
     super("Room");
   }
 
-  init(data: { id: string | null }): void {
+  init(data: RoomSceneData): void {
+    this.cat = catalog();
     this.playerId = data.id;
+    this.room = this.cat.rooms.get(data.room ?? state.roomId) ?? this.cat.room;
+    this.spawn = data.spawn ?? this.room.spawn;
+    state.roomId = this.room.id;
+    state.roomVersion = -1;
+    state.ruined = 0; // the snapshot fills it in
+    this.leaving = false;
   }
 
   create(): void {
-    this.cat = catalog();
+    this.scale.resize(this.room.cols * CELL, this.room.rows * CELL);
     this.drawRoom();
     this.items = new ItemLayer(this, this.cat);
-    this.placement = new PlacementController(this, this.cat, this.items);
+    this.placement = new PlacementController(this, this.cat, this.room, this.items);
     this.placement.onRestart = () => { this.hoverFollow = true; }; // "+1": the fresh ghost follows the mouse again
     this.remotes = new RemoteAvatars(this, this.cat.chars);
+    bus.emit("room:changed", { id: this.room.id, name: this.room.name, ruined: state.ruined });
 
     this.bindBus();
     this.bindInput();
@@ -57,8 +70,10 @@ export class RoomScene extends Phaser.Scene {
     if (this.playerId && state.token) {
       void this.spawnMe();
       this.bindSocket();
-      socket.connect(state.token);
+      // the socket belongs to main.ts and outlives scenes: tell the server which room we are in now
+      if (socket.connected) this.enterPresence();
     }
+    this.publishOnline();
 
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.teardown());
   }
@@ -67,7 +82,7 @@ export class RoomScene extends Phaser.Scene {
 
   /** Bakes the wall/floor tiles into one RenderTexture: 1 game object instead of cols×rows images per frame. */
   private drawRoom(): void {
-    const { cols, rows, wall_rows, tiles } = this.cat.room;
+    const { cols, rows, wall_rows, tiles } = this.room;
     const rt = this.add.renderTexture(0, 0, cols * CELL, rows * CELL).setOrigin(0).setDepth(TILE_DEPTH);
     rt.beginDraw();
     for (let cy = 0; cy < rows; cy++) {
@@ -95,30 +110,47 @@ export class RoomScene extends Phaser.Scene {
 
   private async doRefresh(): Promise<void> {
     try {
-      const r = await api.room(state.roomVersion);
+      const r = await api.room(this.room.id, state.roomVersion);
       if (!r) return; // 304
+      if (!this.scene.isActive() || r.room !== this.room.id) return; // answer for a room we already left
       state.roomVersion = r.version;
       this.items.sync(r.items);
       this.placement.revalidate();
+      this.setRuined(r.ruined);
     } catch (e) {
       if (e instanceof ApiError && e.code !== "network") toast(msgFor(e.code));
     }
   }
 
+  private setRuined(n: number | undefined): void {
+    if (typeof n !== "number" || n === state.ruined) return;
+    state.ruined = n;
+    bus.emit("room:changed", { id: this.room.id, name: this.room.name, ruined: n });
+  }
+
   private async spawnMe(): Promise<void> {
     await ensureAvatarTextures(this, state.avatar, this.cat.chars);
     if (!this.scene.isActive()) return;
-    const s = this.cat.room.spawn;
+    const s = this.spawn;
     this.me = new Avatar(this, this.cat.chars, state.avatar, s.x, s.y, this.playerId ?? "");
     this.me.onStep = (x, y, dir, moving) => socket.sendMove(x, y, dir, moving);
+    this.me.onArrive = () => this.checkExit();
     this.publishOnline();
   }
 
   // ---------------------------------------------------------------- socket
 
+  private enterPresence(): void {
+    const s = this.me ? { x: this.me.cellX, y: this.me.cellY } : { x: this.spawn.x + 0.5, y: this.spawn.y + 1 };
+    socket.sendEnter(this.room.id, s.x, s.y);
+  }
+
   private bindSocket(): void {
     const offs = [
-      socket.on("hello", (m) => {
+      // hello puts us in the base room; answer with where we actually are and wait for "entered"
+      socket.on("hello", () => this.enterPresence()),
+      socket.on("entered", (m) => {
+        if (m.room !== this.room.id) return;
         this.remotes.reset(m.online);
         this.publishOnline();
         if (m.room_version !== state.roomVersion) void this.refreshRoom();
@@ -130,6 +162,8 @@ export class RoomScene extends Phaser.Scene {
       socket.on("avatar_look", (m) => void this.remotes.look(m.id, m.avatar)),
       socket.on("room", (m) => {
         if (typeof m.balance === "number") this.setBalance(m.balance);
+        if (m.room !== undefined && m.room !== this.room.id) return; // another room changed: only the balance matters
+        if (typeof m.ruined === "number") this.setRuined(m.ruined);
         if (m.version !== state.roomVersion) void this.refreshRoom();
       }),
       socket.on("money", (m) => this.setBalance(m.balance)),
@@ -169,11 +203,13 @@ export class RoomScene extends Phaser.Scene {
   }
 
   private async removeItem(uid: number): Promise<void> {
+    const it = this.cat.byId.get(this.items.get(uid)?.item_id ?? "");
     try {
       const r = await api.remove(uid);
       state.balance = r.balance;
       bus.emit("money", { balance: r.balance });
-      toast("치웠어요 (환불됨)");
+      if (typeof r.ruined === "number" && r.room === this.room.id) this.setRuined(r.ruined);
+      toast(it && hasTag(it, "ruined") ? `팔았어요 (+${it.price}💰)` : "치웠어요 (환불됨)");
     } catch (e) {
       toast(e instanceof ApiError ? msgFor(e.code) : String(e));
     }
@@ -183,6 +219,18 @@ export class RoomScene extends Phaser.Scene {
   private async applyMyLook(look: typeof state.avatar): Promise<void> {
     await ensureAvatarTextures(this, look, this.cat.chars);
     this.me?.setLook(look);
+  }
+
+  // ---------------------------------------------------------------- exits
+
+  /** Arrived on an exit cell → leave through it (main.ts swaps the scene). */
+  private checkExit(): void {
+    if (!this.me || this.leaving) return;
+    const cx = Math.floor(this.me.cellX), cy = Math.floor(this.me.cellY - 0.5);
+    const exit = exitAt(this.room, cx, cy);
+    if (!exit) return;
+    if (this.cat.rooms.has(exit.to)) this.leaving = true; // main.ts restarts the scene; "map" only toasts for now
+    bus.emit("room:exit", { from: this.room.id, to: exit.to, spawn: exit.spawn });
   }
 
   // ---------------------------------------------------------------- input
@@ -220,17 +268,18 @@ export class RoomScene extends Phaser.Scene {
       const { cx, cy } = worldToCell(p.worldX, p.worldY);
       // a plain tap on a placed item opens its menu too (easier than holding on a phone)
       if (this.items.itemAt(cx, cy, TAP_MENU_LAYERS) && this.openMenu(p.worldX, p.worldY, p.x, p.y)) return;
-      if (this.me && cy >= this.cat.room.wall_rows && cx >= 0 && cx < this.cat.room.cols && cy < this.cat.room.rows) {
+      if (this.me && cy >= this.room.wall_rows && cx >= 0 && cx < this.room.cols && cy < this.room.rows) {
         this.me.walkToCell(cx, cy);
       }
     });
   }
 
-  /** Opens the item menu at a world position. Returns false when there is no item there. */
+  /** Opens the item menu at a world position. Returns false when there is no item there (or it is part of the room). */
   private openMenu(wx: number, wy: number, sx: number, sy: number): boolean {
     const { cx, cy } = worldToCell(wx, wy);
     const row = this.items.itemAt(cx, cy);
     if (!row || !this.playerId) return false;
+    if (hasTag(this.cat.byId.get(row.item_id), TAG_FIXED)) return false; // stairs etc.: tapping them walks there
     const rect = this.game.canvas.getBoundingClientRect();
     const scale = rect.width / this.scale.width;
     bus.emit("item:menu", { item: row, screenX: rect.left + sx * scale, screenY: rect.top + sy * scale });
@@ -249,7 +298,6 @@ export class RoomScene extends Phaser.Scene {
     this.unsub = [];
     if (this.pollTimer !== null) clearInterval(this.pollTimer);
     this.game.canvas.removeEventListener("contextmenu", this.onContextMenu);
-    socket.close();
     this.placement.cancel();
     this.remotes.destroy();
     this.items.destroy();

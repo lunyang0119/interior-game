@@ -9,7 +9,7 @@
 ## 카탈로그 편집
 
 `data/items.json`이 유일한 소스. 새 가구 추가 절차는 `tools/preprocess/README.md` 참고.
-방 크기/타일은 `data/room.json`. UI 색/폰트/프레임은 `data/ui_theme.json` (같은 README의 "UI 스킨" 절).
+방은 `data/rooms/<id>.json` (에디터 "방" 탭; `inn`은 필수, `seed`/`exits`/`tags` 설명은 같은 README). UI 색/폰트/프레임은 `data/ui_theme.json` (같은 README의 "UI 스킨" 절).
 
 ## BGM
 
@@ -42,10 +42,11 @@ sudo systemctl restart interior
 | POST | `/api/sync` | 시트 강제 동기화 |
 | PUT | `/api/avatar` | 아바타 레이어 인덱스 |
 | GET | `/api/catalog` | 아이템/방/캐릭터 메타 |
-| GET | `/api/room` | 방 아이템 (ETag 지원) |
-| POST | `/api/room/place` · `/api/room/move` · DELETE `/api/room/item/{uid}` | 배치/이동/삭제 (서버가 규칙 검증) |
+| GET | `/api/rooms` | 방 목록: 버전, 남은 `ruined` 개수, 접속자 수 |
+| GET | `/api/room/{id}` (`/api/room` = inn) | 방 아이템 + `ruined` (ETag = 방 버전) |
+| POST | `/api/room/place` (`room_id`) · `/api/room/move` · DELETE `/api/room/item/{uid}` | 배치/이동/삭제 (서버가 규칙 검증). `ruined`/`fixed` 태그는 구매 불가(`not_for_sale`), `fixed`는 이동·삭제도 불가(`fixed_item`) |
 | POST | `/api/token/rotate` · GET `/api/me/logins` | 토큰 재발급 / 접속 기록 |
-| WS | `/ws` | 온라인 아바타 위치, 방 변경 알림 |
+| WS | `/ws` | 온라인 아바타 위치(같은 방끼리), `enter`로 방 이동, 방 변경 알림(전체) |
 
 복구 링크: `https://도메인/?t=TOKEN` — 열면 토큰이 localStorage로 옮겨지고 URL에서 지워진다.
 

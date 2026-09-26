@@ -28,6 +28,10 @@ Workflow for adding furniture:
 A slice can also be `"parts": [{sheet,x,y,w,h}, ...]` — rects stacked top-to-bottom into one frame (used for the wallpaper strips whose blocks are separated by transparent lines; every wallpaper is cut to 48px = 3 wall rows).
 
 Only named slices (not `auto_*`) go into the atlas. Keys starting with `tile_` are room tiles, not shop items.
+In the editor, tick slices in the list (☑ 전체 / ☑ auto = everything visible on the current sheet + search) and press
+**이름 일괄 변경**: each `auto_`/`new_` key becomes `[<folder>_]<sheet><original>`, e.g. `auto_interiors_017` → `inte_017`,
+a Map sheet `.../Grass.png` → `map_gras_003` (folder omitted when it is `Interior`; sheet = first 4 letters of the file
+name; collisions get `_2`, `_3`…). Items using the slice follow the rename. Named slices are left alone.
 Character strips: 24 frames = 6 per direction in order right, up, left, down. `run` then `idle` are concatenated (48 frames).
 
 ## 정식 팩 낱개 가구 (Theme_Sorter_Singles)
@@ -79,12 +83,22 @@ python tools/preprocess/preprocess.py build                        # map_slices.
 **방** 탭: `data/rooms/<id>.json`. 방 추가/복제/삭제, 이름, cols/rows/wall_rows/zoom, 벽·바닥 타일(`tile_*` 슬라이스), 막힌 칸, 스폰.
 - **시드**: 팔레트에서 아이템을 고르고 "시드 놓기"로 클릭. 게임 시작 시 `$seed` 소유로 미리 놓이고 화면엔 "???"로 보인다. `ruined` 태그면 팔 수 있고, `fixed`면 못 건드린다.
 - **출구(기믹)**: "출구 그리기"로 사각형을 드래그 → 어느 방(`inn_2f` 등)이나 `map`으로 갈지, 도착 좌표. 아바타가 그 칸에 도착하면 이동. 계단 스프라이트는 같은 자리에 시드로 놓고 `stairs, fixed` 태그.
-- 저장하면 `inn`은 게임 서버가 아직 읽는 `data/room.json`에도 복사된다 (다중 방 서버 작업 전까지).
+- 서버는 시작할 때 방마다 **한 번만** 시드를 놓는다 (`room_meta`의 `seeded:<id>`). 시드를 고친 뒤 다시 놓고 싶으면 VM에서 `sqlite3 server/interior.db "DELETE FROM room_meta WHERE k='seeded:inn'"` 후 재시작 (이미 놓인 물건은 그대로 두고 빈 자리에만 추가된다).
+- 저장하면 `inn`은 예전 서버가 읽던 `data/room.json`에도 복사된다 (`data/rooms/`가 있으면 서버는 그쪽을 쓴다).
 
 **맵** 탭: `data/map.json`. cols/rows(크기 적용 버튼), ground/deco 두 레이어에 맵 슬라이스를 칠하기(우클릭=지우개), 막힌 칸, 스폰.
 - **장소**: 큰 스프라이트(집·표지판)를 고르면 "장소 놓기"로 바뀐다. 클릭해서 놓고 → 방 id(또는 `dock`), 이름, 문 칸("문 칸 찍기"). 아바타가 문 칸에 도착하면 "들어가시겠습니까?".
 - 비교용 캐릭터(16×32)가 스폰 위치에 그려진다. 집이 너무 크면 슬라이스 에디터에서 그 집 슬라이스에 `scale` 0.5를 주고 빌드.
 - 팔레트는 마지막 빌드의 `gen/map.png` 기준. 슬라이스를 추가했으면 빌드 후 새로고침.
+- **데코**(`map.decos[]`): 나무·바위처럼 타일 위에 겹쳐 놓는 오브젝트. 팔레트에서 16px보다 큰 스프라이트를 고르면 "데코 놓기"(집 이름이면 "장소 놓기"). ground/deco 타일 레이어와 무관하게 grass·water 위에 놓을 수 있다.
+- **회전·반전**: 장소/데코를 선택하고 `R`(90°씩) / `F`(좌우 반전), 또는 패널 버튼. `rot`(0/90/180/270)·`flip` 필드로 저장. 90/270이면 칸 수 w/h가 바뀐다. 게임 씬은 `setAngle/setFlipX`로 같은 값을 쓰면 된다.
+- **문 여러 칸**: 장소의 "문 칸 찍기"를 켜고 클릭/드래그로 칸 추가, 우클릭으로 제거, 버튼을 다시 누르면 끝. `doors: [[x,y], ...]` (예전 `door:{x,y}`는 열 때 자동 변환).
+- **집별 스폰**: 장소마다 `spawn:{x,y}` = 그 집에서 나왔을 때 서는 칸(기본은 첫 문 바로 아래, "스폰 찍기"로 변경). 방 출구의 `to:"map"`은 이 값을 쓰므로 출구 쪽 도착 좌표는 비활성.
+
+**부두** 탭: `data/dock.json` → 빌드/저장 시 `client/public/gen/dock.json`. `assets/graphic/Map/Dock/N.png` 이미지 레이어와 슬라이스(맵·실내 아틀라스) 레이어를 겹쳐 놓는다.
+- 목록 위가 앞. ↑/↓로 순서, 체크로 표시/숨김, 캔버스 드래그로 픽셀 단위 이동(Shift=16px 스냅), 슬라이스는 scale.
+- 게임에서는 `DockScene`이 `gen/dock.json`을 읽어 같은 순서로 그린다(아바타 없음, 왼쪽 위 나가기·낚시 버튼). 지금은 주소 뒤에 `#dock`을 붙여 들어가고, 맵 장소의 `room: "dock"` 연결은 맵 씬과 함께.
+- VM에 올릴 것: `client/public/gen/dock.json`, `client/public/gen/dock/*.png`, 그리고 클라를 다시 빌드했으면 `server/static/`.
 
 ## 캐릭터 레이어
 
