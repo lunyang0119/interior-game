@@ -1,6 +1,7 @@
 /** Client mirror of server/app/placement.py. Only used to colour the ghost; the server decides. */
 
 import type { Catalog, RoomItem } from "../catalog";
+import { isWallLayer } from "./depth";
 import { footprint } from "./grid";
 
 export interface Check { ok: boolean; code?: string; parentUid: number | null }
@@ -26,7 +27,7 @@ export function checkPlace(cat: Catalog, others: RoomItem[], itemId: string, x: 
       return { ok: false, code: "out_of_bounds", parentUid: null };
     }
     const type = c[1] < room.wall_rows ? "wall" : "floor";
-    if ((it.layer === "wall") !== (type === "wall")) return { ok: false, code: "bad_cell_type", parentUid: null };
+    if (isWallLayer(it.layer) !== (type === "wall")) return { ok: false, code: "bad_cell_type", parentUid: null };
   }
   const cellSet = new Set(cells.map(key));
 

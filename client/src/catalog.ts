@@ -1,4 +1,4 @@
-export type Layer = "wall" | "floor" | "furniture" | "surface_item";
+export type Layer = "wallpaper" | "wall" | "floor" | "furniture" | "surface_item";
 
 export interface Item {
   id: string;
@@ -80,7 +80,7 @@ export function drawList(look: AvatarLook, chars: Chars): { layer: string; idx: 
   return out;
 }
 
-export const Z_SCALE: Record<Layer, number> = { wall: 0, floor: 0, furniture: 10, surface_item: 20 };
+export const Z_SCALE: Record<Layer, number> = { wallpaper: 0, wall: 1, floor: 0, furniture: 10, surface_item: 20 };
 export const Z_AVATAR = 15;
 
 export function makeCatalog(raw: { items: Item[]; room: Room; chars: Chars }): Catalog {

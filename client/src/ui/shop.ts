@@ -8,7 +8,8 @@ const TABS: { key: Layer | "all"; label: string }[] = [
   { key: "furniture", label: "가구" },
   { key: "surface_item", label: "소품" },
   { key: "floor", label: "러그" },
-  { key: "wall", label: "벽" },
+  { key: "wallpaper", label: "벽지" },
+  { key: "wall", label: "벽 장식" },
 ];
 
 let tab: Layer | "all" = "all";

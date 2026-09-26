@@ -8,9 +8,10 @@ from fastapi.staticfiles import StaticFiles
 
 from . import catalog as catalog_mod
 from . import config, sheet
-from .db import connect, migrate, now
+from .db import connect, migrate, now, transaction
 from .errors import ApiError
 from .presence import hub
+from .reconcile import reconcile_items
 from .routers import auth, me, room, ws
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s %(message)s")
@@ -45,8 +46,10 @@ async def _prune_loop() -> None:
 async def lifespan(app: FastAPI):
     conn = connect()
     migrate(conn)
-    conn.close()
     app.state.catalog = catalog_mod.load()
+    with transaction(conn):
+        reconcile_items(conn, app.state.catalog)
+    conn.close()
     app.state.sheet = sheet.from_config()
     hub.bind_loop()
     prune_task = asyncio.create_task(_prune_loop())

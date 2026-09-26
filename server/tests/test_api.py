@@ -191,3 +191,31 @@ def test_register_existing_id_logs_in(client, env):
     me = client.get("/api/me", headers=auth(lun2)).json()
     assert me["id"] == "lun" and me["avatar"]["skin"] == 1
     assert [i["placed_by"] for i in client.get("/api/room").json()["items"]] == ["lun"]
+
+
+def test_reconcile_removes_items_invalidated_by_room_change(env):
+    """Rows placed under an older room layout are dropped + refunded when the server starts."""
+    from fastapi.testclient import TestClient
+    from app.main import create_app
+
+    with TestClient(create_app()) as client:
+        lun = register(client, "lun")
+        r = client.post("/api/room/place", json={"item_id": "chair", "x": 1, "y": 1}, headers=auth(lun))  # first floor row
+        assert r.status_code == 200 and r.json()["balance"] == 750
+        r = client.post("/api/room/place", json={"item_id": "table", "x": 3, "y": 3}, headers=auth(lun))
+        assert r.status_code == 200
+        version = r.json()["version"]
+
+    room = json.loads((env["data"] / "room.json").read_text(encoding="utf-8"))
+    room["wall_rows"] = 2
+    room["tiles"]["wall"] = ["tile_wall", "tile_wall"]
+    (env["data"] / "room.json").write_text(json.dumps(room), encoding="utf-8")
+    import importlib, sys
+    importlib.reload(sys.modules["app.catalog"])
+
+    with TestClient(create_app()) as client:
+        lun = register(client, "lun")
+        items = client.get("/api/room").json()
+        assert [i["item_id"] for i in items["items"]] == ["table"]  # chair now sits on a wall row → gone
+        assert items["version"] == version + 1
+        assert client.get("/api/me", headers=auth(lun)).json()["balance"] == 700  # chair refunded

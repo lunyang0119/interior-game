@@ -29,6 +29,8 @@ export class RoomScene extends Phaser.Scene {
   private press: { x: number; y: number; t: number; timer: number | null; moved: boolean } | null = null;
   private playerId: string | null = null;
   private inflight: Promise<void> | null = null;
+  /** Desktop: the ghost follows the mouse until the first click pins it; a drag moves it again. */
+  private hoverFollow = false;
   private onContextMenu = (e: Event) => e.preventDefault();
 
   constructor() {
@@ -153,8 +155,8 @@ export class RoomScene extends Phaser.Scene {
 
   private bindBus(): void {
     this.unsub.push(
-      bus.on("place:begin", ({ itemId }) => this.placement.begin(itemId)),
-      bus.on("place:move", ({ uid }) => { const row = this.items.get(uid); if (row) this.placement.beginMove(row); }),
+      bus.on("place:begin", ({ itemId }) => { this.hoverFollow = true; this.placement.begin(itemId); }),
+      bus.on("place:move", ({ uid }) => { const row = this.items.get(uid); if (row) { this.hoverFollow = false; this.placement.beginMove(row); } }), // a move starts pinned where the item is
       bus.on("place:confirm", () => void this.placement.confirm()),
       bus.on("place:confirm-again", () => void this.placement.confirm(true)),
       bus.on("place:cancel", () => this.placement.cancel()),
@@ -187,7 +189,7 @@ export class RoomScene extends Phaser.Scene {
     // no browser context menu / iOS callout on long press over the canvas
     this.game.canvas.addEventListener("contextmenu", this.onContextMenu);
     this.input.on(Phaser.Input.Events.POINTER_DOWN, (p: Phaser.Input.Pointer) => {
-      if (this.placement.active) { this.placement.pointer(p.worldX, p.worldY); return; }
+      if (this.placement.active) { this.hoverFollow = false; this.placement.pointer(p.worldX, p.worldY); return; }
       const press = { x: p.x, y: p.y, t: p.downTime, moved: false, timer: null as number | null };
       press.timer = window.setTimeout(() => {
         if (this.press === press && !press.moved) {
@@ -198,8 +200,12 @@ export class RoomScene extends Phaser.Scene {
       this.press = press;
     });
     this.input.on(Phaser.Input.Events.POINTER_MOVE, (p: Phaser.Input.Pointer) => {
-      // touch: ghost follows the finger while pressed; mouse: follows hover so desktop does not look stuck
-      if (this.placement.active) { if (p.isDown || !p.wasTouch) this.placement.pointer(p.worldX, p.worldY); return; }
+      // touch: ghost follows the finger while pressed. mouse: follows hover only until the first click pins it,
+      // otherwise moving to the "놓기" button would drag the ghost along
+      if (this.placement.active) {
+        if (p.isDown || (!p.wasTouch && this.hoverFollow)) this.placement.pointer(p.worldX, p.worldY);
+        return;
+      }
       if (this.press && Phaser.Math.Distance.Between(p.x, p.y, this.press.x, this.press.y) > TAP_SLOP) this.press.moved = true;
     });
     this.input.on(Phaser.Input.Events.POINTER_UP, (p: Phaser.Input.Pointer) => {

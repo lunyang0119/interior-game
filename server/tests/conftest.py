@@ -29,6 +29,7 @@ def env(tmp_path, monkeypatch):
         {"id": "tray", "name": "tray", "price": 10, "sprite": "tray", "w": 2, "h": 1, "layer": "surface_item"},
         {"id": "rug", "name": "rug", "price": 30, "sprite": "rug", "w": 2, "h": 2, "layer": "floor"},
         {"id": "frame", "name": "frame", "price": 20, "sprite": "frame", "w": 1, "h": 1, "layer": "wall"},
+        {"id": "paper", "name": "paper", "price": 15, "sprite": "paper", "w": 2, "h": 1, "layer": "wallpaper"},
     ]}), encoding="utf-8")
     (data / "room.json").write_text(json.dumps({
         "cols": 8, "rows": 6, "wall_rows": 1, "spawn": {"x": 4, "y": 4}, "blocked": [[7, 5]], "zoom": 2,
@@ -40,7 +41,7 @@ def env(tmp_path, monkeypatch):
                              "preset": {"count": 3, "none": 0, "exclusive": True},
                              "outfit": {"count": 0}, "acc": {"count": 0}}},
         "interiors": {"atlas": "gen/interiors.json",
-                      "keys": {k: {} for k in ["table", "chair", "cup", "tray", "rug", "frame", "tile_wall", "tile_floor"]}},
+                      "keys": {k: {} for k in ["table", "chair", "cup", "tray", "rug", "frame", "paper", "tile_wall", "tile_floor"]}},
     }), encoding="utf-8")
 
     monkeypatch.setenv("DB_PATH", str(tmp_path / "test.db"))

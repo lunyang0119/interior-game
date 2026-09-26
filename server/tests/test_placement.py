@@ -26,8 +26,16 @@ def test_out_of_bounds_and_blocked(catalog):
 def test_cell_type(catalog):
     assert err(lambda: validate_place(catalog, [], "chair", 1, 0)) == "bad_cell_type"  # wall row
     assert err(lambda: validate_place(catalog, [], "frame", 1, 3)) == "bad_cell_type"  # floor row
-    assert validate_place(catalog, [], "frame", 1, 0).z == 0
+    assert validate_place(catalog, [], "frame", 1, 0).z == 1
     assert validate_place(catalog, [], "chair", 1, 1).z == 1
+
+
+def test_wallpaper_under_wall_decor(catalog):
+    assert err(lambda: validate_place(catalog, [], "paper", 1, 3)) == "bad_cell_type"  # floor row
+    paper = [row(1, "paper", 1, 0, z=0)]
+    assert validate_place(catalog, paper, "frame", 1, 0).z == 1  # decor hangs over wallpaper
+    assert err(lambda: validate_place(catalog, paper, "paper", 2, 0)) == "collision"  # wallpaper vs wallpaper
+    assert validate_place(catalog, paper, "paper", 3, 0).z == 0
 
 
 def test_furniture_collision_but_rug_ok(catalog):

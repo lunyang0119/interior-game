@@ -1719,78 +1719,6 @@
     "cw": 2,
     "ch": 10
    },
-   "wallpaper_coral": {
-    "w": 32,
-    "h": 131,
-    "cw": 2,
-    "ch": 8
-   },
-   "wallpaper_cream_stripe": {
-    "w": 32,
-    "h": 131,
-    "cw": 2,
-    "ch": 8
-   },
-   "wallpaper_lavender": {
-    "w": 32,
-    "h": 131,
-    "cw": 2,
-    "ch": 8
-   },
-   "wallpaper_orange2": {
-    "w": 32,
-    "h": 131,
-    "cw": 2,
-    "ch": 8
-   },
-   "wallpaper_plank_gold": {
-    "w": 32,
-    "h": 131,
-    "cw": 2,
-    "ch": 8
-   },
-   "wallpaper_plank_tan2": {
-    "w": 32,
-    "h": 131,
-    "cw": 2,
-    "ch": 8
-   },
-   "wallpaper_purple2": {
-    "w": 32,
-    "h": 131,
-    "cw": 2,
-    "ch": 8
-   },
-   "wallpaper_red_stripe": {
-    "w": 32,
-    "h": 131,
-    "cw": 2,
-    "ch": 8
-   },
-   "wallpaper_salmon": {
-    "w": 32,
-    "h": 131,
-    "cw": 2,
-    "ch": 8
-   },
-   "wallpaper_sky_blue": {
-    "w": 32,
-    "h": 131,
-    "cw": 2,
-    "ch": 8
-   },
-   "wallpaper_starry_navy": {
-    "w": 32,
-    "h": 131,
-    "cw": 2,
-    "ch": 8
-   },
-   "wallpaper_teal_dark": {
-    "w": 32,
-    "h": 131,
-    "cw": 2,
-    "ch": 8
-   },
    "med_001": {
     "w": 80,
     "h": 128,
@@ -2307,54 +2235,6 @@
     "cw": 1,
     "ch": 4
    },
-   "wallpaper_brick_tan": {
-    "w": 64,
-    "h": 62,
-    "cw": 4,
-    "ch": 3
-   },
-   "wallpaper_plank_cream": {
-    "w": 64,
-    "h": 62,
-    "cw": 4,
-    "ch": 3
-   },
-   "wallpaper_plank_green": {
-    "w": 64,
-    "h": 62,
-    "cw": 4,
-    "ch": 3
-   },
-   "wallpaper_quatrefoil_sage": {
-    "w": 64,
-    "h": 62,
-    "cw": 4,
-    "ch": 3
-   },
-   "wallpaper_cream_solid": {
-    "w": 64,
-    "h": 61,
-    "cw": 4,
-    "ch": 3
-   },
-   "wallpaper_olive_panel": {
-    "w": 64,
-    "h": 61,
-    "cw": 4,
-    "ch": 3
-   },
-   "wallpaper_orange_solid": {
-    "w": 64,
-    "h": 61,
-    "cw": 4,
-    "ch": 3
-   },
-   "wallpaper_tan_solid": {
-    "w": 64,
-    "h": 61,
-    "cw": 4,
-    "ch": 3
-   },
    "floor_brick_orange": {
     "w": 64,
     "h": 53,
@@ -2506,6 +2386,54 @@
     "ch": 3
    },
    "tv_table_fa": {
+    "w": 64,
+    "h": 48,
+    "cw": 4,
+    "ch": 3
+   },
+   "wallpaper_brick_tan": {
+    "w": 64,
+    "h": 48,
+    "cw": 4,
+    "ch": 3
+   },
+   "wallpaper_cream_solid": {
+    "w": 64,
+    "h": 48,
+    "cw": 4,
+    "ch": 3
+   },
+   "wallpaper_olive_panel": {
+    "w": 64,
+    "h": 48,
+    "cw": 4,
+    "ch": 3
+   },
+   "wallpaper_orange_solid": {
+    "w": 64,
+    "h": 48,
+    "cw": 4,
+    "ch": 3
+   },
+   "wallpaper_plank_cream": {
+    "w": 64,
+    "h": 48,
+    "cw": 4,
+    "ch": 3
+   },
+   "wallpaper_plank_green": {
+    "w": 64,
+    "h": 48,
+    "cw": 4,
+    "ch": 3
+   },
+   "wallpaper_quatrefoil_sage": {
+    "w": 64,
+    "h": 48,
+    "cw": 4,
+    "ch": 3
+   },
+   "wallpaper_tan_solid": {
     "w": 64,
     "h": 48,
     "cw": 4,
@@ -3346,6 +3274,84 @@
     "ch": 3
    },
    "vanity_mirror_chair_white": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3
+   },
+   "wallpaper_brick_office": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3
+   },
+   "wallpaper_coral": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3
+   },
+   "wallpaper_cream_stripe": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3
+   },
+   "wallpaper_lavender": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3
+   },
+   "wallpaper_orange2": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3
+   },
+   "wallpaper_plank_gold": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3
+   },
+   "wallpaper_plank_tan2": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3
+   },
+   "wallpaper_purple2": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3
+   },
+   "wallpaper_red_stripe": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3
+   },
+   "wallpaper_salmon": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3
+   },
+   "wallpaper_sky_blue": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3
+   },
+   "wallpaper_starry_navy": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3
+   },
+   "wallpaper_teal_dark": {
     "w": 32,
     "h": 48,
     "cw": 2,
@@ -4954,12 +4960,6 @@
     "ch": 2
    },
    "toilet_white_fp": {
-    "w": 32,
-    "h": 32,
-    "cw": 2,
-    "ch": 2
-   },
-   "wallpaper_brick_office": {
     "w": 32,
     "h": 32,
     "cw": 2,
@@ -6735,13 +6735,31 @@
     "cw": 1,
     "ch": 1
    },
+   "tile_wall_left_mid": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
    "tile_wall_left_top": {
     "w": 16,
     "h": 16,
     "cw": 1,
     "ch": 1
    },
+   "tile_wall_mid": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
    "tile_wall_right_bottom": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "tile_wall_right_mid": {
     "w": 16,
     "h": 16,
     "cw": 1,

@@ -2,8 +2,9 @@
 
 Rules (see plan §3):
 1. item exists, footprint inside the room, no blocked cells
-2. every footprint cell has the right type for the layer (wall ↔ wall rows, else floor)
-3. wall/floor/furniture only collide with items of the same layer
+2. every footprint cell has the right type for the layer (wallpaper/wall ↔ wall rows, else floor)
+3. wallpaper/wall/floor/furniture only collide with items of the same layer
+   (so frames, doors and chalkboards can hang over wallpaper)
 4. surface_item needs exactly one is_surface furniture under every cell, the same
    one for all cells, and no other surface_item in those cells
 """
@@ -12,7 +13,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from .catalog import Catalog, Item, Z_OF_LAYER
+from .catalog import Catalog, Item, WALL_LAYERS, Z_OF_LAYER
 from .errors import ApiError
 
 
@@ -60,7 +61,7 @@ def validate_place(catalog: Catalog, others: list[ItemRow], item_id: str, x: int
     if any(not room.in_bounds(cx, cy) or (cx, cy) in blocked for cx, cy in cells):
         raise fail("out_of_bounds")
 
-    want = "wall" if it.layer == "wall" else "floor"
+    want = "wall" if it.layer in WALL_LAYERS else "floor"
     if any(room.cell_type(cx, cy) != want for cx, cy in cells):
         raise fail("bad_cell_type")
 

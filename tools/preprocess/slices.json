@@ -11,33 +11,33 @@
   "key": "wallpaper_brick_tan",
   "sheet": "floors_walls02",
   "x": 16,
-  "y": 13,
+  "y": 27,
   "w": 64,
-  "h": 62
+  "h": 48
  },
  {
   "key": "wallpaper_quatrefoil_sage",
   "sheet": "floors_walls02",
   "x": 80,
-  "y": 13,
+  "y": 27,
   "w": 64,
-  "h": 62
+  "h": 48
  },
  {
   "key": "wallpaper_plank_green",
   "sheet": "floors_walls02",
   "x": 144,
-  "y": 13,
+  "y": 27,
   "w": 64,
-  "h": 62
+  "h": 48
  },
  {
   "key": "wallpaper_plank_cream",
   "sheet": "floors_walls02",
   "x": 208,
-  "y": 13,
+  "y": 27,
   "w": 64,
-  "h": 62
+  "h": 48
  },
  {
   "key": "floor_brick_orange",
@@ -5930,7 +5930,7 @@
  {
   "key": "tile_wall_right_top",
   "sheet": "room_builder",
-  "x": 48,
+  "x": 32,
   "y": 112,
   "w": 16,
   "h": 16
@@ -5940,6 +5940,30 @@
   "sheet": "room_builder",
   "x": 176,
   "y": 112,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "tile_wall_left_mid",
+  "sheet": "room_builder",
+  "x": 0,
+  "y": 114,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "tile_wall_mid",
+  "sheet": "room_builder",
+  "x": 16,
+  "y": 114,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "tile_wall_right_mid",
+  "sheet": "room_builder",
+  "x": 32,
+  "y": 114,
   "w": 16,
   "h": 16
  },
@@ -5962,7 +5986,7 @@
  {
   "key": "tile_wall_right_bottom",
   "sheet": "room_builder",
-  "x": 48,
+  "x": 32,
   "y": 128,
   "w": 16,
   "h": 16
@@ -6235,14 +6259,6 @@
   "key": "cleaning_rag_sm",
   "sheet": "spritesheet_misc",
   "x": 160,
-  "y": 0,
-  "w": 32,
-  "h": 32
- },
- {
-  "key": "wallpaper_brick_office",
-  "sheet": "spritesheet_misc",
-  "x": 192,
   "y": 0,
   "w": 32,
   "h": 32
@@ -6547,33 +6563,33 @@
   "key": "wallpaper_olive_panel",
   "sheet": "topdown_floors_walls",
   "x": 16,
-  "y": 16,
+  "y": 29,
   "w": 64,
-  "h": 61
+  "h": 48
  },
  {
   "key": "wallpaper_orange_solid",
   "sheet": "topdown_floors_walls",
   "x": 80,
-  "y": 16,
+  "y": 29,
   "w": 64,
-  "h": 61
+  "h": 48
  },
  {
   "key": "wallpaper_cream_solid",
   "sheet": "topdown_floors_walls",
   "x": 144,
-  "y": 16,
+  "y": 29,
   "w": 64,
-  "h": 61
+  "h": 48
  },
  {
   "key": "wallpaper_tan_solid",
   "sheet": "topdown_floors_walls",
   "x": 208,
-  "y": 16,
+  "y": 29,
   "w": 64,
-  "h": 61
+  "h": 48
  },
  {
   "key": "floor_plank_olive",
@@ -7408,102 +7424,6 @@
   "h": 16
  },
  {
-  "key": "wallpaper_plank_gold",
-  "sheet": "walls_and_floors",
-  "x": 1,
-  "y": 1,
-  "w": 32,
-  "h": 131
- },
- {
-  "key": "wallpaper_plank_tan2",
-  "sheet": "walls_and_floors",
-  "x": 34,
-  "y": 1,
-  "w": 32,
-  "h": 131
- },
- {
-  "key": "wallpaper_salmon",
-  "sheet": "walls_and_floors",
-  "x": 67,
-  "y": 1,
-  "w": 32,
-  "h": 131
- },
- {
-  "key": "wallpaper_sky_blue",
-  "sheet": "walls_and_floors",
-  "x": 100,
-  "y": 1,
-  "w": 32,
-  "h": 131
- },
- {
-  "key": "wallpaper_starry_navy",
-  "sheet": "walls_and_floors",
-  "x": 133,
-  "y": 1,
-  "w": 32,
-  "h": 131
- },
- {
-  "key": "wallpaper_red_stripe",
-  "sheet": "walls_and_floors",
-  "x": 166,
-  "y": 1,
-  "w": 32,
-  "h": 131
- },
- {
-  "key": "wallpaper_coral",
-  "sheet": "walls_and_floors",
-  "x": 199,
-  "y": 1,
-  "w": 32,
-  "h": 131
- },
- {
-  "key": "wallpaper_orange2",
-  "sheet": "walls_and_floors",
-  "x": 232,
-  "y": 1,
-  "w": 32,
-  "h": 131
- },
- {
-  "key": "wallpaper_lavender",
-  "sheet": "walls_and_floors",
-  "x": 265,
-  "y": 1,
-  "w": 32,
-  "h": 131
- },
- {
-  "key": "wallpaper_teal_dark",
-  "sheet": "walls_and_floors",
-  "x": 298,
-  "y": 1,
-  "w": 32,
-  "h": 131
- },
- {
-  "key": "wallpaper_purple2",
-  "sheet": "walls_and_floors",
-  "x": 331,
-  "y": 1,
-  "w": 32,
-  "h": 131
- },
- {
-  "key": "wallpaper_cream_stripe",
-  "sheet": "walls_and_floors",
-  "x": 364,
-  "y": 1,
-  "w": 32,
-  "h": 131
- },
- {
   "key": "floor_parquet_orange2",
   "sheet": "walls_and_floors",
   "x": 1,
@@ -7818,6 +7738,253 @@
  {
   "key": "wall_shelf_fa",
   "file": "Furniture Assets/Rooms/Kitchen/Kitchen PNG/Wall Shelf.png"
+ },
+ {
+  "key": "wallpaper_brick_office",
+  "parts": [
+   {
+    "sheet": "spritesheet_misc",
+    "x": 192,
+    "y": 0,
+    "w": 32,
+    "h": 16
+   },
+   {
+    "sheet": "spritesheet_misc",
+    "x": 192,
+    "y": 0,
+    "w": 32,
+    "h": 32
+   }
+  ]
+ },
+ {
+  "key": "wallpaper_coral",
+  "parts": [
+   {
+    "sheet": "walls_and_floors",
+    "x": 199,
+    "y": 34,
+    "w": 32,
+    "h": 16
+   },
+   {
+    "sheet": "walls_and_floors",
+    "x": 199,
+    "y": 67,
+    "w": 32,
+    "h": 32
+   }
+  ]
+ },
+ {
+  "key": "wallpaper_cream_stripe",
+  "parts": [
+   {
+    "sheet": "walls_and_floors",
+    "x": 364,
+    "y": 34,
+    "w": 32,
+    "h": 16
+   },
+   {
+    "sheet": "walls_and_floors",
+    "x": 364,
+    "y": 67,
+    "w": 32,
+    "h": 32
+   }
+  ]
+ },
+ {
+  "key": "wallpaper_lavender",
+  "parts": [
+   {
+    "sheet": "walls_and_floors",
+    "x": 265,
+    "y": 34,
+    "w": 32,
+    "h": 16
+   },
+   {
+    "sheet": "walls_and_floors",
+    "x": 265,
+    "y": 67,
+    "w": 32,
+    "h": 32
+   }
+  ]
+ },
+ {
+  "key": "wallpaper_orange2",
+  "parts": [
+   {
+    "sheet": "walls_and_floors",
+    "x": 232,
+    "y": 34,
+    "w": 32,
+    "h": 16
+   },
+   {
+    "sheet": "walls_and_floors",
+    "x": 232,
+    "y": 67,
+    "w": 32,
+    "h": 32
+   }
+  ]
+ },
+ {
+  "key": "wallpaper_plank_gold",
+  "parts": [
+   {
+    "sheet": "walls_and_floors",
+    "x": 1,
+    "y": 34,
+    "w": 32,
+    "h": 16
+   },
+   {
+    "sheet": "walls_and_floors",
+    "x": 1,
+    "y": 67,
+    "w": 32,
+    "h": 32
+   }
+  ]
+ },
+ {
+  "key": "wallpaper_plank_tan2",
+  "parts": [
+   {
+    "sheet": "walls_and_floors",
+    "x": 34,
+    "y": 34,
+    "w": 32,
+    "h": 16
+   },
+   {
+    "sheet": "walls_and_floors",
+    "x": 34,
+    "y": 67,
+    "w": 32,
+    "h": 32
+   }
+  ]
+ },
+ {
+  "key": "wallpaper_purple2",
+  "parts": [
+   {
+    "sheet": "walls_and_floors",
+    "x": 331,
+    "y": 34,
+    "w": 32,
+    "h": 16
+   },
+   {
+    "sheet": "walls_and_floors",
+    "x": 331,
+    "y": 67,
+    "w": 32,
+    "h": 32
+   }
+  ]
+ },
+ {
+  "key": "wallpaper_red_stripe",
+  "parts": [
+   {
+    "sheet": "walls_and_floors",
+    "x": 166,
+    "y": 34,
+    "w": 32,
+    "h": 16
+   },
+   {
+    "sheet": "walls_and_floors",
+    "x": 166,
+    "y": 67,
+    "w": 32,
+    "h": 32
+   }
+  ]
+ },
+ {
+  "key": "wallpaper_salmon",
+  "parts": [
+   {
+    "sheet": "walls_and_floors",
+    "x": 67,
+    "y": 34,
+    "w": 32,
+    "h": 16
+   },
+   {
+    "sheet": "walls_and_floors",
+    "x": 67,
+    "y": 67,
+    "w": 32,
+    "h": 32
+   }
+  ]
+ },
+ {
+  "key": "wallpaper_sky_blue",
+  "parts": [
+   {
+    "sheet": "walls_and_floors",
+    "x": 100,
+    "y": 34,
+    "w": 32,
+    "h": 16
+   },
+   {
+    "sheet": "walls_and_floors",
+    "x": 100,
+    "y": 67,
+    "w": 32,
+    "h": 32
+   }
+  ]
+ },
+ {
+  "key": "wallpaper_starry_navy",
+  "parts": [
+   {
+    "sheet": "walls_and_floors",
+    "x": 133,
+    "y": 34,
+    "w": 32,
+    "h": 16
+   },
+   {
+    "sheet": "walls_and_floors",
+    "x": 133,
+    "y": 67,
+    "w": 32,
+    "h": 32
+   }
+  ]
+ },
+ {
+  "key": "wallpaper_teal_dark",
+  "parts": [
+   {
+    "sheet": "walls_and_floors",
+    "x": 298,
+    "y": 34,
+    "w": 32,
+    "h": 16
+   },
+   {
+    "sheet": "walls_and_floors",
+    "x": 298,
+    "y": 67,
+    "w": 32,
+    "h": 32
+   }
+  ]
  },
  {
   "key": "wardrobe_fa",

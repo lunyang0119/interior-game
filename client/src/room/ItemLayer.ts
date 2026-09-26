@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 import { Z_SCALE, type Catalog, type Layer, type RoomItem } from "../catalog";
-import { depthOf, sortRowFor } from "./depth";
+import { depthOf, isWallLayer, sortRowFor } from "./depth";
 import { CELL } from "./grid";
 import { footprintOf } from "./rules";
 
@@ -28,7 +28,8 @@ export class ItemLayer {
     for (const row of rows) {
       const e = this.entries.get(row.uid);
       if (!e) {
-        const sprite = this.scene.add.image(0, 0, ATLAS, this.cat.byId.get(row.item_id)?.sprite ?? "").setOrigin(0, 1);
+        const it = this.cat.byId.get(row.item_id);
+        const sprite = this.scene.add.image(0, 0, ATLAS, it?.sprite ?? "").setOrigin(0, isWallLayer(it?.layer) ? 0 : 1);
         this.entries.set(row.uid, { row, sprite });
       } else {
         e.row = row;
@@ -42,7 +43,7 @@ export class ItemLayer {
     const it = this.cat.byId.get(row.item_id);
     const h = it?.h ?? 1;
     let x = row.x * CELL;
-    let y = (row.y + h) * CELL;
+    let y = isWallLayer(it?.layer) ? row.y * CELL : (row.y + h) * CELL;
     let sortRow = sortRowFor(it?.layer, row.y + h - 1);
     if (it?.layer === "surface_item" && row.parent_uid != null) {
       const parent = this.entries.get(row.parent_uid)?.row ?? this.rows.find((r) => r.uid === row.parent_uid);

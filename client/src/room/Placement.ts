@@ -3,7 +3,7 @@ import { api, ApiError, msgFor } from "../api";
 import { bus, toast } from "../bus";
 import { Z_SCALE, type Catalog, type RoomItem } from "../catalog";
 import { state } from "../state";
-import { depthOf, sortRowFor } from "./depth";
+import { depthOf, isWallLayer, sortRowFor } from "./depth";
 import { anchorUnderPointer, CELL } from "./grid";
 import { ATLAS, type ItemLayer } from "./ItemLayer";
 import { checkPlace } from "./rules";
@@ -52,7 +52,7 @@ export class PlacementController {
 
   private makeGhost(): void {
     const it = this.cat.byId.get(this.itemId)!;
-    this.ghost = this.scene.add.image(0, 0, ATLAS, it.sprite).setOrigin(0, 1).setAlpha(0.75);
+    this.ghost = this.scene.add.image(0, 0, ATLAS, it.sprite).setOrigin(0, isWallLayer(it.layer) ? 0 : 1).setAlpha(0.75);
     // the cells a w×h item will occupy: makes "why is it red" obvious for big furniture
     this.footprint = this.scene.add.graphics().setDepth(FOOTPRINT_DEPTH);
   }
@@ -73,7 +73,7 @@ export class PlacementController {
     const others = this.items.rows.filter((r) => r.uid !== this.moveUid);
     const check = checkPlace(this.cat, others, this.itemId, cx, cy);
     this.ok = check.ok;
-    let y = (cy + it.h) * CELL;
+    let y = isWallLayer(it.layer) ? cy * CELL : (cy + it.h) * CELL;
     let sortRow = sortRowFor(it.layer, cy + it.h - 1);
     if (check.ok && check.parentUid != null) {
       const parent = this.items.get(check.parentUid);

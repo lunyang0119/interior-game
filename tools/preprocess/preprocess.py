@@ -61,12 +61,21 @@ def slice_rect(s: dict) -> tuple[int, int, int, int]:
 
 
 def slice_image(s: dict, sheets: dict[str, Image.Image]) -> Image.Image:
-    """Crop for a slice: either a rect on a named sheet or a standalone PNG (`file`, relative to assets/graphic)."""
+    """Crop for a slice: a rect on a named sheet, a standalone PNG (`file`, relative to assets/graphic),
+    or `parts` — a list of rects stacked top-to-bottom (for strips split by transparent separators)."""
     if "file" in s:
         path = C.ASSETS / s["file"]
         if not path.exists():
             raise SystemExit(f"file for slice '{s['key']}' not found: {path}")
         return Image.open(path).convert("RGBA")
+    if "parts" in s:
+        crops = [slice_image({"key": s["key"], **part}, sheets) for part in s["parts"]]
+        out = Image.new("RGBA", (max(c.width for c in crops), sum(c.height for c in crops)))
+        y = 0
+        for c in crops:
+            out.paste(c, (0, y))
+            y += c.height
+        return out
     if s["sheet"] not in sheets:
         raise SystemExit(f"sheet '{s['sheet']}' for slice '{s['key']}' not found")
     x, y, w, h = slice_rect(s)
@@ -366,6 +375,8 @@ def cmd_scaffold(_: argparse.Namespace) -> None:
             continue
         if "file" in s:
             w, h = Image.open(C.ASSETS / s["file"]).size
+        elif "parts" in s:
+            w, h = max(p["w"] for p in s["parts"]), sum(p["h"] for p in s["parts"])
         else:
             w, h = s["w"], s["h"]
         cw, ch = max(1, w // C.CELL), max(1, h // C.CELL)

@@ -12,8 +12,10 @@ from pydantic import BaseModel, Field, model_validator
 
 from . import config
 
-Layer = Literal["wall", "floor", "furniture", "surface_item"]
-Z_OF_LAYER: dict[str, int] = {"wall": 0, "floor": 0, "furniture": 1, "surface_item": 2}
+Layer = Literal["wallpaper", "wall", "floor", "furniture", "surface_item"]
+# wall > wallpaper so a tap on a frame hung over wallpaper picks the frame
+Z_OF_LAYER: dict[str, int] = {"wallpaper": 0, "wall": 1, "floor": 0, "furniture": 1, "surface_item": 2}
+WALL_LAYERS = ("wallpaper", "wall")
 
 
 class Item(BaseModel):
