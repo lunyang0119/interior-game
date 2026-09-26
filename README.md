@@ -6,28 +6,6 @@
 - 서버: FastAPI + SQLite (`server/`)
 - 에셋: LimeZu Modern Interiors → `tools/preprocess/`로 전처리 (원본은 gitignore)
 
-## 로컬 개발
-
-```bash
-# 0. 에셋 (한 번만) — assets/ 에 LimeZu 팩, BGM, 폰트를 둔 뒤
-python tools/preprocess/preprocess.py build    # 가구 아틀라스 + 캐릭터 레이어 → client/public/gen/
-python tools/preprocess/preprocess.py media    # BGM/폰트 → client/public/media/
-python tools/preprocess/preprocess.py ui       # data/ui_theme.json → media/theme.css (+ 9-slice 프레임)
-
-# 1. 서버 (가짜 시트 data/fake_sheet.json 사용)
-cd server
-python -m venv .venv && .venv/Scripts/pip install -e ".[dev]"   # mac/linux: .venv/bin/pip  (pillow 포함 → preprocess 도구도 이 venv로)
-.venv/Scripts/python -m pytest -q
-.venv/Scripts/python -m uvicorn app.main:app --port 8000 --reload
-
-# 2. 클라이언트 (핫 리로드, /api·/ws 는 8000으로 프록시)
-cd client
-npm install
-npm run dev        # http://localhost:5173  (폰: 같은 와이파이에서 --host 주소)
-```
-
-프로덕션 빌드는 `npm run build` → `server/static/`에 생성되고 FastAPI가 같은 오리진에서 서빙한다.
-
 ## 카탈로그 편집
 
 `data/items.json`이 유일한 소스. 새 가구 추가 절차는 `tools/preprocess/README.md` 참고.
@@ -77,7 +55,7 @@ sudo systemctl restart interior
   journalctl -u interior -f
 
 ## 자주 쓰는 것들
-  journalctl -u interior -n 200            # 최근 200줄                                                                                                                       
+  journalctl -u interior -n 200            # 최근 200줄
   journalctl -u interior --since "1 hour ago"
   journalctl -u interior --since today
   journalctl -u interior -p warning        # WARNING 이상만 (에러 찾을 때)
@@ -86,10 +64,10 @@ sudo systemctl restart interior
 
   -f로 켜둔 채 폰에서 조작해 보면 place/move 에러가 바로 찍힘. 파이썬 예외 트레이스백도 여기 다 들어감.
 
-## 영구 보관 확인
+### 영구 보관 확인
   Ubuntu 기본은 journald가 /var/log/journal/에 영구 저장인데, 혹시 재부팅하면 사라지는 상태면 한 번만:
   sudo mkdir -p /var/log/journal && sudo systemctl restart systemd-journald
 
-## 앱 로그가 너무 적다면
+### 앱 로그가 너무 적다면
   지금 main.py에 logging.basicConfig(level=logging.INFO)라 INFO까지는 나와. 요청별 에러(ApiError)는 access_log 테이블에도 성공/실패로 남으니, journald에서 안 보이면 sqlite3 interior.db
   "select * from access_log order by ts desc limit 50"로 봐도 돼.

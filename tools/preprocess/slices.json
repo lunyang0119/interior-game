@@ -1016,6 +1016,38 @@
   "h": 16
  },
  {
+  "key": "f03_bed_green",
+  "sheet": "furniture03",
+  "x": 3,
+  "y": 0,
+  "w": 44,
+  "h": 32
+ },
+ {
+  "key": "f03_wood_table",
+  "sheet": "furniture03",
+  "x": 48,
+  "y": 0,
+  "w": 48,
+  "h": 32
+ },
+ {
+  "key": "f03_sink",
+  "sheet": "furniture03",
+  "x": 96,
+  "y": 0,
+  "w": 16,
+  "h": 32
+ },
+ {
+  "key": "f03_sink_purple",
+  "sheet": "furniture03",
+  "x": 112,
+  "y": 0,
+  "w": 16,
+  "h": 32
+ },
+ {
   "key": "f03_bench_narrow",
   "sheet": "furniture03",
   "x": 128,
@@ -1024,15 +1056,15 @@
   "h": 16
  },
  {
-  "key": "f03_table_long",
+  "key": "f03_tv_vertical",
   "sheet": "furniture03",
-  "x": 160,
+  "x": 208,
   "y": 0,
-  "w": 64,
+  "w": 16,
   "h": 48
  },
  {
-  "key": "f03_hanging_pouch1",
+  "key": "f03_rug_yellow",
   "sheet": "furniture03",
   "x": 128,
   "y": 16,
@@ -1040,7 +1072,7 @@
   "h": 32
  },
  {
-  "key": "f03_hanging_pouch2",
+  "key": "f03_table_01",
   "sheet": "furniture03",
   "x": 144,
   "y": 16,
@@ -1048,12 +1080,228 @@
   "h": 32
  },
  {
-  "key": "f03_rug_sofa_set",
+  "key": "f03_table_02",
+  "sheet": "furniture03",
+  "x": 160,
+  "y": 16,
+  "w": 16,
+  "h": 32
+ },
+ {
+  "key": "f03_table_03",
+  "sheet": "furniture03",
+  "x": 176,
+  "y": 16,
+  "w": 16,
+  "h": 32
+ },
+ {
+  "key": "f03_table_04",
+  "sheet": "furniture03",
+  "x": 192,
+  "y": 16,
+  "w": 16,
+  "h": 32
+ },
+ {
+  "key": "f03_bed_01",
+  "sheet": "furniture03",
+  "x": 0,
+  "y": 32,
+  "w": 32,
+  "h": 48
+ },
+ {
+  "key": "f03_wood_table_vertical",
+  "sheet": "furniture03",
+  "x": 32,
+  "y": 32,
+  "w": 32,
+  "h": 48
+ },
+ {
+  "key": "f03_rug_02",
+  "sheet": "furniture03",
+  "x": 64,
+  "y": 32,
+  "w": 64,
+  "h": 32
+ },
+ {
+  "key": "f03_stool",
   "sheet": "furniture03",
   "x": 128,
   "y": 48,
-  "w": 96,
-  "h": 112
+  "w": 16,
+  "h": 32
+ },
+ {
+  "key": "f03_stool_02",
+  "sheet": "furniture03",
+  "x": 144,
+  "y": 48,
+  "w": 16,
+  "h": 32
+ },
+ {
+  "key": "f03_plants",
+  "sheet": "furniture03",
+  "x": 171,
+  "y": 48,
+  "w": 21,
+  "h": 32
+ },
+ {
+  "key": "f03_tv",
+  "sheet": "furniture03",
+  "x": 192,
+  "y": 48,
+  "w": 32,
+  "h": 32
+ },
+ {
+  "key": "f03_tub",
+  "sheet": "furniture03",
+  "x": 64,
+  "y": 64,
+  "w": 32,
+  "h": 48
+ },
+ {
+  "key": "f03_tub_purple",
+  "sheet": "furniture03",
+  "x": 96,
+  "y": 64,
+  "w": 32,
+  "h": 48
+ },
+ {
+  "key": "f03_bed_02",
+  "sheet": "furniture03",
+  "x": 0,
+  "y": 80,
+  "w": 48,
+  "h": 48
+ },
+ {
+  "key": "f03_stool_03",
+  "sheet": "furniture03",
+  "x": 48,
+  "y": 80,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "f03_rug_neko",
+  "sheet": "furniture03",
+  "x": 128,
+  "y": 80,
+  "w": 32,
+  "h": 16
+ },
+ {
+  "key": "f03_plants_yeop",
+  "sheet": "furniture03",
+  "x": 160,
+  "y": 80,
+  "w": 16,
+  "h": 32
+ },
+ {
+  "key": "f03_tv_side",
+  "sheet": "furniture03",
+  "x": 176,
+  "y": 80,
+  "w": 16,
+  "h": 48
+ },
+ {
+  "key": "f03_tv_back",
+  "sheet": "furniture03",
+  "x": 192,
+  "y": 80,
+  "w": 32,
+  "h": 32
+ },
+ {
+  "key": "f03_slipper_left",
+  "sheet": "furniture03",
+  "x": 48,
+  "y": 96,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "f03_rug_neko_vert",
+  "sheet": "furniture03",
+  "x": 128,
+  "y": 96,
+  "w": 16,
+  "h": 32
+ },
+ {
+  "key": "f03_sofa_solo_03",
+  "sheet": "furniture03",
+  "x": 144,
+  "y": 96,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "f03_slipper_front",
+  "sheet": "furniture03",
+  "x": 48,
+  "y": 112,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "f03_haning_key_empty",
+  "sheet": "furniture03",
+  "x": 64,
+  "y": 112,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "f03_haning_key_01",
+  "sheet": "furniture03",
+  "x": 80,
+  "y": 112,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "f03_sofa_solo_01",
+  "sheet": "furniture03",
+  "x": 96,
+  "y": 112,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "f03_sofa_solo_02",
+  "sheet": "furniture03",
+  "x": 112,
+  "y": 112,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "f03_stool_04",
+  "sheet": "furniture03",
+  "x": 144,
+  "y": 112,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "f03_plant_01",
+  "sheet": "furniture03",
+  "x": 192,
+  "y": 112,
+  "w": 16,
+  "h": 48
  },
  {
   "key": "f03_bed_maroon_set",
@@ -1061,10 +1309,26 @@
   "x": 0,
   "y": 128,
   "w": 48,
-  "h": 80
+  "h": 48
  },
  {
-  "key": "f03_small_vase",
+  "key": "f03_slipper_back",
+  "sheet": "furniture03",
+  "x": 48,
+  "y": 128,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "f03_haning_key_empty_02",
+  "sheet": "furniture03",
+  "x": 64,
+  "y": 128,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "f03_haning_key_02",
   "sheet": "furniture03",
   "x": 80,
   "y": 128,
@@ -1072,12 +1336,36 @@
   "h": 16
  },
  {
-  "key": "f03_bookshelf_frame",
+  "key": "f03_rug_olive_vertical",
   "sheet": "furniture03",
   "x": 96,
   "y": 128,
   "w": 32,
   "h": 48
+ },
+ {
+  "key": "f03_slipper_ehh",
+  "sheet": "furniture03",
+  "x": 128,
+  "y": 128,
+  "w": 48,
+  "h": 32
+ },
+ {
+  "key": "f03_stool_05",
+  "sheet": "furniture03",
+  "x": 176,
+  "y": 128,
+  "w": 16,
+  "h": 32
+ },
+ {
+  "key": "f03_chess",
+  "sheet": "furniture03",
+  "x": 208,
+  "y": 128,
+  "w": 16,
+  "h": 32
  },
  {
   "key": "f03_rug_olive",
@@ -1136,7 +1424,7 @@
   "h": 16
  },
  {
-  "key": "bed_green",
+  "key": "i1_counter_green",
   "sheet": "interiors",
   "x": 0,
   "y": 0,
@@ -1144,55 +1432,15 @@
   "h": 80
  },
  {
-  "key": "auto_interiors_002",
+  "key": "int_007",
   "sheet": "interiors",
-  "x": 64,
-  "y": 0,
+  "x": 240,
+  "y": 56,
   "w": 16,
   "h": 16
  },
  {
-  "key": "auto_interiors_003",
-  "sheet": "interiors",
-  "x": 144,
-  "y": 0,
-  "w": 96,
-  "h": 160
- },
- {
-  "key": "auto_interiors_004",
-  "sheet": "interiors",
-  "x": 48,
-  "y": 16,
-  "w": 32,
-  "h": 32
- },
- {
-  "key": "auto_interiors_005",
-  "sheet": "interiors",
-  "x": 80,
-  "y": 16,
-  "w": 64,
-  "h": 64
- },
- {
-  "key": "auto_interiors_006",
-  "sheet": "interiors",
-  "x": 48,
-  "y": 48,
-  "w": 32,
-  "h": 80
- },
- {
-  "key": "auto_interiors_007",
-  "sheet": "interiors",
-  "x": 240,
-  "y": 48,
-  "w": 16,
-  "h": 32
- },
- {
-  "key": "bed_white",
+  "key": "i1_counter_white",
   "sheet": "interiors",
   "x": 0,
   "y": 80,
@@ -1200,60 +1448,36 @@
   "h": 80
  },
  {
-  "key": "auto_interiors_009",
+  "key": "int_009",
   "sheet": "interiors",
   "x": 240,
-  "y": 80,
+  "y": 89,
   "w": 16,
-  "h": 32
+  "h": 16
  },
  {
-  "key": "auto_interiors_010",
+  "key": "new_76",
   "sheet": "interiors",
-  "x": 80,
-  "y": 96,
-  "w": 32,
-  "h": 32
- },
- {
-  "key": "auto_interiors_011",
-  "sheet": "interiors",
-  "x": 240,
+  "x": 95,
   "y": 112,
-  "w": 16,
-  "h": 32
+  "w": 17,
+  "h": 16
  },
  {
-  "key": "auto_interiors_012",
+  "key": "int_011",
   "sheet": "interiors",
-  "x": 48,
-  "y": 128,
+  "x": 240,
+  "y": 120,
   "w": 16,
-  "h": 32
+  "h": 16
  },
  {
-  "key": "auto_interiors_013",
-  "sheet": "interiors",
-  "x": 112,
-  "y": 128,
-  "w": 16,
-  "h": 32
- },
- {
-  "key": "auto_interiors_014",
+  "key": "i1_upstair",
   "sheet": "interiors",
   "x": 128,
-  "y": 128,
+  "y": 138,
   "w": 16,
-  "h": 32
- },
- {
-  "key": "auto_interiors_015",
-  "sheet": "interiors",
-  "x": 64,
-  "y": 144,
-  "w": 16,
-  "h": 16
+  "h": 23
  },
  {
   "key": "table_wood_large",
@@ -1328,12 +1552,20 @@
   "h": 16
  },
  {
-  "key": "auto_interiors_025",
+  "key": "new_73",
   "sheet": "interiors",
   "x": 0,
   "y": 208,
-  "w": 80,
-  "h": 80
+  "w": 32,
+  "h": 16
+ },
+ {
+  "key": "new_72",
+  "sheet": "interiors",
+  "x": 48,
+  "y": 208,
+  "w": 32,
+  "h": 32
  },
  {
   "key": "stool_round",
@@ -1368,12 +1600,20 @@
   "h": 16
  },
  {
+  "key": "new_74",
+  "sheet": "interiors",
+  "x": 0,
+  "y": 224,
+  "w": 32,
+  "h": 32
+ },
+ {
   "key": "auto_interiors_030",
   "sheet": "interiors",
   "x": 80,
   "y": 224,
   "w": 32,
-  "h": 64
+  "h": 32
  },
  {
   "key": "auto_interiors_031",
@@ -1424,6 +1664,30 @@
   "h": 16
  },
  {
+  "key": "new_75",
+  "sheet": "interiors",
+  "x": 16,
+  "y": 253,
+  "w": 64,
+  "h": 29
+ },
+ {
+  "key": "new_80",
+  "sheet": "interiors",
+  "x": 0,
+  "y": 256,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "new_77",
+  "sheet": "interiors",
+  "x": 80,
+  "y": 256,
+  "w": 32,
+  "h": 32
+ },
+ {
   "key": "rug_red_tall",
   "sheet": "interiors",
   "x": 208,
@@ -1440,14 +1704,6 @@
   "h": 32
  },
  {
-  "key": "auto_interiors_039",
-  "sheet": "interiors",
-  "x": 32,
-  "y": 288,
-  "w": 64,
-  "h": 48
- },
- {
   "key": "shelf_small",
   "sheet": "interiors",
   "x": 96,
@@ -1460,11 +1716,19 @@
   "sheet": "interiors",
   "x": 128,
   "y": 288,
-  "w": 48,
+  "w": 32,
   "h": 32
  },
  {
-  "key": "auto_interiors_042",
+  "key": "new_78",
+  "sheet": "interiors",
+  "x": 160,
+  "y": 288,
+  "w": 16,
+  "h": 32
+ },
+ {
+  "key": "new_79",
   "sheet": "interiors",
   "x": 16,
   "y": 304,
@@ -1504,15 +1768,31 @@
   "h": 32
  },
  {
-  "key": "auto_interiors_047",
+  "key": "new_1",
   "sheet": "interiors",
   "x": 32,
   "y": 336,
-  "w": 48,
+  "w": 16,
   "h": 32
  },
  {
-  "key": "auto_interiors_048",
+  "key": "new_2",
+  "sheet": "interiors",
+  "x": 48,
+  "y": 336,
+  "w": 16,
+  "h": 32
+ },
+ {
+  "key": "new_4",
+  "sheet": "interiors",
+  "x": 64,
+  "y": 336,
+  "w": 16,
+  "h": 32
+ },
+ {
+  "key": "new_3",
   "sheet": "interiors",
   "x": 80,
   "y": 336,
@@ -1584,12 +1864,20 @@
   "h": 32
  },
  {
-  "key": "auto_interiors_057",
+  "key": "new_65",
   "sheet": "interiors",
   "x": 64,
   "y": 384,
-  "w": 80,
-  "h": 112
+  "w": 48,
+  "h": 32
+ },
+ {
+  "key": "new_66",
+  "sheet": "interiors",
+  "x": 112,
+  "y": 384,
+  "w": 32,
+  "h": 32
  },
  {
   "key": "window_wood",
@@ -1652,7 +1940,39 @@
   "sheet": "interiors",
   "x": 0,
   "y": 448,
-  "w": 64,
+  "w": 32,
+  "h": 32
+ },
+ {
+  "key": "new_67",
+  "sheet": "interiors",
+  "x": 32,
+  "y": 448,
+  "w": 32,
+  "h": 32
+ },
+ {
+  "key": "new_68",
+  "sheet": "interiors",
+  "x": 64,
+  "y": 448,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "new_70",
+  "sheet": "interiors",
+  "x": 80,
+  "y": 448,
+  "w": 16,
+  "h": 32
+ },
+ {
+  "key": "new_71",
+  "sheet": "interiors",
+  "x": 96,
+  "y": 448,
+  "w": 16,
   "h": 32
  },
  {
@@ -1686,6 +2006,14 @@
   "y": 448,
   "w": 32,
   "h": 32
+ },
+ {
+  "key": "new_69",
+  "sheet": "interiors",
+  "x": 64,
+  "y": 464,
+  "w": 16,
+  "h": 16
  },
  {
   "key": "chair_wood",
@@ -1808,14 +2136,6 @@
   "h": 16
  },
  {
-  "key": "auto_interiors_085",
-  "sheet": "interiors",
-  "x": 0,
-  "y": 528,
-  "w": 144,
-  "h": 32
- },
- {
   "key": "auto_interiors_086",
   "sheet": "interiors",
   "x": 144,
@@ -1896,14 +2216,6 @@
   "h": 32
  },
  {
-  "key": "auto_interiors_096",
-  "sheet": "interiors",
-  "x": 160,
-  "y": 560,
-  "w": 16,
-  "h": 32
- },
- {
   "key": "auto_interiors_097",
   "sheet": "interiors",
   "x": 176,
@@ -1916,7 +2228,31 @@
   "sheet": "interiors",
   "x": 16,
   "y": 576,
-  "w": 64,
+  "w": 16,
+  "h": 32
+ },
+ {
+  "key": "new_62",
+  "sheet": "interiors",
+  "x": 32,
+  "y": 576,
+  "w": 16,
+  "h": 32
+ },
+ {
+  "key": "new_64",
+  "sheet": "interiors",
+  "x": 48,
+  "y": 576,
+  "w": 16,
+  "h": 32
+ },
+ {
+  "key": "new_63",
+  "sheet": "interiors",
+  "x": 64,
+  "y": 576,
+  "w": 16,
   "h": 32
  },
  {
@@ -2000,12 +2336,12 @@
   "h": 32
  },
  {
-  "key": "auto_interiors_109",
+  "key": "new_58",
   "sheet": "interiors",
   "x": 160,
   "y": 608,
   "w": 48,
-  "h": 64
+  "h": 32
  },
  {
   "key": "auto_interiors_110",
@@ -2040,7 +2376,7 @@
   "h": 16
  },
  {
-  "key": "auto_interiors_114",
+  "key": "new_60",
   "sheet": "interiors",
   "x": 32,
   "y": 640,
@@ -2064,7 +2400,7 @@
   "h": 32
  },
  {
-  "key": "auto_interiors_117",
+  "key": "new_61",
   "sheet": "interiors",
   "x": 96,
   "y": 640,
@@ -2077,6 +2413,22 @@
   "x": 112,
   "y": 640,
   "w": 48,
+  "h": 32
+ },
+ {
+  "key": "int_109",
+  "sheet": "interiors",
+  "x": 160,
+  "y": 640,
+  "w": 32,
+  "h": 32
+ },
+ {
+  "key": "new_59",
+  "sheet": "interiors",
+  "x": 192,
+  "y": 640,
+  "w": 16,
   "h": 32
  },
  {
@@ -2120,14 +2472,6 @@
   "h": 32
  },
  {
-  "key": "auto_interiors_124",
-  "sheet": "interiors",
-  "x": 64,
-  "y": 704,
-  "w": 48,
-  "h": 32
- },
- {
   "key": "plant_tree",
   "sheet": "interiors",
   "x": 160,
@@ -2144,7 +2488,7 @@
   "h": 32
  },
  {
-  "key": "auto_interiors_127",
+  "key": "int_127",
   "sheet": "interiors",
   "x": 0,
   "y": 720,
@@ -2152,7 +2496,7 @@
   "h": 48
  },
  {
-  "key": "auto_interiors_128",
+  "key": "int_128",
   "sheet": "interiors",
   "x": 112,
   "y": 720,
@@ -2168,7 +2512,7 @@
   "h": 32
  },
  {
-  "key": "auto_interiors_130",
+  "key": "int_130",
   "sheet": "interiors",
   "x": 32,
   "y": 736,
@@ -2176,7 +2520,7 @@
   "h": 32
  },
  {
-  "key": "auto_interiors_131",
+  "key": "int_131",
   "sheet": "interiors",
   "x": 64,
   "y": 736,
@@ -2184,7 +2528,7 @@
   "h": 32
  },
  {
-  "key": "auto_interiors_132",
+  "key": "int_132",
   "sheet": "interiors",
   "x": 80,
   "y": 736,
@@ -2288,12 +2632,28 @@
   "h": 32
  },
  {
-  "key": "auto_interiors_145",
+  "key": "int_145",
   "sheet": "interiors",
-  "x": 32,
+  "x": 112,
   "y": 816,
-  "w": 160,
-  "h": 64
+  "w": 32,
+  "h": 48
+ },
+ {
+  "key": "new_56",
+  "sheet": "interiors",
+  "x": 144,
+  "y": 816,
+  "w": 32,
+  "h": 48
+ },
+ {
+  "key": "new_57",
+  "sheet": "interiors",
+  "x": 176,
+  "y": 816,
+  "w": 16,
+  "h": 32
  },
  {
   "key": "auto_interiors_146",
@@ -2392,15 +2752,15 @@
   "h": 32
  },
  {
-  "key": "auto_interiors_158",
+  "key": "new_54",
   "sheet": "interiors",
   "x": 80,
   "y": 880,
-  "w": 48,
-  "h": 64
+  "w": 32,
+  "h": 32
  },
  {
-  "key": "auto_interiors_159",
+  "key": "int_159",
   "sheet": "interiors",
   "x": 144,
   "y": 880,
@@ -2416,7 +2776,7 @@
   "h": 32
  },
  {
-  "key": "auto_interiors_161",
+  "key": "int_161",
   "sheet": "interiors",
   "x": 224,
   "y": 880,
@@ -2424,7 +2784,7 @@
   "h": 32
  },
  {
-  "key": "auto_interiors_162",
+  "key": "int_162",
   "sheet": "interiors",
   "x": 240,
   "y": 880,
@@ -2432,7 +2792,15 @@
   "h": 32
  },
  {
-  "key": "auto_interiors_163",
+  "key": "int_158",
+  "sheet": "interiors",
+  "x": 112,
+  "y": 896,
+  "w": 16,
+  "h": 32
+ },
+ {
+  "key": "int_163",
   "sheet": "interiors",
   "x": 128,
   "y": 896,
@@ -2464,7 +2832,7 @@
   "h": 32
  },
  {
-  "key": "auto_interiors_167",
+  "key": "int_167",
   "sheet": "interiors",
   "x": 160,
   "y": 912,
@@ -2472,7 +2840,7 @@
   "h": 48
  },
  {
-  "key": "auto_interiors_168",
+  "key": "int_168",
   "sheet": "interiors",
   "x": 224,
   "y": 912,
@@ -2480,7 +2848,7 @@
   "h": 32
  },
  {
-  "key": "auto_interiors_169",
+  "key": "int_169",
   "sheet": "interiors",
   "x": 240,
   "y": 912,
@@ -2496,11 +2864,27 @@
   "h": 16
  },
  {
-  "key": "auto_interiors_171",
+  "key": "new_55",
+  "sheet": "interiors",
+  "x": 80,
+  "y": 928,
+  "w": 32,
+  "h": 16
+ },
+ {
+  "key": "int_171",
   "sheet": "interiors",
   "x": 128,
   "y": 928,
-  "w": 32,
+  "w": 16,
+  "h": 32
+ },
+ {
+  "key": "new_53",
+  "sheet": "interiors",
+  "x": 144,
+  "y": 928,
+  "w": 16,
   "h": 32
  },
  {
@@ -2536,7 +2920,7 @@
   "h": 32
  },
  {
-  "key": "auto_interiors_176",
+  "key": "int_176",
   "sheet": "interiors",
   "x": 112,
   "y": 944,
@@ -2568,7 +2952,7 @@
   "h": 48
  },
  {
-  "key": "auto_interiors_180",
+  "key": "int_180",
   "sheet": "interiors",
   "x": 112,
   "y": 960,
@@ -2576,7 +2960,7 @@
   "h": 32
  },
  {
-  "key": "auto_interiors_181",
+  "key": "int_181",
   "sheet": "interiors",
   "x": 128,
   "y": 960,
@@ -2584,7 +2968,7 @@
   "h": 32
  },
  {
-  "key": "auto_interiors_182",
+  "key": "int_182",
   "sheet": "interiors",
   "x": 160,
   "y": 960,
@@ -2592,7 +2976,7 @@
   "h": 32
  },
  {
-  "key": "auto_interiors_183",
+  "key": "int_183",
   "sheet": "interiors",
   "x": 176,
   "y": 960,
@@ -2600,7 +2984,7 @@
   "h": 32
  },
  {
-  "key": "auto_interiors_184",
+  "key": "int_184",
   "sheet": "interiors",
   "x": 0,
   "y": 976,
@@ -2608,7 +2992,7 @@
   "h": 80
  },
  {
-  "key": "auto_interiors_185",
+  "key": "int_185",
   "sheet": "interiors",
   "x": 112,
   "y": 992,
@@ -2616,7 +3000,7 @@
   "h": 32
  },
  {
-  "key": "auto_interiors_186",
+  "key": "int_186",
   "sheet": "interiors",
   "x": 144,
   "y": 992,
@@ -2624,7 +3008,7 @@
   "h": 32
  },
  {
-  "key": "auto_interiors_187",
+  "key": "int_187",
   "sheet": "interiors",
   "x": 160,
   "y": 992,
@@ -2656,7 +3040,7 @@
   "h": 48
  },
  {
-  "key": "auto_interiors_191",
+  "key": "int_191",
   "sheet": "interiors",
   "x": 112,
   "y": 1024,
@@ -2672,15 +3056,63 @@
   "h": 32
  },
  {
-  "key": "auto_interiors_193",
+  "key": "new_26",
   "sheet": "interiors",
   "x": 16,
   "y": 1056,
-  "w": 240,
-  "h": 368
+  "w": 16,
+  "h": 32
  },
  {
-  "key": "auto_interiors_194",
+  "key": "new_25",
+  "sheet": "interiors",
+  "x": 32,
+  "y": 1056,
+  "w": 16,
+  "h": 32
+ },
+ {
+  "key": "new_27",
+  "sheet": "interiors",
+  "x": 48,
+  "y": 1056,
+  "w": 16,
+  "h": 32
+ },
+ {
+  "key": "new_18",
+  "sheet": "interiors",
+  "x": 128,
+  "y": 1056,
+  "w": 32,
+  "h": 48
+ },
+ {
+  "key": "new_17",
+  "sheet": "interiors",
+  "x": 160,
+  "y": 1056,
+  "w": 32,
+  "h": 32
+ },
+ {
+  "key": "new_16",
+  "sheet": "interiors",
+  "x": 192,
+  "y": 1056,
+  "w": 16,
+  "h": 32
+ },
+ {
+  "key": "new_19",
+  "sheet": "interiors",
+  "x": 96,
+  "y": 1072,
+  "w": 32,
+  "h": 48
+ },
+ {
+  "key": "int_194",
   "sheet": "interiors",
   "x": 0,
   "y": 1088,
@@ -2688,7 +3120,47 @@
   "h": 32
  },
  {
-  "key": "auto_interiors_195",
+  "key": "new_23",
+  "sheet": "interiors",
+  "x": 16,
+  "y": 1088,
+  "w": 16,
+  "h": 32
+ },
+ {
+  "key": "new_24",
+  "sheet": "interiors",
+  "x": 32,
+  "y": 1088,
+  "w": 16,
+  "h": 32
+ },
+ {
+  "key": "new_28",
+  "sheet": "interiors",
+  "x": 48,
+  "y": 1088,
+  "w": 16,
+  "h": 32
+ },
+ {
+  "key": "new_52",
+  "sheet": "interiors",
+  "x": 64,
+  "y": 1088,
+  "w": 32,
+  "h": 48
+ },
+ {
+  "key": "new_20",
+  "sheet": "interiors",
+  "x": 128,
+  "y": 1104,
+  "w": 32,
+  "h": 48
+ },
+ {
+  "key": "int_195",
   "sheet": "interiors",
   "x": 0,
   "y": 1120,
@@ -2696,7 +3168,55 @@
   "h": 32
  },
  {
-  "key": "auto_interiors_196",
+  "key": "new_22",
+  "sheet": "interiors",
+  "x": 16,
+  "y": 1120,
+  "w": 16,
+  "h": 32
+ },
+ {
+  "key": "new_21",
+  "sheet": "interiors",
+  "x": 32,
+  "y": 1120,
+  "w": 16,
+  "h": 32
+ },
+ {
+  "key": "new_29",
+  "sheet": "interiors",
+  "x": 48,
+  "y": 1120,
+  "w": 16,
+  "h": 32
+ },
+ {
+  "key": "new_13",
+  "sheet": "interiors",
+  "x": 160,
+  "y": 1136,
+  "w": 32,
+  "h": 48
+ },
+ {
+  "key": "new_14",
+  "sheet": "interiors",
+  "x": 192,
+  "y": 1136,
+  "w": 32,
+  "h": 48
+ },
+ {
+  "key": "new_15",
+  "sheet": "interiors",
+  "x": 224,
+  "y": 1136,
+  "w": 32,
+  "h": 48
+ },
+ {
+  "key": "int_196",
   "sheet": "interiors",
   "x": 0,
   "y": 1152,
@@ -2704,7 +3224,39 @@
   "h": 32
  },
  {
-  "key": "auto_interiors_197",
+  "key": "new_30",
+  "sheet": "interiors",
+  "x": 16,
+  "y": 1152,
+  "w": 48,
+  "h": 32
+ },
+ {
+  "key": "new_31",
+  "sheet": "interiors",
+  "x": 64,
+  "y": 1152,
+  "w": 48,
+  "h": 32
+ },
+ {
+  "key": "new_32",
+  "sheet": "interiors",
+  "x": 112,
+  "y": 1152,
+  "w": 32,
+  "h": 32
+ },
+ {
+  "key": "new_33",
+  "sheet": "interiors",
+  "x": 144,
+  "y": 1152,
+  "w": 16,
+  "h": 32
+ },
+ {
+  "key": "int_197",
   "sheet": "interiors",
   "x": 0,
   "y": 1184,
@@ -2712,12 +3264,220 @@
   "h": 32
  },
  {
-  "key": "auto_interiors_198",
+  "key": "new_39",
+  "sheet": "interiors",
+  "x": 16,
+  "y": 1184,
+  "w": 32,
+  "h": 32
+ },
+ {
+  "key": "new_37",
+  "sheet": "interiors",
+  "x": 48,
+  "y": 1184,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "new_38",
+  "sheet": "interiors",
+  "x": 64,
+  "y": 1184,
+  "w": 32,
+  "h": 32
+ },
+ {
+  "key": "new_36",
+  "sheet": "interiors",
+  "x": 96,
+  "y": 1184,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "new_35",
+  "sheet": "interiors",
+  "x": 112,
+  "y": 1184,
+  "w": 32,
+  "h": 32
+ },
+ {
+  "key": "new_34",
+  "sheet": "interiors",
+  "x": 144,
+  "y": 1184,
+  "w": 16,
+  "h": 32
+ },
+ {
+  "key": "not_surface_new_11",
+  "sheet": "interiors",
+  "x": 200,
+  "y": 1184,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "new_12",
+  "sheet": "interiors",
+  "x": 232,
+  "y": 1184,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "new_7",
+  "sheet": "interiors",
+  "x": 176,
+  "y": 1209,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "new_9",
+  "sheet": "interiors",
+  "x": 208,
+  "y": 1209,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "new_10",
+  "sheet": "interiors",
+  "x": 224,
+  "y": 1209,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "new_8",
+  "sheet": "interiors",
+  "x": 192,
+  "y": 1210,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "int_198",
   "sheet": "interiors",
   "x": 0,
   "y": 1216,
   "w": 16,
   "h": 32
+ },
+ {
+  "key": "new_40",
+  "sheet": "interiors",
+  "x": 48,
+  "y": 1216,
+  "w": 32,
+  "h": 48
+ },
+ {
+  "key": "new_41",
+  "sheet": "interiors",
+  "x": 80,
+  "y": 1216,
+  "w": 32,
+  "h": 48
+ },
+ {
+  "key": "new_42",
+  "sheet": "interiors",
+  "x": 112,
+  "y": 1216,
+  "w": 32,
+  "h": 48
+ },
+ {
+  "key": "new_43",
+  "sheet": "interiors",
+  "x": 144,
+  "y": 1216,
+  "w": 32,
+  "h": 48
+ },
+ {
+  "key": "new_6",
+  "sheet": "interiors",
+  "x": 208,
+  "y": 1241,
+  "w": 32,
+  "h": 16
+ },
+ {
+  "key": "new_5",
+  "sheet": "interiors",
+  "x": 176,
+  "y": 1242,
+  "w": 32,
+  "h": 16
+ },
+ {
+  "key": "new_44",
+  "sheet": "interiors",
+  "x": 48,
+  "y": 1280,
+  "w": 32,
+  "h": 48
+ },
+ {
+  "key": "new_45",
+  "sheet": "interiors",
+  "x": 80,
+  "y": 1280,
+  "w": 32,
+  "h": 48
+ },
+ {
+  "key": "new_46",
+  "sheet": "interiors",
+  "x": 112,
+  "y": 1280,
+  "w": 32,
+  "h": 48
+ },
+ {
+  "key": "new_47",
+  "sheet": "interiors",
+  "x": 144,
+  "y": 1280,
+  "w": 32,
+  "h": 48
+ },
+ {
+  "key": "new_50",
+  "sheet": "interiors",
+  "x": 192,
+  "y": 1296,
+  "w": 32,
+  "h": 48
+ },
+ {
+  "key": "new_51",
+  "sheet": "interiors",
+  "x": 224,
+  "y": 1296,
+  "w": 32,
+  "h": 48
+ },
+ {
+  "key": "new_48",
+  "sheet": "interiors",
+  "x": 144,
+  "y": 1376,
+  "w": 32,
+  "h": 48
+ },
+ {
+  "key": "new_49",
+  "sheet": "interiors",
+  "x": 224,
+  "y": 1376,
+  "w": 32,
+  "h": 48
  },
  {
   "key": "med_001",

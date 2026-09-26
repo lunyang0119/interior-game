@@ -12,8 +12,10 @@ room, and can run `build`. Local dev tool only: stdlib http.server + Pillow, not
 from __future__ import annotations
 
 import argparse
+import importlib
 import io
 import json
+import re
 import sys
 import threading
 import traceback
@@ -32,6 +34,37 @@ import preprocess as P  # noqa: E402
 HTML_FILE = Path(__file__).with_name("editor.html")
 ROOM_FILE = C.REPO_ROOT / "data" / "room.json"
 LAYERS = ["furniture", "surface_item", "floor", "wall", "wallpaper"]
+
+# character layer → assets/custom/<folder> + required file-name prefix (same rules as config._gen_layer)
+CHAR_FOLDERS = {
+    "skin": ("Bodies", "Body"),
+    "eyes": ("Eyes", "Eyes"),
+    "outfit": ("Outfits", "Outfit"),
+    "hair": ("Hairstyles", "Hairstyle"),
+    "acc": ("Accessories", "Accessory"),
+}
+CHAR_SHEET_SIZE = (896, 656)
+CHAR_NAME_RE = re.compile(r"^[A-Za-z]+_\d+(?:_[A-Za-z0-9]+)*\.png$")
+
+
+def char_state() -> dict:
+    """Layers as built in manifest.json + the custom sheets on disk (what a rebuild would pick up)."""
+    manifest = C.OUT_DIR / "manifest.json"
+    layers = json.loads(manifest.read_text(encoding="utf-8"))["chars"]["layers"] if manifest.exists() else {}
+    custom = {}
+    for layer, (folder, prefix) in CHAR_FOLDERS.items():
+        d = C.CUSTOM_DIR / folder
+        files = []
+        if d.exists():
+            for p in sorted(d.glob("*.png")):
+                try:
+                    w, h = Image.open(p).size
+                except Exception:
+                    w, h = 0, 0
+                files.append({"name": p.name, "w": w, "h": h, "ok": (w, h) == CHAR_SHEET_SIZE and p.name.startswith(prefix + "_")})
+        custom[layer] = {"folder": folder, "prefix": prefix, "files": files}
+    return {"layers": layers, "order": C.LAYER_ORDER, "custom": custom, "customDir": str(C.CUSTOM_DIR),
+            "frameW": C.FRAME_W, "frameH": C.FRAME_H, "frames": len(C.ANIM_STRIPS) * len(C.DIRS) * C.FRAMES_PER_DIR}
 WALL_LAYERS = ("wall", "wallpaper")
 PREVIEW_FLOOR_ROWS = 5
 PREVIEW_SCALE = 3
@@ -171,6 +204,7 @@ def run_build() -> str:
     try:
         with _lock:
             _sheet_cache.clear()
+        importlib.reload(C)  # re-scan assets/custom so sheets uploaded since startup are included
         P.cmd_build(argparse.Namespace())
     except SystemExit as e:
         print(f"ERROR: {e}")
@@ -235,6 +269,16 @@ class Handler(BaseHTTPRequestHandler):
                     self.send_error(HTTPStatus.NOT_FOUND)
                     return
                 self.send_bytes(C.SHEETS[name].read_bytes(), "image/png")
+            elif u.path == "/api/chars":
+                self.send_json(char_state())
+            elif u.path.startswith("/chars/"):
+                # built strip: gen/chars/<layer>/<n>.png
+                rel = Path(u.path[len("/chars/"):])
+                p = (C.OUT_DIR / "chars" / rel).resolve()
+                if len(rel.parts) != 2 or not p.is_relative_to((C.OUT_DIR / "chars").resolve()) or not p.exists():
+                    self.send_error(HTTPStatus.NOT_FOUND)
+                    return
+                self.send_bytes(p.read_bytes(), "image/png")
             elif u.path == "/api/preview":
                 self.send_bytes(png_bytes(crop_of(json.loads(q["spec"][0]))), "image/png")
             elif u.path == "/api/room-preview":
@@ -269,6 +313,20 @@ class Handler(BaseHTTPRequestHandler):
                 if not all(ids) or len(set(ids)) != len(ids):
                     self.send_json({"error": "id가 비었거나 겹쳐요"}, 400)
                     return
+                bad = [it["id"] for it in body if it.get("is_surface") and it.get("layer") != "furniture"]
+                if bad:
+                    self.send_json({"error": "is_surface는 가구(furniture)만 켤 수 있어요: " + ", ".join(bad)}, 400)
+                    return
+                # every sprite must reach the atlas: a named (non auto_) slice in slices.json
+                keys = {s["key"] for s in P.load_slices() if not s["key"].startswith("auto_")}
+                bad = [it["id"] for it in body if it.get("sprite") not in keys]
+                if bad:
+                    self.send_json({"error": "아틀라스에 없는 sprite (auto_ 이름이거나 슬라이스 없음): " + ", ".join(bad)}, 400)
+                    return
+                bad = [it["id"] for it in body if it.get("layer") not in LAYERS]
+                if bad:
+                    self.send_json({"error": "모르는 layer: " + ", ".join(bad)}, 400)
+                    return
                 data = load_items()
                 data["items"] = body
                 save_items(data)
@@ -279,10 +337,61 @@ class Handler(BaseHTTPRequestHandler):
             self.send_json({"error": f"{type(e).__name__}: {e}"}, 400)
 
     def do_POST(self) -> None:
-        if urlparse(self.path).path == "/api/build":
-            self.send_json({"ok": True, "log": run_build()})
-        else:
-            self.send_error(HTTPStatus.NOT_FOUND)
+        u = urlparse(self.path)
+        q = parse_qs(u.query)
+        try:
+            if u.path == "/api/build":
+                self.send_json({"ok": True, "log": run_build()})
+            elif u.path == "/api/char-upload":
+                # raw PNG body; ?layer=hair&name=Hairstyle_30_01.png → assets/custom/Hairstyles/
+                layer, name = q.get("layer", [""])[0], q.get("name", [""])[0]
+                if layer not in CHAR_FOLDERS:
+                    self.send_json({"error": f"모르는 레이어 {layer}"}, 400)
+                    return
+                folder, prefix = CHAR_FOLDERS[layer]
+                if not CHAR_NAME_RE.match(name) or not name.startswith(prefix + "_"):
+                    self.send_json({"error": f"파일 이름은 {prefix}_번호[_이름]_색번호.png 형식이어야 해요 (예: {prefix}_30_01.png)"}, 400)
+                    return
+                n = int(self.headers.get("Content-Length") or 0)
+                raw = self.rfile.read(n)
+                try:
+                    im = Image.open(io.BytesIO(raw))
+                    im.verify()
+                    size = Image.open(io.BytesIO(raw)).size
+                except Exception:
+                    self.send_json({"error": "PNG 파일이 아니에요"}, 400)
+                    return
+                fitted = False
+                if size != CHAR_SHEET_SIZE:
+                    if q.get("fit", ["0"])[0] != "1":
+                        # tell the page so it can ask before touching the pixels
+                        self.send_json({"error": f"시트 크기는 {CHAR_SHEET_SIZE[0]}×{CHAR_SHEET_SIZE[1]}이어야 해요 (지금 {size[0]}×{size[1]})",
+                                        "size": list(size), "expected": list(CHAR_SHEET_SIZE), "can_fit": True}, 409)
+                        return
+                    # fit: keep the top-left, crop what sticks out right/bottom, pad the rest with transparency
+                    src = Image.open(io.BytesIO(raw)).convert("RGBA")
+                    canvas = Image.new("RGBA", CHAR_SHEET_SIZE, (0, 0, 0, 0))
+                    canvas.paste(src.crop((0, 0, min(src.width, CHAR_SHEET_SIZE[0]), min(src.height, CHAR_SHEET_SIZE[1]))), (0, 0))
+                    raw = png_bytes(canvas)
+                    fitted = True
+                d = C.CUSTOM_DIR / folder
+                d.mkdir(parents=True, exist_ok=True)
+                (d / name).write_bytes(raw)
+                self.send_json({"ok": True, "path": str(d / name), "fitted": fitted, "from": list(size)})
+            elif u.path == "/api/char-delete":
+                body = self.read_json() or {}
+                layer, name = body.get("layer"), body.get("name", "")
+                if layer not in CHAR_FOLDERS or "/" in name or "\\" in name or not name.endswith(".png"):
+                    self.send_json({"error": "잘못된 요청"}, 400)
+                    return
+                p = C.CUSTOM_DIR / CHAR_FOLDERS[layer][0] / name
+                if p.exists():
+                    p.unlink()
+                self.send_json({"ok": True})
+            else:
+                self.send_error(HTTPStatus.NOT_FOUND)
+        except Exception as e:
+            self.send_json({"error": str(e)}, 400)
 
 
 def main(argv: list[str] | None = None) -> None:

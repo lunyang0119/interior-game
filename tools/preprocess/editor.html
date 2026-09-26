@@ -45,10 +45,22 @@
   .parts input[type=number] { width: 54px; }
   .dim { color: var(--dim); }
   .hint { color: var(--dim); font-size: 11px; }
+  #tabs { display: flex; gap: 4px; margin-bottom: 8px; }
+  #tabs button.on { background: #4a4a2a; color: var(--sel); }
+  body.chars #furnLeft, body.chars #stage, body.chars #furnHint, body.chars #right { display: none; }
+  body:not(.chars) #charPanel { display: none; }
+  #charPanel { padding: 12px; }
+  .thumbs { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 10px; }
+  .thumb { width: 48px; height: 96px; background-repeat: no-repeat; image-rendering: pixelated; border: 1px solid var(--line); background-color: #1a1a22; border-radius: 3px; }
+  .thumb.none { opacity: .3; }
+  .files li { margin: 2px 0; }
+  .files .bad { color: var(--red); }
 </style>
 </head>
 <body>
 <div id="left">
+  <div id="tabs"><button id="tabFurn" class="on">가구·슬라이스</button><button id="tabChars">캐릭터</button></div>
+  <div id="furnLeft">
   <label><span>시트</span><select id="sheetSel"></select></label>
   <div class="row">
     <label><span>줌</span><select id="zoomSel"><option>2</option><option selected>3</option><option>4</option><option>6</option></select></label>
@@ -58,11 +70,27 @@
   <input type="text" id="search" placeholder="키 검색…" style="width:100%">
   <div class="hint">초록=이름 있음 · 회색=auto_ · 파랑=tile_ · ⚠ 아이템 없음 · ● 저장 안 됨</div>
   <ul id="list"></ul>
+  </div>
+  <div id="charLeft" class="hint" style="display:none">
+    캐릭터 에셋은 픽셀 지정이 필요 없어요. <code>assets/custom/&lt;폴더&gt;/</code>에 896×656 시트를 넣고(여기서 업로드 가능) <b>빌드</b>하면 자동으로 들어가요.<br><br>
+    빌드 후 VM에 올릴 것: <code>client/public/gen/chars/</code> 폴더 전체 + <code>client/public/gen/manifest.json</code>. 서버 재시작은 필요 없고 새로고침만.
+  </div>
 </div>
 
 <div id="center">
   <div id="stage"><img id="sheet"><canvas id="overlay"></canvas></div>
-  <div class="hint" style="padding:6px">빈 곳 드래그=새 슬라이스 · 클릭=선택 · 드래그=이동 · 모서리=크기 · 방향키=이동 · Delete=삭제</div>
+  <div id="furnHint" class="hint" style="padding:6px">빈 곳 드래그=새 슬라이스 · 클릭=선택 · 드래그=이동 · 모서리=크기 · 방향키=이동 · Delete=삭제</div>
+  <div id="charPanel">
+    <div class="row">
+      <b>내 시트 추가</b>
+      <select id="cLayer"></select>
+      <input type="file" id="cFile" accept="image/png" multiple>
+      <button id="cUpload" class="primary">업로드</button>
+      <button id="cBuild">캐릭터 빌드</button>
+      <span class="hint">파일 이름 = 접두사_스타일번호_색번호.png (예: Hairstyle_30_01.png). 같은 스타일의 다른 색은 _02, _03…</span>
+    </div>
+    <div id="charBody"></div>
+  </div>
 </div>
 
 <div id="right">
@@ -155,6 +183,73 @@
   const cls = (s) => s.key.startsWith("auto_") ? "auto" : s.key.startsWith("tile_") ? "tile" : "named";
   const snapv = (v) => Math.round(v / snap) * snap;
   const mark = (s) => { unsaved.add(s.key); dirtySlices = true; renderList(); };
+
+  // ---- character tab (no pixel picking: lists what a build produces + custom sheets on disk)
+  let CH = null;
+  function setTab(chars) {
+    document.body.classList.toggle("chars", chars);
+    $("tabFurn").classList.toggle("on", !chars); $("tabChars").classList.toggle("on", chars);
+    $("charLeft").style.display = chars ? "" : "none";
+    if (chars) loadChars();
+  }
+  $("tabFurn").onclick = () => setTab(false);
+  $("tabChars").onclick = () => setTab(true);
+  async function loadChars() {
+    CH = await (await fetch("/api/chars")).json();
+    const sel_ = $("cLayer");
+    sel_.innerHTML = Object.entries(CH.custom).map(([k, v]) => `<option value="${k}">${(CH.layers[k] || {}).label || k} → ${v.folder}/</option>`).join("");
+    renderChars();
+  }
+  function renderChars() {
+    const body = $("charBody"); body.innerHTML = "";
+    const downIdle = 42; // frame index of "idle, facing down" (run 0-23, idle 24-47: right/up/left/down × 6)
+    for (const key of CH.order) {
+      const L = CH.layers[key]; if (!L) continue;
+      const h = document.createElement("h3"); h.textContent = `${L.label || key} · ${L.count}개 (빌드된 것)`; body.appendChild(h);
+      const grid = document.createElement("div"); grid.className = "thumbs";
+      for (let i = 0; i < L.count; i++) {
+        const t = document.createElement("div"); t.className = "thumb" + (L.none === i ? " none" : "");
+        t.title = `${i}: ${(L.names || [])[i] || ""}`;
+        t.style.backgroundImage = `url(/chars/${key}/${i}.png)`;
+        t.style.backgroundSize = `${CH.frames * CH.frameW * 3}px ${CH.frameH * 3}px`;
+        t.style.backgroundPosition = `-${downIdle * CH.frameW * 3}px 0`;
+        grid.appendChild(t);
+      }
+      body.appendChild(grid);
+      const cu = CH.custom[key];
+      if (cu) {
+        const ul = document.createElement("ul"); ul.className = "files";
+        ul.innerHTML = `<li class="dim">assets/custom/${cu.folder}/ (${cu.files.length}개)</li>` +
+          cu.files.map((f) => `<li class="${f.ok ? "" : "bad"}">${f.name} <span class="dim">${f.w}×${f.h}</span>${f.ok ? "" : " ⚠ 크기/이름 확인"} <button data-del="${key}|${f.name}">삭제</button></li>`).join("");
+        ul.querySelectorAll("button[data-del]").forEach((b) => b.onclick = async () => {
+          const [layer, name] = b.dataset.del.split("|");
+          if (!confirm(`${name} 삭제할까요? (빌드 전까지 게임에는 그대로 남아요)`)) return;
+          const r = await (await fetch("/api/char-delete", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ layer, name }) })).json();
+          if (r.error) alert(r.error); else { log(`${name} 삭제`); loadChars(); }
+        });
+        body.appendChild(ul);
+      }
+    }
+  }
+  $("cUpload").onclick = async () => {
+    const files = $("cFile").files, layer = $("cLayer").value;
+    if (!files.length) { alert("PNG 파일을 골라주세요"); return; }
+    const send = (f, fit) => fetch(`/api/char-upload?layer=${layer}&name=${encodeURIComponent(f.name)}${fit ? "&fit=1" : ""}`, { method: "POST", body: f });
+    for (const f of files) {
+      let res = await send(f, false), r = await res.json();
+      if (res.status === 409 && r.can_fit) {
+        const [w, h] = r.size, [ew, eh] = r.expected;
+        const how = (w > ew || h > eh ? "튀어나오는 오른쪽/아래는 잘라내고" : "") + (w < ew || h < eh ? (w > ew || h > eh ? " 모자라는 부분은" : "모자라는 오른쪽/아래는") + " 투명으로 채워요" : "");
+        if (!confirm(`${f.name}: 사이즈가 맞지 않습니다 (${w}×${h}, 필요 ${ew}×${eh}). 조정할까요?
+왼쪽 위를 기준으로 ${how.trim()}.`)) { log(`${f.name} 건너뜀`); continue; }
+        res = await send(f, true); r = await res.json();
+      }
+      if (r.error) alert(`${f.name}: ${r.error}`);
+      else log(`업로드 → ${r.path}${r.fitted ? ` (${r.from[0]}×${r.from[1]} → 896×656 조정)` : ""}`);
+    }
+    $("cFile").value = ""; loadChars();
+  };
+  $("cBuild").onclick = () => $("build").click();
 
   // ---- load
   async function load() {
@@ -460,8 +555,10 @@
     if (!it) return;
     $("iId").value = it.id; $("iName").value = it.name; $("iPrice").value = it.price; $("iW").value = it.w; $("iH").value = it.h;
     $("iLayer").value = it.layer; $("iSurface").checked = !!it.is_surface; $("iOff").value = it.surface_offset_y || 0;
+    $("iSurface").disabled = it.layer !== "furniture"; // the server only accepts surfaces on furniture
   }
   $("itemCreate").onclick = () => {
+    if (sel.key.startsWith("auto_")) { alert("auto_ 이름은 아틀라스에 안 들어가요. 먼저 key를 진짜 이름으로 바꿔주세요"); return; }
     const img = $("prevImg");
     const cw = Math.max(1, Math.ceil(img.naturalWidth / S.cell)), ch = Math.max(1, Math.ceil(img.naturalHeight / S.cell));
     items.push({ id: sel.key, name: sel.key.replace(/_/g, " "), price: 50, sprite: sel.key, w: cw, h: ch > 1 ? Math.min(ch, 2) : 1,
@@ -479,7 +576,10 @@
     let v = el.type === "checkbox" ? el.checked : el.type === "number" ? (parseInt(el.value, 10) || 0) : el.value.trim();
     if (f === "id" && (!v || items.some((o) => o !== it && o.id === v))) { alert("id가 비었거나 겹쳐요"); el.value = it.id; return; }
     if ((f === "w" || f === "h") && v < 1) v = 1;
-    it[f] = v; dirtyItems = true; renderList(); refreshPreview();
+    it[f] = v;
+    if (f === "layer" && v !== "furniture") it.is_surface = false;
+    if (f === "is_surface" && v && it.layer !== "furniture") { it.is_surface = false; alert("is_surface는 가구만 켤 수 있어요"); }
+    dirtyItems = true; renderList(); renderItem(); refreshPreview();
   });
   $("iDel").onclick = () => {
     const it = itemOf(sel); if (!it || !confirm(`아이템 '${it.id}'를 지울까요? (슬라이스는 남아요)`)) return;
@@ -502,7 +602,32 @@
       renderList(); renderPanel(); draw(); log(`slices.json 저장 (${slices.length}개)`);
     } catch (e) { alert("저장 실패: " + e.message); }
   };
+  // Same checks the game server runs at startup, so a save here can't produce a catalog the server refuses.
+  function itemProblems() {
+    const keys = new Set(slices.map((s) => s.key));
+    const auto = items.filter((it) => it.sprite.startsWith("auto_"));
+    const missing = items.filter((it) => !it.sprite.startsWith("auto_") && !keys.has(it.sprite));
+    const surface = items.filter((it) => it.is_surface && it.layer !== "furniture");
+    const badLayer = items.filter((it) => !S.layers.includes(it.layer));
+    return { auto, missing, surface, badLayer };
+  }
   $("saveItems").onclick = async () => {
+    const pr = itemProblems();
+    if (pr.auto.length) {
+      const names = pr.auto.map((it) => it.id).join(", ");
+      if (!confirm(`auto_ 이름 그대로인 아이템 ${pr.auto.length}개는 아틀라스에 안 들어가서 서버가 못 떠요.
+(${names})
+
+이 아이템들을 자동으로 삭제하고 저장할까요? (슬라이스는 남아요. 취소하면 저장 안 함)`)) return;
+      const drop = new Set(pr.auto);
+      items = items.filter((it) => !drop.has(it));
+      renderList(); renderItem();
+    }
+    const stop = [];
+    if (pr.missing.length) stop.push(`슬라이스가 없는 sprite: ${pr.missing.map((it) => it.id).join(", ")}`);
+    if (pr.surface.length) stop.push(`가구가 아닌데 is_surface: ${pr.surface.map((it) => it.id).join(", ")}`);
+    if (pr.badLayer.length) stop.push(`모르는 layer: ${pr.badLayer.map((it) => it.id).join(", ")}`);
+    if (stop.length) { alert("저장 못 해요. 먼저 고쳐주세요:\n" + stop.join("\n")); return; }
     try { await put("/api/items", items); dirtyItems = false; log(`items.json 저장 (${items.length}개)`); }
     catch (e) { alert("저장 실패: " + e.message); }
   };
@@ -511,7 +636,7 @@
     $("build").disabled = true; log("빌드 중…");
     try { const j = await (await fetch("/api/build", { method: "POST" })).json(); log(j.log || JSON.stringify(j)); }
     catch (e) { log("빌드 실패: " + e.message); }
-    finally { $("build").disabled = false; }
+    finally { $("build").disabled = false; if (document.body.classList.contains("chars")) loadChars(); }
   };
   window.addEventListener("beforeunload", (e) => { if (dirtySlices || dirtyItems) { e.preventDefault(); e.returnValue = ""; } });
 

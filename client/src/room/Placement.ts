@@ -140,8 +140,7 @@ export class PlacementController {
       const wasMove = this.moveUid !== null;
       if (this.moveUid !== null) {
         const r = await api.move(this.moveUid, cx, cy, span);
-        state.balance = r.balance;
-        bus.emit("money", { balance: r.balance });
+        if (typeof r.balance === "number") { state.balance = r.balance; bus.emit("money", { balance: r.balance }); } // older servers omit it
       } else {
         const r = await api.place(itemId, cx, cy, span);
         state.balance = r.balance;
