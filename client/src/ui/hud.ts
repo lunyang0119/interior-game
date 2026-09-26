@@ -49,17 +49,26 @@ export function initHud(): void {
     toastTimer = window.setTimeout(() => t.classList.add("hidden"), ms ?? 2200);
   });
 
-  bus.on("place:state", ({ active, label, ok, mode }) => {
+  bus.on("place:state", ({ active, label, ok, mode, busy, span, spanMax }) => {
     show("placebar", active);
     show("bottombar", !active);
     $("place-label").textContent = label;
     $("place-confirm").classList.toggle("primary", ok);
     show("place-again", active && mode === "place"); // "one more" only makes sense for new items
+    show("place-span", active && span != null); // wallpaper: pick how many columns it covers
+    if (span != null) {
+      $("place-span-val").textContent = String(span);
+      ($("place-span-dec") as HTMLButtonElement).disabled = span <= 1;
+      ($("place-span-inc") as HTMLButtonElement).disabled = spanMax != null && span >= spanMax;
+    }
+    for (const id of ["place-confirm", "place-again", "place-cancel"]) ($(id) as HTMLButtonElement).disabled = !!busy;
     if (active) closeAllPanels();
   });
   $("place-confirm").addEventListener("click", () => bus.emit("place:confirm"));
   $("place-again").addEventListener("click", () => bus.emit("place:confirm-again"));
   $("place-cancel").addEventListener("click", () => bus.emit("place:cancel"));
+  $("place-span-dec").addEventListener("click", () => bus.emit("place:span", { delta: -1 }));
+  $("place-span-inc").addEventListener("click", () => bus.emit("place:span", { delta: 1 }));
 
   guard($("btn-sync"), async () => {
     if (!state.token) { bus.emit("toast", { text: "먼저 계정을 골라주세요" }); return; }

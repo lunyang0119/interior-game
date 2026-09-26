@@ -13,7 +13,8 @@ export interface Events {
   "place:confirm": void;
   "place:confirm-again": void;
   "place:cancel": void;
-  "place:state": { active: boolean; label: string; ok: boolean; mode: "place" | "move" | null };
+  "place:span": { delta: number };
+  "place:state": { active: boolean; label: string; ok: boolean; mode: "place" | "move" | null; busy?: boolean; span?: number | null; spanMax?: number };
   "room:refresh": void;
   "item:menu": { item: RoomItem; screenX: number; screenY: number };
   "item:remove": { uid: number };

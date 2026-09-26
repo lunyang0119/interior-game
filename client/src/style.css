@@ -40,6 +40,9 @@ img, .framed { image-rendering: pixelated; }
 #bottombar { bottom: var(--safe-bottom); justify-content: center; }
 #placebar { bottom: var(--safe-bottom); justify-content: center; background: var(--chip); backdrop-filter: blur(6px); }
 #place-label { color: var(--text); margin-right: 8px; }
+#place-span { display: inline-flex; align-items: center; gap: 6px; }
+#place-span button { padding: 4px 10px; font-weight: 700; }
+#place-span-val { min-width: 2ch; text-align: center; font-weight: 700; }
 
 /* ---- framed elements: default rounded look, or a pixel 9-slice when the theme provides a frame ---- */
 button, .chip {

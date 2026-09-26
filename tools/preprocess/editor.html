@@ -1,0 +1,529 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>slice editor</title>
+<style>
+  :root { color-scheme: dark; --bg: #1e1e26; --panel: #272733; --line: #3a3a4a; --fg: #e8e8f0; --dim: #9a9ab0;
+          --green: #6fd36f; --grey: #8a8a9a; --blue: #6fb3ff; --sel: #ffd35c; --red: #ff6b6b; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 13px/1.4 system-ui, sans-serif; background: var(--bg); color: var(--fg);
+         display: grid; grid-template-columns: 240px 1fr 340px; grid-template-rows: 1fr auto; height: 100vh; }
+  #left, #right { background: var(--panel); overflow: auto; padding: 8px; border-right: 1px solid var(--line); }
+  #right { border-right: 0; border-left: 1px solid var(--line); }
+  #center { position: relative; overflow: auto; background: #111 repeating-conic-gradient(#1a1a1a 0 25%, #202020 0 50%) 0 0/16px 16px; }
+  #bottom { grid-column: 1 / -1; border-top: 1px solid var(--line); background: var(--panel); padding: 6px 8px;
+            display: flex; gap: 8px; align-items: flex-start; }
+  #log { flex: 1; margin: 0; max-height: 120px; overflow: auto; font: 11px/1.3 ui-monospace, monospace; color: var(--dim); white-space: pre-wrap; }
+  h3 { margin: 10px 0 4px; font-size: 12px; color: var(--dim); text-transform: uppercase; letter-spacing: .05em; }
+  label { display: flex; align-items: center; gap: 6px; margin: 3px 0; }
+  label span { width: 90px; color: var(--dim); }
+  input, select, button { font: inherit; color: var(--fg); background: #1a1a22; border: 1px solid var(--line); border-radius: 4px; padding: 3px 6px; }
+  input[type=number] { width: 70px; }
+  input[type=text] { flex: 1; min-width: 0; }
+  button { cursor: pointer; background: #33334a; }
+  button:hover { background: #40405a; }
+  button.primary { background: #2f6f3f; }
+  button.danger { background: #6f2f2f; }
+  button:disabled { opacity: .5; cursor: default; }
+  .row { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin: 4px 0; }
+  #list { list-style: none; margin: 4px 0; padding: 0; }
+  #list li { padding: 2px 4px; cursor: pointer; border-radius: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #list li:hover { background: #33334a; }
+  #list li.sel { background: #4a4a2a; }
+  #list li.named { color: var(--green); }
+  #list li.auto { color: var(--grey); }
+  #list li.tile { color: var(--blue); }
+  #stage { position: relative; display: inline-block; }
+  #sheet { display: block; image-rendering: pixelated; }
+  #overlay { position: absolute; left: 0; top: 0; cursor: crosshair; }
+  #preview img, #roomprev img { image-rendering: pixelated; max-width: 100%; border: 1px solid var(--line); background: #111; }
+  #roomprev img { width: 100%; }
+  .parts { border: 1px solid var(--line); border-radius: 4px; padding: 4px; margin: 4px 0; }
+  .parts .part { display: flex; gap: 4px; align-items: center; margin: 2px 0; }
+  .parts .part.sel { outline: 1px solid var(--sel); }
+  .parts input[type=number] { width: 54px; }
+  .dim { color: var(--dim); }
+  .hint { color: var(--dim); font-size: 11px; }
+</style>
+</head>
+<body>
+<div id="left">
+  <label><span>시트</span><select id="sheetSel"></select></label>
+  <div class="row">
+    <label><span>줌</span><select id="zoomSel"><option>2</option><option selected>3</option><option>4</option><option>6</option></select></label>
+    <label><input type="checkbox" id="gridChk" checked> 격자</label>
+    <label><span>스냅</span><select id="snapSel"><option>16</option><option>1</option></select></label>
+  </div>
+  <input type="text" id="search" placeholder="키 검색…" style="width:100%">
+  <div class="hint">초록=이름 있음 · 회색=auto_ · 파랑=tile_ · ⚠ 아이템 없음 · ● 저장 안 됨</div>
+  <ul id="list"></ul>
+</div>
+
+<div id="center">
+  <div id="stage"><img id="sheet"><canvas id="overlay"></canvas></div>
+  <div class="hint" style="padding:6px">빈 곳 드래그=새 슬라이스 · 클릭=선택 · 드래그=이동 · 모서리=크기 · 방향키=이동 · Delete=삭제</div>
+</div>
+
+<div id="right">
+  <div id="none" class="dim">슬라이스를 선택하거나 시트에서 드래그하세요.</div>
+  <div id="sliceForm" style="display:none">
+    <h3>슬라이스</h3>
+    <label><span>key</span><input type="text" id="sKey"></label>
+    <div id="rectForm">
+      <div class="row">
+        <label><span>x</span><input type="number" id="sX"></label><label><span>y</span><input type="number" id="sY"></label>
+      </div>
+      <div class="row">
+        <label><span>w</span><input type="number" id="sW" min="1"></label><label><span>h</span><input type="number" id="sH" min="1"></label>
+      </div>
+    </div>
+    <div id="partsForm" class="parts" style="display:none">
+      <div class="hint">parts: 위→아래로 이어 붙임. 캔버스는 선택한 조각을 움직여요.</div>
+      <div id="partsList"></div>
+      <button id="partAdd">조각 추가</button>
+    </div>
+    <div class="row">
+      <button id="toParts">parts로 변환</button>
+      <button id="sDel" class="danger">슬라이스 삭제</button>
+    </div>
+    <div id="fileNote" class="hint" style="display:none"></div>
+
+    <h3>잘린 결과</h3>
+    <div id="preview"><img id="prevImg"><div id="prevInfo" class="dim"></div></div>
+
+    <h3>아이템 (items.json)</h3>
+    <div id="itemNone"><button id="itemCreate">아이템 만들기</button> <span class="hint">이 키로 상점 항목 생성</span></div>
+    <div id="itemForm" style="display:none">
+      <label><span>id</span><input type="text" id="iId"></label>
+      <label><span>이름</span><input type="text" id="iName"></label>
+      <label><span>가격</span><input type="number" id="iPrice" min="0"></label>
+      <div class="row">
+        <label><span>w(칸)</span><input type="number" id="iW" min="1"></label>
+        <label><span>h(칸)</span><input type="number" id="iH" min="1"></label>
+        <button id="iAuto">칸수 자동</button>
+      </div>
+      <label><span>layer</span><select id="iLayer"></select></label>
+      <label><input type="checkbox" id="iSurface"> is_surface (위에 소품 올릴 수 있음)</label>
+      <label><span>surface_offset_y</span><input type="number" id="iOff"></label>
+      <div class="row"><button id="iDel" class="danger">아이템 삭제</button></div>
+    </div>
+
+    <h3>방 미리보기</h3>
+    <div class="row">
+      <label><span>x</span><input type="number" id="rX" value="2" min="0"></label>
+      <label><span>y</span><input type="number" id="rY" value="0" min="0"></label>
+    </div>
+    <div class="row" id="spanRow" style="display:none">
+      <label><span>폭(칸)</span><input type="range" id="rSpan" min="1" max="20" value="4"><b id="rSpanVal">4</b></label>
+    </div>
+    <div id="roomprev"><img id="roomImg"></div>
+  </div>
+</div>
+
+<div id="bottom">
+  <button id="saveSlices" class="primary">슬라이스 저장</button>
+  <button id="saveItems" class="primary">아이템 저장</button>
+  <button id="build">빌드</button>
+  <pre id="log"></pre>
+</div>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const FILE_SHEET = "(file)";
+  const HANDLE = 6;
+
+  // ---- state
+  let S = null;                 // /api/state payload
+  let slices = [];              // working copy
+  let items = [];               // working copy
+  let sheet = null;             // current sheet name
+  let zoom = 3, grid = true, snap = 16;
+  let sel = null;               // selected slice object (reference into `slices`)
+  let partIdx = 0;              // which part of a parts slice the canvas edits
+  let dirtySlices = false, dirtyItems = false;
+  const unsaved = new Set();    // keys edited since last save
+  let sheetImg = $("sheet"), ov = $("overlay"), ctx = ov.getContext("2d");
+  let drag = null;              // {mode:'new'|'move'|'resize', ...}
+
+  const log = (m) => { const el = $("log"); el.textContent += m + "\n"; el.scrollTop = el.scrollHeight; };
+  const rectOf = (s) => ("parts" in s) ? s.parts[Math.min(partIdx, s.parts.length - 1)] : s;
+  const rectsOf = (s) => ("parts" in s) ? s.parts : [s];
+  const sheetOf = (s) => ("file" in s) ? FILE_SHEET : ("parts" in s) ? (s.parts[0] && s.parts[0].sheet) : s.sheet;
+  const itemOf = (s) => items.find((it) => it.sprite === s.key);
+  const cls = (s) => s.key.startsWith("auto_") ? "auto" : s.key.startsWith("tile_") ? "tile" : "named";
+  const snapv = (v) => Math.round(v / snap) * snap;
+  const mark = (s) => { unsaved.add(s.key); dirtySlices = true; renderList(); };
+
+  // ---- load
+  async function load() {
+    S = await (await fetch("/api/state")).json();
+    slices = S.slices; items = S.items;
+    const sel_ = $("sheetSel");
+    sel_.innerHTML = "";
+    for (const sh of S.sheets) {
+      const o = document.createElement("option");
+      o.value = sh.name; o.textContent = sh.exists ? `${sh.name} (${sh.w}×${sh.h})` : `${sh.name} (없음)`;
+      o.disabled = !sh.exists; sel_.appendChild(o);
+    }
+    const fo = document.createElement("option"); fo.value = FILE_SHEET; fo.textContent = FILE_SHEET; sel_.appendChild(fo);
+    $("iLayer").innerHTML = S.layers.map((l) => `<option>${l}</option>`).join("");
+    $("rSpan").max = S.room.cols || 20;
+    setSheet(S.sheets.find((s) => s.exists)?.name || FILE_SHEET);
+  }
+
+  function setSheet(name) {
+    sheet = name; sel = null; drag = null;
+    $("sheetSel").value = name;
+    if (name === FILE_SHEET) { sheetImg.removeAttribute("src"); sheetImg.style.width = sheetImg.style.height = "0"; ov.width = ov.height = 0; }
+    else {
+      sheetImg.onload = () => { layout(); draw(); };
+      sheetImg.src = `/sheet/${name}?t=${Date.now()}`;
+    }
+    renderList(); renderPanel();
+  }
+
+  function layout() {
+    if (sheet === FILE_SHEET) return;
+    const w = sheetImg.naturalWidth * zoom, h = sheetImg.naturalHeight * zoom;
+    sheetImg.style.width = w + "px"; sheetImg.style.height = h + "px";
+    ov.width = w; ov.height = h;
+  }
+
+  // ---- list
+  function renderList() {
+    const q = $("search").value.trim().toLowerCase();
+    const ul = $("list"); ul.innerHTML = "";
+    for (const s of slices) {
+      if (sheetOf(s) !== sheet) continue;
+      if (q && !s.key.toLowerCase().includes(q)) continue;
+      const li = document.createElement("li");
+      li.className = cls(s) + (s === sel ? " sel" : "");
+      li.textContent = (unsaved.has(s.key) ? "● " : "") + s.key + (itemOf(s) || s.key.startsWith("tile_") || s.key.startsWith("auto_") ? "" : " ⚠");
+      li.onclick = () => { select(s); scrollTo(s); };
+      ul.appendChild(li);
+    }
+  }
+  function scrollTo(s) {
+    if (!("x" in rectOf(s))) return;
+    const r = rectOf(s), c = $("center");
+    c.scrollLeft = Math.max(0, r.x * zoom - c.clientWidth / 2); c.scrollTop = Math.max(0, r.y * zoom - c.clientHeight / 2);
+  }
+
+  // ---- canvas
+  function draw() {
+    if (sheet === FILE_SHEET) return;
+    ctx.clearRect(0, 0, ov.width, ov.height);
+    if (grid) {
+      ctx.strokeStyle = "rgba(255,255,255,.12)"; ctx.lineWidth = 1; ctx.beginPath();
+      for (let x = 0; x <= ov.width; x += S.cell * zoom) { ctx.moveTo(x + .5, 0); ctx.lineTo(x + .5, ov.height); }
+      for (let y = 0; y <= ov.height; y += S.cell * zoom) { ctx.moveTo(0, y + .5); ctx.lineTo(ov.width, y + .5); }
+      ctx.stroke();
+    }
+    const color = { named: "#6fd36f", auto: "#8a8a9a", tile: "#6fb3ff" };
+    ctx.font = `${Math.max(10, 3 * zoom)}px sans-serif`;
+    for (const s of slices) {
+      if (sheetOf(s) !== sheet) continue;
+      const isSel = s === sel;
+      rectsOf(s).forEach((r, i) => {
+        if (r.sheet !== sheet) return;
+        ctx.strokeStyle = isSel ? "#ffd35c" : color[cls(s)]; ctx.lineWidth = isSel ? 2 : 1;
+        ctx.strokeRect(r.x * zoom + .5, r.y * zoom + .5, r.w * zoom - 1, r.h * zoom - 1);
+        const label = ("parts" in s) ? `${s.key} #${i + 1}` : s.key;
+        ctx.fillStyle = "rgba(0,0,0,.6)"; const tw = ctx.measureText(label).width;
+        ctx.fillRect(r.x * zoom, r.y * zoom, tw + 4, 12); ctx.fillStyle = isSel ? "#ffd35c" : color[cls(s)];
+        ctx.fillText(label, r.x * zoom + 2, r.y * zoom + 10);
+      });
+    }
+    if (sel && sheetOf(sel) === sheet && rectOf(sel).sheet === sheet) {
+      const r = rectOf(sel); ctx.fillStyle = "#ffd35c";
+      for (const [hx, hy] of handles(r)) ctx.fillRect(hx - HANDLE / 2, hy - HANDLE / 2, HANDLE, HANDLE);
+    }
+    if (drag && drag.mode === "new" && drag.rect) {
+      const r = drag.rect; ctx.strokeStyle = "#fff"; ctx.setLineDash([4, 3]);
+      ctx.strokeRect(r.x * zoom + .5, r.y * zoom + .5, r.w * zoom, r.h * zoom); ctx.setLineDash([]);
+    }
+  }
+  // 8 handles: [x, y, dx, dy] in canvas px, d* = which edges move
+  function handles(r) {
+    const x0 = r.x * zoom, y0 = r.y * zoom, x1 = (r.x + r.w) * zoom, y1 = (r.y + r.h) * zoom, xm = (x0 + x1) / 2, ym = (y0 + y1) / 2;
+    return [[x0, y0, -1, -1], [xm, y0, 0, -1], [x1, y0, 1, -1], [x0, ym, -1, 0], [x1, ym, 1, 0], [x0, y1, -1, 1], [xm, y1, 0, 1], [x1, y1, 1, 1]];
+  }
+  function hitHandle(px, py) {
+    if (!sel || rectOf(sel).sheet !== sheet) return null;
+    for (const [hx, hy, dx, dy] of handles(rectOf(sel))) if (Math.abs(px - hx) <= HANDLE && Math.abs(py - hy) <= HANDLE) return { dx, dy };
+    return null;
+  }
+  function hitSlice(sx, sy) {
+    // topmost = smallest area wins so tiny slices inside big ones stay clickable
+    let best = null, bestA = Infinity;
+    for (const s of slices) {
+      if (sheetOf(s) !== sheet) continue;
+      rectsOf(s).forEach((r, i) => {
+        if (r.sheet !== sheet) return;
+        if (sx >= r.x && sx < r.x + r.w && sy >= r.y && sy < r.y + r.h && r.w * r.h < bestA) { best = { s, i }; bestA = r.w * r.h; }
+      });
+    }
+    return best;
+  }
+
+  ov.addEventListener("mousedown", (e) => {
+    if (sheet === FILE_SHEET) return;
+    const px = e.offsetX, py = e.offsetY, sx = Math.floor(px / zoom), sy = Math.floor(py / zoom);
+    const h = hitHandle(px, py);
+    if (h) { const r = rectOf(sel); drag = { mode: "resize", ...h, start: { ...r }, px, py }; return; }
+    const hit = hitSlice(sx, sy);
+    if (hit) {
+      if (hit.s !== sel) select(hit.s);
+      if ("parts" in hit.s && hit.i !== partIdx) { partIdx = hit.i; renderPanel(); draw(); }
+      const r = rectOf(sel); drag = { mode: "move", start: { ...r }, px, py, moved: false }; return;
+    }
+    drag = { mode: "new", ox: snapv(sx), oy: snapv(sy), rect: null };
+  });
+  ov.addEventListener("mousemove", (e) => {
+    if (!drag) { const h = hitHandle(e.offsetX, e.offsetY); ov.style.cursor = h ? (h.dx * h.dy ? "nwse-resize" : h.dx ? "ew-resize" : "ns-resize") : "crosshair"; return; }
+    const px = e.offsetX, py = e.offsetY, sx = Math.floor(px / zoom), sy = Math.floor(py / zoom);
+    if (drag.mode === "new") {
+      const x0 = Math.min(drag.ox, snapv(sx)), y0 = Math.min(drag.oy, snapv(sy));
+      const x1 = Math.max(drag.ox, snapv(sx)), y1 = Math.max(drag.oy, snapv(sy));
+      drag.rect = { x: x0, y: y0, w: Math.max(snap, x1 - x0), h: Math.max(snap, y1 - y0) };
+      draw(); return;
+    }
+    const dx = snapv((px - drag.px) / zoom), dy = snapv((py - drag.py) / zoom);
+    const r = rectOf(sel), st = drag.start;
+    if (drag.mode === "move") {
+      if (dx || dy) drag.moved = true;
+      r.x = Math.max(0, st.x + dx); r.y = Math.max(0, st.y + dy);
+    } else {
+      if (drag.dx < 0) { r.x = Math.min(st.x + dx, st.x + st.w - snap); r.w = st.x + st.w - r.x; }
+      if (drag.dx > 0) r.w = Math.max(snap, st.w + dx);
+      if (drag.dy < 0) { r.y = Math.min(st.y + dy, st.y + st.h - snap); r.h = st.y + st.h - r.y; }
+      if (drag.dy > 0) r.h = Math.max(snap, st.h + dy);
+    }
+    fillRectForm(); draw();
+  });
+  window.addEventListener("mouseup", () => {
+    if (!drag) return;
+    const d = drag; drag = null;
+    if (d.mode === "new") {
+      if (d.rect) createSlice(d.rect);
+      else draw();
+      return;
+    }
+    const r = rectOf(sel), st = d.start;
+    if (r.x !== st.x || r.y !== st.y || r.w !== st.w || r.h !== st.h) { mark(sel); refreshPreview(); }
+    draw();
+  });
+  window.addEventListener("keydown", (e) => {
+    if (!sel || ["INPUT", "SELECT", "TEXTAREA"].includes(document.activeElement.tagName)) return;
+    const r = rectOf(sel); if (!("x" in r)) return;
+    const step = e.shiftKey ? snap * 4 : snap;
+    const map = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step] };
+    if (map[e.key]) { r.x = Math.max(0, r.x + map[e.key][0]); r.y = Math.max(0, r.y + map[e.key][1]); mark(sel); fillRectForm(); refreshPreview(); draw(); e.preventDefault(); }
+    if (e.key === "Delete") deleteSlice();
+  });
+
+  function createSlice(rect) {
+    let n = 1; while (slices.some((s) => s.key === `new_${n}`)) n++;
+    const s = { key: `new_${n}`, sheet, x: rect.x, y: rect.y, w: rect.w, h: rect.h };
+    slices.push(s); mark(s); select(s);
+    $("sKey").focus(); $("sKey").select();
+  }
+  function deleteSlice() {
+    if (!sel) return;
+    if (!confirm(`'${sel.key}' 슬라이스를 지울까요?` + (itemOf(sel) ? " (items.json 항목도 같이 지워요)" : ""))) return;
+    const it = itemOf(sel);
+    if (it) { items.splice(items.indexOf(it), 1); dirtyItems = true; }
+    slices.splice(slices.indexOf(sel), 1); unsaved.delete(sel.key); dirtySlices = true;
+    sel = null; renderList(); renderPanel(); draw();
+  }
+
+  // ---- panel
+  function select(s) { sel = s; partIdx = 0; renderList(); renderPanel(); draw(); }
+
+  function renderPanel() {
+    const has = !!sel;
+    $("none").style.display = has ? "none" : ""; $("sliceForm").style.display = has ? "" : "none";
+    if (!has) return;
+    $("sKey").value = sel.key;
+    const isFile = "file" in sel, isParts = "parts" in sel;
+    $("rectForm").style.display = (isFile || isParts) ? "none" : "";
+    $("partsForm").style.display = isParts ? "" : "none";
+    $("fileNote").style.display = isFile ? "" : "none";
+    if (isFile) $("fileNote").textContent = `파일 슬라이스: ${sel.file} (좌표 편집 없음)`;
+    $("toParts").textContent = isParts ? "단일 사각형으로" : "parts로 변환";
+    $("toParts").disabled = isFile;
+    if (isParts) renderParts(); else fillRectForm();
+    renderItem(); refreshPreview();
+  }
+  function fillRectForm() {
+    if (!sel) return;
+    if ("parts" in sel) { renderParts(false); return; }
+    if (!("x" in sel)) return;
+    $("sX").value = sel.x; $("sY").value = sel.y; $("sW").value = sel.w; $("sH").value = sel.h;
+  }
+  function renderParts(rebuild = true) {
+    const box = $("partsList");
+    if (rebuild) {
+      box.innerHTML = "";
+      sel.parts.forEach((p, i) => {
+        const div = document.createElement("div"); div.className = "part" + (i === partIdx ? " sel" : "");
+        div.innerHTML = `<b>#${i + 1}</b> <select data-f="sheet">${S.sheets.filter((s) => s.exists).map((s) => `<option${s.name === p.sheet ? " selected" : ""}>${s.name}</option>`).join("")}</select>
+          x<input type="number" data-f="x" value="${p.x}"> y<input type="number" data-f="y" value="${p.y}"> w<input type="number" data-f="w" value="${p.w}" min="1"> h<input type="number" data-f="h" value="${p.h}" min="1">
+          <button data-a="up">↑</button><button data-a="down">↓</button><button data-a="del">✕</button>`;
+        div.onclick = (e) => { if (e.target.tagName === "DIV" || e.target.tagName === "B") { partIdx = i; renderParts(); draw(); } };
+        div.querySelectorAll("input,select").forEach((inp) => inp.addEventListener("change", () => {
+          const f = inp.dataset.f; p[f] = f === "sheet" ? inp.value : (parseInt(inp.value, 10) || 0);
+          partIdx = i; mark(sel); draw(); refreshPreview();
+        }));
+        div.querySelectorAll("button").forEach((b) => b.onclick = (e) => {
+          e.stopPropagation(); const a = b.dataset.a;
+          if (a === "del") { if (sel.parts.length <= 1) return; sel.parts.splice(i, 1); partIdx = 0; }
+          if (a === "up" && i > 0) { [sel.parts[i - 1], sel.parts[i]] = [sel.parts[i], sel.parts[i - 1]]; partIdx = i - 1; }
+          if (a === "down" && i < sel.parts.length - 1) { [sel.parts[i + 1], sel.parts[i]] = [sel.parts[i], sel.parts[i + 1]]; partIdx = i + 1; }
+          mark(sel); renderParts(); draw(); refreshPreview();
+        });
+        box.appendChild(div);
+      });
+    } else {
+      // only sync numbers (during drag) without rebuilding the DOM
+      box.querySelectorAll(".part").forEach((div, i) => {
+        const p = sel.parts[i]; if (!p) return;
+        div.querySelectorAll("input").forEach((inp) => { inp.value = p[inp.dataset.f]; });
+      });
+    }
+  }
+  $("partAdd").onclick = () => {
+    const last = sel.parts[sel.parts.length - 1];
+    sel.parts.push({ sheet: last.sheet, x: last.x, y: last.y + last.h, w: last.w, h: S.cell });
+    partIdx = sel.parts.length - 1; mark(sel); renderParts(); draw(); refreshPreview();
+  };
+  $("toParts").onclick = () => {
+    if ("parts" in sel) {
+      const p = sel.parts[0]; delete sel.parts; Object.assign(sel, { sheet: p.sheet, x: p.x, y: p.y, w: p.w, h: p.h });
+    } else {
+      const p = { sheet: sel.sheet, x: sel.x, y: sel.y, w: sel.w, h: sel.h };
+      for (const f of ["sheet", "x", "y", "w", "h"]) delete sel[f];
+      sel.parts = [p];
+    }
+    partIdx = 0; mark(sel); renderPanel(); draw();
+  };
+  $("sKey").addEventListener("change", () => {
+    const k = $("sKey").value.trim();
+    if (!k) { $("sKey").value = sel.key; return; }
+    if (slices.some((s) => s !== sel && s.key === k)) { alert(`'${k}'는 이미 있어요`); $("sKey").value = sel.key; return; }
+    const it = itemOf(sel);
+    if (it) { it.sprite = k; if (it.id === sel.key) it.id = k; dirtyItems = true; }
+    unsaved.delete(sel.key); sel.key = k; mark(sel); renderPanel(); draw();
+  });
+  for (const f of ["X", "Y", "W", "H"]) $("s" + f).addEventListener("change", () => {
+    const v = parseInt($("s" + f).value, 10); if (isNaN(v)) return;
+    sel[f.toLowerCase()] = f === "W" || f === "H" ? Math.max(1, v) : Math.max(0, v);
+    mark(sel); draw(); refreshPreview();
+  });
+  $("sDel").onclick = deleteSlice;
+
+  // ---- preview
+  let prevTimer = null;
+  function refreshPreview() {
+    clearTimeout(prevTimer);
+    prevTimer = setTimeout(() => {
+      if (!sel) return;
+      const spec = encodeURIComponent(JSON.stringify(sel));
+      const img = $("prevImg");
+      img.onload = () => {
+        const cw = Math.ceil(img.naturalWidth / S.cell), ch = Math.ceil(img.naturalHeight / S.cell);
+        $("prevInfo").textContent = `${img.naturalWidth}×${img.naturalHeight}px = ${cw}×${ch}칸`;
+        img.style.width = (img.naturalWidth * 3) + "px";
+      };
+      img.onerror = () => { $("prevInfo").textContent = "미리보기 실패 (좌표/시트 확인)"; };
+      img.src = `/api/preview?spec=${spec}&t=${Date.now()}`;
+      refreshRoom(spec);
+    }, 120);
+  }
+  function refreshRoom(spec) {
+    const it = itemOf(sel);
+    const layer = it ? it.layer : "furniture";
+    const w = it ? it.w : 1, h = it ? it.h : 1;
+    $("spanRow").style.display = layer === "wallpaper" ? "" : "none";
+    const span = parseInt($("rSpan").value, 10) || 1; $("rSpanVal").textContent = span;
+    const x = parseInt($("rX").value, 10) || 0, y = parseInt($("rY").value, 10) || 0;
+    $("roomImg").src = `/api/room-preview?spec=${spec}&x=${x}&y=${y}&layer=${layer}&w=${w}&h=${h}&span=${span}&t=${Date.now()}`;
+  }
+  for (const id of ["rX", "rY", "rSpan"]) $(id).addEventListener("input", () => { if (sel) refreshRoom(encodeURIComponent(JSON.stringify(sel))); });
+
+  // ---- item
+  function renderItem() {
+    const it = itemOf(sel);
+    $("itemNone").style.display = it ? "none" : ""; $("itemForm").style.display = it ? "" : "none";
+    if (!it) return;
+    $("iId").value = it.id; $("iName").value = it.name; $("iPrice").value = it.price; $("iW").value = it.w; $("iH").value = it.h;
+    $("iLayer").value = it.layer; $("iSurface").checked = !!it.is_surface; $("iOff").value = it.surface_offset_y || 0;
+  }
+  $("itemCreate").onclick = () => {
+    const img = $("prevImg");
+    const cw = Math.max(1, Math.ceil(img.naturalWidth / S.cell)), ch = Math.max(1, Math.ceil(img.naturalHeight / S.cell));
+    items.push({ id: sel.key, name: sel.key.replace(/_/g, " "), price: 50, sprite: sel.key, w: cw, h: ch > 1 ? Math.min(ch, 2) : 1,
+                 layer: "furniture", is_surface: false, surface_offset_y: 0 });
+    dirtyItems = true; renderList(); renderItem(); refreshPreview();
+  };
+  $("iAuto").onclick = () => {
+    const img = $("prevImg"), it = itemOf(sel);
+    it.w = Math.max(1, Math.ceil(img.naturalWidth / S.cell)); it.h = Math.max(1, Math.ceil(img.naturalHeight / S.cell));
+    dirtyItems = true; renderItem(); refreshPreview();
+  };
+  const itemFields = { iId: "id", iName: "name", iPrice: "price", iW: "w", iH: "h", iLayer: "layer", iSurface: "is_surface", iOff: "surface_offset_y" };
+  for (const [id, f] of Object.entries(itemFields)) $(id).addEventListener("change", () => {
+    const it = itemOf(sel), el = $(id);
+    let v = el.type === "checkbox" ? el.checked : el.type === "number" ? (parseInt(el.value, 10) || 0) : el.value.trim();
+    if (f === "id" && (!v || items.some((o) => o !== it && o.id === v))) { alert("id가 비었거나 겹쳐요"); el.value = it.id; return; }
+    if ((f === "w" || f === "h") && v < 1) v = 1;
+    it[f] = v; dirtyItems = true; renderList(); refreshPreview();
+  });
+  $("iDel").onclick = () => {
+    const it = itemOf(sel); if (!it || !confirm(`아이템 '${it.id}'를 지울까요? (슬라이스는 남아요)`)) return;
+    items.splice(items.indexOf(it), 1); dirtyItems = true; renderList(); renderItem();
+  };
+
+  // ---- save / build
+  async function put(url, body) {
+    const r = await fetch(url, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    const j = await r.json();
+    if (!r.ok || j.error) throw new Error(j.error || r.statusText);
+    return j;
+  }
+  $("saveSlices").onclick = async () => {
+    try {
+      const j = await put("/api/slices", slices);
+      const selKey = sel && sel.key;
+      slices = j.slices; unsaved.clear(); dirtySlices = false;
+      sel = selKey ? slices.find((s) => s.key === selKey) || null : null;
+      renderList(); renderPanel(); draw(); log(`slices.json 저장 (${slices.length}개)`);
+    } catch (e) { alert("저장 실패: " + e.message); }
+  };
+  $("saveItems").onclick = async () => {
+    try { await put("/api/items", items); dirtyItems = false; log(`items.json 저장 (${items.length}개)`); }
+    catch (e) { alert("저장 실패: " + e.message); }
+  };
+  $("build").onclick = async () => {
+    if (dirtySlices || dirtyItems) { if (!confirm("저장 안 한 변경이 있어요. 저장된 내용으로 빌드할까요?")) return; }
+    $("build").disabled = true; log("빌드 중…");
+    try { const j = await (await fetch("/api/build", { method: "POST" })).json(); log(j.log || JSON.stringify(j)); }
+    catch (e) { log("빌드 실패: " + e.message); }
+    finally { $("build").disabled = false; }
+  };
+  window.addEventListener("beforeunload", (e) => { if (dirtySlices || dirtyItems) { e.preventDefault(); e.returnValue = ""; } });
+
+  // ---- left controls
+  $("sheetSel").onchange = () => setSheet($("sheetSel").value);
+  $("zoomSel").onchange = () => { zoom = parseInt($("zoomSel").value, 10); layout(); draw(); };
+  $("gridChk").onchange = () => { grid = $("gridChk").checked; draw(); };
+  $("snapSel").onchange = () => { snap = parseInt($("snapSel").value, 10); };
+  $("search").oninput = renderList;
+
+  load().catch((e) => log("로드 실패: " + e.message));
+})();
+</script>
+</body>
+</html>

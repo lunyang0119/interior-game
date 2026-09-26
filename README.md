@@ -70,3 +70,26 @@ sudo systemctl restart interior
 | WS | `/ws` | 온라인 아바타 위치, 방 변경 알림 |
 
 복구 링크: `https://도메인/?t=TOKEN` — 열면 토큰이 localStorage로 옮겨지고 URL에서 지워진다.
+
+# 에러 로그 보는 법
+
+## 실시간으로 보기 (tail -f 같은 느낌)
+  journalctl -u interior -f
+
+## 자주 쓰는 것들
+  journalctl -u interior -n 200            # 최근 200줄                                                                                                                       
+  journalctl -u interior --since "1 hour ago"
+  journalctl -u interior --since today
+  journalctl -u interior -p warning        # WARNING 이상만 (에러 찾을 때)
+  journalctl -u interior -g "removed item" # grep처럼 검색
+  journalctl -u interior --no-pager | less # 페이저 없이 전체
+
+  -f로 켜둔 채 폰에서 조작해 보면 place/move 에러가 바로 찍힘. 파이썬 예외 트레이스백도 여기 다 들어감.
+
+## 영구 보관 확인
+  Ubuntu 기본은 journald가 /var/log/journal/에 영구 저장인데, 혹시 재부팅하면 사라지는 상태면 한 번만:
+  sudo mkdir -p /var/log/journal && sudo systemctl restart systemd-journald
+
+## 앱 로그가 너무 적다면
+  지금 main.py에 logging.basicConfig(level=logging.INFO)라 INFO까지는 나와. 요청별 에러(ApiError)는 access_log 테이블에도 성공/실패로 남으니, journald에서 안 보이면 sqlite3 interior.db
+  "select * from access_log order by ts desc limit 50"로 봐도 돼.

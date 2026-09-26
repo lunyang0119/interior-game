@@ -4,8 +4,8 @@ from app.errors import ApiError
 from app.placement import ItemRow, has_children, validate_place
 
 
-def row(uid, item_id, x, y, z=1, parent=None):
-    return ItemRow(uid=uid, item_id=item_id, x=x, y=y, z=z, parent_uid=parent, placed_by="lun", ts=0)
+def row(uid, item_id, x, y, z=1, parent=None, span=None):
+    return ItemRow(uid=uid, item_id=item_id, x=x, y=y, z=z, parent_uid=parent, placed_by="lun", ts=0, span=span)
 
 
 def err(fn):
@@ -72,3 +72,17 @@ def test_has_children(catalog):
     rows = [row(1, "table", 2, 2), row(2, "cup", 2, 2, z=2, parent=1)]
     assert has_children(1, rows)
     assert not has_children(2, rows)
+
+
+def test_wallpaper_span(catalog):
+    from app.placement import price_of
+    assert validate_place(catalog, [], "paper", 0, 0, span=8).z == 0  # whole wall (cols=8)
+    assert err(lambda: validate_place(catalog, [], "paper", 6, 0, span=3)) == "out_of_bounds"
+    assert err(lambda: validate_place(catalog, [], "paper", 0, 0, span=9)) == "bad_span"
+    assert err(lambda: validate_place(catalog, [], "chair", 2, 2, span=2)) == "bad_span"  # not wallpaper
+    wide = [row(1, "paper", 0, 0, z=0, span=5)]
+    assert err(lambda: validate_place(catalog, wide, "paper", 4, 0, span=1)) == "collision"  # cell 4 is covered
+    assert validate_place(catalog, wide, "paper", 5, 0, span=3).z == 0
+    paper = catalog.items["paper"]
+    assert price_of(paper, 5) == 75 and price_of(paper, None) == 30  # per column; None → item.w (2)
+    assert price_of(catalog.items["chair"], None) == 50

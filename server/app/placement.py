@@ -27,6 +27,7 @@ class ItemRow:
     parent_uid: int | None
     placed_by: str
     ts: int
+    span: int | None = None  # wallpaper only: width in cells chosen at placement
 
 
 @dataclass(frozen=True)
@@ -46,17 +47,29 @@ def footprint(x: int, y: int, w: int, h: int) -> list[Cell]:
     return [(cx, cy) for cy in range(y, y + h) for cx in range(x, x + w)]
 
 
+def width_of(it: Item, span: int | None) -> int:
+    return span if (it.layer == "wallpaper" and span) else it.w
+
+
+def price_of(it: Item, span: int | None) -> int:
+    """Wallpaper is priced per column; everything else per item."""
+    return it.price * width_of(it, span) if it.layer == "wallpaper" else it.price
+
+
 def footprint_of(catalog: Catalog, row: ItemRow) -> list[Cell]:
     it = catalog.items[row.item_id]
-    return footprint(row.x, row.y, it.w, it.h)
+    return footprint(row.x, row.y, width_of(it, row.span), it.h)
 
 
-def validate_place(catalog: Catalog, others: list[ItemRow], item_id: str, x: int, y: int) -> Placement:
+def validate_place(catalog: Catalog, others: list[ItemRow], item_id: str, x: int, y: int,
+                   span: int | None = None) -> Placement:
     it: Item | None = catalog.get(item_id)
     if it is None:
         raise fail("unknown_item")
     room = catalog.room
-    cells = footprint(x, y, it.w, it.h)
+    if span is not None and (it.layer != "wallpaper" or not 1 <= span <= room.cols):
+        raise fail("bad_span")
+    cells = footprint(x, y, width_of(it, span), it.h)
     blocked = room.blocked_set
     if any(not room.in_bounds(cx, cy) or (cx, cy) in blocked for cx, cy in cells):
         raise fail("out_of_bounds")

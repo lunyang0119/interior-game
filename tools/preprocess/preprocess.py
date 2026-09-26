@@ -21,6 +21,9 @@ Usage (from repo root):
     python tools/preprocess/preprocess.py ui
         Reads data/ui_theme.json, cuts the 9-slice frame PNGs into
         client/public/media/ui/ and writes client/public/media/theme.css.
+
+    python tools/preprocess/preprocess.py editor
+        Opens the browser slice/item editor (see editor.py).
 """
 
 from __future__ import annotations
@@ -534,6 +537,7 @@ def main() -> None:
     sub.add_parser("scaffold").set_defaults(fn=cmd_scaffold)
     sub.add_parser("media").set_defaults(fn=cmd_media)
     sub.add_parser("ui").set_defaults(fn=cmd_ui)
+    sub.add_parser("editor").set_defaults(fn=lambda _: __import__("editor").main([]))
     args = ap.parse_args()
     args.fn(args)
 

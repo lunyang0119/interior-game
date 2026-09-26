@@ -1,5 +1,5 @@
 import { bus } from "../bus";
-import type { RoomItem } from "../catalog";
+import { priceOf, type RoomItem } from "../catalog";
 import { catalog } from "../state";
 import { $, show } from "./hud";
 
@@ -20,7 +20,7 @@ export function initContextMenu(): void {
   $("ctx-remove").addEventListener("click", () => {
     if (!current) return;
     const it = catalog().byId.get(current.item_id);
-    if (confirm(`${it?.name ?? current.item_id} 치울까요? ${it?.price ?? 0}💰 환불되어요.`)) bus.emit("item:remove", { uid: current.uid });
+    if (confirm(`${it?.name ?? current.item_id} 치울까요? ${it ? priceOf(it, current.span) : 0}💰 환불되어요.`)) bus.emit("item:remove", { uid: current.uid });
     close();
   });
   $("ctx-cancel").addEventListener("click", close);

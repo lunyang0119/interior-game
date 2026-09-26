@@ -1,6 +1,6 @@
 /** Client mirror of server/app/placement.py. Only used to colour the ghost; the server decides. */
 
-import type { Catalog, RoomItem } from "../catalog";
+import { widthOf, type Catalog, type RoomItem } from "../catalog";
 import { isWallLayer } from "./depth";
 import { footprint } from "./grid";
 
@@ -13,14 +13,15 @@ function key(c: [number, number]): number {
 export function footprintOf(cat: Catalog, row: RoomItem): [number, number][] {
   const it = cat.byId.get(row.item_id);
   if (!it) return [[row.x, row.y]];
-  return footprint(row.x, row.y, it.w, it.h);
+  return footprint(row.x, row.y, widthOf(it, row.span), it.h);
 }
 
-export function checkPlace(cat: Catalog, others: RoomItem[], itemId: string, x: number, y: number): Check {
+export function checkPlace(cat: Catalog, others: RoomItem[], itemId: string, x: number, y: number, span?: number | null): Check {
   const it = cat.byId.get(itemId);
   if (!it) return { ok: false, code: "unknown_item", parentUid: null };
   const room = cat.room;
-  const cells = footprint(x, y, it.w, it.h);
+  if (span != null && (it.layer !== "wallpaper" || span < 1 || span > room.cols)) return { ok: false, code: "bad_span", parentUid: null };
+  const cells = footprint(x, y, widthOf(it, span), it.h);
   const blocked = new Set(room.blocked.map((b) => key([b[0], b[1]])));
   for (const c of cells) {
     if (c[0] < 0 || c[1] < 0 || c[0] >= room.cols || c[1] >= room.rows || blocked.has(key(c))) {

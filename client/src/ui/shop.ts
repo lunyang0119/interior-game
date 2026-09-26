@@ -1,5 +1,5 @@
 import { bus, toast } from "../bus";
-import type { Item, Layer } from "../catalog";
+import { priceOf, type Item, type Layer } from "../catalog";
 import { catalog, state } from "../state";
 import { $, togglePanel } from "./hud";
 
@@ -52,9 +52,10 @@ function build(): void {
     const el = document.createElement("div");
     el.className = "shop-item";
     el.appendChild(thumb(item));
-    el.insertAdjacentHTML("beforeend", `<div class="n">${item.name}</div><div class="p">${item.price}💰 · ${item.w}×${item.h}</div>`);
+    const size = item.layer === "wallpaper" ? `${item.price}💰/칸 · 폭 조절` : `${item.price}💰 · ${item.w}×${item.h}`;
+    el.insertAdjacentHTML("beforeend", `<div class="n">${item.name}</div><div class="p">${size}</div>`);
     el.addEventListener("click", () => {
-      if (item.price > state.balance) { toast("돈이 부족해요"); return; }
+      if (priceOf(item, 1) > state.balance) { toast("돈이 부족해요"); return; }
       bus.emit("place:begin", { itemId: item.id });
     });
     grid.appendChild(el);
@@ -77,7 +78,7 @@ function applyTab(): void {
 }
 
 function applyBalance(): void {
-  for (const { item, el } of cards.values()) el.classList.toggle("disabled", item.price > state.balance);
+  for (const { item, el } of cards.values()) el.classList.toggle("disabled", priceOf(item, 1) > state.balance);
 }
 
 export function openShop(): void {

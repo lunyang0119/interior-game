@@ -50,6 +50,7 @@ export interface RoomItem {
   parent_uid: number | null;
   placed_by: string;
   ts: number;
+  span?: number | null; // wallpaper: width in cells chosen when placed (null → item.w)
 }
 
 export interface AvatarLook {
@@ -82,6 +83,16 @@ export function drawList(look: AvatarLook, chars: Chars): { layer: string; idx: 
 
 export const Z_SCALE: Record<Layer, number> = { wallpaper: 0, wall: 1, floor: 0, furniture: 10, surface_item: 20 };
 export const Z_AVATAR = 15;
+
+/** Footprint width of a placed/ghost item: wallpaper stretches to `span`, everything else is fixed. */
+export function widthOf(it: Item, span?: number | null): number {
+  return it.layer === "wallpaper" && span ? span : it.w;
+}
+
+/** Wallpaper is priced per column; everything else per item. Mirrors server price_of(). */
+export function priceOf(it: Item, span?: number | null): number {
+  return it.layer === "wallpaper" ? it.price * widthOf(it, span) : it.price;
+}
 
 export function makeCatalog(raw: { items: Item[]; room: Room; chars: Chars }): Catalog {
   return { items: raw.items, byId: new Map(raw.items.map((i) => [i.id, i])), room: raw.room, chars: raw.chars };

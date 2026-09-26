@@ -46,6 +46,7 @@ export class RoomScene extends Phaser.Scene {
     this.drawRoom();
     this.items = new ItemLayer(this, this.cat);
     this.placement = new PlacementController(this, this.cat, this.items);
+    this.placement.onRestart = () => { this.hoverFollow = true; }; // "+1": the fresh ghost follows the mouse again
     this.remotes = new RemoteAvatars(this, this.cat.chars);
 
     this.bindBus();
@@ -160,6 +161,7 @@ export class RoomScene extends Phaser.Scene {
       bus.on("place:confirm", () => void this.placement.confirm()),
       bus.on("place:confirm-again", () => void this.placement.confirm(true)),
       bus.on("place:cancel", () => this.placement.cancel()),
+      bus.on("place:span", ({ delta }) => this.placement.setSpan(delta)),
       bus.on("room:refresh", () => void this.refreshRoom()),
       bus.on("item:remove", ({ uid }) => void this.removeItem(uid)),
       bus.on("avatar:saved", (look) => void this.applyMyLook(look)),

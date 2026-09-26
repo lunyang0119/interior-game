@@ -8,6 +8,15 @@ python tools/preprocess/preprocess.py build                    # named slices �
 python tools/preprocess/preprocess.py scaffold                 # add placeholder items.json rows for new keys
 ```
 
+## 편집기 (좌표 안 찾아도 됨)
+
+```
+python tools/preprocess/preprocess.py editor      # = python tools/preprocess/editor.py, 브라우저가 열림
+```
+시트를 골라 확대해서 보면서 **빈 곳을 드래그하면 새 슬라이스**(16px 격자 스냅), 박스를 클릭·드래그·모서리로 이동/크기 조절, 방향키로 한 칸씩.
+오른쪽 패널에서 key·좌표·`parts`(세로 이어붙이기), 잘린 결과 미리보기, 같은 key의 `items.json` 항목(이름·가격·칸수·레이어·is_surface),
+방에 놓인 모습(벽지는 폭 슬라이더)까지 보고 **슬라이스 저장 / 아이템 저장 / 빌드** 버튼으로 마무리. 빌드 후 `client/public/gen/`을 VM에 올리면 됨.
+
 Workflow for adding furniture:
 1. `scan`, open `contact_interiors.png`, find the red `#NNN` label of the piece you want.
 2. In `slices.json` rename `auto_interiors_NNN` to a real key (e.g. `sofa_blue`). Fix x/y/w/h if the scan merged neighbours.

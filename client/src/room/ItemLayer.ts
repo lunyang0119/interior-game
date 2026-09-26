@@ -1,12 +1,22 @@
 import Phaser from "phaser";
-import { Z_SCALE, type Catalog, type Layer, type RoomItem } from "../catalog";
+import { Z_SCALE, widthOf, type Catalog, type Item, type Layer, type RoomItem } from "../catalog";
 import { depthOf, isWallLayer, sortRowFor } from "./depth";
 import { CELL } from "./grid";
 import { footprintOf } from "./rules";
 
 export const ATLAS = "interiors";
 
-interface Entry { row: RoomItem; sprite: Phaser.GameObjects.Image }
+type ItemSprite = Phaser.GameObjects.Image | Phaser.GameObjects.TileSprite;
+interface Entry { row: RoomItem; sprite: ItemSprite }
+
+/** Wallpaper repeats its frame horizontally across the chosen span; everything else is a plain image. */
+export function makeItemSprite(scene: Phaser.Scene, it: Item | undefined, span?: number | null): ItemSprite {
+  if (it?.layer === "wallpaper") {
+    const frame = scene.textures.getFrame(ATLAS, it.sprite);
+    return scene.add.tileSprite(0, 0, widthOf(it, span) * CELL, frame.height, ATLAS, it.sprite).setOrigin(0, 0);
+  }
+  return scene.add.image(0, 0, ATLAS, it?.sprite ?? "").setOrigin(0, isWallLayer(it?.layer) ? 0 : 1);
+}
 
 /** Keeps one sprite per room item and diffs against server snapshots. */
 export class ItemLayer {
@@ -27,11 +37,13 @@ export class ItemLayer {
     }
     for (const row of rows) {
       const e = this.entries.get(row.uid);
+      const it = this.cat.byId.get(row.item_id);
       if (!e) {
-        const it = this.cat.byId.get(row.item_id);
-        const sprite = this.scene.add.image(0, 0, ATLAS, it?.sprite ?? "").setOrigin(0, isWallLayer(it?.layer) ? 0 : 1);
-        this.entries.set(row.uid, { row, sprite });
+        this.entries.set(row.uid, { row, sprite: makeItemSprite(this.scene, it, row.span) });
       } else {
+        if (it && (e.row.span ?? null) !== (row.span ?? null) && "setSize" in e.sprite) {
+          e.sprite.setSize(widthOf(it, row.span) * CELL, e.sprite.height); // wallpaper resized while moving
+        }
         e.row = row;
       }
     }

@@ -19,9 +19,11 @@ class PlaceIn(BaseModel):
     item_id: str
     x: int
     y: int
+    span: int | None = Field(default=None, ge=1)  # wallpaper width in cells
 
 
 class MoveIn(BaseModel):
     uid: int
     x: int
     y: int
+    span: int | None = Field(default=None, ge=1)  # wallpaper: new width (None keeps the current one)

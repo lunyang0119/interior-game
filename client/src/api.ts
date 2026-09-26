@@ -24,6 +24,7 @@ const MESSAGES: Record<string, string> = {
   insufficient_funds: "돈이 부족해요. 재화를 번 뒤 다시 구입해주세요",
   has_children: "위에 올린 걸 먼저 치운 다음 다시 시도해주세요",
   not_found: "이미 없어진 아이템이에요",
+  bad_span: "벽지 폭이 이상해요",
   network: "네트워크 오류네요",
 };
 
@@ -64,9 +65,10 @@ export const api = {
   room: (etagVersion?: number) =>
     call<RoomResponse | null>("GET", "/api/room", undefined,
       etagVersion === undefined || etagVersion < 0 ? {} : { "If-None-Match": `"${etagVersion}"` }),
-  place: (item_id: string, x: number, y: number) =>
-    call<{ uid: number; balance: number; version: number }>("POST", "/api/room/place", { item_id, x, y }),
-  move: (uid: number, x: number, y: number) => call<{ uid: number; version: number }>("POST", "/api/room/move", { uid, x, y }),
+  place: (item_id: string, x: number, y: number, span?: number | null) =>
+    call<{ uid: number; balance: number; version: number }>("POST", "/api/room/place", { item_id, x, y, span: span ?? undefined }),
+  move: (uid: number, x: number, y: number, span?: number | null) =>
+    call<{ uid: number; version: number; balance: number }>("POST", "/api/room/move", { uid, x, y, span: span ?? undefined }),
   remove: (uid: number) => call<{ balance: number; version: number }>("DELETE", `/api/room/item/${uid}`),
   rotate: () => call<{ id: string; token: string }>("POST", "/api/token/rotate"),
   logins: () => call<{ logins: { ts: number; action: string; ip_hash: string; ua: string; ok: number }[] }>("GET", "/api/me/logins"),

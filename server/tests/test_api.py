@@ -219,3 +219,30 @@ def test_reconcile_removes_items_invalidated_by_room_change(env):
         assert [i["item_id"] for i in items["items"]] == ["table"]  # chair now sits on a wall row → gone
         assert items["version"] == version + 1
         assert client.get("/api/me", headers=auth(lun)).json()["balance"] == 700  # chair refunded
+
+
+def test_wallpaper_span_pricing_and_resize(client):
+    lun = register(client, "lun")
+    r = client.post("/api/room/place", json={"item_id": "paper", "x": 0, "y": 0, "span": 4}, headers=auth(lun))
+    assert r.status_code == 200 and r.json()["balance"] == 800 - 60  # 15 per column
+    uid = r.json()["uid"]
+    item = next(i for i in client.get("/api/room").json()["items"] if i["uid"] == uid)
+    assert item["span"] == 4
+    # second wallpaper overlapping the first → collision; right after it is fine
+    r = client.post("/api/room/place", json={"item_id": "paper", "x": 3, "y": 0, "span": 1}, headers=auth(lun))
+    assert r.status_code == 400 and r.json()["error"] == "collision"
+    # move + widen: pays the difference
+    r = client.post("/api/room/move", json={"uid": uid, "x": 0, "y": 0, "span": 6}, headers=auth(lun))
+    assert r.status_code == 200 and r.json()["balance"] == 800 - 90
+    # move + shrink: refunds the difference
+    r = client.post("/api/room/move", json={"uid": uid, "x": 2, "y": 0, "span": 2}, headers=auth(lun))
+    assert r.status_code == 200 and r.json()["balance"] == 800 - 30
+    # plain move keeps the width
+    r = client.post("/api/room/move", json={"uid": uid, "x": 1, "y": 0}, headers=auth(lun))
+    assert r.status_code == 200 and r.json()["balance"] == 800 - 30
+    # span on a non-wallpaper item is rejected
+    r = client.post("/api/room/place", json={"item_id": "chair", "x": 2, "y": 2, "span": 2}, headers=auth(lun))
+    assert r.status_code == 400 and r.json()["error"] == "bad_span"
+    # remove refunds the width-based price
+    r = client.delete(f"/api/room/item/{uid}", headers=auth(lun))
+    assert r.status_code == 200 and r.json()["balance"] == 800

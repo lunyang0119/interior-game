@@ -13,7 +13,7 @@ import sqlite3
 from .catalog import Catalog
 from .db import bump_room_version, now
 from .errors import ApiError
-from .placement import ItemRow, validate_place
+from .placement import ItemRow, price_of, validate_place
 
 log = logging.getLogger("reconcile")
 
@@ -21,7 +21,7 @@ log = logging.getLogger("reconcile")
 def reconcile_items(conn: sqlite3.Connection, catalog: Catalog) -> int:
     """Returns the number of rows removed or updated. Must run inside a transaction."""
     rows = conn.execute(
-        "SELECT uid, item_id, x, y, z, parent_uid, placed_by, ts FROM items "
+        "SELECT uid, item_id, x, y, z, parent_uid, placed_by, ts, span FROM items "
         "ORDER BY parent_uid IS NOT NULL, uid"  # parents before children so a dropped table drops its cups
     ).fetchall()
     kept: list[ItemRow] = []
@@ -32,13 +32,13 @@ def reconcile_items(conn: sqlite3.Connection, catalog: Catalog) -> int:
         try:
             if item is None:
                 raise ApiError(400, "unknown_item")
-            p = validate_place(catalog, kept, row.item_id, row.x, row.y)
+            p = validate_place(catalog, kept, row.item_id, row.x, row.y, row.span)
         except ApiError as e:
             conn.execute("DELETE FROM items WHERE uid = ?", (row.uid,))
             if item is not None:
                 conn.execute(
                     "INSERT INTO ledger(ts, player_id, amount, kind, item_uid, item_id) VALUES (?, ?, ?, 'refund', ?, ?)",
-                    (now(), row.placed_by, -item.price, row.uid, row.item_id),
+                    (now(), row.placed_by, -price_of(item, row.span), row.uid, row.item_id),
                 )
             log.warning("removed item uid=%s %s at (%s,%s): %s (refunded %s)", row.uid, row.item_id, row.x, row.y, e.code, row.placed_by)
             changed += 1
