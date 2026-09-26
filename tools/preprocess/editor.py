@@ -675,7 +675,10 @@ class Handler(BaseHTTPRequestHandler):
                 data = load_items()
                 data["items"] = body
                 save_items(data)
-                self.send_json({"ok": True})
+                # named but not yet built: the game server refuses to start until `build` puts it in manifest.json
+                built = atlas_keys("interiors")
+                unbuilt = [it["id"] for it in body if built and it.get("sprite") not in built]
+                self.send_json({"ok": True, "unbuilt": unbuilt})
             else:
                 self.send_error(HTTPStatus.NOT_FOUND)
         except (Exception, SystemExit) as e:

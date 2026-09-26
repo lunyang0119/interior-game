@@ -3,6 +3,8 @@ export type Layer = "wallpaper" | "wall" | "floor" | "furniture" | "surface_item
 /** Tags with rules (mirror server/app/catalog.py): ruined = seeded junk, sell only; fixed = part of the room. */
 export const TAG_RUINED = "ruined";
 export const TAG_FIXED = "fixed";
+/** Tapping a stairs item walks to the exit it sits on instead of opening its menu. */
+export const TAG_STAIRS = "stairs";
 /** Owner id of items pre-placed by the server (never a real player). */
 export const SEED_PLAYER = "$seed";
 export const MAP_ROOM = "map";

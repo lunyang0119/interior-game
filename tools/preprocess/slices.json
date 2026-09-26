@@ -20916,47 +20916,47 @@
   "sheet": "kitchen",
   "x": 0,
   "y": 32,
-  "w": 62,
-  "h": 48
+  "w": 16,
+  "h": 16
  },
  {
   "key": "mordkit2_001c_pattern_grey_quatrefoil",
   "sheet": "kitchen",
-  "x": 62,
-  "y": 32,
-  "w": 58,
-  "h": 48
+  "x": 63,
+  "y": 44,
+  "w": 16,
+  "h": 16
  },
  {
   "key": "mordkit2_001e_window_glass_icon",
   "sheet": "kitchen",
-  "x": 120,
-  "y": 32,
-  "w": 24,
-  "h": 90
+  "x": 100,
+  "y": 68,
+  "w": 39,
+  "h": 27
  },
  {
   "key": "mordkit2_001d_pattern_purple_quatrefoil",
   "sheet": "kitchen",
   "x": 0,
-  "y": 80,
-  "w": 62,
-  "h": 48
+  "y": 112,
+  "w": 16,
+  "h": 16
  },
  {
-  "key": "mordkit2_003_wardrobe_dresser_set",
+  "key": "mordkit2_003_stair",
   "sheet": "kitchen",
   "x": 48,
   "y": 320,
-  "w": 77,
-  "h": 80
+  "w": 33,
+  "h": 78
  },
  {
   "key": "mordkit2_004_wardrobe_tall",
   "sheet": "kitchen",
   "x": 0,
-  "y": 322,
-  "w": 39,
+  "y": 321,
+  "w": 32,
   "h": 77
  },
  {
@@ -22733,7 +22733,7 @@
   "x": 160,
   "y": 16,
   "w": 32,
-  "h": 64
+  "h": 51
  },
  {
   "key": "window_light_a",
@@ -22845,7 +22845,7 @@
   "x": 160,
   "y": 96,
   "w": 32,
-  "h": 64
+  "h": 52
  },
  {
   "key": "window_light_b",
@@ -22957,7 +22957,7 @@
   "x": 160,
   "y": 176,
   "w": 32,
-  "h": 64
+  "h": 52
  },
  {
   "key": "window_light_c",
@@ -22973,7 +22973,7 @@
   "x": 272,
   "y": 176,
   "w": 32,
-  "h": 80
+  "h": 67
  },
  {
   "key": "fence_accent_c_right",
@@ -22981,7 +22981,7 @@
   "x": 304,
   "y": 176,
   "w": 32,
-  "h": 80
+  "h": 68
  },
  {
   "key": "fence_plain_c_left",
@@ -22989,7 +22989,7 @@
   "x": 352,
   "y": 176,
   "w": 32,
-  "h": 80
+  "h": 69
  },
  {
   "key": "fence_plain_c_right",
@@ -22997,7 +22997,7 @@
   "x": 384,
   "y": 176,
   "w": 32,
-  "h": 80
+  "h": 68
  },
  {
   "key": "window_dark_c",
@@ -26287,6 +26287,25 @@
     "y": 226,
     "w": 24,
     "h": 9
+   }
+  ]
+ },
+ {
+  "key": "mordkit2_029_islandtable",
+  "parts": [
+   {
+    "sheet": "kitchen",
+    "x": 16,
+    "y": 160,
+    "w": 95,
+    "h": 64
+   },
+   {
+    "sheet": "kitchen",
+    "x": 16,
+    "y": 190,
+    "w": 80,
+    "h": 16
    }
   ]
  },

@@ -929,7 +929,10 @@
     if (pr.badLayer.length) stop.push(`모르는 layer: ${pr.badLayer.map((it) => it.id).join(", ")}`);
     if (pr.badPair.length) stop.push(`없는 아이템을 pair로 가리킴: ${pr.badPair.map((it) => it.id).join(", ")}`);
     if (stop.length) { alert("저장 못 해요. 먼저 고쳐주세요:\n" + stop.join("\n")); return; }
-    try { await put("/api/items", items); dirtyItems = false; log(`items.json 저장 (${items.length}개)`); }
+    try {
+      const j = await put("/api/items", items); dirtyItems = false; log(`items.json 저장 (${items.length}개)`);
+      if (j.unbuilt && j.unbuilt.length) alert(`저장은 됐지만 아직 빌드 안 된 스프라이트를 쓰는 아이템이 ${j.unbuilt.length}개 있어요:\n${j.unbuilt.slice(0, 10).join(", ")}${j.unbuilt.length > 10 ? " …" : ""}\n\n이 상태로 VM에 올리면 서버가 안 떠요(502). "빌드" 버튼을 누른 뒤 gen/ 폴더도 같이 올리세요.`);
+    }
     catch (e) { alert("저장 실패: " + e.message); }
   };
   $("build").onclick = async () => {

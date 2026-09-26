@@ -2003,7 +2003,11 @@
    "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "fixed",
+    "stairs"
+   ]
   },
   {
    "id": "stair_corner_a_right",
@@ -2014,7 +2018,11 @@
    "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "fixed",
+    "stairs"
+   ]
   },
   {
    "id": "stair_straight_a_left",
@@ -2025,7 +2033,11 @@
    "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "fixed",
+    "stairs"
+   ]
   },
   {
    "id": "stair_straight_a_right",
@@ -2036,7 +2048,11 @@
    "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "fixed",
+    "stairs"
+   ]
   },
   {
    "id": "doorway_void_a",
@@ -2231,7 +2247,7 @@
    "price": 25,
    "sprite": "door_wood_open_b",
    "w": 2,
-   "h": 3,
+   "h": 5,
    "layer": "wall",
    "is_surface": false,
    "surface_offset_y": 0
@@ -2267,7 +2283,11 @@
    "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "fixed",
+    "stairs"
+   ]
   },
   {
    "id": "fence_plain_b_left",
@@ -2410,7 +2430,11 @@
    "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "fixed",
+    "stairs"
+   ]
   },
   {
    "id": "fence_accent_c_right",
@@ -2443,7 +2467,11 @@
    "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "fixed",
+    "stairs"
+   ]
   },
   {
    "id": "window_dark_c",
@@ -29643,10 +29671,10 @@
    "surface_offset_y": 0
   },
   {
-   "id": "mordkit2_003_wardrobe_dresser_set",
+   "id": "mordkit2_003_stair",
    "name": "mordkit2 003 wardrobe dresser set",
    "price": 50,
-   "sprite": "mordkit2_003_wardrobe_dresser_set",
+   "sprite": "mordkit2_003_stair",
    "w": 2,
    "h": 2,
    "layer": "furniture",
@@ -34678,6 +34706,17 @@
    "h": 1,
    "layer": "floor",
    "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "mordkit2_029_islandtable",
+   "name": "mordkit2 029 islandtable",
+   "price": 50,
+   "sprite": "mordkit2_029_islandtable",
+   "w": 6,
+   "h": 5,
+   "layer": "furniture",
+   "is_surface": true,
    "surface_offset_y": 0
   }
  ]

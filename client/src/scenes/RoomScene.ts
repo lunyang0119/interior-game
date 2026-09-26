@@ -4,9 +4,9 @@ import { Avatar } from "../avatar/Avatar";
 import { ensureAvatarTextures } from "../avatar/AvatarLoader";
 import { RemoteAvatars } from "../avatar/RemoteAvatars";
 import { bus, toast } from "../bus";
-import { exitAt, hasTag, TAG_FIXED, type Catalog, type Layer, type Room } from "../catalog";
+import { exitAt, hasTag, TAG_FIXED, TAG_STAIRS, type Catalog, type Exit, type Layer, type Room } from "../catalog";
 import { TILE_DEPTH } from "../room/depth";
-import { CELL, worldToCell } from "../room/grid";
+import { CELL, footprint, worldToCell } from "../room/grid";
 import { ATLAS, ItemLayer } from "../room/ItemLayer";
 import { PlacementController } from "../room/Placement";
 import { catalog, state } from "../state";
@@ -227,7 +227,8 @@ export class RoomScene extends Phaser.Scene {
   private checkExit(): void {
     if (!this.me || this.leaving) return;
     const cx = Math.floor(this.me.cellX), cy = Math.floor(this.me.cellY - 0.5);
-    const exit = exitAt(this.room, cx, cy);
+    // an exit drawn entirely on the wall rows (stairs going up) is entered from the floor cell right below it
+    const exit = exitAt(this.room, cx, cy) ?? (cy === this.room.wall_rows ? exitAt(this.room, cx, cy - 1) : null);
     if (!exit) return;
     if (this.cat.rooms.has(exit.to)) this.leaving = true; // main.ts restarts the scene; "map" only toasts for now
     bus.emit("room:exit", { from: this.room.id, to: exit.to, spawn: exit.spawn });
@@ -266,12 +267,40 @@ export class RoomScene extends Phaser.Scene {
       if (press.timer !== null) clearTimeout(press.timer);
       if (press.moved) return;
       const { cx, cy } = worldToCell(p.worldX, p.worldY);
+      // stairs: a tap walks through them (long press still opens the menu)
+      const tapped = this.items.itemAt(cx, cy, TAP_MENU_LAYERS);
+      const stairs = tapped ?? this.items.itemAt(cx, cy); // stairs may also be a wall-layer item
+      if (stairs && hasTag(this.cat.byId.get(stairs.item_id), TAG_STAIRS) && this.walkThrough(stairs.x, stairs.y, stairs.item_id)) return;
       // a plain tap on a placed item opens its menu too (easier than holding on a phone)
-      if (this.items.itemAt(cx, cy, TAP_MENU_LAYERS) && this.openMenu(p.worldX, p.worldY, p.x, p.y)) return;
+      if (tapped && this.openMenu(p.worldX, p.worldY, p.x, p.y)) return;
       if (this.me && cy >= this.room.wall_rows && cx >= 0 && cx < this.room.cols && cy < this.room.rows) {
         this.me.walkToCell(cx, cy);
       }
     });
+  }
+
+  /** Walk to the exit a stairs item stands on (its footprint overlaps the exit rect, or the exit is right below it).
+   *  Returns false when no exit belongs to it, so the tap falls through to the menu. */
+  private walkThrough(x: number, y: number, itemId: string): boolean {
+    if (!this.me) return false;
+    const it = this.cat.byId.get(itemId);
+    const cells = footprint(x, y, it?.w ?? 1, it?.h ?? 1);
+    const touches = (e: Exit) => cells.some(([cx, cy]) => cx >= e.x && cx < e.x + e.w && cy >= e.y - 1 && cy < e.y + e.h);
+    const exit = this.room.exits.find(touches);
+    if (!exit) return false;
+    // nearest walkable cell of the exit (floor rows only); an exit fully on the wall is entered from the row below it
+    let best: { x: number; y: number } | null = null;
+    let bestD = Infinity;
+    const meX = Math.floor(this.me.cellX), meY = Math.floor(this.me.cellY - 0.5);
+    for (let cy = Math.max(exit.y, this.room.wall_rows); cy < exit.y + exit.h; cy++) {
+      for (let cx = exit.x; cx < exit.x + exit.w; cx++) {
+        const d = Math.abs(cx - meX) + Math.abs(cy - meY);
+        if (d < bestD) { bestD = d; best = { x: cx, y: cy }; }
+      }
+    }
+    if (!best) best = { x: Math.min(Math.max(meX, exit.x), exit.x + exit.w - 1), y: Math.min(exit.y + exit.h, this.room.rows - 1) };
+    this.me.walkToCell(best.x, best.y);
+    return true;
   }
 
   /** Opens the item menu at a world position. Returns false when there is no item there (or it is part of the room). */
