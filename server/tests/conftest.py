@@ -45,7 +45,8 @@ def env(tmp_path, monkeypatch):
         "id": "house_a", "name": "빈 집", "cols": 6, "rows": 5, "wall_rows": 1, "spawn": {"x": 2, "y": 3}, "blocked": [], "zoom": 2,
         "tiles": {"wall": ["tile_wall"], "floor": "tile_floor"},
         "exits": [{"x": 0, "y": 4, "w": 1, "h": 1, "to": "inn", "spawn": {"x": 6, "y": 4}}],
-        "seed": [{"item_id": "junk", "x": 3, "y": 2}, {"item_id": "stairs", "x": 5, "y": 1}, {"item_id": "junk", "x": 9, "y": 9}],
+        "seed": [{"item_id": "junk", "x": 3, "y": 2}, {"item_id": "stairs", "x": 5, "y": 1}, {"item_id": "junk", "x": 9, "y": 9},
+                 {"item_id": "junk", "x": 3, "y": 2}, {"item_id": "junk", "x": 1, "y": 0}],
     }, ensure_ascii=False), encoding="utf-8")
     (gen / "manifest.json").write_text(json.dumps({
         "chars": {"frameW": 16, "frameH": 32, "anims": {}, "layerOrder": ["skin", "eyes", "hair"],

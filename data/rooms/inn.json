@@ -44,7 +44,7 @@
    "x": 16,
    "y": 0,
    "w": 4,
-   "h": 4,
+   "h": 5,
    "to": "map",
    "spawn": {
     "x": 0,
@@ -150,56 +150,6 @@
   },
   {
    "item_id": "floor_brick_brown2",
-   "x": 0,
-   "y": 13
-  },
-  {
-   "item_id": "floor_brick_brown2",
-   "x": 2,
-   "y": 13
-  },
-  {
-   "item_id": "floor_brick_brown2",
-   "x": 4,
-   "y": 13
-  },
-  {
-   "item_id": "floor_brick_brown2",
-   "x": 6,
-   "y": 13
-  },
-  {
-   "item_id": "floor_brick_brown2",
-   "x": 8,
-   "y": 13
-  },
-  {
-   "item_id": "floor_brick_brown2",
-   "x": 10,
-   "y": 13
-  },
-  {
-   "item_id": "floor_brick_brown2",
-   "x": 12,
-   "y": 13
-  },
-  {
-   "item_id": "floor_brick_brown2",
-   "x": 14,
-   "y": 13
-  },
-  {
-   "item_id": "floor_brick_brown2",
-   "x": 16,
-   "y": 13
-  },
-  {
-   "item_id": "floor_brick_brown2",
-   "x": 18,
-   "y": 13
-  },
-  {
-   "item_id": "floor_brick_brown2",
    "x": 18,
    "y": 11
   },
@@ -412,26 +362,11 @@
    "item_id": "floor_brick_brown2",
    "x": 2,
    "y": 11
-  },
-  {
-   "item_id": "int_167",
-   "x": 1,
-   "y": 2
-  },
-  {
-   "item_id": "int_181",
-   "x": 3,
-   "y": 2
   },
   {
    "item_id": "int_185",
    "x": 14,
    "y": 3
-  },
-  {
-   "item_id": "int_185",
-   "x": 10,
-   "y": 2
   },
   {
    "item_id": "int_183",
@@ -464,59 +399,24 @@
    "y": 7
   },
   {
-   "item_id": "int_183",
-   "x": 6,
-   "y": 7
+   "item_id": "int_184",
+   "x": 2,
+   "y": 3
   },
   {
-   "item_id": "int_182",
-   "x": 5,
-   "y": 2
+   "item_id": "int_167",
+   "x": 17,
+   "y": 10
   },
   {
-   "item_id": "int_182",
-   "x": 15,
-   "y": 2
-  },
-  {
-   "item_id": "int_163",
-   "x": 18,
-   "y": 12
-  },
-  {
-   "item_id": "int_171",
-   "x": 7,
-   "y": 2
+   "item_id": "int_167",
+   "x": 2,
+   "y": 8
   },
   {
    "item_id": "stair_corner_a_right",
    "x": 16,
-   "y": 2
-  },
-  {
-   "item_id": "int_184",
-   "x": 0,
-   "y": 11
-  },
-  {
-   "item_id": "int_184",
-   "x": 15,
-   "y": 8
-  },
-  {
-   "item_id": "int_184",
-   "x": 5,
-   "y": 7
-  },
-  {
-   "item_id": "int_184",
-   "x": 8,
-   "y": 1
-  },
-  {
-   "item_id": "int_184",
-   "x": 3,
-   "y": 5
+   "y": 3
   }
  ]
 }

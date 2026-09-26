@@ -10,6 +10,7 @@ same way. Rows whose derived z/parent_uid changed are updated in place. Idempote
 import logging
 import sqlite3
 
+from . import config
 from .catalog import Catalog
 from .db import bump_room_version, now
 from .errors import ApiError
@@ -34,7 +35,9 @@ def reconcile_items(conn: sqlite3.Connection, catalog: Catalog) -> int:
                 raise ApiError(400, "unknown_item")
             if row.room_id not in catalog.rooms:
                 raise ApiError(404, "unknown_room")
-            p = validate_place(catalog, kept.setdefault(row.room_id, []), row.item_id, row.x, row.y, row.span, room_id=row.room_id)
+            # seeded rows keep the designer's freedom (past the edge / overlapping); see placement.validate_place
+            p = validate_place(catalog, kept.setdefault(row.room_id, []), row.item_id, row.x, row.y, row.span,
+                               room_id=row.room_id, relaxed=row.placed_by == config.SEED_PLAYER)
         except ApiError as e:
             conn.execute("DELETE FROM items WHERE uid = ?", (row.uid,))
             if item is not None:

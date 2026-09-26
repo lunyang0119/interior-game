@@ -35,7 +35,7 @@ def seed_room(conn: sqlite3.Connection, catalog: Catalog, room: Room) -> int:
     order = sorted(room.seed, key=lambda s: catalog.items[s.item_id].layer == "surface_item")
     for sd in order:
         try:
-            p = validate_place(catalog, present, sd.item_id, sd.x, sd.y, sd.span, room_id=room.id)
+            p = validate_place(catalog, present, sd.item_id, sd.x, sd.y, sd.span, room_id=room.id, relaxed=True)
         except ApiError as e:
             log.warning("seed %s: skipped %s at (%s,%s): %s", room.id, sd.item_id, sd.x, sd.y, e.code)
             continue

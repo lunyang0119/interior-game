@@ -9,6 +9,10 @@ Rules (see plan §3):
    one for all cells, and no other surface_item in those cells
 
 `others` must be the rows of the same room; the caller filters by room_id.
+
+`relaxed=True` is for seeded (pre-placed) items: the room designer may hang a footprint past the edge for
+perspective or overlap furniture on purpose, so bounds, blocked cells and same-layer collisions are skipped.
+Wall/floor row type and the surface rules still apply (they drive rendering).
 """
 
 from __future__ import annotations
@@ -65,7 +69,7 @@ def footprint_of(catalog: Catalog, row: ItemRow) -> list[Cell]:
 
 
 def validate_place(catalog: Catalog, others: list[ItemRow], item_id: str, x: int, y: int,
-                   span: int | None = None, room_id: str | None = None) -> Placement:
+                   span: int | None = None, room_id: str | None = None, relaxed: bool = False) -> Placement:
     it: Item | None = catalog.get(item_id)
     if it is None:
         raise fail("unknown_item")
@@ -76,7 +80,7 @@ def validate_place(catalog: Catalog, others: list[ItemRow], item_id: str, x: int
         raise fail("bad_span")
     cells = footprint(x, y, width_of(it, span), it.h)
     blocked = room.blocked_set
-    if any(not room.in_bounds(cx, cy) or (cx, cy) in blocked for cx, cy in cells):
+    if not relaxed and any(not room.in_bounds(cx, cy) or (cx, cy) in blocked for cx, cy in cells):
         raise fail("out_of_bounds")
 
     want = "wall" if it.layer in WALL_LAYERS else "floor"
@@ -86,7 +90,7 @@ def validate_place(catalog: Catalog, others: list[ItemRow], item_id: str, x: int
     cell_set = set(cells)
 
     if it.layer != "surface_item":
-        for o in others:
+        for o in [] if relaxed else others:
             if catalog.items[o.item_id].layer != it.layer:
                 continue
             if cell_set & set(footprint_of(catalog, o)):

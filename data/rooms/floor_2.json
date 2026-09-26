@@ -1,0 +1,33 @@
+{
+ "id": "floor_2",
+ "name": "floor_2",
+ "cols": 12,
+ "rows": 10,
+ "wall_rows": 3,
+ "spawn": {
+  "x": 6,
+  "y": 6
+ },
+ "blocked": [],
+ "zoom": 2,
+ "tiles": {
+  "wall": [
+   "tile_wall_top",
+   "tile_wall_mid",
+   "tile_wall_bottom"
+  ],
+  "wall_left": [
+   "tile_wall_left_top",
+   "tile_wall_left_mid",
+   "tile_wall_left_bottom"
+  ],
+  "wall_right": [
+   "tile_wall_right_top",
+   "tile_wall_right_mid",
+   "tile_wall_right_bottom"
+  ],
+  "floor": "tile_floor_wood"
+ },
+ "exits": [],
+ "seed": []
+}

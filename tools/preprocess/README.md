@@ -81,7 +81,7 @@ python tools/preprocess/preprocess.py build                        # map_slices.
 ## 방·맵 에디터 (`python tools/preprocess/preprocess.py editor` → 상단 "방·맵 에디터 →")
 
 **방** 탭: `data/rooms/<id>.json`. 방 추가/복제/삭제, 이름, cols/rows/wall_rows/zoom, 벽·바닥 타일(`tile_*` 슬라이스), 막힌 칸, 스폰.
-- **시드**: 팔레트에서 아이템을 고르고 "시드 놓기"로 클릭. 게임 시작 시 `$seed` 소유로 미리 놓이고 화면엔 "???"로 보인다. `ruined` 태그면 팔 수 있고, `fixed`면 못 건드린다.
+- **시드**: 팔레트에서 아이템을 고르고 "시드 놓기"로 클릭. 게임 시작 시 `$seed` 소유로 미리 놓이고 화면엔 "???"로 보인다. 시드는 방 밖으로 삐져나가거나 서로 겹쳐도 된다(원근·연출용). 단 가구는 바닥 칸(발 위치), 벽지·벽 장식은 벽 칸에 있어야 하고, 소품은 is_surface 가구 위여야 한다 — 어기면 빨간 칸으로 표시되고 게임에서 건너뛴다. `ruined` 태그면 팔 수 있고, `fixed`면 못 건드린다.
 - **출구(기믹)**: "출구 그리기"로 사각형을 드래그 → 어느 방(`inn_2f` 등)이나 `map`으로 갈지, 도착 좌표. 아바타가 그 칸에 도착하면 이동. 계단 스프라이트는 같은 자리에 시드로 놓고 `stairs, fixed` 태그.
 - 서버는 시작할 때 방마다 **한 번만** 시드를 놓는다 (`room_meta`의 `seeded:<id>`). 시드를 고친 뒤 다시 놓고 싶으면 VM에서 `sqlite3 server/interior.db "DELETE FROM room_meta WHERE k='seeded:inn'"` 후 재시작 (이미 놓인 물건은 그대로 두고 빈 자리에만 추가된다).
 - 저장하면 `inn`은 예전 서버가 읽던 `data/room.json`에도 복사된다 (`data/rooms/`가 있으면 서버는 그쪽을 쓴다).

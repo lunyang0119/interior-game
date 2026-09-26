@@ -1248,6 +1248,86 @@
   "h": 32
  },
  {
+  "key": "wfbonus_wall_plank",
+  "sheet": "Interior/Walls_and_Floot_Bonus.png",
+  "x": 0,
+  "y": 0,
+  "w": 32,
+  "h": 32
+ },
+ {
+  "key": "wfbonus_wall_brick",
+  "sheet": "Interior/Walls_and_Floot_Bonus.png",
+  "x": 32,
+  "y": 0,
+  "w": 32,
+  "h": 32
+ },
+ {
+  "key": "wfbonus_wall_diamond",
+  "sheet": "Interior/Walls_and_Floot_Bonus.png",
+  "x": 64,
+  "y": 0,
+  "w": 32,
+  "h": 32
+ },
+ {
+  "key": "wfbonus_wall_tan_stripe",
+  "sheet": "Interior/Walls_and_Floot_Bonus.png",
+  "x": 96,
+  "y": 0,
+  "w": 32,
+  "h": 32
+ },
+ {
+  "key": "wfbonus_wall_purple_stripe",
+  "sheet": "Interior/Walls_and_Floot_Bonus.png",
+  "x": 128,
+  "y": 0,
+  "w": 32,
+  "h": 32
+ },
+ {
+  "key": "wfbonus_floor_diamond_wood",
+  "sheet": "Interior/Walls_and_Floot_Bonus.png",
+  "x": 0,
+  "y": 32,
+  "w": 32,
+  "h": 32
+ },
+ {
+  "key": "wfbonus_floor_dark_plank",
+  "sheet": "Interior/Walls_and_Floot_Bonus.png",
+  "x": 32,
+  "y": 32,
+  "w": 32,
+  "h": 32
+ },
+ {
+  "key": "wfbonus_floor_baseboard_green",
+  "sheet": "Interior/Walls_and_Floot_Bonus.png",
+  "x": 64,
+  "y": 32,
+  "w": 32,
+  "h": 32
+ },
+ {
+  "key": "wfbonus_floor_wainscot_tan",
+  "sheet": "Interior/Walls_and_Floot_Bonus.png",
+  "x": 96,
+  "y": 32,
+  "w": 32,
+  "h": 32
+ },
+ {
+  "key": "wfbonus_floor_wainscot_dark",
+  "sheet": "Interior/Walls_and_Floot_Bonus.png",
+  "x": 128,
+  "y": 32,
+  "w": 32,
+  "h": 32
+ },
+ {
   "key": "mordernwall_01",
   "sheet": "Interior/moderninteriors-win/1_Interiors/16x16/Room_Builder_subfiles/Room_Builder_Walls_16x16.png",
   "x": 0,
@@ -15344,6 +15424,14 @@
   "h": 16
  },
  {
+  "key": "fmp_40",
+  "sheet": "free_modern_pack",
+  "x": 400,
+  "y": 11,
+  "w": 31,
+  "h": 27
+ },
+ {
   "key": "fmp_002",
   "sheet": "free_modern_pack",
   "x": 16,
@@ -15400,14 +15488,6 @@
   "h": 32
  },
  {
-  "key": "fmp_009",
-  "sheet": "free_modern_pack",
-  "x": 192,
-  "y": 16,
-  "w": 128,
-  "h": 96
- },
- {
   "key": "fmp_010",
   "sheet": "free_modern_pack",
   "x": 320,
@@ -15442,18 +15522,10 @@
  {
   "key": "fmp_014",
   "sheet": "free_modern_pack",
-  "x": 592,
+  "x": 600,
   "y": 16,
-  "w": 32,
-  "h": 32
- },
- {
-  "key": "fmp_015",
-  "sheet": "free_modern_pack",
-  "x": 624,
-  "y": 16,
-  "w": 32,
-  "h": 32
+  "w": 16,
+  "h": 21
  },
  {
   "key": "fmp_016",
@@ -15472,6 +15544,14 @@
   "h": 32
  },
  {
+  "key": "fmp_015",
+  "sheet": "free_modern_pack",
+  "x": 631,
+  "y": 17,
+  "w": 17,
+  "h": 20
+ },
+ {
   "key": "fmp_018",
   "sheet": "free_modern_pack",
   "x": 96,
@@ -15480,12 +15560,20 @@
   "h": 48
  },
  {
+  "key": "fmp_75",
+  "sheet": "free_modern_pack",
+  "x": 273,
+  "y": 45,
+  "w": 47,
+  "h": 34
+ },
+ {
   "key": "fmp_019",
   "sheet": "free_modern_pack",
   "x": 16,
   "y": 48,
   "w": 16,
-  "h": 48
+  "h": 37
  },
  {
   "key": "fmp_020",
@@ -15493,7 +15581,7 @@
   "x": 32,
   "y": 48,
   "w": 16,
-  "h": 48
+  "h": 38
  },
  {
   "key": "fmp_021",
@@ -15566,6 +15654,22 @@
   "y": 48,
   "w": 48,
   "h": 48
+ },
+ {
+  "key": "fmp73",
+  "sheet": "free_modern_pack",
+  "x": 241,
+  "y": 50,
+  "w": 30,
+  "h": 31
+ },
+ {
+  "key": "fmp74",
+  "sheet": "free_modern_pack",
+  "x": 213,
+  "y": 58,
+  "w": 21,
+  "h": 43
  },
  {
   "key": "fmp_030",
@@ -15646,14 +15750,6 @@
   "y": 64,
   "w": 16,
   "h": 32
- },
- {
-  "key": "fmp_040",
-  "sheet": "free_modern_pack",
-  "x": 592,
-  "y": 64,
-  "w": 96,
-  "h": 48
  },
  {
   "key": "fmp_041",
@@ -15741,7 +15837,7 @@
   "x": 512,
   "y": 80,
   "w": 64,
-  "h": 64
+  "h": 52
  },
  {
   "key": "fmp_052",
@@ -15818,9 +15914,9 @@
  {
   "key": "fmp_061",
   "sheet": "free_modern_pack",
-  "x": 416,
+  "x": 421,
   "y": 112,
-  "w": 48,
+  "w": 39,
   "h": 32
  },
  {
@@ -15861,7 +15957,7 @@
   "x": 16,
   "y": 144,
   "w": 32,
-  "h": 32
+  "h": 21
  },
  {
   "key": "fmp_067",
@@ -15894,14 +15990,6 @@
   "y": 144,
   "w": 64,
   "h": 32
- },
- {
-  "key": "fmp_071",
-  "sheet": "free_modern_pack",
-  "x": 16,
-  "y": 176,
-  "w": 160,
-  "h": 64
  },
  {
   "key": "fmp_073",
@@ -15960,7 +16048,7 @@
   "h": 32
  },
  {
-  "key": "fmp_080",
+  "key": "fmp_tile_02",
   "sheet": "free_modern_pack",
   "x": 512,
   "y": 192,
@@ -15968,15 +16056,15 @@
   "h": 48
  },
  {
-  "key": "fmp_081",
+  "key": "fmp_tile_01",
   "sheet": "free_modern_pack",
   "x": 576,
   "y": 192,
   "w": 32,
-  "h": 48
+  "h": 32
  },
  {
-  "key": "fmp_082",
+  "key": "fmp_tile_03",
   "sheet": "free_modern_pack",
   "x": 624,
   "y": 192,
@@ -15984,12 +16072,12 @@
   "h": 48
  },
  {
-  "key": "fmp_083",
+  "key": "fmp_tile_04",
   "sheet": "free_modern_pack",
   "x": 688,
   "y": 192,
   "w": 32,
-  "h": 48
+  "h": 32
  },
  {
   "key": "fmp_084",
@@ -15997,14 +16085,6 @@
   "x": 736,
   "y": 192,
   "w": 48,
-  "h": 48
- },
- {
-  "key": "fmp_085",
-  "sheet": "free_modern_pack",
-  "x": 800,
-  "y": 192,
-  "w": 32,
   "h": 48
  },
  {
@@ -16048,33 +16128,9 @@
   "h": 16
  },
  {
-  "key": "fmp_091",
+  "key": "fmp_tile_06",
   "sheet": "free_modern_pack",
-  "x": 384,
-  "y": 224,
-  "w": 16,
-  "h": 16
- },
- {
-  "key": "fmp_092",
-  "sheet": "free_modern_pack",
-  "x": 400,
-  "y": 224,
-  "w": 16,
-  "h": 16
- },
- {
-  "key": "fmp_093",
-  "sheet": "free_modern_pack",
-  "x": 416,
-  "y": 224,
-  "w": 16,
-  "h": 16
- },
- {
-  "key": "fmp_094",
-  "sheet": "free_modern_pack",
-  "x": 432,
+  "x": 800,
   "y": 224,
   "w": 16,
   "h": 16
@@ -20848,6 +20904,46 @@
   "h": 48
  },
  {
+  "key": "mordkit2_001a_wall_colors_strip",
+  "sheet": "kitchen",
+  "x": 0,
+  "y": 0,
+  "w": 144,
+  "h": 32
+ },
+ {
+  "key": "mordkit2_001b_pattern_pink_quatrefoil",
+  "sheet": "kitchen",
+  "x": 0,
+  "y": 32,
+  "w": 62,
+  "h": 48
+ },
+ {
+  "key": "mordkit2_001c_pattern_grey_quatrefoil",
+  "sheet": "kitchen",
+  "x": 62,
+  "y": 32,
+  "w": 58,
+  "h": 48
+ },
+ {
+  "key": "mordkit2_001e_window_glass_icon",
+  "sheet": "kitchen",
+  "x": 120,
+  "y": 32,
+  "w": 24,
+  "h": 90
+ },
+ {
+  "key": "mordkit2_001d_pattern_purple_quatrefoil",
+  "sheet": "kitchen",
+  "x": 0,
+  "y": 80,
+  "w": 62,
+  "h": 48
+ },
+ {
   "key": "mordkit2_003_wardrobe_dresser_set",
   "sheet": "kitchen",
   "x": 48,
@@ -21074,10 +21170,10 @@
  {
   "key": "med_003",
   "sheet": "medieval_pack",
-  "x": 16,
+  "x": 63,
   "y": 32,
-  "w": 96,
-  "h": 64
+  "w": 49,
+  "h": 32
  },
  {
   "key": "med_004",
@@ -21101,14 +21197,6 @@
   "x": 144,
   "y": 32,
   "w": 96,
-  "h": 64
- },
- {
-  "key": "med_007",
-  "sheet": "medieval_pack",
-  "x": 256,
-  "y": 32,
-  "w": 64,
   "h": 64
  },
  {
@@ -21136,12 +21224,12 @@
   "h": 48
  },
  {
-  "key": "med_011",
+  "key": "med_007",
   "sheet": "medieval_pack",
-  "x": 688,
-  "y": 32,
-  "w": 96,
-  "h": 48
+  "x": 272,
+  "y": 35,
+  "w": 32,
+  "h": 29
  },
  {
   "key": "med_012",
@@ -21368,28 +21456,28 @@
   "h": 32
  },
  {
-  "key": "med_040",
-  "sheet": "medieval_pack",
-  "x": 448,
-  "y": 128,
-  "w": 32,
-  "h": 48
- },
- {
   "key": "med_041",
   "sheet": "medieval_pack",
   "x": 480,
-  "y": 128,
+  "y": 138,
   "w": 32,
-  "h": 48
+  "h": 38
  },
  {
   "key": "med_042",
   "sheet": "medieval_pack",
   "x": 512,
-  "y": 128,
+  "y": 138,
   "w": 32,
-  "h": 48
+  "h": 38
+ },
+ {
+  "key": "med_040",
+  "sheet": "medieval_pack",
+  "x": 448,
+  "y": 139,
+  "w": 32,
+  "h": 37
  },
  {
   "key": "med_043",
@@ -21477,15 +21565,7 @@
   "x": 720,
   "y": 160,
   "w": 64,
-  "h": 64
- },
- {
-  "key": "med_055",
-  "sheet": "medieval_pack",
-  "x": 176,
-  "y": 176,
-  "w": 48,
-  "h": 48
+  "h": 51
  },
  {
   "key": "med_056",
@@ -22966,6 +23046,126 @@
   "y": 64,
   "w": 80,
   "h": 32
+ },
+ {
+  "key": "pi_wall_cream",
+  "sheet": "pi_floorswalls_lrk",
+  "x": 12,
+  "y": 12,
+  "w": 67,
+  "h": 40
+ },
+ {
+  "key": "pi_wall_mint",
+  "sheet": "pi_floorswalls_lrk",
+  "x": 79,
+  "y": 12,
+  "w": 67,
+  "h": 40
+ },
+ {
+  "key": "pi_wall_white",
+  "sheet": "pi_floorswalls_lrk",
+  "x": 146,
+  "y": 12,
+  "w": 66,
+  "h": 40
+ },
+ {
+  "key": "pi_wallpanel_white",
+  "sheet": "pi_floorswalls_lrk",
+  "x": 12,
+  "y": 52,
+  "w": 67,
+  "h": 40
+ },
+ {
+  "key": "pi_wallpanel_orange",
+  "sheet": "pi_floorswalls_lrk",
+  "x": 79,
+  "y": 52,
+  "w": 67,
+  "h": 40
+ },
+ {
+  "key": "pi_wallpanel_brown",
+  "sheet": "pi_floorswalls_lrk",
+  "x": 146,
+  "y": 52,
+  "w": 66,
+  "h": 40
+ },
+ {
+  "key": "pi_wallclad_orange",
+  "sheet": "pi_floorswalls_lrk",
+  "x": 12,
+  "y": 92,
+  "w": 67,
+  "h": 40
+ },
+ {
+  "key": "pi_wallclad_white",
+  "sheet": "pi_floorswalls_lrk",
+  "x": 79,
+  "y": 92,
+  "w": 67,
+  "h": 40
+ },
+ {
+  "key": "pi_wallclad_dark",
+  "sheet": "pi_floorswalls_lrk",
+  "x": 146,
+  "y": 92,
+  "w": 66,
+  "h": 40
+ },
+ {
+  "key": "pi_floorcolor_pink",
+  "sheet": "pi_floorswalls_lrk",
+  "x": 12,
+  "y": 156,
+  "w": 67,
+  "h": 44
+ },
+ {
+  "key": "pi_floorcolor_sage",
+  "sheet": "pi_floorswalls_lrk",
+  "x": 79,
+  "y": 156,
+  "w": 67,
+  "h": 44
+ },
+ {
+  "key": "pi_floorcolor_gray",
+  "sheet": "pi_floorswalls_lrk",
+  "x": 146,
+  "y": 156,
+  "w": 66,
+  "h": 44
+ },
+ {
+  "key": "pi_floortile_cream",
+  "sheet": "pi_floorswalls_lrk",
+  "x": 12,
+  "y": 200,
+  "w": 67,
+  "h": 44
+ },
+ {
+  "key": "pi_floortile_gray",
+  "sheet": "pi_floorswalls_lrk",
+  "x": 79,
+  "y": 200,
+  "w": 67,
+  "h": 44
+ },
+ {
+  "key": "pi_floortile_dark",
+  "sheet": "pi_floorswalls_lrk",
+  "x": 146,
+  "y": 200,
+  "w": 66,
+  "h": 44
  },
  {
   "key": "cabinet_wall_glass_tan",
@@ -24960,6 +25160,38 @@
   "h": 16
  },
  {
+  "key": "topdoor_open_olive",
+  "sheet": "topdown_floors_walls_open",
+  "x": 0,
+  "y": 0,
+  "w": 32,
+  "h": 48
+ },
+ {
+  "key": "topdoor_open_orange",
+  "sheet": "topdown_floors_walls_open",
+  "x": 32,
+  "y": 0,
+  "w": 32,
+  "h": 48
+ },
+ {
+  "key": "topdoor_open_cream",
+  "sheet": "topdown_floors_walls_open",
+  "x": 64,
+  "y": 0,
+  "w": 32,
+  "h": 48
+ },
+ {
+  "key": "topdoor_open_brown",
+  "sheet": "topdown_floors_walls_open",
+  "x": 96,
+  "y": 0,
+  "w": 32,
+  "h": 48
+ },
+ {
   "key": "nightstand_tan1",
   "sheet": "topdown_furniture1",
   "x": 0,
@@ -26352,277 +26584,5 @@
  {
   "key": "work_table_fa",
   "file": "Furniture Assets/Rooms/Bedroom/Bedroom PNG/Work Table.png"
- },
- {
-  "key": "pi_wall_cream",
-  "sheet": "pi_floorswalls_lrk",
-  "x": 12,
-  "y": 12,
-  "w": 67,
-  "h": 40
- },
- {
-  "key": "pi_wall_mint",
-  "sheet": "pi_floorswalls_lrk",
-  "x": 79,
-  "y": 12,
-  "w": 67,
-  "h": 40
- },
- {
-  "key": "pi_wall_white",
-  "sheet": "pi_floorswalls_lrk",
-  "x": 146,
-  "y": 12,
-  "w": 66,
-  "h": 40
- },
- {
-  "key": "pi_wallpanel_white",
-  "sheet": "pi_floorswalls_lrk",
-  "x": 12,
-  "y": 52,
-  "w": 67,
-  "h": 40
- },
- {
-  "key": "pi_wallpanel_orange",
-  "sheet": "pi_floorswalls_lrk",
-  "x": 79,
-  "y": 52,
-  "w": 67,
-  "h": 40
- },
- {
-  "key": "pi_wallpanel_brown",
-  "sheet": "pi_floorswalls_lrk",
-  "x": 146,
-  "y": 52,
-  "w": 66,
-  "h": 40
- },
- {
-  "key": "pi_wallclad_orange",
-  "sheet": "pi_floorswalls_lrk",
-  "x": 12,
-  "y": 92,
-  "w": 67,
-  "h": 40
- },
- {
-  "key": "pi_wallclad_white",
-  "sheet": "pi_floorswalls_lrk",
-  "x": 79,
-  "y": 92,
-  "w": 67,
-  "h": 40
- },
- {
-  "key": "pi_wallclad_dark",
-  "sheet": "pi_floorswalls_lrk",
-  "x": 146,
-  "y": 92,
-  "w": 66,
-  "h": 40
- },
- {
-  "key": "pi_floorcolor_pink",
-  "sheet": "pi_floorswalls_lrk",
-  "x": 12,
-  "y": 156,
-  "w": 67,
-  "h": 44
- },
- {
-  "key": "pi_floorcolor_sage",
-  "sheet": "pi_floorswalls_lrk",
-  "x": 79,
-  "y": 156,
-  "w": 67,
-  "h": 44
- },
- {
-  "key": "pi_floorcolor_gray",
-  "sheet": "pi_floorswalls_lrk",
-  "x": 146,
-  "y": 156,
-  "w": 66,
-  "h": 44
- },
- {
-  "key": "pi_floortile_cream",
-  "sheet": "pi_floorswalls_lrk",
-  "x": 12,
-  "y": 200,
-  "w": 67,
-  "h": 44
- },
- {
-  "key": "pi_floortile_gray",
-  "sheet": "pi_floorswalls_lrk",
-  "x": 79,
-  "y": 200,
-  "w": 67,
-  "h": 44
- },
- {
-  "key": "pi_floortile_dark",
-  "sheet": "pi_floorswalls_lrk",
-  "x": 146,
-  "y": 200,
-  "w": 66,
-  "h": 44
- },
- {
-  "key": "wfbonus_wall_plank",
-  "sheet": "Interior/Walls_and_Floot_Bonus.png",
-  "x": 0,
-  "y": 0,
-  "w": 32,
-  "h": 32
- },
- {
-  "key": "wfbonus_floor_diamond_wood",
-  "sheet": "Interior/Walls_and_Floot_Bonus.png",
-  "x": 0,
-  "y": 32,
-  "w": 32,
-  "h": 32
- },
- {
-  "key": "wfbonus_wall_brick",
-  "sheet": "Interior/Walls_and_Floot_Bonus.png",
-  "x": 32,
-  "y": 0,
-  "w": 32,
-  "h": 32
- },
- {
-  "key": "wfbonus_floor_dark_plank",
-  "sheet": "Interior/Walls_and_Floot_Bonus.png",
-  "x": 32,
-  "y": 32,
-  "w": 32,
-  "h": 32
- },
- {
-  "key": "wfbonus_wall_diamond",
-  "sheet": "Interior/Walls_and_Floot_Bonus.png",
-  "x": 64,
-  "y": 0,
-  "w": 32,
-  "h": 32
- },
- {
-  "key": "wfbonus_floor_baseboard_green",
-  "sheet": "Interior/Walls_and_Floot_Bonus.png",
-  "x": 64,
-  "y": 32,
-  "w": 32,
-  "h": 32
- },
- {
-  "key": "wfbonus_wall_tan_stripe",
-  "sheet": "Interior/Walls_and_Floot_Bonus.png",
-  "x": 96,
-  "y": 0,
-  "w": 32,
-  "h": 32
- },
- {
-  "key": "wfbonus_floor_wainscot_tan",
-  "sheet": "Interior/Walls_and_Floot_Bonus.png",
-  "x": 96,
-  "y": 32,
-  "w": 32,
-  "h": 32
- },
- {
-  "key": "wfbonus_wall_purple_stripe",
-  "sheet": "Interior/Walls_and_Floot_Bonus.png",
-  "x": 128,
-  "y": 0,
-  "w": 32,
-  "h": 32
- },
- {
-  "key": "wfbonus_floor_wainscot_dark",
-  "sheet": "Interior/Walls_and_Floot_Bonus.png",
-  "x": 128,
-  "y": 32,
-  "w": 32,
-  "h": 32
- },
- {
-  "key": "topdoor_open_olive",
-  "sheet": "topdown_floors_walls_open",
-  "x": 0,
-  "y": 0,
-  "w": 32,
-  "h": 48
- },
- {
-  "key": "topdoor_open_orange",
-  "sheet": "topdown_floors_walls_open",
-  "x": 32,
-  "y": 0,
-  "w": 32,
-  "h": 48
- },
- {
-  "key": "topdoor_open_cream",
-  "sheet": "topdown_floors_walls_open",
-  "x": 64,
-  "y": 0,
-  "w": 32,
-  "h": 48
- },
- {
-  "key": "topdoor_open_brown",
-  "sheet": "topdown_floors_walls_open",
-  "x": 96,
-  "y": 0,
-  "w": 32,
-  "h": 48
- },
- {
-  "key": "mordkit2_001a_wall_colors_strip",
-  "sheet": "kitchen",
-  "x": 0,
-  "y": 0,
-  "w": 144,
-  "h": 32
- },
- {
-  "key": "mordkit2_001b_pattern_pink_quatrefoil",
-  "sheet": "kitchen",
-  "x": 0,
-  "y": 32,
-  "w": 62,
-  "h": 48
- },
- {
-  "key": "mordkit2_001c_pattern_grey_quatrefoil",
-  "sheet": "kitchen",
-  "x": 62,
-  "y": 32,
-  "w": 58,
-  "h": 48
- },
- {
-  "key": "mordkit2_001d_pattern_purple_quatrefoil",
-  "sheet": "kitchen",
-  "x": 0,
-  "y": 80,
-  "w": 62,
-  "h": 48
- },
- {
-  "key": "mordkit2_001e_window_glass_icon",
-  "sheet": "kitchen",
-  "x": 120,
-  "y": 32,
-  "w": 24,
-  "h": 90
  }
 ]

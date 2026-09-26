@@ -214,19 +214,12 @@
   function seedProblem(s, rm) {
     const it = itemById(s.item_id); if (!it) return "items.json에 없는 아이템";
     const w = seedW(s, it), h = it.h;
-    if (s.x < 0 || s.y < 0 || s.x + w > rm.cols || s.y + h > rm.rows) return "방 밖으로 나가요";
     if (WALL_LAYERS.has(it.layer) ? s.y + h > rm.wall_rows : s.y < rm.wall_rows) return WALL_LAYERS.has(it.layer) ? "벽 칸에만 놓을 수 있어요" : "바닥 칸에만 놓을 수 있어요 (발 위치 기준)";
-    if ((rm.blocked || []).some(([bx, by]) => bx >= s.x && bx < s.x + w && by >= s.y && by < s.y + h)) return "막힌 칸 위예요";
     if (it.layer === "surface_item") {
       const under = (rm.seed || []).filter((o) => { const oi = itemById(o.item_id); return o !== s && oi && oi.layer === "furniture" && oi.is_surface && s.x >= o.x && s.x + w <= o.x + oi.w && s.y >= o.y && s.y + h <= o.y + oi.h; });
       if (under.length !== 1) return "테이블 같은 가구(is_surface) 위에만 놓을 수 있어요";
     }
-    for (const o of rm.seed || []) {
-      if (o === s) continue; const oi = itemById(o.item_id); if (!oi || oi.layer !== it.layer) continue;
-      const ow = seedW(o, oi);
-      if (s.x < o.x + ow && o.x < s.x + w && s.y < o.y + oi.h && o.y < s.y + h) return `${oi.name || oi.id} (${o.x},${o.y})와 겹쳐요`;
-    }
-    return null;
+    return null; // past the edge / overlapping is allowed for seeds (perspective, layered decor)
   }
   const seedProblems = (rm) => (rm.seed || []).map((s) => ({ s, why: seedProblem(s, rm) })).filter((o) => o.why);
   const itemById = (id) => items.find((it) => it.id === id);
@@ -752,9 +745,8 @@
       if (tool === "blocked") { toggleBlocked(room.blocked, c); drag = { mode: "blocked", last: c }; touch(); draw(); return; }
       if (tool === "seed" && palKey && !right) {
         const it = itemById(palKey); const s = { item_id: it.id, x: c.x, y: c.y }; if (it.layer === "wallpaper") s.span = it.w;
-        const w = seedW(s, it);
-        s.x = Math.max(0, Math.min(c.x, room.cols - w));
-        s.y = WALL_LAYERS.has(it.layer) ? Math.max(0, Math.min(c.y, room.wall_rows - it.h)) : Math.max(room.wall_rows, Math.min(c.y, room.rows - it.h));
+        // furniture clicked on the wall rows drops to the first floor row (the sprite still overhangs the wall)
+        if (!WALL_LAYERS.has(it.layer)) s.y = Math.max(room.wall_rows, c.y);
         room.seed.push(s); selSeed = s; selExit = null; touch(); renderSide(); draw(); return;
       }
       if (tool === "exit") { drag = { mode: "exit", ox: c.x, oy: c.y, rect: null }; return; }

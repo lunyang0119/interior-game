@@ -11,33 +11,34 @@ def test_seed_once_and_sell(env):
     with TestClient(create_app()) as client:
         lun = register(client, "lun")
         r = client.get("/api/room/house_a").json()
-        # the out-of-bounds seed was skipped with a warning; the other two are in
-        assert [(i["item_id"], i["placed_by"]) for i in r["items"]] == [("junk", "$seed"), ("stairs", "$seed")]
-        assert r["ruined"] == 1 and r["version"] == 1
+        # seeds may hang past the edge (9,9) and overlap each other (3,2 twice); only the one on a wall row is skipped
+        assert [(i["item_id"], i["x"], i["y"]) for i in r["items"]] == [("junk", 3, 2), ("stairs", 5, 1), ("junk", 9, 9), ("junk", 3, 2)]
+        assert all(i["placed_by"] == "$seed" for i in r["items"])
+        assert r["ruined"] == 3 and r["version"] == 1
         assert client.get("/api/room").json() == client.get("/api/room/inn").json()
         assert client.get("/api/room/inn").json()["ruined"] == 0
         assert client.get("/api/room/nope").status_code == 404
         # seeding did not touch the pool
         assert client.get("/api/me", headers=auth(lun)).json()["balance"] == 800
         rooms = {x["id"]: x for x in client.get("/api/rooms").json()["rooms"]}
-        assert rooms["house_a"]["ruined"] == 1 and rooms["house_a"]["name"] == "빈 집" and rooms["inn"]["ruined"] == 0
+        assert rooms["house_a"]["ruined"] == 3 and rooms["house_a"]["name"] == "빈 집" and rooms["inn"]["ruined"] == 0
         junk_uid = r["items"][0]["uid"]
 
     # restart: no duplicate seed, version stable
     with TestClient(create_app()) as client:
         lun = register(client, "lun")
         r = client.get("/api/room/house_a").json()
-        assert len(r["items"]) == 2 and r["version"] == 1
+        assert len(r["items"]) == 4 and r["version"] == 1  # reconcile kept the odd seeds too
         # selling the junk pays the pool
         r = client.delete(f"/api/room/item/{junk_uid}", headers=auth(lun))
-        assert r.status_code == 200 and r.json()["balance"] == 840 and r.json()["ruined"] == 0 and r.json()["room"] == "house_a"
-        assert client.get("/api/room/house_a").json()["ruined"] == 0
+        assert r.status_code == 200 and r.json()["balance"] == 840 and r.json()["ruined"] == 2 and r.json()["room"] == "house_a"
+        assert client.get("/api/room/house_a").json()["ruined"] == 2
         # ...and the inn version did not move
         assert client.get("/api/room/inn").json()["version"] == 0
 
     # a restart after selling does not bring it back
     with TestClient(create_app()) as client:
-        assert [i["item_id"] for i in client.get("/api/room/house_a").json()["items"]] == ["stairs"]
+        assert [i["item_id"] for i in client.get("/api/room/house_a").json()["items"]] == ["stairs", "junk", "junk"]
 
 
 def test_ruined_and_fixed_rules(client):
@@ -51,8 +52,10 @@ def test_ruined_and_fixed_rules(client):
     assert r.status_code == 400 and r.json()["error"] == "fixed_item"
     r = client.delete(f"/api/room/item/{stairs['uid']}", headers=auth(lun))
     assert r.status_code == 400 and r.json()["error"] == "fixed_item"
-    # ruined items can be moved around before selling
+    # ruined items can be moved around before selling (a move follows the normal rules again)
     junk = next(i for i in client.get("/api/room/house_a").json()["items"] if i["item_id"] == "junk")
+    r = client.post("/api/room/move", json={"uid": junk["uid"], "x": 9, "y": 9}, headers=auth(lun))
+    assert r.status_code == 400 and r.json()["error"] == "out_of_bounds"
     r = client.post("/api/room/move", json={"uid": junk["uid"], "x": 1, "y": 2}, headers=auth(lun))
     assert r.status_code == 200 and r.json()["balance"] == 800
 
@@ -73,6 +76,9 @@ def test_rooms_are_isolated(client):
     assert r.status_code == 404 and r.json()["error"] == "unknown_room"
     versions = {x["id"]: x["version"] for x in client.get("/api/rooms").json()["rooms"]}
     assert versions == {"inn": 1, "house_a": 2}  # seed + chair
+    # a player cannot place onto a seeded item's cells, even the overlapping ones
+    r = client.post("/api/room/place", json={"item_id": "chair", "x": 3, "y": 2, "room_id": "house_a"}, headers=auth(lun))
+    assert r.status_code == 400 and r.json()["error"] == "collision"
 
 
 def test_ws_enter_scopes_presence(client):

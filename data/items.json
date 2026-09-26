@@ -6967,17 +6967,6 @@
    "surface_offset_y": 0
   },
   {
-   "id": "fmp_009",
-   "name": "소파 009",
-   "price": 45,
-   "sprite": "fmp_009",
-   "w": 6,
-   "h": 2,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
    "id": "fmp_010",
    "name": "액자 010",
    "price": 8,
@@ -7082,7 +7071,7 @@
    "price": 14,
    "sprite": "fmp_019",
    "w": 1,
-   "h": 2,
+   "h": 3,
    "layer": "furniture",
    "is_surface": false,
    "surface_offset_y": 0
@@ -7093,7 +7082,7 @@
    "price": 14,
    "sprite": "fmp_020",
    "w": 1,
-   "h": 2,
+   "h": 3,
    "layer": "furniture",
    "is_surface": false,
    "surface_offset_y": 0
@@ -7522,7 +7511,7 @@
    "price": 16,
    "sprite": "fmp_061",
    "w": 3,
-   "h": 1,
+   "h": 2,
    "layer": "furniture",
    "is_surface": false,
    "surface_offset_y": 0
@@ -7627,17 +7616,6 @@
    "surface_offset_y": 0
   },
   {
-   "id": "fmp_071",
-   "name": "침대 071",
-   "price": 45,
-   "sprite": "fmp_071",
-   "w": 6,
-   "h": 2,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
    "id": "fmp_073",
    "name": "책상 073",
    "price": 21,
@@ -7715,10 +7693,10 @@
    "surface_offset_y": 0
   },
   {
-   "id": "fmp_080",
+   "id": "fmp_tile_02",
    "name": "회색 타일 바닥",
    "price": 10,
-   "sprite": "fmp_080",
+   "sprite": "fmp_tile_02",
    "w": 3,
    "h": 3,
    "layer": "floor",
@@ -7726,10 +7704,10 @@
    "surface_offset_y": 0
   },
   {
-   "id": "fmp_082",
+   "id": "fmp_tile_03",
    "name": "어두운 격자 바닥",
    "price": 10,
-   "sprite": "fmp_082",
+   "sprite": "fmp_tile_03",
    "w": 3,
    "h": 3,
    "layer": "floor",
@@ -8340,17 +8318,6 @@
    "layer": "furniture",
    "is_surface": true,
    "surface_offset_y": 10
-  },
-  {
-   "id": "med_055",
-   "name": "나무 캐비닛 055",
-   "price": 24,
-   "sprite": "med_055",
-   "w": 3,
-   "h": 2,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
   },
   {
    "id": "med_056",
@@ -34610,6 +34577,105 @@
    "sprite": "nosh_220_rug_tan_plaid_room",
    "w": 4,
    "h": 3,
+   "layer": "floor",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "med_053",
+   "name": "med 053",
+   "price": 50,
+   "sprite": "med_053",
+   "w": 4,
+   "h": 2,
+   "layer": "wall",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "fmp_051",
+   "name": "fmp 051",
+   "price": 50,
+   "sprite": "fmp_051",
+   "w": 4,
+   "h": 4,
+   "layer": "wall",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "fmp_40",
+   "name": "fmp 40",
+   "price": 50,
+   "sprite": "fmp_40",
+   "w": 2,
+   "h": 2,
+   "layer": "furniture",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "fmp73",
+   "name": "fmp73",
+   "price": 50,
+   "sprite": "fmp73",
+   "w": 2,
+   "h": 2,
+   "layer": "furniture",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "fmp74",
+   "name": "fmp74",
+   "price": 50,
+   "sprite": "fmp74",
+   "w": 2,
+   "h": 3,
+   "layer": "furniture",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "fmp_75",
+   "name": "fmp 75",
+   "price": 50,
+   "sprite": "fmp_75",
+   "w": 3,
+   "h": 3,
+   "layer": "furniture",
+   "is_surface": true,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "fmp_tile_01",
+   "name": "fmp tile 01",
+   "price": 50,
+   "sprite": "fmp_tile_01",
+   "w": 2,
+   "h": 2,
+   "layer": "floor",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "fmp_tile_04",
+   "name": "fmp 083",
+   "price": 50,
+   "sprite": "fmp_tile_04",
+   "w": 2,
+   "h": 2,
+   "layer": "floor",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "fmp_tile_06",
+   "name": "fmp tile 06",
+   "price": 50,
+   "sprite": "fmp_tile_06",
+   "w": 1,
+   "h": 1,
    "layer": "floor",
    "is_surface": false,
    "surface_offset_y": 0

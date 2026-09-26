@@ -196,20 +196,9 @@ def seed_problem(s: dict, room: dict, items: dict[str, dict], others: list[dict]
     w = (s.get("span") or it["w"]) if it["layer"] == "wallpaper" else it["w"]
     h = it["h"]
     x, y = s["x"], s["y"]
-    if x < 0 or y < 0 or x + w > room["cols"] or y + h > room["rows"]:
-        return "방 밖"
     if (y + h > room["wall_rows"]) if wall else (y < room["wall_rows"]):
         return "벽 칸에만" if wall else "바닥 칸에만 (발 위치 기준)"
-    if any(x <= bx < x + w and y <= by < y + h for bx, by in room.get("blocked", [])):
-        return "막힌 칸"
-    for o in others:
-        oi = items.get(o.get("item_id"))
-        if o is s or oi is None or oi["layer"] != it["layer"] or it["layer"] == "surface_item":
-            continue
-        ow = (o.get("span") or oi["w"]) if oi["layer"] == "wallpaper" else oi["w"]
-        if x < o["x"] + ow and o["x"] < x + w and y < o["y"] + oi["h"] and o["y"] < y + h:
-            return f"{o['item_id']} ({o['x']},{o['y']})와 겹침"
-    return None
+    return None  # past the edge / overlapping is fine for seeds (the game server places them relaxed)
 
 
 def validate_room(rid: str, room: dict, all_ids: set[str], item_ids: set[str], tile_keys: set[str]) -> str | None:
