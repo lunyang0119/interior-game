@@ -7,13 +7,13 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from . import catalog as catalog_mod
-from . import config, sheet
+from . import config, fishing, sheet
 from .db import connect, ensure_room_meta, migrate, now, transaction
 from .errors import ApiError
 from .presence import hub
 from .reconcile import reconcile_items
 from .seed import seed_room
-from .routers import auth, me, room, ws
+from .routers import auth, fish, me, room, ws
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s %(message)s")
 log = logging.getLogger("main")
@@ -55,6 +55,7 @@ async def lifespan(app: FastAPI):
             seed_room(conn, app.state.catalog, room)
     conn.close()
     app.state.sheet = sheet.from_config()
+    app.state.fishing = fishing.Fishing(cfg=fishing.load_config())
     hub.bind_loop()
     prune_task = asyncio.create_task(_prune_loop())
     yield
@@ -71,6 +72,7 @@ def create_app() -> FastAPI:
     app.include_router(auth.router)
     app.include_router(me.router)
     app.include_router(room.router)
+    app.include_router(fish.router)
     app.include_router(ws.router)
 
     # Generated sprites are served from the same origin in production. In dev Vite serves them.

@@ -28,6 +28,9 @@ const MESSAGES: Record<string, string> = {
   not_for_sale: "파는 물건이 아니에요",
   fixed_item: "이건 방의 일부라 손댈 수 없어요",
   unknown_room: "없는 방이에요",
+  fish_cooldown: "잠깐 쉬었다가 다시 던져요",
+  too_early: "아직 입질이 안 끝났어요",
+  no_session: "낚싯대를 먼저 던져요",
   network: "네트워크 오류네요",
 };
 
@@ -63,6 +66,9 @@ export interface RoomSummary { id: string; name: string; version: number; ruined
 export const api = {
   catalog: () => call<RawCatalog>("GET", "/api/catalog"),
   rooms: () => call<{ rooms: RoomSummary[] }>("GET", "/api/rooms"),
+  fishStart: () => call<{ session: string; hold_ms: number; bites: { at_ms: number; window_ms: number; real: boolean }[] }>("POST", "/api/fish/start", {}),
+  fishFinish: (session: string, holds: { start_ms: number; end_ms: number }[]) =>
+    call<{ ok: boolean; id: string; name: string; value: number; balance: number }>("POST", "/api/fish/finish", { session, holds }),
   register: (id: string) => call<{ id: string; token: string; existing: boolean; created: boolean; name: string; earned: number }>("POST", "/api/register", { id }),
   me: () => call<MeResponse>("GET", "/api/me"),
   sync: () => call<{ refreshed: boolean; balance: number; contributions: Contribution[] }>("POST", "/api/sync"),

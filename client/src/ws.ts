@@ -11,6 +11,7 @@ export type WsMsg =
   | { type: "avatar_look"; id: string; avatar: AvatarLook }
   | { type: "room"; room?: string; version: number; balance?: number; ruined?: number }
   | { type: "money"; balance: number }
+  | { type: "fish"; id: string; loot: string; name: string; value: number }
   | { type: "pong" };
 
 type Handler = (msg: any) => void;

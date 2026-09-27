@@ -78,6 +78,8 @@ export function initHud(): void {
     closeAllPanels();
     show("placebar", false);
     show("dockbar", scene === "dock");
+    show("fishbar", scene === "dock");
+    show("fish-catch", false);
     show("bottombar", scene !== "dock");
     show("btn-shop", scene === "room");
     show("hud-room", scene !== "dock");
@@ -90,9 +92,42 @@ export function initHud(): void {
   });
   $("enter-yes").addEventListener("click", () => { show("panel-enter", false); bus.emit("map:enter-answer", { yes: true }); });
   $("enter-no").addEventListener("click", () => { show("panel-enter", false); bus.emit("map:enter-answer", { yes: false }); });
-  bus.on("dock:fish", () => bus.emit("toast", { text: "낚시는 준비 중이에요" }));
   $("btn-dock-exit").addEventListener("click", () => bus.emit("dock:exit"));
-  $("btn-dock-fish").addEventListener("click", () => bus.emit("dock:fish"));
+  // fishing: the button is a hold button (pointer events so touch and mouse behave the same)
+  const fishBtn = $("btn-fish");
+  let fishDown = false;
+  const down = (e: Event) => { e.preventDefault(); if (fishDown) return; fishDown = true; fishBtn.classList.add("holding"); bus.emit("fish:press"); };
+  const up = () => { if (!fishDown) return; fishDown = false; fishBtn.classList.remove("holding"); bus.emit("fish:release"); };
+  fishBtn.addEventListener("pointerdown", down);
+  fishBtn.addEventListener("pointerup", up);
+  fishBtn.addEventListener("pointercancel", up);
+  fishBtn.addEventListener("pointerleave", up);
+  fishBtn.addEventListener("contextmenu", (e) => e.preventDefault());
+  window.addEventListener("blur", up);
+  bus.on("fish:state", ({ status, holding, active, real }) => {
+    $("fish-status").textContent = status;
+    $("fish-status").classList.toggle("real", real);
+    $("fish-meter").style.visibility = holding ? "visible" : "hidden";
+    if (!holding) { $("fish-meter-fill").style.width = "0"; $("fish-meter-fill").classList.remove("enough"); }
+    fishBtn.textContent = active ? (holding ? "🎣 잡는 중…" : "🎣 꾹!") : "🎣 낚시";
+  });
+  bus.on("fish:meter", ({ meter, enough }) => {
+    $("fish-meter").style.visibility = "visible";
+    $("fish-meter-fill").style.width = `${Math.round(meter * 100)}%`;
+    $("fish-meter-fill").classList.toggle("enough", enough);
+  });
+  let catchTimer: number | null = null;
+  bus.on("fish:catch", ({ ok, id, name, value, who }) => {
+    const img = $("fish-catch-img") as HTMLImageElement;
+    img.src = `/gen/fish/${id}.png`;
+    img.style.visibility = ok ? "visible" : "hidden";
+    $("fish-catch-text").textContent = ok
+      ? (who && who !== state.id ? `${who}가 ${name}을(를) 낚았어요! +${value}💰` : `${name}을(를) 낚았어요! +${value}💰`)
+      : `놓쳤어요… ${name}이(가) 도망쳤어요`;
+    show("fish-catch", true);
+    if (catchTimer !== null) clearTimeout(catchTimer);
+    catchTimer = window.setTimeout(() => show("fish-catch", false), 2600);
+  });
   $("place-span-dec").addEventListener("click", () => bus.emit("place:span", { delta: -1 }));
   $("place-span-inc").addEventListener("click", () => bus.emit("place:span", { delta: 1 }));
 

@@ -920,12 +920,12 @@
     "h": 32
    }
   },
-  "icon_bridge": {
+  "fish_rod": {
    "frame": {
     "x": 410,
     "y": 1370,
     "w": 16,
-    "h": 24
+    "h": 26
    },
    "rotated": false,
    "trimmed": false,
@@ -933,14 +933,14 @@
     "x": 0,
     "y": 0,
     "w": 16,
-    "h": 24
+    "h": 26
    },
    "sourceSize": {
     "w": 16,
-    "h": 24
+    "h": 26
    }
   },
-  "icon_exclamation": {
+  "icon_bridge": {
    "frame": {
     "x": 427,
     "y": 1370,
@@ -960,7 +960,7 @@
     "h": 24
    }
   },
-  "icon_house": {
+  "icon_exclamation": {
    "frame": {
     "x": 444,
     "y": 1370,
@@ -980,9 +980,29 @@
     "h": 24
    }
   },
-  "icon_question": {
+  "icon_house": {
    "frame": {
     "x": 461,
+    "y": 1370,
+    "w": 16,
+    "h": 24
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 16,
+    "h": 24
+   },
+   "sourceSize": {
+    "w": 16,
+    "h": 24
+   }
+  },
+  "icon_question": {
+   "frame": {
+    "x": 478,
     "y": 1370,
     "w": 16,
     "h": 24
@@ -1062,26 +1082,6 @@
   },
   "budoo_stair_up_front": {
    "frame": {
-    "x": 478,
-    "y": 1370,
-    "w": 32,
-    "h": 16
-   },
-   "rotated": false,
-   "trimmed": false,
-   "spriteSourceSize": {
-    "x": 0,
-    "y": 0,
-    "w": 32,
-    "h": 16
-   },
-   "sourceSize": {
-    "w": 32,
-    "h": 16
-   }
-  },
-  "bush_round_a": {
-   "frame": {
     "x": 147,
     "y": 1468,
     "w": 32,
@@ -1100,7 +1100,7 @@
     "h": 16
    }
   },
-  "log_horizontal_a": {
+  "bush_round_a": {
    "frame": {
     "x": 180,
     "y": 1468,
@@ -1120,7 +1120,7 @@
     "h": 16
    }
   },
-  "rug_medium_blue": {
+  "log_horizontal_a": {
    "frame": {
     "x": 213,
     "y": 1468,
@@ -1140,7 +1140,7 @@
     "h": 16
    }
   },
-  "rug_medium_green2": {
+  "rug_medium_blue": {
    "frame": {
     "x": 246,
     "y": 1468,
@@ -1160,7 +1160,7 @@
     "h": 16
    }
   },
-  "rug_medium_pink": {
+  "rug_medium_green2": {
    "frame": {
     "x": 279,
     "y": 1468,
@@ -1180,9 +1180,29 @@
     "h": 16
    }
   },
-  "new_73": {
+  "rug_medium_pink": {
    "frame": {
     "x": 312,
+    "y": 1468,
+    "w": 32,
+    "h": 16
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 32,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 32,
+    "h": 16
+   }
+  },
+  "new_73": {
+   "frame": {
+    "x": 345,
     "y": 1468,
     "w": 30,
     "h": 16
@@ -1202,8 +1222,8 @@
   },
   "apple_red": {
    "frame": {
-    "x": 343,
-    "y": 1468,
+    "x": 495,
+    "y": 1370,
     "w": 16,
     "h": 16
    },
@@ -1222,7 +1242,7 @@
   },
   "armchair_brown": {
    "frame": {
-    "x": 360,
+    "x": 376,
     "y": 1468,
     "w": 16,
     "h": 16
@@ -1242,7 +1262,7 @@
   },
   "bed_headboard_brown": {
    "frame": {
-    "x": 377,
+    "x": 393,
     "y": 1468,
     "w": 16,
     "h": 16
@@ -1262,7 +1282,7 @@
   },
   "bench_brown": {
    "frame": {
-    "x": 394,
+    "x": 410,
     "y": 1468,
     "w": 16,
     "h": 16
@@ -1282,7 +1302,7 @@
   },
   "berry_cluster_pink": {
    "frame": {
-    "x": 411,
+    "x": 427,
     "y": 1468,
     "w": 16,
     "h": 16
@@ -1302,7 +1322,7 @@
   },
   "berry_cluster_red": {
    "frame": {
-    "x": 428,
+    "x": 444,
     "y": 1468,
     "w": 16,
     "h": 16
@@ -1322,7 +1342,7 @@
   },
   "berry_small_purple": {
    "frame": {
-    "x": 445,
+    "x": 461,
     "y": 1468,
     "w": 16,
     "h": 16
@@ -1342,7 +1362,7 @@
   },
   "bush_flower_pink": {
    "frame": {
-    "x": 462,
+    "x": 478,
     "y": 1468,
     "w": 16,
     "h": 16
@@ -1362,7 +1382,7 @@
   },
   "bush_flower_purple": {
    "frame": {
-    "x": 479,
+    "x": 495,
     "y": 1468,
     "w": 16,
     "h": 16

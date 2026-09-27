@@ -25,7 +25,11 @@ export interface Events {
   "dock:enter": void;
   "dock:exit": void;
   "dock:ready": void;
-  "dock:fish": void; // placeholder: fishing is not implemented yet
+  "fish:press": void; // hold button down (cast when idle, hold during a cast)
+  "fish:release": void;
+  "fish:state": { status: string; meter: number; holding: boolean; active: boolean; real: boolean };
+  "fish:meter": { meter: number; enough: boolean };
+  "fish:catch": { ok: boolean; id: string; name: string; value: number; who: string };
   "item:menu": { item: RoomItem; screenX: number; screenY: number };
   "item:remove": { uid: number };
 }

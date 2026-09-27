@@ -527,6 +527,29 @@ def copy_map_bgs() -> dict | None:
     return {"names": names}
 
 
+def copy_fish_icons() -> dict | None:
+    """data/fishing.json loot icons → gen/fish/<loot id>.png (DOM toast images)."""
+    src = C.REPO_ROOT / "data" / "fishing.json"
+    if not src.exists():
+        return None
+    loot = json.loads(src.read_text(encoding="utf-8")).get("loot", [])
+    out = C.OUT_DIR / "fish"
+    out.mkdir(parents=True, exist_ok=True)
+    ids: list[str] = []
+    for l in loot:
+        icon = l.get("icon")
+        if not icon:
+            continue
+        p = C.ASSETS / icon
+        if not p.exists():
+            print(f"WARNING: fishing icon missing for {l['id']}: {icon}")
+            continue
+        shutil.copyfile(p, out / f"{l['id']}.png")
+        ids.append(l["id"])
+    print(f"fish icons: {len(ids)} → gen/fish/")
+    return {"icons": ids}
+
+
 def copy_dock() -> dict | None:
     """Dock backdrop layers → gen/dock/<i>.png (plain copies; full-screen layers gain nothing from an atlas)."""
     out = C.OUT_DIR / "dock"
@@ -561,9 +584,10 @@ def copy_dock() -> dict | None:
 
 
 def default_dock_layout(n_images: int, size: tuple[int, int]) -> dict:
-    """All N.png images back→front, nothing else."""
+    """All N.png images back→front, nothing else; the bobber (bite marker) sits a little right of centre."""
     return {"w": size[0], "h": size[1],
-            "layers": [{"kind": "image", "src": i, "x": 0, "y": 0, "visible": True} for i in range(n_images)]}
+            "layers": [{"kind": "image", "src": i, "x": 0, "y": 0, "visible": True} for i in range(n_images)],
+            "fish": {"x": int(size[0] * 0.6), "y": int(size[1] * 0.55)}}
 
 
 def write_dock_layout(n_images: int, size: tuple[int, int]) -> dict:
@@ -622,6 +646,9 @@ def cmd_build(args: argparse.Namespace) -> None:
     bg_entry = copy_map_bgs()
     if bg_entry:
         manifest["mapbg"] = bg_entry
+    fish_entry = copy_fish_icons()
+    if fish_entry:
+        manifest["fish"] = fish_entry
     (C.OUT_DIR / "manifest.json").write_text(json.dumps(manifest, indent=1), encoding="utf-8")
     print("manifest → gen/manifest.json")
 

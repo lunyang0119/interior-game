@@ -47,10 +47,9 @@
 - [ ] `mtile_path`(Sprout Lands Paths.png 0,0)는 가는 조각이라 길 타일로 부적합. 맵 시트에서 제대로 된 길 타일 슬라이스 다시 잡기.
 
 ### Phase 4 전
-- [ ] **낚시 연출.** 낚싯대 든 아바타 프레임 또는 낚싯대 스프라이트 1장, 찌 1~2프레임.
-  풀팩 `Theme_Sorter/9_Fishing_16x16.png`에 낚싯대·물고기가 있을 가능성 높음. 열어서 확인.
-- [ ] **물고기 아이콘 4종** (멸치/고등어/참돔/보물상자, 토스트용 16px). 위 시트 후보.
-- [ ] **홀드 게이지 UI.** 가로 바 프레임 + 채움. `GUI/Sprout Lands - UI Pack - Basic pack`에 프로그레스 바 있음.
+- [x] **낚시 연출.** 아바타 없이 감(2026-09-27). 낚싯대 = `fish_rod`(Fish-rod.png) 맵 슬라이스, 입질 표시 = `icon_exclamation`. 부두 탭에서 낚싯대 레이어와 찌 위치를 배치하면 됨.
+- [x] **물고기 아이콘 4종** `fishing-game-assets-pixel-art-pack/4 Icons/Icons_09·06·07` + `Catch/Chest.png` (`data/fishing.json`에서 바꿀 수 있음).
+- [ ] **홀드 게이지 UI.** 지금은 CSS 바(`#fish-meter`). 프레임 그림을 쓰고 싶으면 `GUI/Sprout Lands - UI Pack - Basic pack` 프로그레스 바를 `ui_theme.json`에 연결.
 - [ ] (선택) 효과음: 입질, 낚기 성공/실패, 문 여닫기. 지금은 BGM만 있음.
 
 ### 언제든

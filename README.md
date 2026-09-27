@@ -54,6 +54,7 @@ cd /opt/interior/server
 | GET | `/api/rooms` | 방 목록: 버전, 남은 `ruined` 개수, 접속자 수 |
 | GET | `/api/room/{id}` (`/api/room` = inn) | 방 아이템 + `ruined` (ETag = 방 버전) |
 | POST | `/api/room/place` (`room_id`) · `/api/room/move` · DELETE `/api/room/item/{uid}` | 배치/이동/삭제 (서버가 규칙 검증). `ruined`/`fixed` 태그는 구매 불가(`not_for_sale`), `fixed`는 이동·삭제도 불가(`fixed_item`) |
+| GET `/api/fish` · POST `/api/fish/start` · `/api/fish/finish` | 부두 낚시: 서버가 입질 일정을 만들고(진짜 1번 + 미끼 건드림), 클라가 버튼을 누른 구간을 보내면 판정. 잡으면 공용 풀에 바로 입금(`ledger.kind='fish'`) + 전원 알림. 설정은 `data/fishing.json` |
 | POST | `/api/token/rotate` · GET `/api/me/logins` | 토큰 재발급 / 접속 기록 |
 | WS | `/ws` | 온라인 아바타 위치(같은 방끼리), `enter`로 방 이동, 방 변경 알림(전체) |
 

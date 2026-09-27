@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { bus } from "../bus";
 import { ATLAS } from "../room/ItemLayer";
 import { state } from "../state";
 import { MAP_ATLAS } from "./MapScene";
@@ -15,6 +16,8 @@ export class BootScene extends Phaser.Scene {
   }
 
   create(data: object): void {
+    // #dock deep link: go straight to the dock instead of starting the room first (both would run at once)
+    if (location.hash === "#dock") { this.scene.start("Dock"); bus.emit("scene:changed", { scene: "dock" }); return; }
     this.scene.start("Room", data);
   }
 }

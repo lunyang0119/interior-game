@@ -366,6 +366,9 @@ def validate_dock(d: dict, n_images: int, keys: dict[str, set[str]]) -> str | No
             return f"레이어 {i}: kind는 image 또는 slice"
         if not isinstance(l.get("x", 0), int) or not isinstance(l.get("y", 0), int):
             return f"레이어 {i}: x/y는 정수"
+    f = d.get("fish")
+    if f is not None and not (isinstance(f, dict) and isinstance(f.get("x"), int) and isinstance(f.get("y"), int)):
+        return "fish(찌 위치)는 {x, y} 정수"
     return None
 
 

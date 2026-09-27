@@ -27,8 +27,15 @@
   <!-- dock (부두) bar: top-left, only while the dock scene is up -->
   <div id="dockbar" class="overlay hidden">
     <button id="btn-dock-exit" class="big">← 나가기</button>
-    <button id="btn-dock-fish" class="big" title="준비 중">🎣 낚시</button>
   </div>
+
+  <!-- fishing controls (dock only): press to cast, hold on the real bite -->
+  <div id="fishbar" class="overlay hidden">
+    <div id="fish-status"></div>
+    <div id="fish-meter"><div id="fish-meter-fill"></div></div>
+    <button id="btn-fish" class="big primary">🎣 낚시</button>
+  </div>
+  <div id="fish-catch" class="hidden"><img id="fish-catch-img" alt=""><span id="fish-catch-text"></span></div>
 
   <div id="bottombar" class="overlay">
     <button id="btn-shop" class="big">🛋️ 상점</button>

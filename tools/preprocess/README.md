@@ -98,6 +98,7 @@ python tools/preprocess/preprocess.py build                        # map_slices.
 
 **부두** 탭: `data/dock.json` → 빌드/저장 시 `client/public/gen/dock.json`. `assets/graphic/Map/Dock/N.png` 이미지 레이어와 슬라이스(맵·실내 아틀라스) 레이어를 겹쳐 놓는다.
 - 목록 위가 앞. ↑/↓로 순서, 체크로 표시/숨김, 캔버스 드래그로 픽셀 단위 이동(Shift=16px 스냅), 슬라이스는 scale.
+- **낚시**: `data/fishing.json`에 물고기(id·이름·값·확률·아이콘 경로)와 입질 타이밍. 빌드가 아이콘을 `gen/fish/<id>.png`로 복사(결과 팝업용). 부두 탭의 "찌 위치"가 입질 표시(`icon_exclamation`)가 뜨는 자리(`dock.json`의 `fish:{x,y}`), 낚싯대는 `fish_rod` 슬라이스를 레이어로. 게임: 버튼 한 번 누르면 던지고, 미끼 건드림(작은 표시)은 무시, 진짜 입질(큰 표시·진동)에 버튼을 꾹 눌러 게이지를 채우면 잡힘. 값이 클수록 오래 눌러야 하고, 미끼 건드림에 누르면 도망간다.
 - 게임에서는 `DockScene`이 `gen/dock.json`을 읽어 같은 순서로 그린다(아바타 없음, 왼쪽 위 나가기·낚시 버튼). 맵에서 `room: "dock"` 장소의 문에 서면 들어가고, 나가기는 그 장소의 스폰으로 돌아온다. 주소 뒤 `#dock`으로도 바로 들어갈 수 있다.
 - VM에 올릴 것: `client/public/gen/dock.json`, `client/public/gen/dock/*.png`, 그리고 클라를 다시 빌드했으면 `server/static/`.
 

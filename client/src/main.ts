@@ -143,7 +143,13 @@ async function boot(): Promise<void> {
   bus.on("dock:enter", () => { if (active() !== "Dock") goDock(); });
   bus.on("dock:exit", () => { if (active() !== "Dock") return; if (hasMap) goMap(DOCK_ROOM); else goRoom(); });
   window.addEventListener("hashchange", () => { if (location.hash === "#dock") bus.emit("dock:enter"); else if (active() === "Dock") bus.emit("dock:exit"); });
-  if (location.hash === "#dock") bus.emit("dock:enter");
+  // (#dock on load is handled by BootScene so the room scene never starts underneath)
+
+  socket.on("fish", (m) => {
+    if (m.id === state.id) return; // my own result is shown by the dock scene
+    if (active() === "Dock") bus.emit("fish:catch", { ok: true, id: m.loot, name: m.name, value: m.value, who: m.id });
+    else toast(`${m.id}가 부두에서 ${m.name}을(를) 낚았어요 (+${m.value}💰)`);
+  });
 
   show("loading", false);
   if (!state.id) show("panel-accounts", true);

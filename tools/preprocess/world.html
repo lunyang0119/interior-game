@@ -147,6 +147,8 @@
     <div class="hint">부두 배경. <code>assets/graphic/Map/Dock/N.png</code> 이미지와 슬라이스를 겹쳐 놓아요. 목록 위가 앞(화면 가장 위)이에요.
       팔레트에서 슬라이스를 누르면 레이어로 추가되고, 캔버스에서 드래그로 옮겨요. <b>빌드 후</b> 팔레트·이미지가 보여요.</div>
     <div class="row"><span class="dim">이미지 추가</span><select id="dkImgSel"></select><button id="dkImgAdd">+</button></div>
+    <div class="row"><span class="dim">찌 위치(입질 표시)</span><label><span>x</span><input type="number" id="dkFishX" style="width:60px"></label><label><span>y</span><input type="number" id="dkFishY" style="width:60px"></label><button id="dkFishPick">캔버스에서 찍기</button></div>
+    <div class="hint">낚싯대는 팔레트의 <code>fish_rod</code> 슬라이스를 레이어로 놓으면 돼요 (빌드 후).</div>
     <h3>레이어 (앞 → 뒤)</h3>
     <ul id="dockLayers" class="plain"></ul>
     <div id="dockForm" style="display:none">
@@ -382,7 +384,7 @@
         c.onclick = () => { palKey = it.id; setTool("seed"); renderPalette(); };
         pal.appendChild(c);
       }
-    } else if (mode === "dock") {
+    } else if (mode === "dock") { if (fishPick && dock) { const p = dockPx(e); dock.fish = { x: Math.round(p.x), y: Math.round(p.y) }; fishPick = false; touch(); renderDockSide(); draw(); return; }
       $("palNote").textContent = "클릭하면 부두 레이어로 추가돼요 (맵 + 실내 슬라이스). 빌드된 것만 보여요.";
       const all = W.map_slices.map((s) => ["map", s.key]).concat(Object.keys((atlas.interior || {}).frames || {}).filter((k) => !k.startsWith("auto_")).map((k) => ["interior", k]));
       let n = 0;
@@ -444,7 +446,9 @@
     return { x: l.x || 0, y: l.y || 0, w: f ? f.w * sc : CELL, h: f ? f.h * sc : CELL };
   }
   function addDockLayer(l) { if (!dock) return; dock.layers.push(l); selLayer = l; touch(); renderDockSide(); draw(); }
+  let fishPick = false;
   function renderDockSide() {
+    if (dock) { const f = dock.fish || (dock.fish = { x: Math.round(dock.w * 0.6), y: Math.round(dock.h * 0.55) }); $("dkFishX").value = f.x; $("dkFishY").value = f.y; $("dkFishPick").classList.toggle("on", fishPick); }
     if (!dock) { $("dockLayers").innerHTML = "<li class='dim'>부두 이미지가 없어요 (assets/graphic/Map/Dock/N.png → 빌드)</li>"; $("dockForm").style.display = "none"; return; }
     const used = new Set(dock.layers.filter((l) => l.kind === "image").map((l) => l.src));
     $("dkImgSel").innerHTML = [...Array(DK.images).keys()].map((i) => `<option value="${i}"${used.has(i) ? " disabled" : ""}>${i}.png${used.has(i) ? " (사용 중)" : ""}</option>`).join("");
@@ -464,6 +468,8 @@
       $("dkScale").value = selLayer.scale || 1; $("dkScale").disabled = selLayer.kind !== "slice";
     }
   }
+  for (const [id, f] of [["dkFishX", "x"], ["dkFishY", "y"]]) $(id).onchange = () => { if (!dock) return; dock.fish[f] = parseInt($(id).value, 10) || 0; touch(); draw(); };
+  $("dkFishPick").onclick = () => { fishPick = !fishPick; renderDockSide(); };
   $("dkImgAdd").onclick = () => { const v = parseInt($("dkImgSel").value, 10); if (isNaN(v)) return; addDockLayer({ kind: "image", src: v, x: 0, y: 0, visible: true }); };
   for (const [id, f] of [["dkX", "x"], ["dkY", "y"]]) $(id).onchange = () => { if (!selLayer) return; selLayer[f] = parseInt($(id).value, 10) || 0; touch(); renderDockSide(); draw(); };
   $("dkScale").onchange = () => { if (!selLayer) return; selLayer.scale = Math.max(0.25, Math.min(16, parseFloat($("dkScale").value) || 1)); touch(); renderDockSide(); draw(); };
@@ -483,6 +489,8 @@
       else { const f = frameOf(l.atlas, l.key); if (f) drawKey(l.atlas, l.key, b.x * zoom, b.y * zoom, b.w * zoom, b.h * zoom); }
       if (l === selLayer) { g.strokeStyle = "#ffd35c"; g.lineWidth = 2; g.strokeRect(b.x * zoom + 1, b.y * zoom + 1, b.w * zoom - 2, b.h * zoom - 2); }
     }
+    // bobber: where the bite marker pops up in the game
+    if (dock.fish) { const fx = dock.fish.x * zoom, fy = dock.fish.y * zoom; g.strokeStyle = "#ff5c5c"; g.lineWidth = 2; g.beginPath(); g.moveTo(fx - 6, fy); g.lineTo(fx + 6, fy); g.moveTo(fx, fy - 6); g.lineTo(fx, fy + 6); g.stroke(); g.fillStyle = "#ff5c5c"; g.font = `${Math.max(9, 5 * zoom)}px sans-serif`; g.fillText("찌 !", fx + 7, fy - 3); }
     // reference frame of the dock canvas
     g.strokeStyle = "rgba(255,255,255,.4)"; g.lineWidth = 1; g.strokeRect(.5, .5, dock.w * zoom - 1, dock.h * zoom - 1);
   }

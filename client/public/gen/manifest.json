@@ -21517,6 +21517,12 @@
     "cw": 1,
     "ch": 2
    },
+   "fish_rod": {
+    "w": 16,
+    "h": 26,
+    "cw": 1,
+    "ch": 1
+   },
    "icon_bridge": {
     "w": 16,
     "h": 24,
@@ -22066,6 +22072,14 @@
    "background4",
    "hills",
    "sky"
+  ]
+ },
+ "fish": {
+  "icons": [
+   "anchovy",
+   "mackerel",
+   "seabream",
+   "chest"
   ]
  }
 }

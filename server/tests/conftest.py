@@ -57,6 +57,11 @@ def env(tmp_path, monkeypatch):
         "decos": [{"sprite": "tree", "x": 0, "y": 4}],
         "bg_default": "sky", "bg_zones": [{"x": 5, "y": 0, "w": 3, "h": 6, "bg": "sea"}],
     }, ensure_ascii=False), encoding="utf-8")
+    (data / "fishing.json").write_text(json.dumps({
+        "bites": 3, "gap_ms": [100, 100], "window_ms": [200, 200], "hold": {"base_ms": 100, "per_value_ms": 1, "max_ms": 500},
+        "slack_ms": 50, "cooldown_s": 0,
+        "loot": [{"id": "anchovy", "name": "멸치", "value": 5, "weight": 1}, {"id": "chest", "name": "보물상자", "value": 200, "weight": 1}],
+    }, ensure_ascii=False), encoding="utf-8")
     (gen / "manifest.json").write_text(json.dumps({
         "chars": {"frameW": 16, "frameH": 32, "anims": {}, "layerOrder": ["skin", "eyes", "hair"],
                   "layers": {"skin": {"count": 2}, "eyes": {"count": 3}, "hair": {"count": 2, "none": 1},
