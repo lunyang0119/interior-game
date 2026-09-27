@@ -97,6 +97,7 @@ MAP_SHEETS = {
 }
 MAP_ICONS_DIR = GUI / "Map Legend Icons" / "Icons"   # 16x24 marker icons, referenced as `file` slices
 DOCK_FILE = REPO_ROOT / "data" / "dock.json"   # layer order/positions for the dock scene (editor "부두" tab)
+MAP_BG_DIR = MAP / "Backgrounds"                    # full-screen backdrops for the overworld (any PNG; name = file stem)
 DOCK_DIR = MAP / "Dock"                              # 0.png .. 8.png, 384x216 parallax layers (back → front)
 
 # Every other PNG under Interior/ and Map/ is also a sheet, named by its path relative to assets/graphic

@@ -408,6 +408,118 @@
   "h": 16
  },
  {
+  "key": "new_72",
+  "sheet": "Map/fishing-village-pack-dock-interior-boats-npcs/PNG/Exterior_objetcs.png",
+  "x": 12,
+  "y": 13,
+  "w": 102,
+  "h": 97
+ },
+ {
+  "key": "new_73",
+  "sheet": "Map/fishing-village-pack-dock-interior-boats-npcs/PNG/Exterior_objetcs.png",
+  "x": 123,
+  "y": 122,
+  "w": 30,
+  "h": 16
+ },
+ {
+  "key": "new_11",
+  "sheet": "Map/fishing-village-pack-dock-interior-boats-npcs/PNG/Exterior_objetcs.png",
+  "x": 13,
+  "y": 125,
+  "w": 102,
+  "h": 71
+ },
+ {
+  "key": "new_81",
+  "sheet": "Map/fishing-village-pack-dock-interior-boats-npcs/PNG/Exterior_objetcs.png",
+  "x": 72,
+  "y": 276,
+  "w": 63,
+  "h": 38
+ },
+ {
+  "key": "new_82",
+  "sheet": "Map/fishing-village-pack-dock-interior-boats-npcs/PNG/Exterior_objetcs.png",
+  "x": 5,
+  "y": 358,
+  "w": 43,
+  "h": 38
+ },
+ {
+  "key": "buddo_d",
+  "sheet": "Map/fishing-village-pack-dock-interior-boats-npcs/PNG/Exterior_tiles.png",
+  "x": 112,
+  "y": 0,
+  "w": 16,
+  "h": 64
+ },
+ {
+  "key": "buddo_g",
+  "sheet": "Map/fishing-village-pack-dock-interior-boats-npcs/PNG/Exterior_tiles.png",
+  "x": 128,
+  "y": 0,
+  "w": 16,
+  "h": 64
+ },
+ {
+  "key": "budoo_hall",
+  "sheet": "Map/fishing-village-pack-dock-interior-boats-npcs/PNG/Exterior_tiles.png",
+  "x": 0,
+  "y": 3,
+  "w": 32,
+  "h": 56
+ },
+ {
+  "key": "budoo_gyedan_up",
+  "sheet": "Map/fishing-village-pack-dock-interior-boats-npcs/PNG/Exterior_tiles.png",
+  "x": 176,
+  "y": 48,
+  "w": 10,
+  "h": 80
+ },
+ {
+  "key": "buddo_f",
+  "sheet": "Map/fishing-village-pack-dock-interior-boats-npcs/PNG/Exterior_tiles.png",
+  "x": 186,
+  "y": 50,
+  "w": 22,
+  "h": 72
+ },
+ {
+  "key": "buddo_gh",
+  "sheet": "Map/fishing-village-pack-dock-interior-boats-npcs/PNG/Exterior_tiles.png",
+  "x": 48,
+  "y": 64,
+  "w": 32,
+  "h": 32
+ },
+ {
+  "key": "buddo_gd",
+  "sheet": "Map/fishing-village-pack-dock-interior-boats-npcs/PNG/Exterior_tiles.png",
+  "x": 2,
+  "y": 65,
+  "w": 45,
+  "h": 46
+ },
+ {
+  "key": "budoo_stair_up",
+  "sheet": "Map/fishing-village-pack-dock-interior-boats-npcs/PNG/Exterior_tiles.png",
+  "x": 160,
+  "y": 144,
+  "w": 64,
+  "h": 11
+ },
+ {
+  "key": "budoo_stair_up_front",
+  "sheet": "Map/fishing-village-pack-dock-interior-boats-npcs/PNG/Exterior_tiles.png",
+  "x": 165,
+  "y": 155,
+  "w": 32,
+  "h": 16
+ },
+ {
   "key": "house_01",
   "sheet": "houses",
   "x": 16,

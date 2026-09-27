@@ -17,6 +17,9 @@ const VIEW_COLS = 20;
 const VIEW_ROWS = 14;
 const CHUNK = 64; // cells per RenderTexture, keeps textures well under GPU limits on huge maps
 const MARKER_REFRESH_MS = 60_000;
+const BG_FADE_MS = 500;
+const BG_DEPTH = TILE_DEPTH - 10; // under the tiles; the map's unpainted cells let it show through
+const bgKey = (name: string) => `mapbg-${name}`;
 
 export interface MapSceneData { from?: string }
 
@@ -33,6 +36,11 @@ export class MapScene extends Phaser.Scene {
   private markerTimer: number | null = null;
   private spawn = { x: 0, y: 0 };
   private asking: MapPlace | null = null;
+  /** Fixed (screen-space) backdrop: `bgFront` is what shows, `bgBack` fades in on a zone change. */
+  private bgFront: Phaser.GameObjects.Image | null = null;
+  private bgBack: Phaser.GameObjects.Image | null = null;
+  private bgName: string | null = null;
+  private bgCell = { x: -1, y: -1 };
 
   constructor() {
     super("Map");
@@ -48,10 +56,21 @@ export class MapScene extends Phaser.Scene {
     this.asking = null;
   }
 
+  /** Backdrops are plain PNGs outside the atlas; fetch the ones this map mentions (once per texture). */
+  preload(): void {
+    const names = new Set<string>([...(this.map.bg_zones ?? []).map((z) => z.bg)]);
+    if (this.map.bg_default) names.add(this.map.bg_default);
+    for (const n of names) if (!this.textures.exists(bgKey(n))) this.load.image(bgKey(n), `/gen/mapbg/${n}.png`);
+  }
+
   create(): void {
     const { cols, rows } = this.map;
     this.scale.resize(Math.min(cols, VIEW_COLS) * CELL, Math.min(rows, VIEW_ROWS) * CELL);
     this.cameras.main.setBounds(0, 0, cols * CELL, rows * CELL).setBackgroundColor("#1b1b24");
+    this.bgCell = { x: -1, y: -1 };
+    this.bgName = null;
+    this.bgFront = this.bgBack = null;
+    this.setBackground(this.bgFor(this.spawn.x, this.spawn.y), false);
     this.drawTiles();
     this.drawObjects();
     this.remotes = new RemoteAvatars(this, this.cat.chars);
@@ -70,6 +89,57 @@ export class MapScene extends Phaser.Scene {
     }
     this.publishOnline();
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.teardown());
+  }
+
+  // ---------------------------------------------------------------- fixed backdrop + zones
+
+  private bgFor(cx: number, cy: number): string | null {
+    let hit: string | null = this.map.bg_default ?? null;
+    for (const z of this.map.bg_zones ?? []) if (cx >= z.x && cx < z.x + z.w && cy >= z.y && cy < z.y + z.h) hit = z.bg;
+    return hit;
+  }
+
+  /** A screen-space image scaled to cover the viewport (it never scrolls with the map). */
+  private makeBg(name: string): Phaser.GameObjects.Image | null {
+    if (!this.textures.exists(bgKey(name))) return null;
+    const vw = this.scale.width, vh = this.scale.height;
+    const img = this.add.image(vw / 2, vh / 2, bgKey(name)).setScrollFactor(0).setDepth(BG_DEPTH);
+    img.setScale(Math.max(vw / img.width, vh / img.height));
+    return img;
+  }
+
+  private setBackground(name: string | null, fade: boolean): void {
+    if (name === this.bgName) return;
+    this.bgName = name;
+    const next = name ? this.makeBg(name) : null;
+    if (!fade) {
+      this.bgFront?.destroy();
+      this.bgBack?.destroy();
+      this.bgBack = null;
+      this.bgFront = next;
+      return;
+    }
+    // cross-fade: the new one rises over the old one, then the old one goes
+    this.bgBack?.destroy();
+    this.bgBack = next;
+    if (next) next.setAlpha(0).setDepth(BG_DEPTH + 1);
+    const old = this.bgFront;
+    this.bgFront = next;
+    this.tweens.add({
+      targets: [next, old].filter(Boolean),
+      alpha: (t: Phaser.GameObjects.Image) => (t === next ? 1 : 0),
+      duration: BG_FADE_MS,
+      ease: "Sine.easeInOut",
+      onComplete: () => { old?.destroy(); if (this.bgBack === next) this.bgBack = null; next?.setDepth(BG_DEPTH); },
+    });
+  }
+
+  private updateBackground(): void {
+    if (!this.me) return;
+    const cx = Math.floor(this.me.cellX), cy = Math.floor(this.me.cellY - 0.5);
+    if (cx === this.bgCell.x && cy === this.bgCell.y) return;
+    this.bgCell = { x: cx, y: cy };
+    this.setBackground(this.bgFor(cx, cy), true);
   }
 
   // ---------------------------------------------------------------- drawing
@@ -243,6 +313,7 @@ export class MapScene extends Phaser.Scene {
   update(time: number, delta: number): void {
     this.me?.update(time, delta);
     this.remotes.update(time, delta);
+    this.updateBackground();
   }
 
   private teardown(): void {

@@ -141,6 +141,15 @@ class MapDeco(BaseModel):
     flip: bool = False
 
 
+class BgZone(BaseModel):
+    """Cells where the fixed (non-scrolling) backdrop `bg` shows; later zones win when they overlap."""
+    x: int = Field(ge=0)
+    y: int = Field(ge=0)
+    w: int = Field(ge=1)
+    h: int = Field(ge=1)
+    bg: str
+
+
 class MapData(BaseModel):
     cols: int = Field(ge=4)
     rows: int = Field(ge=4)
@@ -149,6 +158,8 @@ class MapData(BaseModel):
     blocked: list[list[int]] = []
     places: list[MapPlace] = []
     decos: list[MapDeco] = []
+    bg_default: str | None = None  # gen/mapbg/<name>.png shown where no zone applies (None = plain colour)
+    bg_zones: list[BgZone] = []
 
 
 @dataclass
@@ -289,4 +300,8 @@ def _load_map(data_dir: Path, rooms: dict[str, Room], manifest: dict) -> MapData
     for d in m.decos:
         if d.sprite not in map_keys:
             raise ValueError(f"map: deco sprite '{d.sprite}' not in the map atlas")
+    bgs = set(manifest.get("mapbg", {}).get("names", []))
+    for name in [m.bg_default, *(z.bg for z in m.bg_zones)]:
+        if name is not None and name not in bgs:
+            raise ValueError(f"map: background '{name}' is not built (gen/mapbg; put the PNG in assets/graphic/Map/Backgrounds and build)")
     return m

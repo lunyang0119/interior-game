@@ -496,6 +496,37 @@ def build_map_atlas() -> dict | None:
     return {"atlas": "gen/map.json", "keys": atlas_keys(atlas_json)}
 
 
+def bg_name(p: Path) -> str:
+    """File stem → key usable in map.json (lowercase, [a-z0-9_])."""
+    return re.sub(r"[^a-z0-9_]+", "_", p.stem.lower()).strip("_") or "bg"
+
+
+def copy_map_bgs() -> dict | None:
+    """Overworld backdrops → gen/mapbg/<name>.png (plain copies). Names are what map.json's bg_zones refer to."""
+    out = C.OUT_DIR / "mapbg"
+    if not C.MAP_BG_DIR.exists():
+        if out.exists():
+            names = sorted(p.stem for p in out.glob("*.png"))
+            print("WARNING: assets/graphic/Map/Backgrounds missing; keeping the existing gen/mapbg/")
+            return {"names": names} if names else None
+        return None
+    srcs = sorted(C.MAP_BG_DIR.glob("*.png"))
+    if not srcs:
+        return None
+    out.mkdir(parents=True, exist_ok=True)
+    for stale in out.glob("*.png"):
+        stale.unlink()
+    names: list[str] = []
+    for p in srcs:
+        n = bg_name(p)
+        if n in names:
+            raise SystemExit(f"map background name clash: {p.name} → '{n}' already used")
+        shutil.copyfile(p, out / f"{n}.png")
+        names.append(n)
+    print(f"map backgrounds: {len(names)} → gen/mapbg/ ({', '.join(names)})")
+    return {"names": names}
+
+
 def copy_dock() -> dict | None:
     """Dock backdrop layers → gen/dock/<i>.png (plain copies; full-screen layers gain nothing from an atlas)."""
     out = C.OUT_DIR / "dock"
@@ -588,6 +619,9 @@ def cmd_build(args: argparse.Namespace) -> None:
     dock_entry = copy_dock()
     if dock_entry:
         manifest["dock"] = dock_entry
+    bg_entry = copy_map_bgs()
+    if bg_entry:
+        manifest["mapbg"] = bg_entry
     (C.OUT_DIR / "manifest.json").write_text(json.dumps(manifest, indent=1), encoding="utf-8")
     print("manifest → gen/manifest.json")
 

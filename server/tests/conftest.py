@@ -55,6 +55,7 @@ def env(tmp_path, monkeypatch):
         "places": [{"room": "inn", "name": "여관", "sprite": "house", "x": 2, "y": 0, "w": 3, "h": 2, "doors": [[3, 2]], "spawn": {"x": 3, "y": 3}},
                    {"room": "dock", "name": "부두", "sprite": "icon_bridge", "x": 6, "y": 3, "w": 1, "h": 1, "doors": [[6, 4]], "spawn": {"x": 6, "y": 5}}],
         "decos": [{"sprite": "tree", "x": 0, "y": 4}],
+        "bg_default": "sky", "bg_zones": [{"x": 5, "y": 0, "w": 3, "h": 6, "bg": "sea"}],
     }, ensure_ascii=False), encoding="utf-8")
     (gen / "manifest.json").write_text(json.dumps({
         "chars": {"frameW": 16, "frameH": 32, "anims": {}, "layerOrder": ["skin", "eyes", "hair"],
@@ -64,6 +65,7 @@ def env(tmp_path, monkeypatch):
         "interiors": {"atlas": "gen/interiors.json",
                       "keys": {k: {} for k in ["table", "chair", "cup", "tray", "rug", "frame", "paper", "junk", "stairs", "tile_wall", "tile_floor"]}},
         "map": {"atlas": "gen/map.json", "keys": {k: {} for k in ["g", "house", "icon_bridge", "icon_exclamation", "tree"]}},
+        "mapbg": {"names": ["sky", "sea"]},
     }), encoding="utf-8")
 
     monkeypatch.setenv("DB_PATH", str(tmp_path / "test.db"))

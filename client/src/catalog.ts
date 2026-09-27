@@ -67,6 +67,8 @@ export interface MapPlace {
   spawn?: { x: number; y: number } | null;
 }
 export interface MapDeco { sprite: string; x: number; y: number; rot?: number; flip?: boolean }
+/** Cells where the fixed backdrop `bg` (gen/mapbg/<bg>.png) shows; later zones win. */
+export interface BgZone { x: number; y: number; w: number; h: number; bg: string }
 export interface MapData {
   cols: number;
   rows: number;
@@ -75,6 +77,8 @@ export interface MapData {
   blocked: number[][];
   places: MapPlace[];
   decos: MapDeco[];
+  bg_default?: string | null;
+  bg_zones?: BgZone[];
 }
 
 export interface Catalog {

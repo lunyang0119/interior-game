@@ -263,7 +263,18 @@ def save_rooms(rooms: dict[str, dict]) -> None:
 def load_map() -> dict:
     if MAP_FILE.exists():
         return json.loads(MAP_FILE.read_text(encoding="utf-8"))
-    return {"cols": 32, "rows": 18, "spawn": {"x": 4, "y": 4}, "layers": {"ground": [], "deco": []}, "blocked": [], "places": [], "decos": []}
+    return {"cols": 32, "rows": 18, "spawn": {"x": 4, "y": 4}, "layers": {"ground": [], "deco": []}, "blocked": [], "places": [], "decos": [],
+            "bg_default": None, "bg_zones": []}
+
+
+def bg_names() -> list[str]:
+    """Backdrops the map can use: the asset folder (what the next build will copy), else what is already built."""
+    if C.MAP_BG_DIR.exists():
+        names = sorted(P.bg_name(p) for p in C.MAP_BG_DIR.glob("*.png"))
+        if names:
+            return names
+    out = C.OUT_DIR / "mapbg"
+    return sorted(p.stem for p in out.glob("*.png")) if out.exists() else []
 
 
 def validate_map(m: dict, room_ids: set[str], map_keys: set[str]) -> str | None:
@@ -295,6 +306,14 @@ def validate_map(m: dict, room_ids: set[str], map_keys: set[str]) -> str | None:
         sp = pl.get("spawn")
         if sp is not None and not cell_ok([sp.get("x"), sp.get("y")]):
             return f"장소 '{pl.get('name')}': 스폰이 맵 밖이에요"
+    bgs = set(bg_names())
+    if m.get("bg_default") is not None and m["bg_default"] not in bgs:
+        return f"기본 배경 '{m['bg_default']}'이 assets/graphic/Map/Backgrounds에 없어요"
+    for z in m.get("bg_zones", []):
+        if z.get("bg") not in bgs:
+            return f"배경 영역: 모르는 배경 '{z.get('bg')}'"
+        if not all(isinstance(z.get(f), int) and z[f] >= 0 for f in ("x", "y", "w", "h")) or z["w"] < 1 or z["h"] < 1:
+            return "배경 영역: x/y/w/h가 이상해요"
     for d in m.get("decos", []):
         if d.get("sprite") not in map_keys:
             return f"데코: 모르는 스프라이트 '{d.get('sprite')}'"
@@ -529,6 +548,7 @@ class Handler(BaseHTTPRequestHandler):
                     "map_slices": [s for s in P.load_slices(C.MAP_SLICES_FILE) if not s["key"].startswith("auto_")],
                     "tile_keys": sorted(s["key"] for s in P.load_slices() if s["key"].startswith(P.TILE_PREFIX)),
                     "atlas": {"interior": (C.OUT_DIR / "interiors.json").exists(), "map": (C.OUT_DIR / "map.json").exists()},
+                    "bgs": bg_names(), "bgs_built": sorted(p.stem for p in (C.OUT_DIR / "mapbg").glob("*.png")) if (C.OUT_DIR / "mapbg").exists() else [],
                 })
             elif u.path == "/api/dock":
                 self.send_json(dock_state())

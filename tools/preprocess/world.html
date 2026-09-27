@@ -115,6 +115,17 @@
       <div class="hint">문 칸 찍기: 클릭/드래그로 칸 추가, 우클릭으로 빼기 (다시 누르면 끝). 아바타가 문 칸에 도착하면 "들어가시겠습니까?"가 떠요.
         스폰 = 이 집에서 나왔을 때 서는 칸. → 방이 <code>dock</code>이면 부두 씬.</div>
     </div>
+    <h3>배경</h3>
+    <div class="hint">화면에 고정되는 배경 그림 (<code>assets/graphic/Map/Backgrounds/*.png</code> → 빌드 → <code>gen/mapbg/</code>). 타일이 없는 칸에서 비쳐 보여요. "배경 영역"으로 사각형을 그리면 아바타가 그 안에 들어설 때 페이드로 바뀌어요.</div>
+    <label><span>기본 배경</span><select id="mBgDefault"></select></label>
+    <ul id="bgList" class="plain"></ul>
+    <div id="bgForm" style="display:none" class="row">
+      <label><span>배경</span><select id="zBg"></select></label>
+      <label><span>x</span><input type="number" id="zX" min="0"></label><label><span>y</span><input type="number" id="zY" min="0"></label>
+      <label><span>w</span><input type="number" id="zW" min="1"></label><label><span>h</span><input type="number" id="zH" min="1"></label>
+      <button id="zDel" class="danger">영역 삭제</button>
+    </div>
+    <div id="bgPreview" class="thumbs"></div>
     <h3>데코</h3>
     <div class="hint">나무·바위 등. ground/deco 타일 위에 겹쳐 놓이고 회전·반전 가능. 팔레트에서 큰 스프라이트를 고르면 자동으로 "데코 놓기".</div>
     <ul id="decoList" class="plain"></ul>
@@ -168,7 +179,7 @@
   </div>
   <div class="tools map-only">
     <button data-tool="select" class="on">선택/이동</button><button data-tool="paint">칠하기</button><button data-tool="erase">지우개</button>
-    <button data-tool="place">장소 놓기</button><button data-tool="deco">데코 놓기</button><button data-tool="blocked">막힌 칸</button><button data-tool="spawn">스폰</button>
+    <button data-tool="place">장소 놓기</button><button data-tool="deco">데코 놓기</button><button data-tool="blocked">막힌 칸</button><button data-tool="spawn">스폰</button><button data-tool="bg">배경 영역</button>
   </div>
   <div class="map-only row"><span class="dim">레이어</span><button id="layGround" class="on">ground</button><button id="layDeco">deco</button></div>
   <div class="dock-only hint">부두는 도구 없이 레이어를 클릭/드래그해요. 게임에서는 <code>#dock</code>으로 열어 확인.</div>
@@ -203,6 +214,7 @@
   let mode = "room", tool = "select", zoom = 2, showGrid = true, showChar = true;
   let roomId = "inn", room = null;    // current room object
   let selSeed = null, selExit = null, selPlace = null, selDeco = null;
+  let selZone = null;              // selected background zone (map tab)
   let palKey = null;                  // palette selection: item id (room) or map slice key (map)
   let mapLayer = "ground";
   let dirty = false, drag = null;
@@ -292,7 +304,7 @@
     rooms = W.rooms; map = W.map; items = W.items;
     if (!map.layers) map.layers = { ground: [], deco: [] };
     for (const l of ["ground", "deco"]) map.layers[l] = fitGrid(map.layers[l] || [], map.cols, map.rows);
-    map.blocked = map.blocked || []; map.places = map.places || []; map.decos = map.decos || [];
+    map.blocked = map.blocked || []; map.places = map.places || []; map.decos = map.decos || []; map.bg_zones = map.bg_zones || []; if (map.bg_default === undefined) map.bg_default = null;
     for (const p of map.places) {
       if (p.door && !p.doors) p.doors = [[p.door.x, p.door.y]];  // legacy single cell
       delete p.door; p.doors = p.doors || []; p.rot = p.rot || 0; p.flip = !!p.flip;
@@ -590,6 +602,17 @@
       $("pSpawn").textContent = selPlace.spawn ? `(${selPlace.spawn.x},${selPlace.spawn.y})` : "-";
       $("pDoor").classList.toggle("on", doorPick);
     }
+    // backgrounds
+    const bgs = W.bgs || [];
+    const opt = (cur, none) => (none ? `<option value="">(없음)</option>` : "") + bgs.map((b) => `<option value="${b}"${b === cur ? " selected" : ""}>${b}</option>`).join("");
+    $("mBgDefault").innerHTML = opt(map.bg_default, true);
+    const bl = $("bgList"); bl.innerHTML = "";
+    map.bg_zones.forEach((z) => { const li = document.createElement("li"); li.className = z === selZone ? "sel" : ""; li.textContent = `${z.bg} (${z.x},${z.y}) ${z.w}×${z.h}`; li.onclick = () => { selZone = z; selPlace = selDeco = null; renderMapSide(); draw(); }; bl.appendChild(li); });
+    $("bgForm").style.display = selZone ? "" : "none";
+    if (selZone) { $("zBg").innerHTML = opt(selZone.bg, false); $("zX").value = selZone.x; $("zY").value = selZone.y; $("zW").value = selZone.w; $("zH").value = selZone.h; }
+    const pv = $("bgPreview"); pv.innerHTML = "";
+    for (const b of bgs) { if ((W.bgs_built || []).includes(b)) pv.insertAdjacentHTML("beforeend", `<img src="/gen/mapbg/${b}.png" title="${b}" style="width:96px;height:56px;object-fit:cover;image-rendering:pixelated;border:1px solid var(--line)">`); }
+    if (!bgs.length) pv.textContent = "assets/graphic/Map/Backgrounds 폴더에 PNG를 넣고 빌드하세요";
     const dl = $("decoList"); dl.innerHTML = "";
     map.decos.forEach((d) => { const li = document.createElement("li"); li.className = d === selDeco ? "sel" : ""; li.textContent = `${d.sprite} (${d.x},${d.y})${d.rot ? ` ${d.rot}°` : ""}${d.flip ? " ⇋" : ""}`; li.onclick = () => { selDeco = d; selPlace = null; renderMapSide(); draw(); }; dl.appendChild(li); });
     $("decoForm").style.display = selDeco ? "" : "none";
@@ -616,6 +639,10 @@
   $("dRotBtn").onclick = () => selDeco && rotateObj(selDeco, false);
   $("dFlipBtn").onclick = () => selDeco && flipObj(selDeco);
   for (const [id, f] of [["dX", "x"], ["dY", "y"]]) $(id).onchange = () => { selDeco[f] = Math.max(0, parseInt($(id).value, 10) || 0); touch(); renderMapSide(); draw(); };
+  $("mBgDefault").onchange = () => { map.bg_default = $("mBgDefault").value || null; touch(); draw(); };
+  $("zBg").onchange = () => { if (selZone) { selZone.bg = $("zBg").value; touch(); renderMapSide(); draw(); } };
+  for (const [id, f, min] of [["zX", "x", 0], ["zY", "y", 0], ["zW", "w", 1], ["zH", "h", 1]]) $(id).onchange = () => { if (!selZone) return; const v = parseInt($(id).value, 10); if (isNaN(v)) return; selZone[f] = Math.max(min, v); touch(); renderMapSide(); draw(); };
+  $("zDel").onclick = () => { if (!selZone) return; map.bg_zones.splice(map.bg_zones.indexOf(selZone), 1); selZone = null; touch(); renderMapSide(); draw(); };
   $("dDel").onclick = () => { map.decos.splice(map.decos.indexOf(selDeco), 1); selDeco = null; touch(); renderMapSide(); draw(); };
   $("mResize").onclick = () => {
     const c = parseInt($("mCols").value, 10), r = parseInt($("mRows").value, 10);
@@ -696,6 +723,12 @@
   function drawMap(cols, rows, cz) {
     for (const l of ["ground", "deco"]) { const grid = map.layers[l]; for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) { const k = grid[y] && grid[y][x]; if (k) drawKey("map", k, x * cz, y * cz, cz, cz); } }
     for (const [bx, by] of map.blocked) { g.fillStyle = "rgba(255,60,60,.35)"; g.fillRect(bx * cz, by * cz, cz, cz); }
+    for (const z of map.bg_zones) {
+      g.fillStyle = bgColor(z.bg); g.fillRect(z.x * cz, z.y * cz, z.w * cz, z.h * cz);
+      g.strokeStyle = z === selZone ? "#ffd35c" : "rgba(255,255,255,.5)"; g.lineWidth = z === selZone ? 2 : 1; g.strokeRect(z.x * cz + .5, z.y * cz + .5, z.w * cz - 1, z.h * cz - 1);
+      g.fillStyle = "#fff"; g.font = `${Math.max(9, 5 * zoom)}px sans-serif`; g.fillText("🖼 " + z.bg, z.x * cz + 3, z.y * cz + 5 * zoom + 4);
+    }
+    if (drag && drag.mode === "bg" && drag.rect) { const r = drag.rect; g.strokeStyle = "#fff"; g.setLineDash([4, 3]); g.strokeRect(r.x * cz + .5, r.y * cz + .5, r.w * cz, r.h * cz); g.setLineDash([]); }
     // places and decos share one y-sort (bottom row) so a tree in front of a house draws over it
     const objs = map.places.map((p) => ({ o: p, place: true, ...sizeBox(p, true) })).concat(map.decos.map((d) => ({ o: d, place: false, ...sizeBox(d, false) })));
     objs.sort((a, b) => (a.o.y + a.h) - (b.o.y + b.h));
@@ -725,6 +758,9 @@
   const hitSeed = (c) => { let best = null; for (const s of room.seed) { const it = itemById(s.item_id); if (!it) continue; const w = it.layer === "wallpaper" ? (s.span || it.w) : it.w; if (c.x >= s.x && c.x < s.x + w && c.y >= s.y && c.y < s.y + it.h) best = s; } return best; };
   const hitExit = (c) => room.exits.find((e) => c.x >= e.x && c.x < e.x + e.w && c.y >= e.y && c.y < e.y + e.h);
   const hitPlace = (c) => map.places.find((p) => c.x >= p.x && c.x < p.x + p.w && c.y >= p.y && c.y < p.y + p.h);
+  const hitZone = (c) => { let best = null; for (const z of map.bg_zones) if (c.x >= z.x && c.x < z.x + z.w && c.y >= z.y && c.y < z.y + z.h) best = z; return best; };
+  const BG_COLORS = ["rgba(120,180,255,.28)", "rgba(255,170,90,.28)", "rgba(170,255,140,.28)", "rgba(230,120,255,.28)", "rgba(255,240,120,.28)"];
+  const bgColor = (name) => BG_COLORS[Math.max(0, (W.bgs || []).indexOf(name)) % BG_COLORS.length];
   const hitDeco = (c) => { let best = null; for (const d of map.decos) { const s = sizeOf(d); if (c.x >= d.x && c.x < d.x + s.w && c.y >= d.y && c.y < d.y + s.h) best = d; } return best; };
   const toggleBlocked = (arr, c) => { const i = arr.findIndex(([x, y]) => x === c.x && y === c.y); if (i >= 0) arr.splice(i, 1); else arr.push([c.x, c.y]); };
   function paint(c, erase) { const grid = map.layers[mapLayer]; if (!grid[c.y]) return; const v = erase ? null : palKey; if (grid[c.y][c.x] !== v) { grid[c.y][c.x] = v; touch(); } }
@@ -770,10 +806,12 @@
         const d = { sprite: palKey, x: c.x, y: c.y, rot: 0, flip: false };
         map.decos.push(d); selDeco = d; selPlace = null; touch(); renderMapSide(); draw(); return;
       }
-      const d = hitDeco(c), p = d ? null : hitPlace(c);
-      selPlace = p || null; selDeco = d || null;
+      if (tool === "bg") { if (!(W.bgs || []).length) { alert("배경 PNG가 없어요: assets/graphic/Map/Backgrounds 에 넣고 빌드하세요"); return; } drag = { mode: "bg", ox: c.x, oy: c.y, rect: null }; return; }
+      const d = hitDeco(c), p = d ? null : hitPlace(c), z = d || p ? null : hitZone(c);
+      selPlace = p || null; selDeco = d || null; selZone = z || null;
       if (p) drag = { mode: "move", obj: p, ox: c.x - p.x, oy: c.y - p.y, doors: (p.doors || []).map(([x, y]) => [x - p.x, y - p.y]), spawn: p.spawn ? { dx: p.spawn.x - p.x, dy: p.spawn.y - p.y } : null };
       else if (d) drag = { mode: "move", obj: d, ox: c.x - d.x, oy: c.y - d.y };
+      else if (z) drag = { mode: "move", obj: z, ox: c.x - z.x, oy: c.y - z.y };
       renderMapSide(); draw();
     }
   });
@@ -796,7 +834,7 @@
           if (drag.spawn) o.spawn = { x: nx + drag.spawn.dx, y: ny + drag.spawn.dy };
           touch(); if (mode === "room") renderSide(); else renderMapSide();
         }
-      } else if (drag.mode === "exit") {
+      } else if (drag.mode === "exit" || drag.mode === "bg") {
         const x0 = Math.min(drag.ox, c.x), y0 = Math.min(drag.oy, c.y); drag.rect = { x: x0, y: y0, w: Math.abs(c.x - drag.ox) + 1, h: Math.abs(c.y - drag.oy) + 1 };
       } else if (drag.mode === "paint" && hover) paint(c, drag.erase);
       else if (drag.mode === "door" && hover && selPlace && (c.x !== drag.last.x || c.y !== drag.last.y)) { setDoor(selPlace, c, drag.on); drag.last = c; }
@@ -806,6 +844,10 @@
   });
   window.addEventListener("mouseup", () => {
     if (!drag) return; const d = drag; drag = null;
+    if (d.mode === "bg" && d.rect) {
+      const z = { ...d.rect, bg: (selZone && selZone.bg) || map.bg_default || W.bgs[0] };
+      map.bg_zones.push(z); selZone = z; selPlace = selDeco = null; touch(); renderMapSide();
+    }
     if (d.mode === "exit" && d.rect) {
       const targets = Object.keys(rooms).filter((id) => id !== roomId).concat(["map"]);
       const to = targets[0]; const t = rooms[to];
@@ -817,7 +859,7 @@
   window.addEventListener("keydown", (e) => {
     if (["INPUT", "SELECT", "TEXTAREA"].includes(document.activeElement.tagName)) return;
     if (e.key === "Delete") {
-      if (mode === "room" && selSeed) $("seedDel").click(); else if (mode === "room" && selExit) $("eDel").click(); else if (mode === "map" && selPlace) $("pDel").click(); else if (mode === "map" && selDeco) $("dDel").click(); else if (mode === "dock" && selLayer) $("dkDel").click();
+      if (mode === "room" && selSeed) $("seedDel").click(); else if (mode === "room" && selExit) $("eDel").click(); else if (mode === "map" && selPlace) $("pDel").click(); else if (mode === "map" && selDeco) $("dDel").click(); else if (mode === "map" && selZone) $("zDel").click(); else if (mode === "dock" && selLayer) $("dkDel").click();
     }
     if (mode === "map" && (e.key === "r" || e.key === "R")) { if (selPlace) rotateObj(selPlace, true); else if (selDeco) rotateObj(selDeco, false); }
     if (mode === "map" && (e.key === "f" || e.key === "F")) { if (selPlace) flipObj(selPlace); else if (selDeco) flipObj(selDeco); }
