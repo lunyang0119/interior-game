@@ -73,8 +73,23 @@ export function initHud(): void {
   $("place-again").addEventListener("click", () => bus.emit("place:confirm-again"));
   $("place-cancel").addEventListener("click", () => bus.emit("place:cancel"));
   // dock: hide the room-only bottom bar, show 나가기/낚시 at the top-left
-  bus.on("dock:enter", () => { closeAllPanels(); show("bottombar", false); show("placebar", false); show("dockbar", true); show("hud-room", false); });
-  bus.on("dock:exit", () => { show("dockbar", false); show("bottombar", true); });
+  // which world scene is up decides the bars: shop only in rooms, 나가기/낚시 only on the dock
+  bus.on("scene:changed", ({ scene }) => {
+    closeAllPanels();
+    show("placebar", false);
+    show("dockbar", scene === "dock");
+    show("bottombar", scene !== "dock");
+    show("btn-shop", scene === "room");
+    show("hud-room", scene !== "dock");
+    show("panel-enter", false);
+  });
+  bus.on("map:enter-ask", ({ name }) => {
+    if (!name) { show("panel-enter", false); return; }
+    $("enter-text").textContent = `${name}에 들어가시겠어요?`;
+    show("panel-enter", true);
+  });
+  $("enter-yes").addEventListener("click", () => { show("panel-enter", false); bus.emit("map:enter-answer", { yes: true }); });
+  $("enter-no").addEventListener("click", () => { show("panel-enter", false); bus.emit("map:enter-answer", { yes: false }); });
   bus.on("dock:fish", () => bus.emit("toast", { text: "낚시는 준비 중이에요" }));
   $("btn-dock-exit").addEventListener("click", () => bus.emit("dock:exit"));
   $("btn-dock-fish").addEventListener("click", () => bus.emit("dock:fish"));

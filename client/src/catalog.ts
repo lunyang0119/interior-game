@@ -8,6 +8,7 @@ export const TAG_STAIRS = "stairs";
 /** Owner id of items pre-placed by the server (never a real player). */
 export const SEED_PLAYER = "$seed";
 export const MAP_ROOM = "map";
+export const DOCK_ROOM = "dock";
 
 export interface Item {
   id: string;
@@ -51,12 +52,38 @@ export interface Chars {
   layers: Record<string, LayerSpec>;
 }
 
+/** Overworld from data/map.json (world editor). Coordinates are map cells; sprites live in the map atlas. */
+export interface MapPlace {
+  room: string; // room id or "dock"
+  name: string;
+  sprite?: string | null;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  rot?: number;
+  flip?: boolean;
+  doors: [number, number][];
+  spawn?: { x: number; y: number } | null;
+}
+export interface MapDeco { sprite: string; x: number; y: number; rot?: number; flip?: boolean }
+export interface MapData {
+  cols: number;
+  rows: number;
+  spawn: { x: number; y: number };
+  layers: Record<string, (string | null)[][]>;
+  blocked: number[][];
+  places: MapPlace[];
+  decos: MapDeco[];
+}
+
 export interface Catalog {
   items: Item[];
   byId: Map<string, Item>;
   /** The base room (inn): where a session starts. */
   room: Room;
   rooms: Map<string, Room>;
+  map: MapData | null;
   chars: Chars;
 }
 
@@ -128,11 +155,11 @@ export function exitAt(room: Room, cx: number, cy: number): Exit | null {
   return room.exits.find((e) => cx >= e.x && cx < e.x + e.w && cy >= e.y && cy < e.y + e.h) ?? null;
 }
 
-export interface RawCatalog { items: Item[]; room: Room; rooms?: Room[]; chars: Chars }
+export interface RawCatalog { items: Item[]; room: Room; rooms?: Room[]; map?: MapData | null; chars: Chars }
 
 export function makeCatalog(raw: RawCatalog): Catalog {
   const list = (raw.rooms?.length ? raw.rooms : [raw.room]).map((r) => ({ ...r, exits: r.exits ?? [], name: r.name ?? r.id ?? "" }));
   const rooms = new Map(list.map((r) => [r.id, r]));
   const room = rooms.get(raw.room.id ?? "inn") ?? list[0];
-  return { items: raw.items, byId: new Map(raw.items.map((i) => [i.id, i])), room, rooms, chars: raw.chars };
+  return { items: raw.items, byId: new Map(raw.items.map((i) => [i.id, i])), room, rooms, map: raw.map ?? null, chars: raw.chars };
 }

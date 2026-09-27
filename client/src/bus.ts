@@ -18,6 +18,10 @@ export interface Events {
   "room:refresh": void;
   "room:changed": { id: string; name: string; ruined: number }; // the Room scene shows another room / junk count moved
   "room:exit": { from: string; to: string; spawn: { x: number; y: number } }; // avatar stepped on an exit
+  "scene:changed": { scene: "room" | "map" | "dock" };
+  "map:enter-ask": { name: string }; // standing on a door: show "<name>에 들어가시겠어요?" (empty name closes it)
+  "map:enter-answer": { yes: boolean };
+  "map:enter": { room: string }; // answered yes
   "dock:enter": void;
   "dock:exit": void;
   "dock:ready": void;

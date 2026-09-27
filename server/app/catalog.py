@@ -1,4 +1,4 @@
-"""Loads and validates data/items.json, data/rooms/*.json and gen/manifest.json."""
+"""Loads and validates data/items.json, data/rooms/*.json, data/map.json and gen/manifest.json."""
 
 from __future__ import annotations
 
@@ -28,6 +28,7 @@ TAG_RUINED = "ruined"
 TAG_FIXED = "fixed"
 DEFAULT_ROOM = "inn"
 MAP_ROOM = "map"
+DOCK_ROOM = "dock"
 
 
 class Item(BaseModel):
@@ -117,11 +118,45 @@ class Room(BaseModel):
         return "wall" if y < self.wall_rows else "floor"
 
 
+class MapPlace(BaseModel):
+    """A house/dock on the overworld. Standing on a door cell asks to enter `room` (a room id or "dock")."""
+    room: str
+    name: str = ""
+    sprite: str | None = None
+    x: int
+    y: int
+    w: int = Field(ge=1, default=1)
+    h: int = Field(ge=1, default=1)
+    rot: int = 0
+    flip: bool = False
+    doors: list[list[int]] = []
+    spawn: dict[str, int] | None = None  # where you stand on the map after leaving this place
+
+
+class MapDeco(BaseModel):
+    sprite: str
+    x: int
+    y: int
+    rot: int = 0
+    flip: bool = False
+
+
+class MapData(BaseModel):
+    cols: int = Field(ge=4)
+    rows: int = Field(ge=4)
+    spawn: dict[str, int]
+    layers: dict[str, list[list[str | None]]] = {}
+    blocked: list[list[int]] = []
+    places: list[MapPlace] = []
+    decos: list[MapDeco] = []
+
+
 @dataclass
 class Catalog:
     items: dict[str, Item]
     rooms: dict[str, Room]
     manifest: dict
+    map: MapData | None = None
     layer_counts: dict[str, int] = field(default_factory=dict)
     _public: dict | None = field(default=None, repr=False)
     _etag: str = field(default="", repr=False)
@@ -144,6 +179,7 @@ class Catalog:
                 "items": [it.model_dump() for it in self.items.values()],
                 "room": self.room.model_dump(),
                 "rooms": [r.model_dump() for r in self.rooms.values()],
+                "map": self.map.model_dump() if self.map else None,
                 "chars": self.manifest["chars"],
             }
         return self._public
@@ -220,4 +256,37 @@ def load(data_dir: Path | None = None, gen_dir: Path | None = None) -> Catalog:
                 raise ValueError(f"room {room.id}: seed item '{sd.item_id}' is not an item")
 
     layer_counts = {name: spec["count"] for name, spec in manifest["chars"]["layers"].items()}
-    return Catalog(items=items, rooms=rooms, manifest=manifest, layer_counts=layer_counts)
+    return Catalog(items=items, rooms=rooms, manifest=manifest, layer_counts=layer_counts,
+                   map=_load_map(data_dir, rooms, manifest))
+
+
+def _load_map(data_dir: Path, rooms: dict[str, Room], manifest: dict) -> MapData | None:
+    """data/map.json (written by the world editor). Optional: without it the game has no overworld."""
+    p = data_dir / "map.json"
+    if not p.exists():
+        return None
+    m = MapData.model_validate(json.loads(p.read_text(encoding="utf-8")))
+    map_keys = set(manifest.get("map", {}).get("keys", {}))
+    for name, grid in m.layers.items():
+        if len(grid) != m.rows or any(len(r) != m.cols for r in grid):
+            raise ValueError(f"map: layers.{name} is not {m.cols}x{m.rows}")
+        for r in grid:
+            for k in r:
+                if k is not None and k not in map_keys:
+                    raise ValueError(f"map: tile '{k}' not in the map atlas (build?)")
+    if not (0 <= m.spawn.get("x", -1) < m.cols and 0 <= m.spawn.get("y", -1) < m.rows):
+        raise ValueError("map: spawn outside the map")
+    for pl in m.places:
+        if pl.room != DOCK_ROOM and pl.room not in rooms:
+            raise ValueError(f"map: place '{pl.name}' leads to unknown room '{pl.room}'")
+        if pl.sprite and pl.sprite not in map_keys:
+            raise ValueError(f"map: place '{pl.name}' sprite '{pl.sprite}' not in the map atlas")
+        if pl.rot not in (0, 90, 180, 270):
+            raise ValueError(f"map: place '{pl.name}' rot must be 0/90/180/270")
+        for d in pl.doors:
+            if len(d) != 2 or not (0 <= d[0] < m.cols and 0 <= d[1] < m.rows):
+                raise ValueError(f"map: place '{pl.name}' has a door outside the map")
+    for d in m.decos:
+        if d.sprite not in map_keys:
+            raise ValueError(f"map: deco sprite '{d.sprite}' not in the map atlas")
+    return m

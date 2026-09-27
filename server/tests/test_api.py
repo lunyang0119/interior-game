@@ -140,6 +140,7 @@ def test_catalog_has_no_secrets(client):
     body = client.get("/api/catalog").json()
     assert {i["id"] for i in body["items"]} >= {"table", "cup"}
     assert body["room"]["cols"] == 8 and [r["id"] for r in body["rooms"]] == ["house_a", "inn"]
+    assert body["map"]["cols"] == 8 and [p["room"] for p in body["map"]["places"]] == ["inn", "dock"]
     junk = next(i for i in body["items"] if i["id"] == "junk")
     assert junk["tags"] == ["ruined"] and junk["pair"] == "chair"
     assert next(i for i in body["items"] if i["id"] == "chair")["tags"] == []

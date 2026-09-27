@@ -2,10 +2,11 @@ import Phaser from "phaser";
 import { api, ApiError, msgFor } from "./api";
 import { initBgm } from "./audio/bgm";
 import { bus, toast } from "./bus";
-import { makeCatalog, MAP_ROOM } from "./catalog";
+import { DOCK_ROOM, makeCatalog, MAP_ROOM } from "./catalog";
 import { CELL } from "./room/grid";
 import { BootScene } from "./scenes/BootScene";
 import { DockScene } from "./scenes/DockScene";
+import { MapScene, type MapSceneData } from "./scenes/MapScene";
 import { RoomScene, type RoomSceneData } from "./scenes/RoomScene";
 import { state } from "./state";
 import * as storage from "./storage";
@@ -44,6 +45,8 @@ async function loadAccount(id: string | null): Promise<void> {
   renderIdentity();
 }
 
+type SceneName = "Room" | "Map" | "Dock";
+
 async function boot(): Promise<void> {
   // 1. recovery link ?t=TOKEN → verify → store → strip from URL
   const recovered = storage.takeRecoveryToken();
@@ -65,6 +68,7 @@ async function boot(): Promise<void> {
   ]);
   state.catalog = makeCatalog(cat);
   const base = state.catalog.room;
+  const hasMap = !!state.catalog.map;
   state.roomId = base.id;
 
   // 3. active account
@@ -89,45 +93,56 @@ async function boot(): Promise<void> {
     backgroundColor: "#1b1b24",
     scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
     input: { activePointers: 1 },
-    scene: [BootScene, RoomScene, DockScene],
+    scene: [BootScene, RoomScene, MapScene, DockScene],
   });
-  const roomData = (room = state.roomId, spawn?: { x: number; y: number }): RoomSceneData => ({ id: state.id, room, spawn });
-  game.scene.start("Boot", roomData());
   (window as unknown as { __game: Phaser.Game }).__game = game; // debugging / e2e hooks
+
+  const active = (): SceneName => game.scene.isActive("Dock") ? "Dock" : game.scene.isActive("Map") ? "Map" : "Room";
+  const roomData = (room?: string, spawn?: { x: number; y: number }): RoomSceneData =>
+    ({ id: state.id, room: room ?? (state.catalog!.rooms.has(state.roomId) ? state.roomId : base.id), spawn });
+
+  /** Only one world scene runs at a time; the DOM bars follow via scene:changed. */
+  const goto = (name: SceneName, data?: RoomSceneData | MapSceneData): void => {
+    for (const s of ["Room", "Map", "Dock"] as SceneName[]) if (s !== name && game.scene.isActive(s)) game.scene.stop(s);
+    if (name !== "Dock") { if (location.hash === "#dock") history.replaceState(null, "", location.pathname + location.search); }
+    else location.hash = "dock";
+    game.scene.start(name, data);
+    bus.emit("scene:changed", { scene: name.toLowerCase() as "room" | "map" | "dock" });
+  };
+  const goRoom = (room?: string, spawn?: { x: number; y: number }) => goto("Room", roomData(room, spawn));
+  const goMap = (from?: string) => { if (hasMap) goto("Map", { from }); else { toast("바깥은 아직 준비 중이에요"); } };
+  const goDock = () => goto("Dock");
+
+  game.scene.start("Boot", roomData());
 
   bus.on("account:switch", async ({ id }) => {
     await loadAccount(id || null);
-    if (game.scene.isActive("Dock")) { bus.emit("dock:exit"); return; } // leaving the dock re-enters the room with the new account
-    game.scene.getScene("Room").scene.restart(roomData());
+    const cur = active();
+    if (cur === "Dock") goDock(); else if (cur === "Map") goMap(); else goRoom();
   });
 
-  // walking onto an exit: another room restarts the scene there; the map is Phase 3
+  // walking onto an exit inside a room
   bus.on("room:exit", ({ from, to, spawn }) => {
     if (to === MAP_ROOM) {
-      if (from === base.id && state.ruined > 0) toast(`${base.name || "여관"} 정리가 다 끝나면 바깥으로 나갈 수 있어요 (부서진 물건 ${state.ruined}개 남음)`);
-      else toast("바깥은 아직 준비 중이에요");
+      if (from === base.id && state.ruined > 0) { toast(`${base.name || "여관"} 정리가 다 끝나면 바깥으로 나갈 수 있어요 (부서진 물건 ${state.ruined}개 남음)`); return; }
+      goMap(from);
       return;
     }
     if (!state.catalog?.rooms.has(to)) { toast("아직 갈 수 없는 곳이에요"); return; }
-    game.scene.getScene("Room").scene.restart(roomData(to, spawn));
+    goRoom(to, spawn);
   });
 
-  // dock scene: no avatar, layered backdrop. Entered with #dock for now (map places with room "dock" later).
-  const enterDock = () => {
-    if (game.scene.isActive("Dock")) return;
-    game.scene.stop("Room");
-    game.scene.start("Dock");
-    location.hash = "dock";
-  };
-  const exitDock = () => {
-    if (!game.scene.isActive("Dock")) return;
-    game.scene.stop("Dock");
-    game.scene.start("Room", roomData());
-    if (location.hash === "#dock") history.replaceState(null, "", location.pathname + location.search);
-  };
-  bus.on("dock:enter", enterDock);
-  bus.on("dock:exit", exitDock);
-  window.addEventListener("hashchange", () => { if (location.hash === "#dock") bus.emit("dock:enter"); else if (game.scene.isActive("Dock")) bus.emit("dock:exit"); });
+  // said yes at a door on the map
+  bus.on("map:enter", ({ room }) => {
+    if (room === DOCK_ROOM) { goDock(); return; }
+    if (!state.catalog?.rooms.has(room)) { toast("아직 갈 수 없는 곳이에요"); return; }
+    goRoom(room);
+  });
+
+  // dock: 나가기 goes back to the map (or the base room when there is no map yet); #dock deep-links in
+  bus.on("dock:enter", () => { if (active() !== "Dock") goDock(); });
+  bus.on("dock:exit", () => { if (active() !== "Dock") return; if (hasMap) goMap(DOCK_ROOM); else goRoom(); });
+  window.addEventListener("hashchange", () => { if (location.hash === "#dock") bus.emit("dock:enter"); else if (active() === "Dock") bus.emit("dock:exit"); });
   if (location.hash === "#dock") bus.emit("dock:enter");
 
   show("loading", false);

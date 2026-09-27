@@ -95,6 +95,13 @@
     <button id="chkAll" title="목록에 보이는 것 전부">☑ 전체</button><button id="chkAuto" title="목록의 auto_ 만">☑ auto</button><button id="chkNone">☐ 해제</button>
     <button id="batchRename" class="primary" title="체크한 auto_ 슬라이스의 key를 [폴더_]시트4글자_원래이름 으로">이름 일괄 변경</button>
   </div>
+  <div class="row small" style="margin:0 0 4px; gap:6px; flex-wrap:wrap" title="체크한 슬라이스의 아이템에 태그를 켜거나 끔">
+    <span class="dim">태그 일괄:</span>
+    <label><input type="checkbox" class="batchTag" data-tag="ruined"> ruined</label>
+    <label><input type="checkbox" class="batchTag" data-tag="fixed"> fixed</label>
+    <label><input type="checkbox" class="batchTag" data-tag="stairs"> stairs</label>
+    <button id="batchTagOn">켜기</button><button id="batchTagOff">끄기</button>
+  </div>
   <div class="hint">초록=이름 있음 · 회색=auto_ · 파랑=tile_ · 분홍=맵 슬라이스 · ⚠ 아이템 없음 · ● 저장 안 됨</div>
   <ul id="list"></ul>
   </div>
@@ -180,7 +187,11 @@
       <label><input type="checkbox" id="iSurface"> is_surface (위에 소품 올릴 수 있음)</label>
       <label><span>surface_offset_y</span><input type="number" id="iOff"></label>
       <label><span>태그</span><input type="text" id="iTags" placeholder="ruined, fixed, stairs (쉼표)"></label>
-      <label><input type="checkbox" id="iRuined"> <b>ruined</b> (부서진 가구: 팔 수만 있고 못 삼)</label>
+      <div class="row small" style="gap:10px">
+        <label><input type="checkbox" class="tagBox" data-tag="ruined"> <b>ruined</b> <span class="dim">팔 수만 있음</span></label>
+        <label><input type="checkbox" class="tagBox" data-tag="fixed"> <b>fixed</b> <span class="dim">못 사고·옮기고·팔음</span></label>
+        <label><input type="checkbox" class="tagBox" data-tag="stairs"> <b>stairs</b> <span class="dim">탭하면 출구로</span></label>
+      </div>
       <label><span>쌍(pair)</span><input type="text" id="iPair" list="itemIds" placeholder="짝이 되는 아이템 id"><button id="iPairGo" title="짝 아이템으로 이동">→</button></label>
       <datalist id="itemIds"></datalist>
       <div id="pairBox" class="row" style="display:none"><img id="pairImg" style="max-height:64px"><span id="pairInfo" class="hint"></span></div>
@@ -818,7 +829,8 @@
     $("iId").value = it.id; $("iName").value = it.name; $("iPrice").value = it.price; $("iW").value = it.w; $("iH").value = it.h;
     $("iLayer").value = it.layer; $("iSurface").checked = !!it.is_surface; $("iOff").value = it.surface_offset_y || 0;
     $("iSurface").disabled = it.layer !== "furniture"; // the server only accepts surfaces on furniture
-    $("iTags").value = tagsOf(it).join(", "); $("iRuined").checked = tagsOf(it).includes("ruined");
+    $("iTags").value = tagsOf(it).join(", ");
+    document.querySelectorAll(".tagBox").forEach((cb) => { cb.checked = tagsOf(it).includes(cb.dataset.tag); });
     $("iPair").value = it.pair || "";
     $("itemIds").innerHTML = items.filter((o) => o !== it).map((o) => `<option value="${o.id}">${o.name || ""}</option>`).join("");
     renderPair(it);
@@ -865,10 +877,32 @@
     return true;
   }
   $("iTags").addEventListener("change", () => { const it = itemOf(sel); if (setTags(it, $("iTags").value.split(","))) { dirtyItems = true; } renderList(); renderItem(); });
-  $("iRuined").addEventListener("change", () => {
-    const it = itemOf(sel); const t = tagsOf(it).filter((x) => x !== "ruined"); if ($("iRuined").checked) t.push("ruined");
-    setTags(it, t); dirtyItems = true; renderList(); renderItem();
-  });
+  /** Turn one tag on/off for an item; returns true when something changed. */
+  function toggleTag(it, tag, on) {
+    const had = tagsOf(it).includes(tag);
+    if (had === on) return false;
+    const t = tagsOf(it).filter((x) => x !== tag); if (on) t.push(tag);
+    setTags(it, t); return true;
+  }
+  document.querySelectorAll(".tagBox").forEach((cb) => cb.addEventListener("change", () => {
+    const it = itemOf(sel); if (!it) return;
+    if (toggleTag(it, cb.dataset.tag, cb.checked)) dirtyItems = true;
+    renderList(); renderItem();
+  }));
+  // batch: the ticked slices' items get the ticked tags turned on (켜기) or off (끄기)
+  function batchTags(on) {
+    const tags = [...document.querySelectorAll(".batchTag:checked")].map((cb) => cb.dataset.tag);
+    if (!tags.length) { alert("먼저 어떤 태그인지 체크하세요 (ruined / fixed / stairs)"); return; }
+    const targets = [...checked].map(itemOf).filter(Boolean);
+    if (!targets.length) { alert("목록에서 아이템이 있는 슬라이스를 체크하세요 (⚠ 표시는 아이템이 없는 것)"); return; }
+    let n = 0;
+    for (const it of targets) for (const t of tags) if (toggleTag(it, t, on)) n++;
+    if (n) dirtyItems = true;
+    renderList(); renderItem();
+    log(`태그 ${tags.join(", ")} ${on ? "켜기" : "끄기"}: 아이템 ${targets.length}개 중 ${n}건 변경 — 아이템 저장으로 반영`);
+  }
+  $("batchTagOn").onclick = () => batchTags(true);
+  $("batchTagOff").onclick = () => batchTags(false);
   $("iPair").addEventListener("change", () => {
     const it = itemOf(sel), v = $("iPair").value.trim();
     const old = it.pair && itemById(it.pair);

@@ -86,7 +86,7 @@ python tools/preprocess/preprocess.py build                        # map_slices.
 - 서버는 시작할 때 방마다 **한 번만** 시드를 놓는다 (`room_meta`의 `seeded:<id>`). 시드를 고친 뒤 다시 놓고 싶으면 VM에서 `sqlite3 server/interior.db "DELETE FROM room_meta WHERE k='seeded:inn'"` 후 재시작 (이미 놓인 물건은 그대로 두고 빈 자리에만 추가된다).
 - 저장하면 `inn`은 예전 서버가 읽던 `data/room.json`에도 복사된다 (`data/rooms/`가 있으면 서버는 그쪽을 쓴다).
 
-**맵** 탭: `data/map.json`. cols/rows(크기 적용 버튼), ground/deco 두 레이어에 맵 슬라이스를 칠하기(우클릭=지우개), 막힌 칸, 스폰.
+**맵** 탭: `data/map.json`. 서버가 시작할 때 읽어 `/api/catalog`의 `map`으로 내보내고, 게임의 `MapScene`이 그린다(20×14칸 창이 아바타를 따라 스크롤). 장소 footprint는 문 칸만 빼고 막힌 칸이 되고, 데코는 막지 않는다. 부서진 물건이 남은 방의 장소 위엔 `icon_exclamation`이 둥둥 뜬다. 방에서 `to: "map"` 출구로 나오면 그 방을 가리키는 장소의 스폰에 선다(여관은 부서진 물건이 0개일 때만 나갈 수 있음). cols/rows(크기 적용 버튼), ground/deco 두 레이어에 맵 슬라이스를 칠하기(우클릭=지우개), 막힌 칸, 스폰.
 - **장소**: 큰 스프라이트(집·표지판)를 고르면 "장소 놓기"로 바뀐다. 클릭해서 놓고 → 방 id(또는 `dock`), 이름, 문 칸("문 칸 찍기"). 아바타가 문 칸에 도착하면 "들어가시겠습니까?".
 - 비교용 캐릭터(16×32)가 스폰 위치에 그려진다. 집이 너무 크면 슬라이스 에디터에서 그 집 슬라이스에 `scale` 0.5를 주고 빌드.
 - 팔레트는 마지막 빌드의 `gen/map.png` 기준. 슬라이스를 추가했으면 빌드 후 새로고침.
@@ -97,7 +97,7 @@ python tools/preprocess/preprocess.py build                        # map_slices.
 
 **부두** 탭: `data/dock.json` → 빌드/저장 시 `client/public/gen/dock.json`. `assets/graphic/Map/Dock/N.png` 이미지 레이어와 슬라이스(맵·실내 아틀라스) 레이어를 겹쳐 놓는다.
 - 목록 위가 앞. ↑/↓로 순서, 체크로 표시/숨김, 캔버스 드래그로 픽셀 단위 이동(Shift=16px 스냅), 슬라이스는 scale.
-- 게임에서는 `DockScene`이 `gen/dock.json`을 읽어 같은 순서로 그린다(아바타 없음, 왼쪽 위 나가기·낚시 버튼). 지금은 주소 뒤에 `#dock`을 붙여 들어가고, 맵 장소의 `room: "dock"` 연결은 맵 씬과 함께.
+- 게임에서는 `DockScene`이 `gen/dock.json`을 읽어 같은 순서로 그린다(아바타 없음, 왼쪽 위 나가기·낚시 버튼). 맵에서 `room: "dock"` 장소의 문에 서면 들어가고, 나가기는 그 장소의 스폰으로 돌아온다. 주소 뒤 `#dock`으로도 바로 들어갈 수 있다.
 - VM에 올릴 것: `client/public/gen/dock.json`, `client/public/gen/dock/*.png`, 그리고 클라를 다시 빌드했으면 `server/static/`.
 
 ## 캐릭터 레이어

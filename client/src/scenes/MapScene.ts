@@ -1,0 +1,261 @@
+import Phaser from "phaser";
+import { api } from "../api";
+import { Avatar } from "../avatar/Avatar";
+import { ensureAvatarTextures } from "../avatar/AvatarLoader";
+import { RemoteAvatars } from "../avatar/RemoteAvatars";
+import { bus, toast } from "../bus";
+import { DOCK_ROOM, MAP_ROOM, type Catalog, type MapData, type MapPlace } from "../catalog";
+import { depthOf, TILE_DEPTH } from "../room/depth";
+import { CELL, worldToCell } from "../room/grid";
+import { catalog, state } from "../state";
+import { socket } from "../ws";
+
+export const MAP_ATLAS = "map";
+const MARKER = "icon_exclamation";
+/** The camera window (cells); the map itself is usually much bigger and scrolls. */
+const VIEW_COLS = 20;
+const VIEW_ROWS = 14;
+const CHUNK = 64; // cells per RenderTexture, keeps textures well under GPU limits on huge maps
+const MARKER_REFRESH_MS = 60_000;
+
+export interface MapSceneData { from?: string }
+
+/** Overworld: tiles + houses from data/map.json, walk to a door → "들어가시겠어요?" → room / dock. */
+export class MapScene extends Phaser.Scene {
+  private cat!: Catalog;
+  private map!: MapData;
+  private me: Avatar | null = null;
+  private remotes!: RemoteAvatars;
+  private unsub: (() => void)[] = [];
+  private blocked = new Set<number>();
+  private doors = new Map<number, MapPlace>();
+  private markers = new Map<string, Phaser.GameObjects.Image>(); // by place room id
+  private markerTimer: number | null = null;
+  private spawn = { x: 0, y: 0 };
+  private asking: MapPlace | null = null;
+
+  constructor() {
+    super("Map");
+  }
+
+  init(data: MapSceneData): void {
+    this.cat = catalog();
+    this.map = this.cat.map!;
+    // come out of the door of the place we just left; otherwise the map's own spawn
+    const place = data.from ? this.map.places.find((p) => p.room === data.from) : null;
+    this.spawn = place?.spawn ?? this.map.spawn;
+    state.roomId = MAP_ROOM;
+    this.asking = null;
+  }
+
+  create(): void {
+    const { cols, rows } = this.map;
+    this.scale.resize(Math.min(cols, VIEW_COLS) * CELL, Math.min(rows, VIEW_ROWS) * CELL);
+    this.cameras.main.setBounds(0, 0, cols * CELL, rows * CELL).setBackgroundColor("#1b1b24");
+    this.drawTiles();
+    this.drawObjects();
+    this.remotes = new RemoteAvatars(this, this.cat.chars);
+    bus.emit("room:changed", { id: MAP_ROOM, name: "바깥", ruined: 0 });
+    bus.emit("scene:changed", { scene: "map" });
+
+    this.bindInput();
+    this.bindBus();
+    void this.refreshMarkers();
+    this.markerTimer = window.setInterval(() => { if (!socket.connected) void this.refreshMarkers(); }, MARKER_REFRESH_MS);
+
+    if (state.id && state.token) {
+      void this.spawnMe();
+      this.bindSocket();
+      if (socket.connected) this.enterPresence();
+    }
+    this.publishOnline();
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.teardown());
+  }
+
+  // ---------------------------------------------------------------- drawing
+
+  private drawTiles(): void {
+    const { cols, rows, layers } = this.map;
+    const order = ["ground", "deco", ...Object.keys(layers).filter((k) => k !== "ground" && k !== "deco")];
+    for (let cy0 = 0; cy0 < rows; cy0 += CHUNK) {
+      for (let cx0 = 0; cx0 < cols; cx0 += CHUNK) {
+        const w = Math.min(CHUNK, cols - cx0), h = Math.min(CHUNK, rows - cy0);
+        const rt = this.add.renderTexture(cx0 * CELL, cy0 * CELL, w * CELL, h * CELL).setOrigin(0).setDepth(TILE_DEPTH);
+        rt.beginDraw();
+        for (const name of order) {
+          const grid = layers[name];
+          if (!grid) continue;
+          for (let cy = 0; cy < h; cy++) {
+            const row = grid[cy0 + cy];
+            if (!row) continue;
+            for (let cx = 0; cx < w; cx++) {
+              const key = row[cx0 + cx];
+              if (key && this.textures.get(MAP_ATLAS).has(key)) rt.batchDrawFrame(MAP_ATLAS, key, cx * CELL, cy * CELL);
+            }
+          }
+        }
+        rt.endDraw();
+      }
+    }
+    for (const [bx, by] of this.map.blocked) this.blocked.add(by * 10_000 + bx);
+  }
+
+  /** Places and decos share the editor's rules: bottom-left anchored box, rot in 90° steps, flip = mirror. */
+  private drawObj(sprite: string, x: number, y: number, hCells: number, rot: number, flip: boolean, depth: number): void {
+    const frame = this.textures.get(MAP_ATLAS).get(sprite);
+    if (!frame) return;
+    const turned = rot % 180 !== 0;
+    const bw = turned ? frame.height : frame.width, bh = turned ? frame.width : frame.height;
+    const px = x * CELL + bw / 2, py = (y + hCells) * CELL - bh / 2;
+    this.add.image(px, py, MAP_ATLAS, sprite).setAngle(rot).setFlipX(flip).setDepth(depth);
+  }
+
+  private cellsOf(sprite: string, rot: number): { w: number; h: number } {
+    const f = this.textures.get(MAP_ATLAS).get(sprite);
+    if (!f) return { w: 1, h: 1 };
+    const turned = rot % 180 !== 0;
+    return { w: Math.ceil((turned ? f.height : f.width) / CELL), h: Math.ceil((turned ? f.width : f.height) / CELL) };
+  }
+
+  private drawObjects(): void {
+    for (const p of this.map.places) {
+      if (p.sprite) this.drawObj(p.sprite, p.x, p.y, p.h, p.rot ?? 0, !!p.flip, depthOf(p.y + p.h - 1, 10));
+      const doorSet = new Set(p.doors.map(([dx, dy]) => dy * 10_000 + dx));
+      for (let cy = p.y; cy < p.y + p.h; cy++) for (let cx = p.x; cx < p.x + p.w; cx++) {
+        const k = cy * 10_000 + cx;
+        if (!doorSet.has(k)) this.blocked.add(k); // the building itself is solid, its doors are not
+      }
+      for (const k of doorSet) this.doors.set(k, p);
+    }
+    for (const d of this.map.decos) {
+      const c = this.cellsOf(d.sprite, d.rot ?? 0);
+      // flat decos (paths, 1 cell tall) sit under everything; taller ones y-sort with avatars
+      const depth = c.h <= 1 && c.w <= 1 ? TILE_DEPTH + 1 : depthOf(d.y + c.h - 1, 10);
+      this.drawObj(d.sprite, d.x, d.y, c.h, d.rot ?? 0, !!d.flip, depth);
+    }
+  }
+
+  // ---------------------------------------------------------------- markers (rooms with junk left)
+
+  private async refreshMarkers(): Promise<void> {
+    try {
+      const { rooms } = await api.rooms();
+      if (!this.scene.isActive()) return;
+      const ruined = new Map(rooms.map((r) => [r.id, r.ruined]));
+      for (const p of this.map.places) {
+        const n = ruined.get(p.room) ?? 0;
+        const has = this.markers.get(p.room);
+        if (n > 0 && !has && this.textures.get(MAP_ATLAS).has(MARKER)) {
+          const m = this.add.image((p.x + p.w / 2) * CELL, p.y * CELL - 2, MAP_ATLAS, MARKER).setOrigin(0.5, 1).setDepth(depthOf(p.y + p.h, 50));
+          this.tweens.add({ targets: m, y: m.y - 4, duration: 600, yoyo: true, repeat: -1, ease: "Sine.easeInOut" });
+          this.markers.set(p.room, m);
+        } else if (n === 0 && has) {
+          has.destroy();
+          this.markers.delete(p.room);
+        }
+      }
+    } catch { /* offline: markers just stay as they were */ }
+  }
+
+  // ---------------------------------------------------------------- avatar / presence
+
+  private async spawnMe(): Promise<void> {
+    await ensureAvatarTextures(this, state.avatar, this.cat.chars);
+    if (!this.scene.isActive()) return;
+    this.me = new Avatar(this, this.cat.chars, state.avatar, this.spawn.x, this.spawn.y, state.id ?? "");
+    this.me.onStep = (x, y, dir, moving) => socket.sendMove(x, y, dir, moving);
+    this.me.onArrive = () => this.checkDoor();
+    this.cameras.main.startFollow(this.me, true, 1, 1);
+    this.publishOnline();
+  }
+
+  private enterPresence(): void {
+    const s = this.me ? { x: this.me.cellX, y: this.me.cellY } : { x: this.spawn.x + 0.5, y: this.spawn.y + 1 };
+    socket.sendEnter(MAP_ROOM, s.x, s.y);
+  }
+
+  private bindSocket(): void {
+    this.unsub.push(
+      socket.on("hello", () => this.enterPresence()),
+      socket.on("entered", (m) => {
+        if (m.room !== MAP_ROOM) return;
+        this.remotes.reset(m.online);
+        this.publishOnline();
+        if (this.me) socket.sendMove(this.me.cellX, this.me.cellY, this.me.dir, false);
+      }),
+      socket.on("join", (m) => { void this.remotes.join(m).then(() => this.publishOnline()); this.publishOnline(); }),
+      socket.on("leave", (m) => { this.remotes.leave(m.id); this.publishOnline(); }),
+      socket.on("move", (m) => this.remotes.move(m.id, m.x, m.y, m.dir, m.moving)),
+      socket.on("avatar_look", (m) => void this.remotes.look(m.id, m.avatar)),
+      socket.on("room", (m) => {
+        if (typeof m.balance === "number" && m.balance !== state.balance) { state.balance = m.balance; bus.emit("money", { balance: m.balance }); }
+        void this.refreshMarkers(); // somebody sold junk somewhere: a marker may go away
+      }),
+      socket.on("money", (m) => { if (m.balance !== state.balance) { state.balance = m.balance; bus.emit("money", { balance: m.balance }); } }),
+      socket.on("open", () => this.publishOnline()),
+      socket.on("close", () => { this.remotes.reset([]); this.publishOnline(); }),
+    );
+  }
+
+  private publishOnline(): void {
+    const n = this.remotes.count + (this.me && socket.connected ? 1 : 0);
+    state.online = n;
+    bus.emit("online", { count: n });
+  }
+
+  private bindBus(): void {
+    this.unsub.push(
+      bus.on("avatar:saved", (look) => void ensureAvatarTextures(this, look, this.cat.chars).then(() => this.me?.setLook(look))),
+      bus.on("map:enter-answer", ({ yes }) => this.answer(yes)),
+    );
+  }
+
+  // ---------------------------------------------------------------- input / doors
+
+  private bindInput(): void {
+    this.input.on(Phaser.Input.Events.POINTER_UP, (p: Phaser.Input.Pointer) => {
+      if (!this.me || this.asking) return;
+      const { cx, cy } = worldToCell(p.worldX, p.worldY);
+      if (cx < 0 || cy < 0 || cx >= this.map.cols || cy >= this.map.rows) return;
+      if (this.blocked.has(cy * 10_000 + cx)) { toast("거긴 갈 수 없어요"); return; }
+      this.me.walkToCell(cx, cy);
+    });
+  }
+
+  private checkDoor(): void {
+    if (!this.me || this.asking) return;
+    const cx = Math.floor(this.me.cellX), cy = Math.floor(this.me.cellY - 0.5);
+    const place = this.doors.get(cy * 10_000 + cx);
+    if (!place) return;
+    this.asking = place;
+    const room = this.cat.rooms.get(place.room);
+    const name = place.room === DOCK_ROOM ? "부두" : room?.name || place.name || place.room;
+    bus.emit("map:enter-ask", { name });
+  }
+
+  private answer(yes: boolean): void {
+    const place = this.asking;
+    this.asking = null;
+    if (!place || !yes) return;
+    bus.emit("map:enter", { room: place.room });
+  }
+
+  update(time: number, delta: number): void {
+    this.me?.update(time, delta);
+    this.remotes.update(time, delta);
+  }
+
+  private teardown(): void {
+    for (const off of this.unsub) off();
+    this.unsub = [];
+    if (this.markerTimer !== null) clearInterval(this.markerTimer);
+    // (the camera manager is already gone during SHUTDOWN; no stopFollow needed)
+    this.remotes.destroy();
+    this.me?.destroy();
+    this.me = null;
+    this.markers.clear();
+    this.blocked.clear();
+    this.doors.clear();
+    bus.emit("map:enter-ask", { name: "" }); // closes the panel if it was open
+  }
+}

@@ -41,6 +41,38 @@ def test_seed_once_and_sell(env):
         assert [i["item_id"] for i in client.get("/api/room/house_a").json()["items"]] == ["stairs", "junk", "junk"]
 
 
+def test_seed_resync_when_room_file_changes(env):
+    """Editing the seed list in the editor replaces the room's seed rows on the next start; player items stay."""
+    from fastapi.testclient import TestClient
+    from app.main import create_app
+    import importlib, sys
+
+    with TestClient(create_app()) as client:
+        lun = register(client, "lun")
+        r = client.get("/api/room/house_a").json()
+        junk = next(i for i in r["items"] if i["item_id"] == "junk")
+        client.delete(f"/api/room/item/{junk['uid']}", headers=auth(lun))  # sold one
+        # a player's chair next to the seeds, and a cup on nothing → skip; chair stays across the resync
+        assert client.post("/api/room/place", json={"item_id": "chair", "x": 1, "y": 1, "room_id": "house_a"}, headers=auth(lun)).status_code == 200
+        version = client.get("/api/room/house_a").json()["version"]
+
+    # unchanged file → nothing comes back
+    with TestClient(create_app()) as client:
+        r = client.get("/api/room/house_a").json()
+        assert r["version"] == version and sum(1 for i in r["items"] if i["item_id"] == "junk") == 2
+
+    room = json.loads((env["rooms"] / "house_a.json").read_text(encoding="utf-8"))
+    room["seed"] = [{"item_id": "junk", "x": 4, "y": 3}, {"item_id": "stairs", "x": 5, "y": 1}]
+    (env["rooms"] / "house_a.json").write_text(json.dumps(room), encoding="utf-8")
+    importlib.reload(sys.modules["app.catalog"])
+    with TestClient(create_app()) as client:
+        r = client.get("/api/room/house_a").json()
+        seeds = sorted((i["item_id"], i["x"], i["y"]) for i in r["items"] if i["placed_by"] == "$seed")
+        assert seeds == [("junk", 4, 3), ("stairs", 5, 1)]
+        assert [(i["item_id"], i["placed_by"]) for i in r["items"] if i["placed_by"] != "$seed"] == [("chair", "lun")]
+        assert r["version"] == version + 1 and r["ruined"] == 1
+
+
 def test_ruined_and_fixed_rules(client):
     lun = register(client, "lun")
     r = client.post("/api/room/place", json={"item_id": "junk", "x": 1, "y": 1}, headers=auth(lun))
