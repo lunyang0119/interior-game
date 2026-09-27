@@ -30,8 +30,17 @@ Oracle 콘솔에서 VCN → Security List → Ingress에 TCP 80, 443 추가 (스
 ```bash
 sudo systemctl restart interior
 ```
-
 수정된 파일 전송 후, 재시작.
+
+**맵 바꿀 때 (VM에서)**
+```bash
+cd /opt/interior/server
+  sudo systemctl stop interior
+  sqlite3 interior.db "DELETE FROM room_meta WHERE k IN ('seeded:inn','seed_hash:inn');"
+  sudo systemctl start interior
+  sudo journalctl -u interior -n 20 --no-pager | grep seed
+```
+  로그에 seeded room inn: N items (M old seed rows replaced)가 나오면 된 거
 
 ## API 요약
 
