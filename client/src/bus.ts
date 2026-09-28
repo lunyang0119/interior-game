@@ -34,6 +34,7 @@ export interface Events {
   "fish:catch": { ok: boolean; id: string; name: string; value: number; who: string };
   "item:menu": { item: RoomItem; screenX: number; screenY: number };
   "item:remove": { uid: number };
+  "item:walk": { uid: number }; // context menu "여기로 가기": walk the avatar up to that item
 }
 
 type Handler<K extends keyof Events> = (payload: Events[K]) => void;

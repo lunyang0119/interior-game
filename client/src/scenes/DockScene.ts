@@ -6,6 +6,7 @@ import { ATLAS } from "../room/ItemLayer";
 import { state } from "../state";
 import { socket } from "../ws";
 import { fitToView } from "./CameraController";
+import { assetUrl } from "../assets";
 
 /** Layout written by the world editor (부두 tab) → gen/dock.json. Layers are drawn back → front. */
 interface DockLayer {
@@ -58,7 +59,7 @@ export class DockScene extends Phaser.Scene {
 
   preload(): void {
     this.load.json("dock-layout", `/gen/dock.json?t=${Date.now()}`);
-    if (!this.textures.exists(MAP_ATLAS)) this.load.atlas(MAP_ATLAS, "/gen/map.png", "/gen/map.json"); // bite marker + rod slices
+    if (!this.textures.exists(MAP_ATLAS)) this.load.atlas(MAP_ATLAS, assetUrl("/gen/map.png"), assetUrl("/gen/map.json")); // bite marker + rod slices
   }
 
   create(): void {
@@ -91,7 +92,7 @@ export class DockScene extends Phaser.Scene {
 
     // second pass: fetch the images this layout needs, then draw
     for (const l of this.layout.layers) {
-      if (l.kind === "image" && l.src != null && !this.textures.exists(`dock-${l.src}`)) this.load.image(`dock-${l.src}`, `/gen/dock/${l.src}.png`);
+      if (l.kind === "image" && l.src != null && !this.textures.exists(`dock-${l.src}`)) this.load.image(`dock-${l.src}`, assetUrl(`/gen/dock/${l.src}.png`));
     }
     this.load.once(Phaser.Loader.Events.COMPLETE, () => this.draw());
     this.load.start();

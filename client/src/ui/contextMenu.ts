@@ -19,6 +19,7 @@ export function initContextMenu(): void {
     ctx.style.left = `${Math.min(screenX, innerWidth - w - 8)}px`;
     ctx.style.top = `${Math.min(screenY, innerHeight - h - 8)}px`;
   });
+  $("ctx-walk").addEventListener("click", () => { if (current) bus.emit("item:walk", { uid: current.uid }); close(); });
   $("ctx-move").addEventListener("click", () => { if (current) bus.emit("place:move", { uid: current.uid }); close(); });
   $("ctx-remove").addEventListener("click", () => {
     if (!current) return;

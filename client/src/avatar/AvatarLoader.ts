@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import { drawList, type AvatarLook, type Chars } from "../catalog";
+import { assetUrl } from "../assets";
 
 export function texKey(layer: string, idx: number): string {
   return `char_${layer}_${idx}`;
@@ -24,7 +25,7 @@ export function ensureAvatarTextures(scene: Phaser.Scene, look: AvatarLook, char
     };
     if (needed.length === 0) { finish(); return; }
     for (const s of needed) {
-      scene.load.spritesheet(texKey(s.layer, s.idx), `/gen/chars/${s.layer}/${s.idx}.png`,
+      scene.load.spritesheet(texKey(s.layer, s.idx), assetUrl(`/gen/chars/${s.layer}/${s.idx}.png`),
         { frameWidth: chars.frameW, frameHeight: chars.frameH });
     }
     scene.load.once(Phaser.Loader.Events.COMPLETE, finish);

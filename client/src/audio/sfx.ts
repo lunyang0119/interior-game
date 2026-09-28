@@ -8,6 +8,7 @@
 import type { StepKind, TileInfo } from "../catalog";
 import { isMuted, onMuteChange } from "./bgm";
 import { onUnlock } from "./unlock";
+import { assetUrl } from "../assets";
 
 /** Every sound the game plays, by the kind name in media/sfx.json. */
 export const SFX = {
@@ -32,7 +33,7 @@ let unlocked = false;
 export async function initSfx(): Promise<void> {
   let kinds: string[] = [];
   try {
-    const res = await fetch("/media/sfx.json");
+    const res = await fetch(assetUrl("/media/sfx.json"));
     if (res.ok) kinds = ((await res.json()) as { kinds?: string[] }).kinds ?? [];
   } catch {
     return;

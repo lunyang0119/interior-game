@@ -14,6 +14,7 @@ import { cellKey, mapTileAt, mapWalkGrid, pathToward, type WalkGrid } from "../r
 import { catalog, state } from "../state";
 import { socket } from "../ws";
 import { CameraController } from "./CameraController";
+import { assetUrl } from "../assets";
 
 export const MAP_ATLAS = "map";
 const MARKER = "icon_exclamation";
@@ -70,7 +71,7 @@ export class MapScene extends Phaser.Scene {
   preload(): void {
     const names = new Set<string>([...(this.map.bg_zones ?? []).map((z) => z.bg)]);
     if (this.map.bg_default) names.add(this.map.bg_default);
-    for (const n of names) if (!this.textures.exists(bgKey(n))) this.load.image(bgKey(n), `/gen/mapbg/${n}.png`);
+    for (const n of names) if (!this.textures.exists(bgKey(n))) this.load.image(bgKey(n), assetUrl(`/gen/mapbg/${n}.png`));
   }
 
   create(): void {

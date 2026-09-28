@@ -28,7 +28,7 @@ SESSION_TTL_S = 90.0
 class Loot(BaseModel):
     id: str = Field(pattern=r"^[a-z0-9_]+$")
     name: str
-    value: int = Field(ge=1)
+    value: int = Field(ge=0)  # 0 = a dud (nothing goes into the pool, still shown as a catch)
     weight: int = Field(ge=1)
     icon: str | None = None  # asset path (build copies it to gen/fish/<id>.png)
 

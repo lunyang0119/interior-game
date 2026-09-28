@@ -187,6 +187,9 @@ class Catalog:
     layer_counts: dict[str, int] = field(default_factory=dict)
     # {"interior": {key: TileMeta}, "map": {key: TileMeta}} — only keys that carry step/walk
     tiles: dict[str, dict[str, TileMeta]] = field(default_factory=lambda: {"interior": {}, "map": {}})
+    # hash of the generated atlases + theme: the client appends it to /gen and /media URLs so a rebuild
+    # bypasses the long browser/Caddy cache instead of serving a stale atlas for a day
+    asset_version: str = ""
     _public: dict | None = field(default=None, repr=False)
     _etag: str = field(default="", repr=False)
 
@@ -216,6 +219,7 @@ class Catalog:
                 "chars": self.manifest["chars"],
                 "tiles": {atlas: {k: m.model_dump(exclude_none=True) for k, m in metas.items()}
                           for atlas, metas in self.tiles.items()},
+                "asset_version": self.asset_version,
             }
         return self._public
 
@@ -247,6 +251,17 @@ def _load_rooms(data_dir: Path) -> dict[str, Room]:
     if DEFAULT_ROOM not in rooms:
         raise ValueError(f"room '{DEFAULT_ROOM}' is required (players start there)")
     return rooms
+
+
+def asset_version(gen_dir: Path, media_dir: Path | None = None) -> str:
+    """Short hash of the files whose layout the client caches (atlas frames, theme). Missing files are skipped."""
+    h = hashlib.sha1()
+    for p in (gen_dir / "manifest.json", gen_dir / "interiors.json", gen_dir / "map.json", gen_dir / "dock.json",
+              (media_dir or config.MEDIA_DIR) / "theme.css"):
+        if p.is_file():
+            h.update(p.name.encode())
+            h.update(p.read_bytes())
+    return h.hexdigest()[:12]
 
 
 def load(data_dir: Path | None = None, gen_dir: Path | None = None) -> Catalog:
@@ -300,7 +315,7 @@ def load(data_dir: Path | None = None, gen_dir: Path | None = None) -> Catalog:
     layer_counts = {name: spec["count"] for name, spec in manifest["chars"]["layers"].items()}
     tiles = {"interior": _tile_meta(keys), "map": _tile_meta(manifest.get("map", {}).get("keys", {}))}
     return Catalog(items=items, rooms=rooms, manifest=manifest, layer_counts=layer_counts,
-                   map=_load_map(data_dir, rooms, manifest), tiles=tiles)
+                   map=_load_map(data_dir, rooms, manifest), tiles=tiles, asset_version=asset_version(gen_dir))
 
 
 def _tile_meta(keys: dict) -> dict[str, TileMeta]:

@@ -134,3 +134,14 @@ def test_cooldown(client):
     _finish(client, lun, cast, [])
     r = client.post("/api/fish/start", headers=auth(lun))
     assert r.status_code == 429 and r.json()["error"] == "fish_cooldown"
+
+
+def test_zero_value_loot_is_allowed(env):
+    """A dud (value 0) is a legal catch: it loads, and it never touches the ledger."""
+    import json as _json
+    from app import fishing as fm
+    cfg = _json.loads((env["data"] / "fishing.json").read_text(encoding="utf-8"))
+    cfg["loot"].append({"id": "dud", "name": "꽝", "value": 0, "weight": 1})
+    (env["data"] / "fishing.json").write_text(_json.dumps(cfg, ensure_ascii=False), encoding="utf-8")
+    loaded = fm.load_config()
+    assert [l.value for l in loaded.loot][-1] == 0

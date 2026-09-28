@@ -58,3 +58,13 @@ html #toast { border-radius: 0; background: none; box-shadow: none; backdrop-fil
 @font-face { font-family: "Stardust"; font-weight: 400; src: url(/media/fonts/stardust.ttf) format("truetype"); font-display: swap; }
 @font-face { font-family: "Stardust"; font-weight: 700; src: url(/media/fonts/stardust-bold.ttf) format("truetype"); font-display: swap; }
 @font-face { font-family: "Label"; src: url(/media/fonts/stardust-s.ttf) format("truetype"); font-display: swap; }
+@media (max-width: 899px), (pointer: coarse) {
+  html:root {
+    --font-size: 15px;
+    --fs-small: 13px;
+    --fs-button: 15px;
+    --fs-big: 20px;
+    --fs-title: 18px;
+    --preview-w: 120px;
+  }
+}

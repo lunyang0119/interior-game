@@ -1137,6 +1137,10 @@
   "step": "water"
  },
  {
+  "key": "fish_rod",
+  "file": "Map/fishing-game-assets-pixel-art-pack/3 Objects/Fish-rod.png"
+ },
+ {
   "key": "icon_bridge",
   "file": "GUI/Map Legend Icons/Icons/Bridge.png"
  },
@@ -1151,9 +1155,5 @@
  {
   "key": "icon_question",
   "file": "GUI/Map Legend Icons/Icons/Question.png"
- },
- {
-  "key": "fish_rod",
-  "file": "Map/fishing-game-assets-pixel-art-pack/3 Objects/Fish-rod.png"
  }
 ]

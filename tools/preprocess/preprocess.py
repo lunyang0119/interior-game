@@ -340,7 +340,7 @@ def pack_atlas(slices: list[dict], sheet_paths: dict[str, Path] | None = None, i
     crops = [(s["key"], slice_image(s, sheets, file_base=file_base, frozen=frozen)) for s in slices]
     crops.sort(key=lambda kc: (-kc[1].height, -kc[1].width, kc[0]))
 
-    max_w = 512
+    max_w = 2048  # keep both sides ≤ 4096: mobile WebGL rejects taller textures (was 512 wide × 7000+ tall → black room)
     pad = 1
     shelves: list[list[int]] = []  # [y, height, cursor_x]
     placed: dict[str, tuple[int, int, int, int]] = {}
@@ -870,6 +870,21 @@ def cmd_ui(_: argparse.Namespace) -> None:
     lines.append('@font-face { font-family: "Stardust"; font-weight: 700; src: url(/media/fonts/%s.ttf) format("truetype"); font-display: swap; }' % bold)
     if label_font:
         lines.append('@font-face { font-family: "Label"; src: url(/media/fonts/%s.ttf) format("truetype"); font-display: swap; }' % label_font)
+    # phones (or any touch screen narrower than the desktop sidebar layout): smaller type, otherwise the bottom
+    # 상점/아바타 buttons at `big` px swallow the screen. Defaults cap the desktop sizes; font.sizes_mobile overrides.
+    caps = {"body": 15, "small": 13, "button": 15, "big": 20, "title": 18, "preview": 120}
+    mobile = {k: min(sizes[k] or sizes["body"], cap) for k, cap in caps.items()}
+    mobile.update(font.get("sizes_mobile", {}))
+    lines.append("@media (max-width: 899px), (pointer: coarse) {")
+    lines.append("  html:root {")
+    lines.append(f"    --font-size: {mobile['body']}px;")
+    lines.append(f"    --fs-small: {mobile['small']}px;")
+    lines.append(f"    --fs-button: {mobile['button']}px;")
+    lines.append(f"    --fs-big: {mobile['big']}px;")
+    lines.append(f"    --fs-title: {mobile['title']}px;")
+    lines.append(f"    --preview-w: {mobile['preview']}px;")
+    lines.append("  }")
+    lines.append("}")
     (C.MEDIA_DIR / "theme.css").write_text("\n".join(lines) + "\n", encoding="utf-8")
     print(f"{len(frames)} frames → media/ui/, theme.css written")
 

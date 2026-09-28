@@ -2,6 +2,7 @@ import { bus, toast } from "../bus";
 import { forSale, priceOf, type Item, type Layer } from "../catalog";
 import { catalog, state } from "../state";
 import { $, togglePanel } from "./hud";
+import { assetUrl } from "../assets";
 
 const TABS: { key: Layer | "all"; label: string }[] = [
   { key: "all", label: "전체" },
@@ -22,8 +23,8 @@ const tabButtons = new Map<string, HTMLButtonElement>();
 async function loadAtlas(): Promise<void> {
   if (atlasImg) return;
   const [json, img] = await Promise.all([
-    fetch("/gen/interiors.json").then((r) => r.json()),
-    new Promise<HTMLImageElement>((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = rej; im.src = "/gen/interiors.png"; }),
+    fetch(assetUrl("/gen/interiors.json")).then((r) => r.json()),
+    new Promise<HTMLImageElement>((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = rej; im.src = assetUrl("/gen/interiors.png"); }),
   ]);
   atlasFrames = json.frames;
   atlasImg = img;

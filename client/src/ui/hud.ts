@@ -1,6 +1,7 @@
 import { api, ApiError, msgFor } from "../api";
 import { bus } from "../bus";
 import { state } from "../state";
+import { assetUrl } from "../assets";
 
 export function $(id: string): HTMLElement {
   const el = document.getElementById(id);
@@ -146,10 +147,11 @@ export function initHud(): void {
   let catchTimer: number | null = null;
   bus.on("fish:catch", ({ ok, id, name, value, who }) => {
     const img = $("fish-catch-img") as HTMLImageElement;
-    img.src = `/gen/fish/${id}.png`;
+    img.src = assetUrl(`/gen/fish/${id}.png`);
     img.style.visibility = ok ? "visible" : "hidden";
+    const gain = value > 0 ? ` +${value}💰` : ""; // duds are worth nothing
     $("fish-catch-text").textContent = ok
-      ? (who && who !== state.id ? `${who}가 ${name}을(를) 낚았어요! +${value}💰` : `${name}을(를) 낚았어요! +${value}💰`)
+      ? (who && who !== state.id ? `${who}가 ${name}을(를) 낚았어요!${gain}` : `${name}을(를) 낚았어요!${gain}`)
       : `놓쳤어요… ${name}이(가) 도망쳤어요`;
     show("fish-catch", true);
     if (catchTimer !== null) clearTimeout(catchTimer);

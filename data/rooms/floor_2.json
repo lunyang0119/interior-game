@@ -28,7 +28,19 @@
   ],
   "floor": "tile_floor_wood"
  },
- "exits": [],
+ "exits": [
+  {
+   "x": 0,
+   "y": 3,
+   "w": 4,
+   "h": 2,
+   "to": "inn",
+   "spawn": {
+    "x": 10,
+    "y": 8
+   }
+  }
+ ],
  "seed": [
   {
    "item_id": "int_184",
@@ -484,6 +496,11 @@
    "item_id": "int_183",
    "x": 4,
    "y": 11
+  },
+  {
+   "item_id": "back_stair_red",
+   "x": 0,
+   "y": 3
   }
  ]
 }

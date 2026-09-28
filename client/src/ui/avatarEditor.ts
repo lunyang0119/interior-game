@@ -3,6 +3,7 @@ import { bus, toast } from "../bus";
 import { AVATAR_LAYERS, DEFAULT_LOOK, drawList, type AvatarLook, type LayerSpec } from "../catalog";
 import { catalog, state } from "../state";
 import { $, guard, show, togglePanel } from "./hud";
+import { assetUrl } from "../assets";
 
 const SCALE = 4;
 const REPEAT_DELAY_MS = 400;
@@ -12,7 +13,7 @@ let draft: AvatarLook = { ...DEFAULT_LOOK };
 const imgCache = new Map<string, Promise<HTMLImageElement>>();
 
 function sheet(layer: string, idx: number): Promise<HTMLImageElement> {
-  const url = `/gen/chars/${layer}/${idx}.png`;
+  const url = assetUrl(`/gen/chars/${layer}/${idx}.png`);
   let p = imgCache.get(url);
   if (!p) {
     p = new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = rej; im.src = url; });

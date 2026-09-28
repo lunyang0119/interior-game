@@ -47,11 +47,12 @@ def finish(body: FinishIn, request: Request, me: Player = Depends(current_player
     out = {"ok": ok, "pulls": res.pulls, "escaped": res.escaped, "id": s.loot.id, "name": s.loot.name, "value": s.loot.value}
     if ok:
         with transaction(conn):
-            # money enters the shared pool like a refund; item_id tags it as a catch for the ledger
-            conn.execute(
-                "INSERT INTO ledger(ts, player_id, amount, kind, item_uid, item_id) VALUES (?, ?, ?, 'fish', NULL, ?)",
-                (now(), me.id, -s.loot.value, f"fish:{s.loot.id}"),
-            )
+            # money enters the shared pool like a refund; item_id tags it as a catch for the ledger (duds add no row)
+            if s.loot.value > 0:
+                conn.execute(
+                    "INSERT INTO ledger(ts, player_id, amount, kind, item_uid, item_id) VALUES (?, ?, ?, 'fish', NULL, ?)",
+                    (now(), me.id, -s.loot.value, f"fish:{s.loot.id}"),
+                )
             log_access(conn, request, "fish", me.id, True)
         balance = sheet.balance(conn)
         hub.broadcast_threadsafe({"type": "money", "balance": balance})

@@ -4,8 +4,9 @@ type Pointer = Phaser.Input.Pointer;
 
 /** What a scene does with the gestures. Every handler is optional. */
 export interface GestureHandlers {
-  /** Return true to take the single-pointer event yourself (the placement ghost does). */
-  claim?(p: Pointer, phase: "down" | "move" | "up"): boolean;
+  /** Return true to take the single-pointer event yourself (the placement ghost does).
+   *  "up-outside": released over the DOM UI or off the window; Phaser has already moved `p` to that spot, so don't pin anything there. */
+  claim?(p: Pointer, phase: "down" | "move" | "up" | "up-outside"): boolean;
   tap?(p: Pointer): void;
   longPress?(p: Pointer): void;
   rightClick?(p: Pointer): void;
@@ -43,7 +44,7 @@ export class Gestures {
     input.on(Phaser.Input.Events.POINTER_DOWN, this.onDown);
     input.on(Phaser.Input.Events.POINTER_MOVE, this.onMove);
     input.on(Phaser.Input.Events.POINTER_UP, this.onUp);
-    input.on(Phaser.Input.Events.POINTER_UP_OUTSIDE, this.onUp);
+    input.on(Phaser.Input.Events.POINTER_UP_OUTSIDE, this.onUpOutside);
     input.on(Phaser.Input.Events.POINTER_WHEEL, this.onWheel);
   }
 
@@ -52,7 +53,7 @@ export class Gestures {
     input.off(Phaser.Input.Events.POINTER_DOWN, this.onDown);
     input.off(Phaser.Input.Events.POINTER_MOVE, this.onMove);
     input.off(Phaser.Input.Events.POINTER_UP, this.onUp);
-    input.off(Phaser.Input.Events.POINTER_UP_OUTSIDE, this.onUp);
+    input.off(Phaser.Input.Events.POINTER_UP_OUTSIDE, this.onUpOutside);
     input.off(Phaser.Input.Events.POINTER_WHEEL, this.onWheel);
     this.clearPress();
   }
@@ -125,6 +126,16 @@ export class Gestures {
 
   private onUp = (p: Pointer): void => {
     if (this.h.claim?.(p, "up")) return;
+    this.release(p, true);
+  };
+
+  /** Released over the HUD (the "놓기" button!) or outside the window: never a tap, and never a place to pin the ghost. */
+  private onUpOutside = (p: Pointer): void => {
+    if (this.h.claim?.(p, "up-outside")) return;
+    this.release(p, false);
+  };
+
+  private release(p: Pointer, inside: boolean): void {
     this.down.delete(p.id);
     if (this.pinching) {
       if (this.down.size < 2) {
@@ -139,8 +150,8 @@ export class Gestures {
     if (!press || press.id !== p.id) return;
     this.clearPress();
     if (this.panning) { this.panning = false; this.h.panEnd?.(); return; }
-    if (!press.moved) this.h.tap?.(p);
-  };
+    if (inside && !press.moved) this.h.tap?.(p);
+  }
 
   private onWheel = (p: Pointer, _objs: unknown, _dx: number, dy: number): void => {
     this.h.wheel?.(dy, p);

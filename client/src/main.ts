@@ -16,6 +16,7 @@ import { initContextMenu } from "./ui/contextMenu";
 import { $, initHud, renderIdentity, show } from "./ui/hud";
 import { initShop } from "./ui/shop";
 import { socket } from "./ws";
+import { refreshThemeLink } from "./assets";
 
 async function loadAccount(id: string | null): Promise<void> {
   state.id = null;
@@ -67,6 +68,7 @@ async function boot(): Promise<void> {
     document.fonts.load('16px "Label"').catch(() => undefined),
   ]);
   state.catalog = makeCatalog(cat);
+  refreshThemeLink(); // versioned theme.css: beats the day-long /media cache after `preprocess.py ui`
   const base = state.catalog.room;
   const hasMap = !!state.catalog.map;
   state.roomId = base.id;
@@ -163,7 +165,7 @@ async function boot(): Promise<void> {
   socket.on("fish", (m) => {
     if (m.id === state.id) return; // my own result is shown by the dock scene
     if (active() === "Dock") bus.emit("fish:catch", { ok: true, id: m.loot, name: m.name, value: m.value, who: m.id });
-    else toast(`${m.id}가 부두에서 ${m.name}을(를) 낚았어요 (+${m.value}💰)`);
+    else toast(`${m.id}가 부두에서 ${m.name}을(를) 낚았어요${m.value > 0 ? ` (+${m.value}💰)` : ""}`);
   });
 
   show("loading", false);

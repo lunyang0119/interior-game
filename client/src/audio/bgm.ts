@@ -6,6 +6,7 @@
 
 import { $ } from "../ui/hud";
 import { onUnlock } from "./unlock";
+import { assetUrl } from "../assets";
 
 interface Track { file: string; title: string }
 type Period = "day" | "night";
@@ -116,7 +117,7 @@ export async function initBgm(): Promise<void> {
   renderButton();
   $("btn-bgm").addEventListener("click", (e) => { e.stopPropagation(); toggleMute(); });
   try {
-    const res = await fetch("/media/bgm.json");
+    const res = await fetch(assetUrl("/media/bgm.json"));
     if (!res.ok) return;
     lists = await res.json();
   } catch {

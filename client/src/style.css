@@ -133,8 +133,9 @@ input {
 /* Desktop (wide + mouse): panels dock on the right as a sidebar and stay open while placing;
    the bottom bars keep clear of it. Phones keep the bottom-sheet layout above. */
 @media (min-width: 900px) and (pointer: fine) {
-  .panel { left: auto; right: 8px; top: calc(var(--safe-top) + 56px); bottom: calc(var(--safe-bottom) + 8px); width: 360px; max-height: none; }
-  #shop-grid { grid-template-columns: repeat(3, 1fr); }
+  .panel { left: auto; right: 8px; top: calc(var(--safe-top) + 56px); bottom: calc(var(--safe-bottom) + 8px); width: 360px; max-height: none; overflow-x: hidden; }
+  /* minmax(0, 1fr): a plain 1fr refuses to shrink below the longest item name, which overflows the sidebar */
+  #shop-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   #placebar, #bottombar { right: 384px; }
   button:hover:not(:disabled), .shop-item:hover { filter: brightness(1.15); }
 }

@@ -15336,6 +15336,14 @@
   "h": 34
  },
  {
+  "key": "back_stair_red",
+  "sheet": "Interior/pixelinterior/doorswindowsstairs_back.png",
+  "x": 496,
+  "y": 5,
+  "w": 64,
+  "h": 32
+ },
+ {
   "key": "rug_green_axulart",
   "sheet": "axulart_all",
   "x": 144,

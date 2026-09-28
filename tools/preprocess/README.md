@@ -167,6 +167,8 @@ python tools/preprocess/preprocess.py ui      # → client/public/media/theme.cs
 "label": {"font": "", "size": 16, "color": "#ffffff", "stroke": "#000000", "scale": 0.5}
 ```
 - `size` = 기본 글자(px). `sizes.small` = 상점 아이템 이름/가격·안내문, `button` = 일반 버튼, `big` = 하단 상점/아바타 버튼, `title` = 패널 제목, `preview` = 아바타 미리보기 폭(px, 높이는 4:3 자동).
+- `sizes_mobile` = 폰(터치 화면 또는 폭 900px 미만)에서 쓰는 같은 키들. 생략하면 `sizes`를 상한(big 20 / title 18 / button 15 / small 13 / preview 120)으로 깎아 씀. 데스크톱 크기를 폰에 그대로 쓰면 하단 버튼이 화면을 삼킴.
+- `/gen/*`·`/media/*`는 Caddy가 하루 캐시하므로 클라이언트가 `/api/catalog`의 `asset_version`(아틀라스 JSON + theme.css 해시)을 URL 뒤에 붙임. `build`/`ui`를 다시 돌리고 VM에 올리면 서버 재시작만으로 모든 브라우저가 새 파일을 받음.
 - `label` = 아바타 머리 위 이름표. `font`는 `media/fonts/`의 파일 이름(확장자 없이, 예 `stardust-s-bold`), 비우면 본문 폰트. 새 폰트를 쓰려면 ttf를 `assets/fonts/`에 넣고 `media` 실행 → 파일명이 `media/fonts/`에 아스키로 복사되니 그 이름을 적기. `size`×`scale`이 실제 게임 픽셀 높이 (16×0.5 = 8px, 화면 zoom 2배라 16px로 보임). 픽셀 폰트는 제작 크기(보통 16)로 두고 scale로 조절하는 게 깨끗함.
 - 바꾼 뒤 `python tools/preprocess/preprocess.py ui` → 새로고침. 서버 재시작 불필요.
 

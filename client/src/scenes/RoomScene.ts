@@ -12,6 +12,7 @@ import { TILE_DEPTH } from "../room/depth";
 import { CELL, footprint, worldToCell } from "../room/grid";
 import { ATLAS, ItemLayer } from "../room/ItemLayer";
 import { PlacementController } from "../room/Placement";
+import { footprintOf } from "../room/rules";
 import { pathToward, roomWalkGrid, type Cell, type WalkGrid } from "../room/walk";
 import { catalog, state } from "../state";
 import { socket } from "../ws";
@@ -227,6 +228,7 @@ export class RoomScene extends Phaser.Scene {
       bus.on("place:span", ({ delta }) => this.placement.setSpan(delta)),
       bus.on("room:refresh", () => void this.refreshRoom()),
       bus.on("item:remove", ({ uid }) => void this.removeItem(uid)),
+      bus.on("item:walk", ({ uid }) => this.walkToItem(uid)),
       bus.on("avatar:saved", (look) => void this.applyMyLook(look)),
     );
   }
@@ -274,6 +276,19 @@ export class RoomScene extends Phaser.Scene {
     this.me.walkPath(path);
     this.cam.follow(this.me);
     return true;
+  }
+
+  /** Context menu "여기로 가기": head for the item's footprint cell nearest to me (the path stops beside it when it blocks). */
+  private walkToItem(uid: number): void {
+    const row = this.items.get(uid);
+    if (!row || !this.me) return;
+    const me = this.me.footCell();
+    let best: Cell | null = null, bestD = Infinity;
+    for (const [cx, cy] of footprintOf(this.cat, row)) {
+      const d = Math.abs(cx - me.cx) + Math.abs(cy - me.cy);
+      if (d < bestD) { bestD = d; best = { cx, cy: Math.max(cy, this.room.wall_rows) }; } // wall decor: walk to the floor below it
+    }
+    if (best && !this.walkTo(best.cx, best.cy)) toast("거긴 갈 수 없어요");
   }
 
   /** WASD: one cell at a time while the key is held (the queue is extended before the avatar stops, so the run stays smooth). */
@@ -330,7 +345,8 @@ export class RoomScene extends Phaser.Scene {
         const w = this.cam.screenToWorld(p.x, p.y);
         if (phase === "down") { this.hoverFollow = false; this.placement.pointer(w.x, w.y); }
         else if (phase === "move") { if (p.isDown || (!p.wasTouch && this.hoverFollow)) this.placement.pointer(w.x, w.y); }
-        else this.placement.pointer(w.x, w.y);
+        else if (phase === "up") this.placement.pointer(w.x, w.y);
+        // "up-outside": the click landed on the 놓기 button; leave the ghost pinned where it was (its cell is what confirm() sends)
         return true;
       },
       tap: (p) => this.onTap(p),

@@ -34718,6 +34718,21 @@
    "layer": "furniture",
    "is_surface": true,
    "surface_offset_y": 0
+  },
+  {
+   "id": "back_stair_red",
+   "name": "back stair red",
+   "price": 50,
+   "sprite": "back_stair_red",
+   "w": 4,
+   "h": 2,
+   "layer": "furniture",
+   "is_surface": false,
+   "surface_offset_y": 0,
+   "tags": [
+    "fixed",
+    "stairs"
+   ]
   }
  ]
 }

@@ -98,6 +98,8 @@ export interface Catalog {
   chars: Chars;
   /** Tile metadata by atlas ("interior" = room tiles, "map" = overworld tiles); only keys that carry any. */
   tiles: { interior: Record<string, TileInfo>; map: Record<string, TileInfo> };
+  /** see assets.ts */
+  assetVersion: string;
 }
 
 export interface RoomItem {
@@ -181,6 +183,8 @@ export function exitAt(room: Room, cx: number, cy: number): Exit | null {
 export interface RawCatalog {
   items: Item[]; room: Room; rooms?: Room[]; map?: MapData | null; chars: Chars;
   tiles?: { interior?: Record<string, TileInfo>; map?: Record<string, TileInfo> } | null;
+  /** hash of the generated atlases/theme on the server; appended to /gen and /media URLs (see assets.ts) */
+  asset_version?: string;
 }
 
 export function makeCatalog(raw: RawCatalog): Catalog {
@@ -188,5 +192,6 @@ export function makeCatalog(raw: RawCatalog): Catalog {
   const rooms = new Map(list.map((r) => [r.id, r]));
   const room = rooms.get(raw.room.id ?? "inn") ?? list[0];
   const tiles = { interior: raw.tiles?.interior ?? {}, map: raw.tiles?.map ?? {} };
-  return { items: raw.items, byId: new Map(raw.items.map((i) => [i.id, i])), room, rooms, map: raw.map ?? null, chars: raw.chars, tiles };
+  return { items: raw.items, byId: new Map(raw.items.map((i) => [i.id, i])), room, rooms, map: raw.map ?? null, chars: raw.chars, tiles,
+    assetVersion: raw.asset_version ?? "" };
 }
