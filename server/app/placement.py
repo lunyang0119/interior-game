@@ -1,7 +1,8 @@
 """Pure placement rules. No DB access here so it is trivial to unit test.
 
 Rules (see plan §3):
-1. item exists, footprint inside the room, no blocked cells
+1. item exists, footprint inside the room, no blocked cells, no unwalkable tiles (walk:false) under
+   furniture or rugs
 2. every footprint cell has the right type for the layer (wallpaper/wall ↔ wall rows, else floor)
 3. wallpaper/wall/floor/furniture only collide with items of the same layer
    (so frames, doors and chalkboards can hang over wallpaper)
@@ -81,6 +82,9 @@ def validate_place(catalog: Catalog, others: list[ItemRow], item_id: str, x: int
     cells = footprint(x, y, width_of(it, span), it.h)
     blocked = room.blocked_set
     if not relaxed and any(not room.in_bounds(cx, cy) or (cx, cy) in blocked for cx, cy in cells):
+        raise fail("out_of_bounds")
+    # floor things cannot sit on water etc. (wall layers never touch floor tiles; surface items need a table)
+    if not relaxed and it.layer in ("furniture", "floor") and any(not catalog.tile_walkable(room, cx, cy) for cx, cy in cells):
         raise fail("out_of_bounds")
 
     want = "wall" if it.layer in WALL_LAYERS else "floor"

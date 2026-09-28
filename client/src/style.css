@@ -43,11 +43,13 @@ img, .framed { image-rendering: pixelated; }
 #fishbar { bottom: var(--safe-bottom); flex-direction: column; align-items: center; gap: 6px; }
 #fish-status { color: var(--text); font-weight: 700; text-shadow: 0 1px 2px #000; min-height: 1.2em; }
 #fish-status.real { color: #ffd35c; }
-#fish-meter { width: 160px; height: 10px; background: rgba(0,0,0,.5); border-radius: 5px; overflow: hidden; visibility: hidden; }
-#fish-meter-fill { height: 100%; width: 0; background: #7cff7c; transition: width 60ms linear; }
-#fish-meter-fill.enough { background: #ffd35c; }
 #btn-fish { touch-action: none; user-select: none; -webkit-user-select: none; min-width: 160px; }
+#fish-meter { width: 160px; height: 10px; background: rgba(0,0,0,.5); border-radius: 5px; overflow: hidden; visibility: hidden; }
+#fish-meter-fill { height: 100%; width: 0; background: #ffd35c; }
+#btn-fish.waiting { opacity: .45; filter: grayscale(1); }
 #btn-fish.holding { transform: scale(0.96); filter: brightness(1.2); }
+#btn-fish.bite { animation: fish-bite .35s ease-in-out infinite alternate; }
+@keyframes fish-bite { from { transform: scale(1); } to { transform: scale(1.08); filter: brightness(1.2); } }
 #fish-catch { position: fixed; left: 50%; top: 40%; transform: translate(-50%, -50%); display: flex; align-items: center; gap: 10px;
   background: var(--panel); padding: 12px 18px; border-radius: 12px; z-index: 30; box-shadow: 0 8px 30px rgba(0,0,0,.5); font-weight: 700; }
 #fish-catch img { width: 48px; height: 48px; image-rendering: pixelated; object-fit: contain; }
@@ -124,3 +126,15 @@ input {
   border: var(--slice-toast-px) solid transparent; border-image: var(--frame-toast) var(--slice-toast) fill round; image-rendering: pixelated;
 }
 #loading { position: fixed; inset: 0; display: grid; place-items: center; background: var(--bg); z-index: 50; color: var(--muted); }
+
+/* connection chip (WebSocket down) */
+#hud-conn { background: #b03a3a; color: #fff; }
+
+/* Desktop (wide + mouse): panels dock on the right as a sidebar and stay open while placing;
+   the bottom bars keep clear of it. Phones keep the bottom-sheet layout above. */
+@media (min-width: 900px) and (pointer: fine) {
+  .panel { left: auto; right: 8px; top: calc(var(--safe-top) + 56px); bottom: calc(var(--safe-bottom) + 8px); width: 360px; max-height: none; }
+  #shop-grid { grid-template-columns: repeat(3, 1fr); }
+  #placebar, #bottombar { right: 384px; }
+  button:hover:not(:disabled), .shop-item:hover { filter: brightness(1.15); }
+}

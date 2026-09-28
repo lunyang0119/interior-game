@@ -197,4 +197,20 @@ def test_catalog_rejects_bad_rooms(env):
         assert False, "expected ValueError"
     except ValueError as e:
         assert "spawns outside" in str(e)
+    bad["exits"][0]["spawn"] = {"x": 6, "y": 4}
+    bad["floor"] = [[None] * 6 for _ in range(4)]  # 4 rows for a 5-row room
+    (env["rooms"] / "house_a.json").write_text(json.dumps(bad), encoding="utf-8")
+    try:
+        cm.load()
+        assert False, "expected ValueError"
+    except ValueError as e:
+        assert "floor grid" in str(e)
+    bad["floor"] = [[None] * 6 for _ in range(5)]
+    bad["floor"][4][0] = "tile_lava"
+    (env["rooms"] / "house_a.json").write_text(json.dumps(bad), encoding="utf-8")
+    try:
+        cm.load()
+        assert False, "expected ValueError"
+    except ValueError as e:
+        assert "tile_lava" in str(e)
     importlib.reload(sys.modules["app.catalog"])

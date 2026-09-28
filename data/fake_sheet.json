@@ -1,1 +1,20 @@
-{"members": [{"id": "lun", "earned": 1500}, {"id": "kim", "earned": 800}, {"id": "park", "earned": 300}]}
+{
+ "members": [
+  {
+   "id": "lun",
+   "earned": 1500,
+   "name": "lun",
+   "registered": true
+  },
+  {
+   "id": "kim",
+   "earned": 800,
+   "name": "kim",
+   "registered": true
+  },
+  {
+   "id": "park",
+   "earned": 300
+  }
+ ]
+}

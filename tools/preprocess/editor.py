@@ -222,6 +222,14 @@ def validate_room(rid: str, room: dict, all_ids: set[str], item_ids: set[str], t
                 return f"{rid}: 모르는 타일 '{t}' ({k})"
     if tiles.get("floor") not in tile_keys:
         return f"{rid}: 모르는 바닥 타일 '{tiles.get('floor')}'"
+    fl = room.get("floor")
+    if fl is not None:
+        if not isinstance(fl, list) or len(fl) != room["rows"] or any(not isinstance(r, list) or len(r) != room["cols"] for r in fl):
+            return f"{rid}: floor 격자가 cols×rows({room['cols']}×{room['rows']})가 아니에요"
+        for r in fl:
+            for k in r:
+                if k is not None and k not in tile_keys:
+                    return f"{rid}: 모르는 바닥 타일 '{k}' (floor 격자)"
     for e in room.get("exits", []):
         if e.get("to") not in all_ids and e.get("to") != "map":
             return f"{rid}: 출구가 모르는 방 '{e.get('to')}'로 가요"
@@ -369,6 +377,9 @@ def validate_dock(d: dict, n_images: int, keys: dict[str, set[str]]) -> str | No
     f = d.get("fish")
     if f is not None and not (isinstance(f, dict) and isinstance(f.get("x"), int) and isinstance(f.get("y"), int)):
         return "fish(찌 위치)는 {x, y} 정수"
+    w = d.get("water")
+    if w is not None and not (isinstance(w, dict) and all(isinstance(w.get(k), int) for k in "xywh") and w["w"] > 0 and w["h"] > 0):
+        return "water(물 영역)는 {x, y, w, h} 정수, w/h는 1 이상"
     return None
 
 
@@ -401,6 +412,10 @@ def validate_slices(slices: list, seen: set[str] | None = None) -> str | None:
         seen.add(key)
         if "scale" in s and (not isinstance(s["scale"], (int, float)) or not 0 < s["scale"] <= 8):
             return f"{key}: scale은 0보다 크고 8 이하"
+        if "step" in s and s["step"] not in P.TILE_STEPS:
+            return f"{key}: step은 {' / '.join(P.TILE_STEPS)} 중 하나"
+        if "walk" in s and s["walk"] is not False:
+            return f"{key}: walk는 false만 쓸 수 있어요 (지우면 걸을 수 있음)"
         if "file" in s:
             continue
         rects = s["parts"] if "parts" in s else [s]
@@ -550,6 +565,9 @@ class Handler(BaseHTTPRequestHandler):
                     "layers": LAYERS, "chars": chars,
                     "map_slices": [s for s in P.load_slices(C.MAP_SLICES_FILE) if not s["key"].startswith("auto_")],
                     "tile_keys": sorted(s["key"] for s in P.load_slices() if s["key"].startswith(P.TILE_PREFIX)),
+                    "tile_steps": list(P.TILE_STEPS),
+                    "tiles": {s["key"]: {k: s[k] for k in ("step", "walk") if k in s}
+                              for s in P.load_slices() if s["key"].startswith(P.TILE_PREFIX) and ("step" in s or "walk" in s)},
                     "atlas": {"interior": (C.OUT_DIR / "interiors.json").exists(), "map": (C.OUT_DIR / "map.json").exists()},
                     "bgs": bg_names(), "bgs_built": sorted(p.stem for p in (C.OUT_DIR / "mapbg").glob("*.png")) if (C.OUT_DIR / "mapbg").exists() else [],
                 })

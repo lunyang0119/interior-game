@@ -22,8 +22,9 @@ Usage (from repo root):
         Adds a placeholder items.json entry for every atlas key that has none.
 
     python tools/preprocess/preprocess.py media
-        Copies BGM (assets/BGM/{day,night}/*.mp3) and fonts (assets/fonts/*.ttf)
-        into client/public/media/ with ASCII names and writes media/bgm.json.
+        Copies BGM (assets/BGM/{day,night}/*.mp3), fonts (assets/fonts/*.ttf) and
+        sound effects (assets/sfx/**/<kind>_*.mp3 → media/sfx/<kind>.mp3) into
+        client/public/media/ with ASCII names and writes media/bgm.json + media/sfx.json.
 
     python tools/preprocess/preprocess.py ui
         Reads data/ui_theme.json, cuts the 9-slice frame PNGs into
@@ -49,6 +50,9 @@ sys.path.insert(0, str(Path(__file__).parent))
 import config as C  # noqa: E402
 
 TILE_PREFIX = "tile_"  # slices with this prefix are room tiles, not shop items
+# Per-slice tile metadata (optional keys on a slice): "step" = footstep sound kind on that tile,
+# "walk": false = avatars cannot enter the cell. Copied into manifest keys by atlas_keys().
+TILE_STEPS = ("wood", "tile", "grass", "water", "none")
 
 
 # ----------------------------------------------------------------------------
@@ -384,10 +388,23 @@ def report_frozen(what: str, slices: list[dict]) -> None:
     print("  (editing those slices' rects has no effect until the source is back on disk)")
 
 
-def atlas_keys(atlas_json: dict) -> dict:
-    return {k: {"w": f["frame"]["w"], "h": f["frame"]["h"],
+def atlas_keys(atlas_json: dict, slices: list[dict] | None = None) -> dict:
+    """Manifest entry per frame: size in px/cells plus the tile metadata (step/walk) set on the slice."""
+    keys = {k: {"w": f["frame"]["w"], "h": f["frame"]["h"],
                 "cw": f["frame"]["w"] // C.CELL, "ch": f["frame"]["h"] // C.CELL}
             for k, f in atlas_json["frames"].items()}
+    for sl in slices or []:
+        k = sl["key"]
+        if k not in keys:
+            continue
+        step = sl.get("step")
+        if step is not None:
+            if step not in TILE_STEPS:
+                raise SystemExit(f"slice {k}: step must be one of {', '.join(TILE_STEPS)} (got {step!r})")
+            keys[k]["step"] = step
+        if sl.get("walk") is False:
+            keys[k]["walk"] = False
+    return keys
 
 
 def _strip(v: dict, anim: str) -> Image.Image:
@@ -493,7 +510,7 @@ def build_map_atlas() -> dict | None:
     (C.OUT_DIR / "map.json").write_text(json.dumps(atlas_json, indent=1), encoding="utf-8")
     print(f"map atlas {atlas.size} with {len(slices)} frames → gen/map.png")
     report_frozen("map", slices)
-    return {"atlas": "gen/map.json", "keys": atlas_keys(atlas_json)}
+    return {"atlas": "gen/map.json", "keys": atlas_keys(atlas_json, slices)}
 
 
 def bg_name(p: Path) -> str:
@@ -584,10 +601,10 @@ def copy_dock() -> dict | None:
 
 
 def default_dock_layout(n_images: int, size: tuple[int, int]) -> dict:
-    """All N.png images back→front, nothing else; the bobber (bite marker) sits a little right of centre."""
+    """All N.png images back→front, nothing else; bite markers pop up in the lower-middle band (the water)."""
     return {"w": size[0], "h": size[1],
             "layers": [{"kind": "image", "src": i, "x": 0, "y": 0, "visible": True} for i in range(n_images)],
-            "fish": {"x": int(size[0] * 0.6), "y": int(size[1] * 0.55)}}
+            "water": {"x": 0, "y": int(size[1] * 0.45), "w": size[0], "h": int(size[1] * 0.4)}}
 
 
 def write_dock_layout(n_images: int, size: tuple[int, int]) -> dict:
@@ -635,7 +652,7 @@ def cmd_build(args: argparse.Namespace) -> None:
             "layerOrder": C.LAYER_ORDER,
             "layers": layers,
         },
-        "interiors": {"atlas": "gen/interiors.json", "keys": atlas_keys(atlas_json)},
+        "interiors": {"atlas": "gen/interiors.json", "keys": atlas_keys(atlas_json, slices)},
     }
     map_entry = build_map_atlas()
     if map_entry:
@@ -705,6 +722,42 @@ def _ascii_slug(text: str) -> str:
     return slug or "x"
 
 
+SFX_STEP_FOLDER = "walking"  # assets/sfx/walking/<kind>_*.mp3 → step_<kind> (keeps "water" apart from the UI splash)
+
+
+def sfx_kind(f: Path, root: Path) -> str | None:
+    """`<kind>_anything.mp3` → kind. Files under walking/ become `step_<kind>`; legacy/ and unprefixed files are skipped."""
+    rel = f.relative_to(root).parts
+    if "legacy" in rel[:-1]:
+        return None
+    m = re.match(r"^([a-z]+)_", f.name)
+    if not m:
+        return None
+    kind = m.group(1)
+    return f"step_{kind}" if SFX_STEP_FOLDER in rel[:-1] else kind
+
+
+def copy_sfx(src: Path | None = None, out: Path | None = None) -> list[str]:
+    """assets/sfx/**/<kind>_*.mp3 → media/sfx/<kind>.mp3; returns the sorted kinds (also written to media/sfx.json)."""
+    src = src or C.SFX_DIR
+    out = out or (C.MEDIA_DIR / "sfx")
+    out.mkdir(parents=True, exist_ok=True)
+    for stale in out.glob("*.mp3"):
+        stale.unlink()
+    seen: dict[str, Path] = {}
+    for f in sorted(src.rglob("*.mp3")) if src.exists() else []:
+        kind = sfx_kind(f, src)
+        if kind is None:
+            continue
+        if kind in seen:
+            raise SystemExit(f"sfx: two files for '{kind}': {seen[kind].name} and {f.name} — keep one")
+        seen[kind] = f
+        shutil.copyfile(f, out / f"{kind}.mp3")
+    kinds = sorted(seen)
+    (out.parent / "sfx.json").write_text(json.dumps({"kinds": kinds}, indent=1) + "\n", encoding="utf-8")
+    return kinds
+
+
 def cmd_media(_: argparse.Namespace) -> None:
     bgm_out = C.MEDIA_DIR / "bgm"
     manifest: dict[str, list[dict]] = {}
@@ -732,6 +785,9 @@ def cmd_media(_: argparse.Namespace) -> None:
         shutil.copyfile(f, fonts_out / f"{stem}.ttf")
         n += 1
     print(f"fonts: {n} files → media/fonts/")
+
+    kinds = copy_sfx()
+    print(f"sfx: {len(kinds)} sounds → media/sfx/ ({', '.join(kinds)})")
 
 
 # ----------------------------------------------------------------------------

@@ -1,6 +1,6 @@
 /** Client mirror of server/app/placement.py. Only used to colour the ghost; the server decides. */
 
-import { widthOf, type Catalog, type Room, type RoomItem } from "../catalog";
+import { tileWalkable, widthOf, type Catalog, type Room, type RoomItem } from "../catalog";
 import { isWallLayer } from "./depth";
 import { footprint } from "./grid";
 
@@ -28,6 +28,10 @@ export function checkPlace(cat: Catalog, room: Room, others: RoomItem[], itemId:
     }
     const type = c[1] < room.wall_rows ? "wall" : "floor";
     if (isWallLayer(it.layer) !== (type === "wall")) return { ok: false, code: "bad_cell_type", parentUid: null };
+    // furniture and rugs cannot sit on unwalkable tiles (water etc.) — mirrors placement.py
+    if ((it.layer === "furniture" || it.layer === "floor") && !tileWalkable(cat, room, c[0], c[1])) {
+      return { ok: false, code: "out_of_bounds", parentUid: null };
+    }
   }
   const cellSet = new Set(cells.map(key));
 

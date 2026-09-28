@@ -147,7 +147,8 @@
     <div class="hint">부두 배경. <code>assets/graphic/Map/Dock/N.png</code> 이미지와 슬라이스를 겹쳐 놓아요. 목록 위가 앞(화면 가장 위)이에요.
       팔레트에서 슬라이스를 누르면 레이어로 추가되고, 캔버스에서 드래그로 옮겨요. <b>빌드 후</b> 팔레트·이미지가 보여요.</div>
     <div class="row"><span class="dim">이미지 추가</span><select id="dkImgSel"></select><button id="dkImgAdd">+</button></div>
-    <div class="row"><span class="dim">찌 위치(입질 표시)</span><label><span>x</span><input type="number" id="dkFishX" style="width:60px"></label><label><span>y</span><input type="number" id="dkFishY" style="width:60px"></label><button id="dkFishPick">캔버스에서 찍기</button></div>
+    <div class="row"><span class="dim">물 영역(입질 표시가 뜨는 곳)</span><label><span>x</span><input type="number" id="dkWaterX" style="width:52px"></label><label><span>y</span><input type="number" id="dkWaterY" style="width:52px"></label><label><span>w</span><input type="number" id="dkWaterW" style="width:52px"></label><label><span>h</span><input type="number" id="dkWaterH" style="width:52px"></label><button id="dkWaterPick">캔버스에서 그리기</button></div>
+    <div class="hint">입질 표시(!)는 입질마다 이 사각형 안의 랜덤한 곳에 뜨고, 40% 확률로 좌우나 위아래로 움직여요. 표시가 통째로 이 안에 들어가게 잡혀요.</div>
     <div class="hint">낚싯대는 팔레트의 <code>fish_rod</code> 슬라이스를 레이어로 놓으면 돼요 (빌드 후).</div>
     <h3>레이어 (앞 → 뒤)</h3>
     <ul id="dockLayers" class="plain"></ul>
@@ -176,7 +177,7 @@
   </div>
   <h3>도구</h3>
   <div class="tools room-only">
-    <button data-tool="select" class="on">선택/이동</button><button data-tool="seed">시드 놓기</button><button data-tool="exit">출구 그리기</button>
+    <button data-tool="select" class="on">선택/이동</button><button data-tool="seed">시드 놓기</button><button data-tool="floor">바닥 칠하기</button><button data-tool="exit">출구 그리기</button>
     <button data-tool="blocked">막힌 칸</button><button data-tool="spawn">스폰</button>
   </div>
   <div class="tools map-only">
@@ -218,6 +219,7 @@
   let selSeed = null, selExit = null, selPlace = null, selDeco = null;
   let selZone = null;              // selected background zone (map tab)
   let palKey = null;                  // palette selection: item id (room) or map slice key (map)
+  let palTile = null;                 // room "바닥 칠하기": selected tile_* key
   let mapLayer = "ground";
   let dirty = false, drag = null;
   const cv = $("cv"), g = cv.getContext("2d");
@@ -323,6 +325,7 @@
   async function save() {
     const broken = Object.values(rooms).flatMap((rm) => seedProblems(rm).map(({ s, why }) => `${rm.id || "?"}: ${s.item_id} (${s.x},${s.y}) — ${why}`));
     if (broken.length && !confirm("규칙에 안 맞는 시드가 있어요 (게임에서는 건너뛰어짐). 빨간 칸을 고친 뒤 저장하는 게 좋아요.\n" + broken.slice(0, 12).join("\n") + (broken.length > 12 ? `\n… 외 ${broken.length - 12}개` : "") + "\n\n그래도 저장할까요?")) return;
+    for (const rm of Object.values(rooms)) if (rm.floor && !rm.floor.some((row) => row.some((k) => k))) delete rm.floor;
     try {
       let r = await fetch("/api/rooms", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(rooms) });
       let j = await r.json(); if (j.error) throw new Error("방: " + j.error);
@@ -346,15 +349,17 @@
     $("tabRoom").classList.toggle("on", m === "room"); $("tabMap").classList.toggle("on", m === "map"); $("tabDock").classList.toggle("on", m === "dock");
     setTool("select"); renderPalette(); layout(); draw(); renderSide();
     $("stageHint").textContent = m === "room"
-      ? "선택: 시드/출구 클릭·드래그 이동 · 시드 놓기: 팔레트 아이템 고르고 클릭 · 출구: 드래그로 사각형 · Delete=삭제"
+      ? "선택: 시드/출구 클릭·드래그 이동 · 시드 놓기: 팔레트 아이템 고르고 클릭 · 바닥 칠하기: 타일 고르고 클릭/드래그, 우클릭=기본 바닥으로 · 출구: 드래그로 사각형 · Delete=삭제"
       : m === "map"
       ? "칠하기: 클릭/드래그 · 우클릭=지우개 · 장소/데코 놓기: 팔레트에서 고르고 클릭 · 선택: 드래그 이동 · R=회전 · F=반전 · Delete=삭제"
       : "레이어 클릭=선택 · 드래그=이동(픽셀 단위, Shift=16px 스냅) · 팔레트 클릭=슬라이스 레이어 추가 · Delete=삭제";
   }
   function setTool(t) {
+    const wasFloor = tool === "floor";
     tool = t;
     document.querySelectorAll(".tools button").forEach((b) => b.classList.toggle("on", b.dataset.tool === t && b.closest(`.${mode}-only`)));
     cv.style.cursor = t === "select" ? "default" : "crosshair";
+    if (mode === "room" && wasFloor !== (t === "floor")) renderPalette(); // the room palette swaps between items and floor tiles
   }
   document.querySelectorAll(".tools button").forEach((b) => b.onclick = () => setTool(b.dataset.tool));
   $("tabRoom").onclick = () => setMode("room"); $("tabMap").onclick = () => setMode("map"); $("tabDock").onclick = () => setMode("dock");
@@ -368,7 +373,24 @@
   function renderPalette() {
     const q = $("palSearch").value.trim().toLowerCase();
     const pal = $("palette"); pal.innerHTML = "";
-    if (mode === "room") {
+    if (mode === "room" && tool === "floor") {
+      $("palTag").style.display = "none";
+      $("palNote").textContent = "바닥 타일을 고르고 방을 클릭/드래그해서 칠해요. 우클릭 = 기본 바닥(tiles.floor)으로. 빌드된 tile_ 슬라이스만 보여요.";
+      for (const k of W.tile_keys) {
+        const f = frameOf("interior", k);
+        if (!f || f.w !== CELL || f.h !== CELL || k.startsWith("tile_wall")) continue;
+        if (q && !k.toLowerCase().includes(q)) continue;
+        const c = document.createElement("div"); c.className = "card" + (palTile === k ? " sel" : "");
+        c.appendChild(thumbCanvas("interior", k));
+        const meta = (W.tiles || {})[k] || {};
+        const nm = document.createElement("div"); nm.className = "nm";
+        nm.title = k + (meta.step ? ` · 발소리 ${meta.step}` : "") + (meta.walk === false ? " · 못 지나감" : "");
+        nm.textContent = k.replace(/^tile_/, "") + (meta.walk === false ? " ⛔" : ""); c.appendChild(nm);
+        c.onclick = () => { palTile = k; renderPalette(); };
+        pal.appendChild(c);
+      }
+    } else if (mode === "room") {
+      $("palTag").style.display = "";
       const tag = $("palTag").value;
       const tags = new Set(); items.forEach((it) => tagsOf(it).forEach((t) => tags.add(t)));
       const cur = $("palTag").value; $("palTag").innerHTML = `<option value="">(전부)</option>` + [...tags].sort().map((t) => `<option${t === cur ? " selected" : ""}>${t}</option>`).join("");
@@ -384,7 +406,7 @@
         c.onclick = () => { palKey = it.id; setTool("seed"); renderPalette(); };
         pal.appendChild(c);
       }
-    } else if (mode === "dock") { if (fishPick && dock) { const p = dockPx(e); dock.fish = { x: Math.round(p.x), y: Math.round(p.y) }; fishPick = false; touch(); renderDockSide(); draw(); return; }
+    } else if (mode === "dock") {
       $("palNote").textContent = "클릭하면 부두 레이어로 추가돼요 (맵 + 실내 슬라이스). 빌드된 것만 보여요.";
       const all = W.map_slices.map((s) => ["map", s.key]).concat(Object.keys((atlas.interior || {}).frames || {}).filter((k) => !k.startsWith("auto_")).map((k) => ["interior", k]));
       let n = 0;
@@ -423,6 +445,7 @@
     roomId = id; room = rooms[id]; selSeed = selExit = null;
     room.exits = room.exits || []; room.seed = room.seed || []; room.blocked = room.blocked || [];
     room.tiles = room.tiles || { wall: [], wall_left: [], wall_right: [], floor: "" };
+    if (room.floor) room.floor = fitGrid(room.floor, room.cols, room.rows);
     renderSide(); layout(); draw();
   }
   function renderSide() {
@@ -446,9 +469,14 @@
     return { x: l.x || 0, y: l.y || 0, w: f ? f.w * sc : CELL, h: f ? f.h * sc : CELL };
   }
   function addDockLayer(l) { if (!dock) return; dock.layers.push(l); selLayer = l; touch(); renderDockSide(); draw(); }
-  let fishPick = false;
+  let waterPick = false;
+  const defaultWater = () => ({ x: 0, y: Math.round(dock.h * 0.45), w: dock.w, h: Math.round(dock.h * 0.4) });
   function renderDockSide() {
-    if (dock) { const f = dock.fish || (dock.fish = { x: Math.round(dock.w * 0.6), y: Math.round(dock.h * 0.55) }); $("dkFishX").value = f.x; $("dkFishY").value = f.y; $("dkFishPick").classList.toggle("on", fishPick); }
+    if (dock) {
+      const w = dock.water || (dock.water = defaultWater());
+      $("dkWaterX").value = w.x; $("dkWaterY").value = w.y; $("dkWaterW").value = w.w; $("dkWaterH").value = w.h;
+      $("dkWaterPick").classList.toggle("on", waterPick);
+    }
     if (!dock) { $("dockLayers").innerHTML = "<li class='dim'>부두 이미지가 없어요 (assets/graphic/Map/Dock/N.png → 빌드)</li>"; $("dockForm").style.display = "none"; return; }
     const used = new Set(dock.layers.filter((l) => l.kind === "image").map((l) => l.src));
     $("dkImgSel").innerHTML = [...Array(DK.images).keys()].map((i) => `<option value="${i}"${used.has(i) ? " disabled" : ""}>${i}.png${used.has(i) ? " (사용 중)" : ""}</option>`).join("");
@@ -468,8 +496,10 @@
       $("dkScale").value = selLayer.scale || 1; $("dkScale").disabled = selLayer.kind !== "slice";
     }
   }
-  for (const [id, f] of [["dkFishX", "x"], ["dkFishY", "y"]]) $(id).onchange = () => { if (!dock) return; dock.fish[f] = parseInt($(id).value, 10) || 0; touch(); draw(); };
-  $("dkFishPick").onclick = () => { fishPick = !fishPick; renderDockSide(); };
+  for (const [id, f] of [["dkWaterX", "x"], ["dkWaterY", "y"], ["dkWaterW", "w"], ["dkWaterH", "h"]]) $(id).onchange = () => {
+    if (!dock) return; const v = parseInt($(id).value, 10) || 0; dock.water[f] = f === "w" || f === "h" ? Math.max(1, v) : v; touch(); draw();
+  };
+  $("dkWaterPick").onclick = () => { waterPick = !waterPick; renderDockSide(); };
   $("dkImgAdd").onclick = () => { const v = parseInt($("dkImgSel").value, 10); if (isNaN(v)) return; addDockLayer({ kind: "image", src: v, x: 0, y: 0, visible: true }); };
   for (const [id, f] of [["dkX", "x"], ["dkY", "y"]]) $(id).onchange = () => { if (!selLayer) return; selLayer[f] = parseInt($(id).value, 10) || 0; touch(); renderDockSide(); draw(); };
   $("dkScale").onchange = () => { if (!selLayer) return; selLayer.scale = Math.max(0.25, Math.min(16, parseFloat($("dkScale").value) || 1)); touch(); renderDockSide(); draw(); };
@@ -489,8 +519,12 @@
       else { const f = frameOf(l.atlas, l.key); if (f) drawKey(l.atlas, l.key, b.x * zoom, b.y * zoom, b.w * zoom, b.h * zoom); }
       if (l === selLayer) { g.strokeStyle = "#ffd35c"; g.lineWidth = 2; g.strokeRect(b.x * zoom + 1, b.y * zoom + 1, b.w * zoom - 2, b.h * zoom - 2); }
     }
-    // bobber: where the bite marker pops up in the game
-    if (dock.fish) { const fx = dock.fish.x * zoom, fy = dock.fish.y * zoom; g.strokeStyle = "#ff5c5c"; g.lineWidth = 2; g.beginPath(); g.moveTo(fx - 6, fy); g.lineTo(fx + 6, fy); g.moveTo(fx, fy - 6); g.lineTo(fx, fy + 6); g.stroke(); g.fillStyle = "#ff5c5c"; g.font = `${Math.max(9, 5 * zoom)}px sans-serif`; g.fillText("찌 !", fx + 7, fy - 3); }
+    // water: the bite marker pops up (and wanders) anywhere inside this rect in the game
+    const wr = (drag && drag.mode === "water" && drag.rect) || dock.water;
+    if (wr) {
+      g.save(); g.setLineDash([6, 4]); g.strokeStyle = "#5cc8ff"; g.lineWidth = 2; g.strokeRect(wr.x * zoom + 1, wr.y * zoom + 1, wr.w * zoom - 2, wr.h * zoom - 2); g.restore();
+      g.fillStyle = "#5cc8ff"; g.font = `${Math.max(9, 5 * zoom)}px sans-serif`; g.fillText("물 !", wr.x * zoom + 4, wr.y * zoom + Math.max(10, 6 * zoom));
+    }
     // reference frame of the dock canvas
     g.strokeStyle = "rgba(255,255,255,.4)"; g.lineWidth = 1; g.strokeRect(.5, .5, dock.w * zoom - 1, dock.h * zoom - 1);
   }
@@ -566,6 +600,8 @@
     if (room.wall_rows >= room.rows) room.wall_rows = Math.max(0, room.rows - 1);
     room.spawn = room.spawn || { x: 0, y: 0 };
     room.spawn.x = Math.min(room.spawn.x, room.cols - 1); room.spawn.y = Math.max(room.wall_rows, Math.min(room.spawn.y, room.rows - 1));
+    if (room.floor) room.floor = fitGrid(room.floor, room.cols, room.rows);
+    room.blocked = room.blocked.filter(([x, y]) => x < room.cols && y < room.rows);
     touch(); renderSide(); layout(); draw();
   };
   for (const [id, f] of [["eX", "x"], ["eY", "y"], ["eW", "w"], ["eH", "h"]]) $(id).onchange = () => { selExit[f] = Math.max(f === "w" || f === "h" ? 1 : 0, parseInt($(id).value, 10) || 0); touch(); renderSide(); draw(); };
@@ -699,7 +735,7 @@
     for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) {
       let key;
       if (y < room.wall_rows) { const col = x === 0 ? t.wall_left : x === cols - 1 ? t.wall_right : t.wall; key = (col && col[y]) || (t.wall || [])[y]; }
-      else key = t.floor;
+      else key = floorKeyAt(room, x, y);
       if (key) drawKey("interior", key, x * cz, y * cz, cz, cz);
     }
     for (const [bx, by] of room.blocked) { g.fillStyle = "rgba(255,60,60,.35)"; g.fillRect(bx * cz, by * cz, cz, cz); }
@@ -725,6 +761,7 @@
     }
     if (drag && drag.mode === "exit" && drag.rect) { const r = drag.rect; g.strokeStyle = "#fff"; g.setLineDash([4, 3]); g.strokeRect(r.x * cz + .5, r.y * cz + .5, r.w * cz, r.h * cz); g.setLineDash([]); }
     if (room.spawn) { g.strokeStyle = "#6fd36f"; g.lineWidth = 2; g.strokeRect(room.spawn.x * cz + 2, room.spawn.y * cz + 2, cz - 4, cz - 4); drawChar(room.spawn.x, room.spawn.y); }
+    if (tool === "floor" && palTile && hover && hover.y >= room.wall_rows) { g.globalAlpha = .6; drawKey("interior", palTile, hover.x * cz, hover.y * cz, cz, cz); g.globalAlpha = 1; g.strokeStyle = "rgba(255,255,255,.6)"; g.strokeRect(hover.x * cz + .5, hover.y * cz + .5, cz - 1, cz - 1); }
     if (tool === "seed" && palKey && hover) { const it = itemById(palKey); if (it) { g.strokeStyle = "rgba(255,255,255,.6)"; g.setLineDash([3, 3]); g.strokeRect(hover.x * cz + .5, hover.y * cz + .5, it.w * cz, it.h * cz); g.setLineDash([]); } }
   }
   function sizeBox(o, place) { return place ? { w: o.w, h: o.h } : sizeOf(o); }
@@ -772,11 +809,21 @@
   const hitDeco = (c) => { let best = null; for (const d of map.decos) { const s = sizeOf(d); if (c.x >= d.x && c.x < d.x + s.w && c.y >= d.y && c.y < d.y + s.h) best = d; } return best; };
   const toggleBlocked = (arr, c) => { const i = arr.findIndex(([x, y]) => x === c.x && y === c.y); if (i >= 0) arr.splice(i, 1); else arr.push([c.x, c.y]); };
   function paint(c, erase) { const grid = map.layers[mapLayer]; if (!grid[c.y]) return; const v = erase ? null : palKey; if (grid[c.y][c.x] !== v) { grid[c.y][c.x] = v; touch(); } }
+  // room floor grid: null = the room's default tiles.floor; wall rows are never painted
+  function paintFloor(c, erase) {
+    if (c.y < room.wall_rows) return;
+    if (!room.floor) room.floor = fitGrid([], room.cols, room.rows);
+    const v = erase ? null : palTile;
+    if (room.floor[c.y][c.x] !== v) { room.floor[c.y][c.x] = v; touch(); }
+  }
+  const floorKeyAt = (rm, x, y) => (rm.floor && rm.floor[y] && rm.floor[y][x]) || rm.tiles.floor;
 
   cv.addEventListener("contextmenu", (e) => e.preventDefault());
   cv.addEventListener("mousedown", (e) => {
     if (mode === "dock") {
-      if (!dock) return; const p = dockPx(e); const l = hitLayer(p);
+      if (!dock) return; const p = dockPx(e);
+      if (waterPick) { drag = { mode: "water", ox: Math.round(p.x), oy: Math.round(p.y), rect: null }; return; }
+      const l = hitLayer(p);
       selLayer = l || null; if (l) drag = { mode: "dockmove", obj: l, ox: p.x - (l.x || 0), oy: p.y - (l.y || 0) };
       renderDockSide(); draw(); return;
     }
@@ -787,6 +834,7 @@
     if (mode === "room") {
       if (tool === "spawn") { room.spawn = { x: c.x, y: Math.max(room.wall_rows, c.y) }; touch(); draw(); return; }
       if (tool === "blocked") { toggleBlocked(room.blocked, c); drag = { mode: "blocked", last: c }; touch(); draw(); return; }
+      if (tool === "floor") { if (!palTile && !right) { alert("팔레트에서 바닥 타일을 고르세요"); return; } paintFloor(c, right); drag = { mode: "floor", erase: right }; draw(); return; }
       if (tool === "seed" && palKey && !right) {
         const it = itemById(palKey); const s = { item_id: it.id, x: c.x, y: c.y }; if (it.layer === "wallpaper") s.span = it.w;
         // furniture clicked on the wall rows drops to the first floor row (the sprite still overhangs the wall)
@@ -830,6 +878,12 @@
         if (e.shiftKey) { nx = Math.round(nx / CELL) * CELL; ny = Math.round(ny / CELL) * CELL; }
         if (nx !== drag.obj.x || ny !== drag.obj.y) { drag.obj.x = nx; drag.obj.y = ny; touch(); renderDockSide(); draw(); }
       }
+      if (drag && drag.mode === "water") {
+        const p = dockPx(e);
+        const x1 = Math.max(0, Math.min(dock.w, Math.round(p.x))), y1 = Math.max(0, Math.min(dock.h, Math.round(p.y)));
+        drag.rect = { x: Math.min(drag.ox, x1), y: Math.min(drag.oy, y1), w: Math.abs(x1 - drag.ox), h: Math.abs(y1 - drag.oy) };
+        draw();
+      }
       return;
     }
     const c = cellAt(e); hover = inside(c) ? c : null;
@@ -845,6 +899,7 @@
       } else if (drag.mode === "exit" || drag.mode === "bg") {
         const x0 = Math.min(drag.ox, c.x), y0 = Math.min(drag.oy, c.y); drag.rect = { x: x0, y: y0, w: Math.abs(c.x - drag.ox) + 1, h: Math.abs(c.y - drag.oy) + 1 };
       } else if (drag.mode === "paint" && hover) paint(c, drag.erase);
+      else if (drag.mode === "floor" && hover) paintFloor(c, drag.erase);
       else if (drag.mode === "door" && hover && selPlace && (c.x !== drag.last.x || c.y !== drag.last.y)) { setDoor(selPlace, c, drag.on); drag.last = c; }
       else if (drag.mode === "blocked" && hover && (c.x !== drag.last.x || c.y !== drag.last.y)) { toggleBlocked(mode === "room" ? room.blocked : map.blocked, c); drag.last = c; touch(); }
     }
@@ -852,6 +907,7 @@
   });
   window.addEventListener("mouseup", () => {
     if (!drag) return; const d = drag; drag = null;
+    if (d.mode === "water" && d.rect && d.rect.w > 0 && d.rect.h > 0) { dock.water = d.rect; waterPick = false; touch(); renderDockSide(); }
     if (d.mode === "bg" && d.rect) {
       const z = { ...d.rect, bg: (selZone && selZone.bg) || map.bg_default || W.bgs[0] };
       map.bg_zones.push(z); selZone = z; selPlace = selDeco = null; touch(); renderMapSide();

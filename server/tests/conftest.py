@@ -44,6 +44,8 @@ def env(tmp_path, monkeypatch):
     (rooms / "house_a.json").write_text(json.dumps({
         "id": "house_a", "name": "빈 집", "cols": 6, "rows": 5, "wall_rows": 1, "spawn": {"x": 2, "y": 3}, "blocked": [], "zoom": 2,
         "tiles": {"wall": ["tile_wall"], "floor": "tile_floor"},
+        # painted floor: a pond tile at (4,3) — unwalkable, nothing can be placed on it
+        "floor": [[None] * 6 for _ in range(3)] + [[None, None, None, None, "tile_water", None], [None] * 6],
         "exits": [{"x": 0, "y": 4, "w": 1, "h": 1, "to": "inn", "spawn": {"x": 6, "y": 4}}],
         "seed": [{"item_id": "junk", "x": 3, "y": 2}, {"item_id": "stairs", "x": 5, "y": 1}, {"item_id": "junk", "x": 9, "y": 9},
                  {"item_id": "junk", "x": 3, "y": 2}, {"item_id": "junk", "x": 1, "y": 0}],
@@ -58,7 +60,7 @@ def env(tmp_path, monkeypatch):
         "bg_default": "sky", "bg_zones": [{"x": 5, "y": 0, "w": 3, "h": 6, "bg": "sea"}],
     }, ensure_ascii=False), encoding="utf-8")
     (data / "fishing.json").write_text(json.dumps({
-        "bites": 3, "gap_ms": [100, 100], "window_ms": [200, 200], "hold": {"base_ms": 100, "per_value_ms": 1, "max_ms": 500},
+        "bites": 3, "gap_ms": [100, 100], "window_ms": [200, 200], "hold_ms": [100, 100], "catch_pct": [0, 0, 50, 100],
         "slack_ms": 50, "cooldown_s": 0,
         "loot": [{"id": "anchovy", "name": "멸치", "value": 5, "weight": 1}, {"id": "chest", "name": "보물상자", "value": 200, "weight": 1}],
     }, ensure_ascii=False), encoding="utf-8")
@@ -68,8 +70,10 @@ def env(tmp_path, monkeypatch):
                              "preset": {"count": 3, "none": 0, "exclusive": True},
                              "outfit": {"count": 0}, "acc": {"count": 0}}},
         "interiors": {"atlas": "gen/interiors.json",
-                      "keys": {k: {} for k in ["table", "chair", "cup", "tray", "rug", "frame", "paper", "junk", "stairs", "tile_wall", "tile_floor"]}},
-        "map": {"atlas": "gen/map.json", "keys": {k: {} for k in ["g", "house", "icon_bridge", "icon_exclamation", "tree"]}},
+                      "keys": {**{k: {} for k in ["table", "chair", "cup", "tray", "rug", "frame", "paper", "junk", "stairs", "tile_wall"]},
+                               "tile_floor": {"step": "wood"}, "tile_water": {"step": "water", "walk": False}}},
+        "map": {"atlas": "gen/map.json", "keys": {**{k: {} for k in ["house", "icon_bridge", "icon_exclamation", "tree"]},
+                                                  "g": {"step": "grass"}, "w": {"step": "water", "walk": False}}},
         "mapbg": {"names": ["sky", "sea"]},
     }), encoding="utf-8")
 

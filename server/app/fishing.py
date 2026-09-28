@@ -1,7 +1,8 @@
 """Dock fishing: the server makes the bite schedule and judges the holds (plan §Phase 4).
 
-A cast = `bites` nibbles; exactly one is the real bite. The player must press during the real bite's
-window and keep holding `hold_ms` (longer for pricier fish). Pressing during a fake nibble scares the fish.
+A cast = `bites` bites. For each bite the player presses "낚아올리기" inside its window and keeps holding for
+that bite's `hold_ms` (random per bite) to pull it up; a press while no bite is up scares the fish away.
+The number of pulls picks the catch chance (`catch_pct[pulls]`).
 The client only reports when it held the button; the reward goes straight into the shared pool (no inventory).
 Sessions live in memory (one worker) and expire after SESSION_TTL_S.
 """
@@ -16,7 +17,7 @@ import time
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 from . import config
 from .errors import ApiError
@@ -32,23 +33,22 @@ class Loot(BaseModel):
     icon: str | None = None  # asset path (build copies it to gen/fish/<id>.png)
 
 
-class Hold(BaseModel):
-    base_ms: int = 300
-    per_value_ms: int = 6
-    max_ms: int = 1500
-
-
 class FishingConfig(BaseModel):
-    bites: int = Field(ge=1, default=5)
+    bites: int = Field(ge=1, default=3)
     gap_ms: tuple[int, int] = (900, 1800)
     window_ms: tuple[int, int] = (500, 1000)
-    hold: Hold = Hold()
+    hold_ms: tuple[int, int] = (1000, 5000)  # per bite: how long the press must last to pull it up
+    # catch chance (%) by number of successful pulls, index 0..bites
+    catch_pct: list[int] = Field(default_factory=lambda: [0, 0, 50, 100])
     slack_ms: int = 250
     cooldown_s: int = 3
     loot: list[Loot]
 
-    def hold_ms(self, value: int) -> int:
-        return min(self.hold.max_ms, self.hold.base_ms + value * self.hold.per_value_ms)
+    @model_validator(mode="after")
+    def _pct(self) -> "FishingConfig":
+        if len(self.catch_pct) != self.bites + 1 or any(not 0 <= p <= 100 for p in self.catch_pct):
+            raise ValueError("fishing.json: catch_pct needs bites+1 entries in 0..100")
+        return self
 
     def public(self) -> dict:
         return {"loot": [{"id": l.id, "name": l.name, "value": l.value} for l in self.loot], "cooldown_s": self.cooldown_s}
@@ -66,8 +66,8 @@ def load_config(path: Path | None = None) -> FishingConfig:
 @dataclass
 class Bite:
     at_ms: int
-    window_ms: int
-    real: bool
+    window_ms: int  # the press has to start inside [at_ms, at_ms + window_ms]
+    hold_ms: int  # ...and last this long
 
 
 @dataclass
@@ -77,22 +77,24 @@ class Session:
     t0: float  # monotonic seconds when the schedule was handed out
     bites: list[Bite]
     loot: Loot
-    hold_ms: int
     done: bool = False
 
-    @property
-    def real(self) -> Bite:
-        return next(b for b in self.bites if b.real)
-
     def public(self) -> dict:
-        return {"session": self.id, "hold_ms": self.hold_ms,
-                "bites": [{"at_ms": b.at_ms, "window_ms": b.window_ms, "real": b.real} for b in self.bites]}
+        return {"session": self.id,
+                "bites": [{"at_ms": b.at_ms, "window_ms": b.window_ms, "hold_ms": b.hold_ms} for b in self.bites]}
 
 
 @dataclass
 class HoldSpan:
     start_ms: int
     end_ms: int
+
+
+@dataclass
+class Result:
+    ok: bool
+    pulls: int
+    escaped: bool
 
 
 @dataclass
@@ -121,48 +123,51 @@ class Fishing:
                     del self.sessions[s.id]  # a new cast abandons the previous one
                     break
             loot = self.rng.choices(self.cfg.loot, weights=[l.weight for l in self.cfg.loot])[0]
-            real = self.rng.randrange(self.cfg.bites)
             t = 0
             bites: list[Bite] = []
-            for i in range(self.cfg.bites):
+            for _ in range(self.cfg.bites):
                 t += self.rng.randint(*self.cfg.gap_ms)
                 w = self.rng.randint(*self.cfg.window_ms)
-                bites.append(Bite(at_ms=t, window_ms=w, real=i == real))
-                t += w
-            s = Session(id=secrets.token_urlsafe(12), player_id=player_id, t0=now, bites=bites, loot=loot,
-                        hold_ms=self.cfg.hold_ms(loot.value))
+                h = self.rng.randint(*self.cfg.hold_ms)
+                bites.append(Bite(at_ms=t, window_ms=w, hold_ms=h))
+                t += w + h  # room for a hold started at the very end of the window
+            s = Session(id=secrets.token_urlsafe(12), player_id=player_id, t0=now, bites=bites, loot=loot)
             self.sessions[s.id] = s
             return s
 
     # -- judgement ---------------------------------------------------------------
 
-    def judge(self, s: Session, holds: list[HoldSpan]) -> bool:
+    def judge(self, s: Session, holds: list[HoldSpan]) -> tuple[int, bool]:
+        """(pulls, escaped). Each press must start in the window of a bite not tried yet; it pulls that bite up if
+        it lasted the bite's hold_ms, otherwise that bite is lost. Any other press (no bite up, or a second press
+        on the same bite) scares the fish away."""
         slack = self.cfg.slack_ms
-        for b in s.bites:
-            if b.real:
-                continue
-            # a press inside a fake nibble's window scares the fish away
-            if any(b.at_ms - slack <= h.start_ms <= b.at_ms + b.window_ms + slack for h in holds):
-                return False
-        r = s.real
-        for h in holds:
-            if h.end_ms - h.start_ms < s.hold_ms:
-                continue
-            if h.start_ms >= r.at_ms - slack and h.start_ms <= r.at_ms + r.window_ms + slack:
-                return True
-        return False
+        tried: set[int] = set()
+        pulls = 0
+        for h in sorted(holds, key=lambda h: h.start_ms):
+            i = next((i for i, b in enumerate(s.bites)
+                      if i not in tried and b.at_ms - slack <= h.start_ms <= b.at_ms + b.window_ms + slack), None)
+            if i is None:
+                return pulls, True
+            tried.add(i)
+            if h.end_ms - h.start_ms >= s.bites[i].hold_ms - slack:
+                pulls += 1
+        return pulls, False
 
-    def finish(self, player_id: str, session_id: str, holds: list[HoldSpan]) -> tuple[Session, bool]:
+    def finish(self, player_id: str, session_id: str, holds: list[HoldSpan], gave_up: bool = False) -> tuple[Session, Result]:
+        """`gave_up`: the client saw the fish escape and ended the cast early. Ending before the last bite's window
+        (or the last reported hold) is over counts as an escape too, so an early finish can never pay out."""
         now = time.monotonic()
         with self.lock:
             s = self.sessions.get(session_id)
             if s is None or s.player_id != player_id or s.done:
                 raise ApiError(400, "no_session")
-            r = s.real
-            if (now - s.t0) * 1000 < r.at_ms + r.window_ms - self.cfg.slack_ms:
-                raise ApiError(400, "too_early")
             s.done = True
             self.last_finish[player_id] = now
-            ok = self.judge(s, holds)
+            pulls, escaped = self.judge(s, holds)
+            last = s.bites[-1]
+            done_ms = max([last.at_ms + last.window_ms] + [h.end_ms for h in holds])
+            escaped = escaped or gave_up or (now - s.t0) * 1000 < done_ms - self.cfg.slack_ms
+            ok = not escaped and self.rng.randrange(100) < self.cfg.catch_pct[pulls]
             del self.sessions[session_id]
-            return s, ok
+            return s, Result(ok=ok, pulls=pulls, escaped=escaped)

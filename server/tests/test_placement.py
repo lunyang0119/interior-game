@@ -86,3 +86,13 @@ def test_wallpaper_span(catalog):
     paper = catalog.items["paper"]
     assert price_of(paper, 5) == 75 and price_of(paper, None) == 30  # per column; None → item.w (2)
     assert price_of(catalog.items["chair"], None) == 50
+
+
+def test_unwalkable_tile_blocks_furniture_and_rugs(catalog):
+    # house_a paints tile_water (walk:false) at (4,3)
+    assert err(lambda: validate_place(catalog, [], "chair", 4, 3, room_id="house_a")) == "out_of_bounds"
+    assert err(lambda: validate_place(catalog, [], "rug", 3, 2, room_id="house_a")) == "out_of_bounds"  # 2x2 touches (4,3)
+    validate_place(catalog, [], "chair", 3, 3, room_id="house_a")
+    validate_place(catalog, [], "frame", 4, 0, room_id="house_a")  # wall layer never looks at floor tiles
+    # seeds are relaxed: the designer may put junk in the pond on purpose
+    validate_place(catalog, [], "chair", 4, 3, room_id="house_a", relaxed=True)

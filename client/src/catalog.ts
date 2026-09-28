@@ -37,8 +37,15 @@ export interface Room {
   blocked: number[][];
   zoom: number;
   tiles: { wall: string[]; wall_left: string[]; wall_right: string[]; floor: string };
+  /** Per-cell floor tiles painted in the world editor (rows × cols); null cells fall back to tiles.floor. */
+  floor?: (string | null)[][] | null;
   exits: Exit[];
 }
+
+/** Footstep sound kinds a tile can carry (mirror preprocess TILE_STEPS). "none" = silent. */
+export type StepKind = "wood" | "tile" | "grass" | "water" | "none";
+/** Metadata set on a slice in the editor and shipped through the manifest: which sound a step makes, and whether avatars can enter. */
+export interface TileInfo { step?: StepKind; walk?: boolean }
 
 /** One avatar layer. `groups` = indices that share a style (colour variants); `none` = index that means "nothing";
  *  `exclusive` = when not none, this layer is drawn alone (premade characters). */
@@ -89,6 +96,8 @@ export interface Catalog {
   rooms: Map<string, Room>;
   map: MapData | null;
   chars: Chars;
+  /** Tile metadata by atlas ("interior" = room tiles, "map" = overworld tiles); only keys that carry any. */
+  tiles: { interior: Record<string, TileInfo>; map: Record<string, TileInfo> };
 }
 
 export interface RoomItem {
@@ -154,16 +163,30 @@ export function priceOf(it: Item, span?: number | null): number {
   return it.layer === "wallpaper" ? it.price * widthOf(it, span) : it.price;
 }
 
+/** The floor tile key drawn at a cell (painted grid first, then the room default). */
+export function floorKeyAt(room: Room, cx: number, cy: number): string {
+  return room.floor?.[cy]?.[cx] ?? room.tiles.floor;
+}
+
+/** Can an avatar stand on (and can furniture/rugs be placed on) the floor tile at a cell? */
+export function tileWalkable(cat: Catalog, room: Room, cx: number, cy: number): boolean {
+  return cat.tiles.interior[floorKeyAt(room, cx, cy)]?.walk !== false;
+}
+
 /** The exit (if any) covering a cell. */
 export function exitAt(room: Room, cx: number, cy: number): Exit | null {
   return room.exits.find((e) => cx >= e.x && cx < e.x + e.w && cy >= e.y && cy < e.y + e.h) ?? null;
 }
 
-export interface RawCatalog { items: Item[]; room: Room; rooms?: Room[]; map?: MapData | null; chars: Chars }
+export interface RawCatalog {
+  items: Item[]; room: Room; rooms?: Room[]; map?: MapData | null; chars: Chars;
+  tiles?: { interior?: Record<string, TileInfo>; map?: Record<string, TileInfo> } | null;
+}
 
 export function makeCatalog(raw: RawCatalog): Catalog {
   const list = (raw.rooms?.length ? raw.rooms : [raw.room]).map((r) => ({ ...r, exits: r.exits ?? [], name: r.name ?? r.id ?? "" }));
   const rooms = new Map(list.map((r) => [r.id, r]));
   const room = rooms.get(raw.room.id ?? "inn") ?? list[0];
-  return { items: raw.items, byId: new Map(raw.items.map((i) => [i.id, i])), room, rooms, map: raw.map ?? null, chars: raw.chars };
+  const tiles = { interior: raw.tiles?.interior ?? {}, map: raw.tiles?.map ?? {} };
+  return { items: raw.items, byId: new Map(raw.items.map((i) => [i.id, i])), room, rooms, map: raw.map ?? null, chars: raw.chars, tiles };
 }

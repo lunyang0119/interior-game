@@ -145,6 +145,9 @@ def test_catalog_has_no_secrets(client):
     assert junk["tags"] == ["ruined"] and junk["pair"] == "chair"
     assert next(i for i in body["items"] if i["id"] == "chair")["tags"] == []
     assert body["chars"]["layers"]["skin"]["count"] == 2
+    assert body["tiles"]["interior"]["tile_water"] == {"step": "water", "walk": False}
+    assert body["tiles"]["map"]["g"] == {"step": "grass", "walk": True}
+    assert body["rooms"][0]["floor"][3][4] == "tile_water" and body["rooms"][1]["floor"] is None
     assert "sheet" not in json.dumps(body).lower()
 
 

@@ -162,6 +162,10 @@
       <button id="partAdd">조각 추가</button>
     </div>
     <label><span>scale</span><input type="number" id="sScale" step="0.25" min="0.125" max="8" placeholder="1"><span class="hint" style="width:auto">32px 타일은 0.5</span></label>
+    <div id="tileMeta" style="display:none">
+      <label><span>발소리</span><select id="sStep"><option value="">(기본: 방은 wood, 맵은 grass)</option><option value="wood">wood 나무</option><option value="tile">tile 타일·돌</option><option value="grass">grass 풀</option><option value="water">water 물</option><option value="none">none 무음</option></select></label>
+      <label><span>통행</span><input type="checkbox" id="sNoWalk"> <span class="hint" style="width:auto">못 지나감 (walk:false) — 물·구덩이. 가구도 못 놓아요</span></label>
+    </div>
     <div class="row">
       <button id="toParts">parts로 변환</button>
       <button id="sDel" class="danger">슬라이스 삭제</button>
@@ -657,6 +661,9 @@
     $("toParts").disabled = isFile;
     $("sScale").value = sel.scale && sel.scale !== 1 ? sel.scale : "";
     $("sTransp").value = sel.transparent ? sel.transparent.join(",") : "";
+    // tile metadata only makes sense on room tiles and map (ground) slices
+    $("tileMeta").style.display = (mp || sel.key.startsWith("tile_")) ? "" : "none";
+    $("sStep").value = sel.step || ""; $("sNoWalk").checked = sel.walk === false;
     if (isParts) renderParts(); else fillRectForm();
     renderItem(); refreshPreview();
   }
@@ -783,6 +790,8 @@
     if (!v || v === 1) delete sel.scale; else sel.scale = v;
     mark(sel); refreshPreview();
   });
+  $("sStep").addEventListener("change", () => { const v = $("sStep").value; if (v) sel.step = v; else delete sel.step; mark(sel); });
+  $("sNoWalk").addEventListener("change", () => { if ($("sNoWalk").checked) sel.walk = false; else delete sel.walk; mark(sel); });
   $("sTransp").addEventListener("change", () => {
     const v = $("sTransp").value.trim();
     if (!v) delete sel.transparent;

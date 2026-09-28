@@ -8,6 +8,8 @@ import { ensureAvatarTextures } from "./AvatarLoader";
 export class RemoteAvatars {
   private avatars = new Map<string, Avatar>();
   private pending = new Map<string, OnlineState>();
+  /** Someone else's feet entered another cell (footsteps). */
+  onCell: ((id: string, cx: number, cy: number) => void) | null = null;
 
   constructor(private scene: Phaser.Scene, private chars: Chars) {}
 
@@ -25,6 +27,7 @@ export class RemoteAvatars {
     const a = new Avatar(this.scene, this.chars, latest.avatar, 0, 0, latest.id, true);
     a.applyRemote(latest.x, latest.y, latest.dir, false);
     a.update(0, 1_000_000); // snap to position
+    a.onCell = (cx, cy) => this.onCell?.(latest.id, cx, cy);
     this.avatars.set(s.id, a);
   }
 

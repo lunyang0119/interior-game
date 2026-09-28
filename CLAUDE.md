@@ -1,0 +1,70 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## What this is
+
+"Shared Room Decorator": a small multiplayer web game where friends decorate shared rooms together. Currency comes from a Google Sheet (per-person earnings) summed into one **shared pool**; anyone can spend it on furniture. Online players' avatars walk around the rooms, an overworld map, and a fishing dock.
+
+- `client/` — Phaser 3 + Vite + TypeScript
+- `server/` — FastAPI + SQLite (single uvicorn worker; presence is in memory)
+- `tools/preprocess/` — Python pipeline turning licensed LimeZu asset packs in `assets/` (gitignored) into `client/public/gen/`, plus a browser-based slice/room/map/dock editor
+- `data/` — hand-edited game data (the source of truth for catalog, rooms, map, dock, fishing, UI theme)
+
+README.md, `tools/preprocess/README.md` (asset pipeline + editor + data file formats) and `REVIEW.md` are written in Korean and are the primary docs.
+
+## Commands
+
+```bash
+# server (from server/, venv at server/.venv)
+pip install -e ".[dev]"
+uvicorn app.main:app --reload --port 8000
+pytest                                  # all server tests (testpaths = tests)
+pytest tests/test_placement.py -k name  # single test
+
+# client (from client/) — dev server proxies /api and /ws to localhost:8000
+npm run dev
+npm run build        # tsc --noEmit && vite build → outputs to ../server/static
+
+# asset pipeline (from repo root; needs assets/ and pillow)
+python tools/preprocess/preprocess.py build      # slices.json/map_slices.json → client/public/gen/
+python tools/preprocess/preprocess.py editor     # browser editor (slices, items, rooms, map, dock)
+python tools/preprocess/preprocess.py media      # BGM/fonts/SFX → client/public/media/
+python tools/preprocess/preprocess.py ui         # data/ui_theme.json → media/theme.css
+pytest tools/preprocess/tests
+```
+
+With `SHEET_URL` empty, the server uses `data/fake_sheet.json` for balances — fine for local dev. Config is env vars / `server/.env` (see `server/app/config.py`).
+
+## Architecture
+
+**Data flow.** `data/items.json`, `data/rooms/<id>.json`, `data/map.json` and `client/public/gen/manifest.json` are loaded and validated (pydantic) by `server/app/catalog.py` at startup and served to the client via `GET /api/catalog`. The client builds its lookup structures in `client/src/catalog.ts`. Adding furniture = add a slice → `build` → `scaffold` → edit `data/items.json`.
+
+**Placement rules exist twice.** `server/app/placement.py` is authoritative (pure functions, no DB). `client/src/room/rules.ts` is a mirror used only to colour the placement ghost. Change both together. Layers: `wallpaper`, `wall`, `floor`, `furniture`, `surface_item`; items only collide within the same layer, `surface_item` must sit on an `is_surface` furniture, and furniture/rugs cannot go on a tile with `walk: false`. Seeded items use `relaxed=True`.
+
+**Tiles and walking.** Slices can carry `step` (footstep sound kind) and `walk: false`; `build` copies them into manifest keys and the server exports them as `catalog.tiles` (`interior`/`map`). Rooms may have a per-cell `floor` grid (world editor "바닥 칠하기"), falling back to `tiles.floor`. Walking is client-only (`client/src/room/walk.ts`: BFS over a walk grid; the server just clamps `move`). Player-placed furniture blocks; `$seed` items, `ruined` junk and stairs do not.
+
+**Viewport.** The canvas is the whole window (`Scale.RESIZE`); `scenes/CameraController.ts` follows the avatar with an integer zoom (2–4, `Room.zoom` as a hint) and handles pan/pinch/wheel. Pointer input goes through `input/Gestures.ts` (tap / long press / right click / two-finger pan+pinch); convert pointer positions with `cam.screenToWorld`, never `pointer.worldX`. WASD/arrows walk (`input/Keyboard.ts`), Esc/Enter drive placement. Desktop (`min-width: 900px` + mouse) docks panels as a right sidebar (`style.css`).
+
+**Audio.** `audio/bgm.ts` (music) and `audio/sfx.ts` (effects, `SFX` name table) share one mute switch and the first-gesture unlock in `audio/unlock.ts`. Sounds come from `assets/sfx/**/<kind>_*.mp3` via `preprocess.py media` (`walking/` → `step_<kind>`).
+
+**Item tags.** `ruined` items can be sold/removed but not bought; `fixed` items cannot be moved or deleted; `stairs` marks stair sprites. The map shows an exclamation marker over rooms that still contain `ruined` items; the inn can only be exited when it has none.
+
+**Seeding.** On startup the server seeds each room's `seed` list once, owned by `$seed` (shown as "???"). Tracked in `room_meta` (`seeded:<id>`, `seed_hash:<id>`). `server/app/reconcile.py` fixes up DB rows when the catalog changes. Schema changes go in a new numbered file in `server/migrations/` (applied via `PRAGMA user_version`).
+
+**Currency.** `server/app/sheet.py` fetches the Apps Script (`tools/appsscript/Code.gs`) and caches/snapshots it; balance = `SUM(sheet_snapshot.earned) − SUM(ledger.amount)` (fish catches are ledger rows with `kind='fish'`). Money changes are broadcast to all clients.
+
+**Realtime.** `server/app/presence.py` holds a `Hub`: every online player is in exactly one presence room (a grid room id, `"map"`, or `"dock"`). Join/leave/move go only to that room; room-version and money messages go to everyone. REST handlers run in a threadpool and must use `hub.broadcast_threadsafe`. Room GETs use ETag = room version.
+
+**Client.** `main.ts` boots (recovery link `?t=TOKEN`, catalog, account, UI) and switches between Phaser scenes `RoomScene` / `MapScene` / `DockScene`. Phaser scenes and the DOM UI (`ui/*.ts`: HUD, shop, avatar editor, context menu, accounts) talk only through the typed event bus in `bus.ts`; shared mutable state is in `state.ts`. One WebSocket per account (`ws.ts`) survives scene changes. Depth sorting lives in `room/depth.ts`.
+
+**Fishing.** Server generates a bite schedule (one real bite + decoys) in `server/app/fishing.py`, the client reports the press window, server judges and credits the shared pool. Tuned in `data/fishing.json`.
+
+## Conventions and gotchas
+
+- Player-facing strings (toasts, UI text) are Korean in 해요체. Code and identifiers are English.
+- Do not use the word `sheet` in slice keys — a server test asserts it never appears in `/api/catalog` output (the sheet URL must never leak).
+- `build` refuses to shrink character layers (would shift saved avatar indices); `--allow-shrink` overrides. Append new hair palette columns only at the end.
+- Slices whose source pack is missing are "frozen": copied from the previous `gen/interiors.png` atlas.
+- `client/public/gen/*.png`, `gen/chars/`, `gen/dock/`, media binaries, and `server/static/` are gitignored; they are built on the PC and uploaded to the VM.
+- Deploy target: Oracle VM at `/opt/interior`, systemd unit `interior`, Caddy in front (`deploy/`). **No `git pull` on the VM** — it got too complicated; `deploy/push.sh` is not used. The user copies changed files manually via SFTP and runs `sudo systemctl restart interior`, so after a change list the changed files per folder plus whether a restart is needed. After editing a room's seed, the `seeded:<id>`/`seed_hash:<id>` rows must be deleted on the VM to reseed (see README).

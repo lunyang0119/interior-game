@@ -3,6 +3,7 @@ import { Z_SCALE, widthOf, type Catalog, type Item, type Layer, type RoomItem } 
 import { depthOf, isWallLayer, sortRowFor } from "./depth";
 import { CELL } from "./grid";
 import { footprintOf } from "./rules";
+import { buildOccupancy } from "./walk";
 
 export const ATLAS = "interiors";
 
@@ -23,6 +24,8 @@ export class ItemLayer {
   private entries = new Map<number, Entry>();
   rows: RoomItem[] = [];
   private hidden = new Set<number>();
+  /** Cells covered by furniture avatars must walk around (see walk.ts). Rebuilt on every sync. */
+  occupied: ReadonlySet<number> = new Set();
 
   constructor(private scene: Phaser.Scene, private cat: Catalog) {}
 
@@ -48,6 +51,7 @@ export class ItemLayer {
       }
     }
     for (const e of this.entries.values()) this.layout(e);
+    this.occupied = buildOccupancy(this.cat, rows);
   }
 
   /** Position + depth for a row, using the parent for stacked surface items. */

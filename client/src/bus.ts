@@ -19,16 +19,18 @@ export interface Events {
   "room:changed": { id: string; name: string; ruined: number }; // the Room scene shows another room / junk count moved
   "room:exit": { from: string; to: string; spawn: { x: number; y: number } }; // avatar stepped on an exit
   "scene:changed": { scene: "room" | "map" | "dock" };
+  "scene:ready": void; // the new scene has its data and is drawn → hide the loading overlay
+  "net:state": { online: boolean; reason?: "replaced" | "rotated" }; // WebSocket up/down for the HUD chip
   "map:enter-ask": { name: string }; // standing on a door: show "<name>에 들어가시겠어요?" (empty name closes it)
   "map:enter-answer": { yes: boolean };
   "map:enter": { room: string }; // answered yes
   "dock:enter": void;
   "dock:exit": void;
   "dock:ready": void;
-  "fish:press": void; // hold button down (cast when idle, hold during a cast)
+  "fish:press": void; // the one fishing button: cast when idle, start a hold when a bite is up
   "fish:release": void;
-  "fish:state": { status: string; meter: number; holding: boolean; active: boolean; real: boolean };
-  "fish:meter": { meter: number; enough: boolean };
+  "fish:state": { status: string; mode: "idle" | "wait" | "bite" | "hold" };
+  "fish:meter": { meter: number }; // 0..1 of the current bite's hold
   "fish:catch": { ok: boolean; id: string; name: string; value: number; who: string };
   "item:menu": { item: RoomItem; screenX: number; screenY: number };
   "item:remove": { uid: number };

@@ -746,7 +746,8 @@
   "x": 0,
   "y": 0,
   "w": 16,
-  "h": 16
+  "h": 16,
+  "step": "wood"
  },
  {
   "key": "mtile_grass",
@@ -754,7 +755,8 @@
   "x": 16,
   "y": 16,
   "w": 16,
-  "h": 16
+  "h": 16,
+  "step": "grass"
  },
  {
   "key": "tree_round_small",
@@ -1026,7 +1028,8 @@
   "x": 0,
   "y": 0,
   "w": 16,
-  "h": 16
+  "h": 16,
+  "step": "tile"
  },
  {
   "key": "plant_stake",
@@ -1130,7 +1133,8 @@
   "x": 0,
   "y": 0,
   "w": 16,
-  "h": 16
+  "h": 16,
+  "step": "water"
  },
  {
   "key": "icon_bridge",

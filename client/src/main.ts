@@ -1,9 +1,9 @@
 import Phaser from "phaser";
 import { api, ApiError, msgFor } from "./api";
 import { initBgm } from "./audio/bgm";
+import { initSfx } from "./audio/sfx";
 import { bus, toast } from "./bus";
 import { DOCK_ROOM, makeCatalog, MAP_ROOM } from "./catalog";
-import { CELL } from "./room/grid";
 import { BootScene } from "./scenes/BootScene";
 import { DockScene } from "./scenes/DockScene";
 import { MapScene, type MapSceneData } from "./scenes/MapScene";
@@ -81,18 +81,20 @@ async function boot(): Promise<void> {
   initShop();
   initContextMenu();
   void initBgm();
+  void initSfx();
 
   // 5. game
+  // the canvas is the whole window; each scene's camera shows a window of its world (CameraController)
   const game = new Phaser.Game({
     type: Phaser.AUTO,
     parent: "game",
-    width: base.cols * CELL,
-    height: base.rows * CELL,
+    width: window.innerWidth,
+    height: window.innerHeight,
     pixelArt: true,
     roundPixels: true,
     backgroundColor: "#1b1b24",
-    scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
-    input: { activePointers: 1 },
+    scale: { mode: Phaser.Scale.RESIZE, autoCenter: Phaser.Scale.NO_CENTER },
+    input: { activePointers: 2 }, // two fingers: pan + pinch zoom
     scene: [BootScene, RoomScene, MapScene, DockScene],
   });
   (window as unknown as { __game: Phaser.Game }).__game = game; // debugging / e2e hooks
@@ -101,9 +103,14 @@ async function boot(): Promise<void> {
   const roomData = (room?: string, spawn?: { x: number; y: number }): RoomSceneData =>
     ({ id: state.id, room: room ?? (state.catalog!.rooms.has(state.roomId) ? state.roomId : base.id), spawn });
 
-  /** Only one world scene runs at a time; the DOM bars follow via scene:changed. */
+  /** Only one world scene runs at a time; the DOM bars follow via scene:changed. The loading overlay covers the
+   *  switch until the scene says scene:ready (or a safety timer runs out). */
+  let loadingTimer: number | null = null;
   const goto = (name: SceneName, data?: RoomSceneData | MapSceneData): void => {
     for (const s of ["Room", "Map", "Dock"] as SceneName[]) if (s !== name && game.scene.isActive(s)) game.scene.stop(s);
+    show("loading", true);
+    if (loadingTimer !== null) clearTimeout(loadingTimer);
+    loadingTimer = window.setTimeout(() => show("loading", false), 2500);
     if (name !== "Dock") { if (location.hash === "#dock") history.replaceState(null, "", location.pathname + location.search); }
     else location.hash = "dock";
     game.scene.start(name, data);
@@ -144,6 +151,14 @@ async function boot(): Promise<void> {
   bus.on("dock:exit", () => { if (active() !== "Dock") return; if (hasMap) goMap(DOCK_ROOM); else goRoom(); });
   window.addEventListener("hashchange", () => { if (location.hash === "#dock") bus.emit("dock:enter"); else if (active() === "Dock") bus.emit("dock:exit"); });
   // (#dock on load is handled by BootScene so the room scene never starts underneath)
+
+  // connection chip: "다시 연결 중" while the socket is down; a replaced/rotated session stays down for good
+  socket.on("open", () => bus.emit("net:state", { online: true }));
+  socket.on("close", (m: { code?: number }) => {
+    if (!state.token) return; // no account: nothing to reconnect
+    bus.emit("net:state", { online: false, reason: m.code === 4000 ? "replaced" : m.code === 4001 ? "rotated" : undefined });
+  });
+  bus.on("account:switch", () => bus.emit("net:state", { online: true })); // hide until the new socket reports
 
   socket.on("fish", (m) => {
     if (m.id === state.id) return; // my own result is shown by the dock scene

@@ -1,0 +1,12 @@
+{
+ "kinds": [
+  "reel",
+  "rod",
+  "sell",
+  "step_grass",
+  "step_tile",
+  "step_water",
+  "step_wood",
+  "water"
+ ]
+}

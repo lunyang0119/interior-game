@@ -34,6 +34,7 @@ UI_THEME_FILE = REPO_ROOT / "data" / "ui_theme.json"
 
 BGM_DIR = ASSETS_ROOT / "BGM"          # BGM/day/*.mp3, BGM/night/*.mp3
 FONTS_DIR = ASSETS_ROOT / "fonts"      # *.ttf
+SFX_DIR = ASSETS_ROOT / "sfx"          # <kind>_*.mp3 (walking/ → step_<kind>), legacy/ ignored
 
 CELL = 16
 

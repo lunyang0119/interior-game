@@ -14,13 +14,14 @@ router = APIRouter(prefix="/api/fish")
 
 
 class HoldIn(BaseModel):
-    start_ms: int = Field(ge=0)
+    start_ms: int = Field(ge=0)  # ms since the schedule arrived
     end_ms: int = Field(ge=0)
 
 
 class FinishIn(BaseModel):
     session: str
     holds: list[HoldIn] = Field(default_factory=list, max_length=64)
+    escaped: bool = False  # the client saw the fish run off and ended early
 
 
 @router.get("")
@@ -41,8 +42,9 @@ def finish(body: FinishIn, request: Request, me: Player = Depends(current_player
            conn: sqlite3.Connection = Depends(get_db)):
     fishing = request.app.state.fishing
     sheet = request.app.state.sheet
-    s, ok = fishing.finish(me.id, body.session, [HoldSpan(h.start_ms, h.end_ms) for h in body.holds])
-    out = {"ok": ok, "id": s.loot.id, "name": s.loot.name, "value": s.loot.value}
+    s, res = fishing.finish(me.id, body.session, [HoldSpan(h.start_ms, h.end_ms) for h in body.holds], body.escaped)
+    ok = res.ok
+    out = {"ok": ok, "pulls": res.pulls, "escaped": res.escaped, "id": s.loot.id, "name": s.loot.name, "value": s.loot.value}
     if ok:
         with transaction(conn):
             # money enters the shared pool like a refund; item_id tags it as a catch for the ledger

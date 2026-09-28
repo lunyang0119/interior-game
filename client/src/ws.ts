@@ -95,7 +95,7 @@ export class GameSocket {
       if (this.ws !== ws) return;
       this.ws = null;
       this.stopTimers();
-      this.setConnected(false);
+      this.setConnected(false, ev.code);
       // 4401 = bad token, 4000 = replaced by another tab, 4001 = token rotated: don't retry
       if (this.closedByUser || [4401, 4000, 4001].includes(ev.code)) return;
       this.reconnectTimer = window.setTimeout(() => this.open(), this.backoff);
@@ -115,10 +115,11 @@ export class GameSocket {
     if (this.reconnectTimer !== null) { clearTimeout(this.reconnectTimer); this.reconnectTimer = null; }
   }
 
-  private setConnected(v: boolean): void {
+  /** Synthetic "open"/"close" events for the scenes; close carries the WebSocket close code (0 = never opened). */
+  private setConnected(v: boolean, code = 0): void {
     if (this.connected === v) return;
     this.connected = v;
-    this.handlers.get(v ? "open" : "close")?.forEach((fn) => fn({ type: v ? "open" : "close" }));
+    this.handlers.get(v ? "open" : "close")?.forEach((fn) => fn(v ? { type: "open" } : { type: "close", code }));
   }
 }
 

@@ -66,9 +66,9 @@ export interface RoomSummary { id: string; name: string; version: number; ruined
 export const api = {
   catalog: () => call<RawCatalog>("GET", "/api/catalog"),
   rooms: () => call<{ rooms: RoomSummary[] }>("GET", "/api/rooms"),
-  fishStart: () => call<{ session: string; hold_ms: number; bites: { at_ms: number; window_ms: number; real: boolean }[] }>("POST", "/api/fish/start", {}),
-  fishFinish: (session: string, holds: { start_ms: number; end_ms: number }[]) =>
-    call<{ ok: boolean; id: string; name: string; value: number; balance: number }>("POST", "/api/fish/finish", { session, holds }),
+  fishStart: () => call<{ session: string; bites: { at_ms: number; window_ms: number; hold_ms: number }[] }>("POST", "/api/fish/start", {}),
+  fishFinish: (session: string, holds: { start_ms: number; end_ms: number }[], escaped: boolean) =>
+    call<{ ok: boolean; pulls: number; escaped: boolean; id: string; name: string; value: number; balance: number }>("POST", "/api/fish/finish", { session, holds, escaped }),
   register: (id: string) => call<{ id: string; token: string; existing: boolean; created: boolean; name: string; earned: number }>("POST", "/api/register", { id }),
   me: () => call<MeResponse>("GET", "/api/me"),
   sync: () => call<{ refreshed: boolean; balance: number; contributions: Contribution[] }>("POST", "/api/sync"),

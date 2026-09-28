@@ -5,6 +5,7 @@
  */
 
 import { $ } from "../ui/hud";
+import { onUnlock } from "./unlock";
 
 interface Track { file: string; title: string }
 type Period = "day" | "night";
@@ -21,6 +22,17 @@ let queue: Track[] = [];
 let lastFile = "";
 let muted = false;
 let started = false;
+const muteListeners = new Set<(muted: boolean) => void>();
+
+/** One mute switch for music and sound effects (the 🔊 button). */
+export function isMuted(): boolean {
+  return muted;
+}
+
+export function onMuteChange(fn: (muted: boolean) => void): () => void {
+  muteListeners.add(fn);
+  return () => muteListeners.delete(fn);
+}
 
 function forcedPeriod(): Period | null {
   const q = new URLSearchParams(location.search).get("bgm");
@@ -81,13 +93,14 @@ function start(): void {
 
 function renderButton(): void {
   const b = document.getElementById("btn-bgm");
-  if (b) { b.textContent = muted ? "🔇" : "🔊"; b.title = muted ? "음악 켜기" : "음악 끄기"; }
+  if (b) { b.textContent = muted ? "🔇" : "🔊"; b.title = muted ? "소리 켜기" : "소리 끄기 (음악·효과음)"; }
 }
 
 export function toggleMute(): void {
   muted = !muted;
   try { localStorage.setItem(KEY_MUTED, muted ? "1" : "0"); } catch { /* ignore */ }
   renderButton();
+  for (const fn of muteListeners) fn(muted);
   if (!audio) return;
   if (muted) {
     audio.pause();
@@ -101,6 +114,7 @@ export function toggleMute(): void {
 export async function initBgm(): Promise<void> {
   try { muted = localStorage.getItem(KEY_MUTED) === "1"; } catch { /* ignore */ }
   renderButton();
+  $("btn-bgm").addEventListener("click", (e) => { e.stopPropagation(); toggleMute(); });
   try {
     const res = await fetch("/media/bgm.json");
     if (!res.ok) return;
@@ -118,10 +132,7 @@ export async function initBgm(): Promise<void> {
   audio.addEventListener("ended", next);
   audio.addEventListener("error", () => { if (started && !muted) next(); });
 
-  const gesture = () => { start(); };
-  document.addEventListener("pointerdown", gesture, { once: true });
-  document.addEventListener("keydown", gesture, { once: true });
-  $("btn-bgm").addEventListener("click", (e) => { e.stopPropagation(); toggleMute(); });
+  onUnlock(start);
 
   // switch lists when the KST period changes while a track is playing
   window.setInterval(() => {

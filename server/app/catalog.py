@@ -29,6 +29,9 @@ TAG_FIXED = "fixed"
 DEFAULT_ROOM = "inn"
 MAP_ROOM = "map"
 DOCK_ROOM = "dock"
+# Tile metadata set on slices in the editor and carried in gen/manifest.json keys:
+# step = footstep sound kind, walk = False → avatars cannot enter (and furniture/rugs cannot be placed there).
+TILE_STEPS = ("wood", "tile", "grass", "water", "none")
 
 
 class Item(BaseModel):
@@ -104,8 +107,16 @@ class Room(BaseModel):
     blocked: list[list[int]] = []
     zoom: int = 2
     tiles: RoomTiles
+    # Optional per-cell floor tiles (rows × cols, painted in the world editor). None = tiles.floor.
+    floor: list[list[str | None]] | None = None
     exits: list[Exit] = []
     seed: list[Seed] = []
+
+    def floor_key(self, x: int, y: int) -> str:
+        """The floor tile drawn at a cell (wall rows still answer with the default floor)."""
+        if self.floor is not None and 0 <= y < len(self.floor) and 0 <= x < len(self.floor[y]):
+            return self.floor[y][x] or self.tiles.floor
+        return self.tiles.floor
 
     @property
     def blocked_set(self) -> set[tuple[int, int]]:
@@ -162,6 +173,11 @@ class MapData(BaseModel):
     bg_zones: list[BgZone] = []
 
 
+class TileMeta(BaseModel):
+    step: Literal["wood", "tile", "grass", "water", "none"] | None = None
+    walk: bool = True
+
+
 @dataclass
 class Catalog:
     items: dict[str, Item]
@@ -169,6 +185,8 @@ class Catalog:
     manifest: dict
     map: MapData | None = None
     layer_counts: dict[str, int] = field(default_factory=dict)
+    # {"interior": {key: TileMeta}, "map": {key: TileMeta}} — only keys that carry step/walk
+    tiles: dict[str, dict[str, TileMeta]] = field(default_factory=lambda: {"interior": {}, "map": {}})
     _public: dict | None = field(default=None, repr=False)
     _etag: str = field(default="", repr=False)
 
@@ -183,6 +201,10 @@ class Catalog:
     def room_of(self, room_id: str) -> Room | None:
         return self.rooms.get(room_id)
 
+    def tile_walkable(self, room: Room, x: int, y: int) -> bool:
+        meta = self.tiles["interior"].get(room.floor_key(x, y))
+        return meta.walk if meta else True
+
     def public(self) -> dict:
         """What GET /api/catalog returns. Static for the process lifetime, so it is built once."""
         if self._public is None:
@@ -192,6 +214,8 @@ class Catalog:
                 "rooms": [r.model_dump() for r in self.rooms.values()],
                 "map": self.map.model_dump() if self.map else None,
                 "chars": self.manifest["chars"],
+                "tiles": {atlas: {k: m.model_dump(exclude_none=True) for k, m in metas.items()}
+                          for atlas, metas in self.tiles.items()},
             }
         return self._public
 
@@ -253,6 +277,13 @@ def load(data_dir: Path | None = None, gen_dir: Path | None = None) -> Catalog:
                 raise ValueError(f"room {room.id}: tile '{key}' not in manifest")
         if len(tiles.wall) != room.wall_rows:
             raise ValueError(f"room {room.id}: tiles.wall must have one key per wall row")
+        if room.floor is not None:
+            if len(room.floor) != room.rows or any(len(r) != room.cols for r in room.floor):
+                raise ValueError(f"room {room.id}: floor grid is not {room.cols}x{room.rows}")
+            for r in room.floor:
+                for k in r:
+                    if k is not None and k not in keys:
+                        raise ValueError(f"room {room.id}: floor tile '{k}' not in manifest")
         if not room.in_bounds(room.spawn["x"], room.spawn["y"]):
             raise ValueError(f"room {room.id}: spawn outside the room")
         for e in room.exits:
@@ -267,8 +298,22 @@ def load(data_dir: Path | None = None, gen_dir: Path | None = None) -> Catalog:
                 raise ValueError(f"room {room.id}: seed item '{sd.item_id}' is not an item")
 
     layer_counts = {name: spec["count"] for name, spec in manifest["chars"]["layers"].items()}
+    tiles = {"interior": _tile_meta(keys), "map": _tile_meta(manifest.get("map", {}).get("keys", {}))}
     return Catalog(items=items, rooms=rooms, manifest=manifest, layer_counts=layer_counts,
-                   map=_load_map(data_dir, rooms, manifest))
+                   map=_load_map(data_dir, rooms, manifest), tiles=tiles)
+
+
+def _tile_meta(keys: dict) -> dict[str, TileMeta]:
+    """step/walk carried on manifest keys (set per slice in the editor, copied by `build`)."""
+    out: dict[str, TileMeta] = {}
+    for k, spec in keys.items():
+        if not isinstance(spec, dict) or not ({"step", "walk"} & set(spec)):
+            continue
+        try:
+            out[k] = TileMeta.model_validate({f: spec[f] for f in ("step", "walk") if f in spec})
+        except ValueError as e:
+            raise ValueError(f"manifest key '{k}': bad tile metadata: {e}") from None
+    return out
 
 
 def _load_map(data_dir: Path, rooms: dict[str, Room], manifest: dict) -> MapData | None:

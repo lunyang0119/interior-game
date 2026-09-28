@@ -1,24 +1,28 @@
 import Phaser from "phaser";
 import { api } from "../api";
+import { Footsteps, SFX_VOL, stepKindFor } from "../audio/sfx";
 import { Avatar } from "../avatar/Avatar";
 import { ensureAvatarTextures } from "../avatar/AvatarLoader";
 import { RemoteAvatars } from "../avatar/RemoteAvatars";
 import { bus, toast } from "../bus";
 import { DOCK_ROOM, MAP_ROOM, type Catalog, type MapData, type MapPlace } from "../catalog";
+import { Gestures } from "../input/Gestures";
+import { dirDelta, WalkKeys } from "../input/Keyboard";
 import { depthOf, TILE_DEPTH } from "../room/depth";
 import { CELL, worldToCell } from "../room/grid";
+import { cellKey, mapTileAt, mapWalkGrid, pathToward, type WalkGrid } from "../room/walk";
 import { catalog, state } from "../state";
 import { socket } from "../ws";
+import { CameraController } from "./CameraController";
 
 export const MAP_ATLAS = "map";
 const MARKER = "icon_exclamation";
-/** The camera window (cells); the map itself is usually much bigger and scrolls. */
-const VIEW_COLS = 20;
-const VIEW_ROWS = 14;
 const CHUNK = 64; // cells per RenderTexture, keeps textures well under GPU limits on huge maps
 const MARKER_REFRESH_MS = 60_000;
 const BG_FADE_MS = 500;
 const BG_DEPTH = TILE_DEPTH - 10; // under the tiles; the map's unpainted cells let it show through
+const MAP_ZOOM_HINT = 3;
+const STEP_HEAR_CELLS = 10;
 const bgKey = (name: string) => `mapbg-${name}`;
 
 export interface MapSceneData { from?: string }
@@ -29,6 +33,11 @@ export class MapScene extends Phaser.Scene {
   private map!: MapData;
   private me: Avatar | null = null;
   private remotes!: RemoteAvatars;
+  private cam!: CameraController;
+  private gestures!: Gestures;
+  private keys!: WalkKeys;
+  private grid!: WalkGrid;
+  private steps = new Footsteps();
   private unsub: (() => void)[] = [];
   private blocked = new Set<number>();
   private doors = new Map<number, MapPlace>();
@@ -36,6 +45,7 @@ export class MapScene extends Phaser.Scene {
   private markerTimer: number | null = null;
   private spawn = { x: 0, y: 0 };
   private asking: MapPlace | null = null;
+  private keyWalking = false;
   /** Fixed (screen-space) backdrop: `bgFront` is what shows, `bgBack` fades in on a zone change. */
   private bgFront: Phaser.GameObjects.Image | null = null;
   private bgBack: Phaser.GameObjects.Image | null = null;
@@ -65,15 +75,18 @@ export class MapScene extends Phaser.Scene {
 
   create(): void {
     const { cols, rows } = this.map;
-    this.scale.resize(Math.min(cols, VIEW_COLS) * CELL, Math.min(rows, VIEW_ROWS) * CELL);
-    this.cameras.main.setBounds(0, 0, cols * CELL, rows * CELL).setBackgroundColor("#1b1b24");
+    this.cameras.main.setBackgroundColor("#1b1b24");
+    this.cam = new CameraController(this, { worldW: cols * CELL, worldH: rows * CELL, zoomHint: MAP_ZOOM_HINT });
+    this.cam.onZoom = () => this.refitBg();
     this.bgCell = { x: -1, y: -1 };
     this.bgName = null;
     this.bgFront = this.bgBack = null;
     this.setBackground(this.bgFor(this.spawn.x, this.spawn.y), false);
     this.drawTiles();
     this.drawObjects();
+    this.grid = mapWalkGrid(this.cat, this.map, this.blocked);
     this.remotes = new RemoteAvatars(this, this.cat.chars);
+    this.remotes.onCell = (id, cx, cy) => this.footstep(id, cx, cy, this.hearing(cx, cy));
     bus.emit("room:changed", { id: MAP_ROOM, name: "바깥", ruined: 0 });
     bus.emit("scene:changed", { scene: "map" });
 
@@ -89,6 +102,7 @@ export class MapScene extends Phaser.Scene {
     }
     this.publishOnline();
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.teardown());
+    bus.emit("scene:ready");
   }
 
   // ---------------------------------------------------------------- fixed backdrop + zones
@@ -102,10 +116,20 @@ export class MapScene extends Phaser.Scene {
   /** A screen-space image scaled to cover the viewport (it never scrolls with the map). */
   private makeBg(name: string): Phaser.GameObjects.Image | null {
     if (!this.textures.exists(bgKey(name))) return null;
-    const vw = this.scale.width, vh = this.scale.height;
-    const img = this.add.image(vw / 2, vh / 2, bgKey(name)).setScrollFactor(0).setDepth(BG_DEPTH);
-    img.setScale(Math.max(vw / img.width, vh / img.height));
+    const img = this.add.image(0, 0, bgKey(name)).setScrollFactor(0).setDepth(BG_DEPTH);
+    this.fitBg(img);
     return img;
+  }
+
+  /** scrollFactor-0 objects are still scaled by the camera zoom, so cover the view at 1/zoom. */
+  private fitBg(img: Phaser.GameObjects.Image): void {
+    const vw = this.scale.width, vh = this.scale.height;
+    img.setPosition(vw / 2, vh / 2).setScale(Math.max(vw / img.width, vh / img.height) / this.cam.zoom);
+  }
+
+  private refitBg(): void {
+    if (this.bgFront) this.fitBg(this.bgFront);
+    if (this.bgBack) this.fitBg(this.bgBack);
   }
 
   private setBackground(name: string | null, fade: boolean): void {
@@ -136,7 +160,7 @@ export class MapScene extends Phaser.Scene {
 
   private updateBackground(): void {
     if (!this.me) return;
-    const cx = Math.floor(this.me.cellX), cy = Math.floor(this.me.cellY - 0.5);
+    const { cx, cy } = this.me.footCell();
     if (cx === this.bgCell.x && cy === this.bgCell.y) return;
     this.bgCell = { x: cx, y: cy };
     this.setBackground(this.bgFor(cx, cy), true);
@@ -167,7 +191,7 @@ export class MapScene extends Phaser.Scene {
         rt.endDraw();
       }
     }
-    for (const [bx, by] of this.map.blocked) this.blocked.add(by * 10_000 + bx);
+    for (const [bx, by] of this.map.blocked) this.blocked.add(cellKey(bx, by));
   }
 
   /** Places and decos share the editor's rules: bottom-left anchored box, rot in 90° steps, flip = mirror. */
@@ -190,9 +214,9 @@ export class MapScene extends Phaser.Scene {
   private drawObjects(): void {
     for (const p of this.map.places) {
       if (p.sprite) this.drawObj(p.sprite, p.x, p.y, p.h, p.rot ?? 0, !!p.flip, depthOf(p.y + p.h - 1, 10));
-      const doorSet = new Set(p.doors.map(([dx, dy]) => dy * 10_000 + dx));
+      const doorSet = new Set(p.doors.map(([dx, dy]) => cellKey(dx, dy)));
       for (let cy = p.y; cy < p.y + p.h; cy++) for (let cx = p.x; cx < p.x + p.w; cx++) {
-        const k = cy * 10_000 + cx;
+        const k = cellKey(cx, cy);
         if (!doorSet.has(k)) this.blocked.add(k); // the building itself is solid, its doors are not
       }
       for (const k of doorSet) this.doors.set(k, p);
@@ -234,8 +258,12 @@ export class MapScene extends Phaser.Scene {
     if (!this.scene.isActive()) return;
     this.me = new Avatar(this, this.cat.chars, state.avatar, this.spawn.x, this.spawn.y, state.id ?? "");
     this.me.onStep = (x, y, dir, moving) => socket.sendMove(x, y, dir, moving);
-    this.me.onArrive = () => this.checkDoor();
-    this.cameras.main.startFollow(this.me, true, 1, 1);
+    this.me.onArrive = () => { this.keyWalking = false; this.checkDoor(); };
+    this.me.onCell = (cx, cy) => {
+      this.footstep(state.id ?? "me", cx, cy, 1);
+      if (this.keyWalking) this.checkDoor();
+    };
+    this.cam.follow(this.me);
     this.publishOnline();
   }
 
@@ -254,7 +282,7 @@ export class MapScene extends Phaser.Scene {
         if (this.me) socket.sendMove(this.me.cellX, this.me.cellY, this.me.dir, false);
       }),
       socket.on("join", (m) => { void this.remotes.join(m).then(() => this.publishOnline()); this.publishOnline(); }),
-      socket.on("leave", (m) => { this.remotes.leave(m.id); this.publishOnline(); }),
+      socket.on("leave", (m) => { this.remotes.leave(m.id); this.steps.forget(m.id); this.publishOnline(); }),
       socket.on("move", (m) => this.remotes.move(m.id, m.x, m.y, m.dir, m.moving)),
       socket.on("avatar_look", (m) => void this.remotes.look(m.id, m.avatar)),
       socket.on("room", (m) => {
@@ -280,22 +308,69 @@ export class MapScene extends Phaser.Scene {
     );
   }
 
+  // ---------------------------------------------------------------- walking
+
+  private walkTo(cx: number, cy: number): boolean {
+    if (!this.me) return false;
+    const path = pathToward(this.grid, this.me.footCell(), { cx, cy });
+    if (!path.length) return false;
+    this.keyWalking = false;
+    this.me.walkPath(path);
+    this.cam.follow(this.me);
+    return true;
+  }
+
+  private walkByKeys(): void {
+    const d = this.keys.held();
+    if (!d || !this.me || this.asking) return;
+    if (this.me.walking && this.me.pending > 0) return;
+    const from = this.me.walking ? this.me.targetCell()! : this.me.footCell();
+    const [dx, dy] = dirDelta(d);
+    const next = { cx: from.cx + dx, cy: from.cy + dy };
+    if (this.grid.isWalkable(next.cx, next.cy)) {
+      this.keyWalking = true;
+      if (this.me.walking) this.me.extend(next); else this.me.walkPath([next]);
+      this.cam.follow(this.me);
+    } else if (!this.me.walking) {
+      this.me.face(d);
+    }
+  }
+
+  private footstep(id: string, cx: number, cy: number, gain: number): void {
+    const key = mapTileAt(this.map, cx, cy);
+    const kind = stepKindFor(key ? this.cat.tiles.map[key] : undefined, "grass");
+    this.steps.trigger(id, kind, SFX_VOL.step * gain);
+  }
+
+  private hearing(cx: number, cy: number): number {
+    if (!this.me) return 0;
+    const c = this.me.footCell();
+    return Phaser.Math.Clamp(1 - (Math.abs(c.cx - cx) + Math.abs(c.cy - cy)) / STEP_HEAR_CELLS, 0, 1);
+  }
+
   // ---------------------------------------------------------------- input / doors
 
   private bindInput(): void {
-    this.input.on(Phaser.Input.Events.POINTER_UP, (p: Phaser.Input.Pointer) => {
-      if (!this.me || this.asking) return;
-      const { cx, cy } = worldToCell(p.worldX, p.worldY);
-      if (cx < 0 || cy < 0 || cx >= this.map.cols || cy >= this.map.rows) return;
-      if (this.blocked.has(cy * 10_000 + cx)) { toast("거긴 갈 수 없어요"); return; }
-      this.me.walkToCell(cx, cy);
+    this.keys = new WalkKeys();
+    this.gestures = new Gestures(this, {
+      tap: (p) => {
+        if (!this.me || this.asking) return;
+        const w = this.cam.screenToWorld(p.x, p.y);
+        const { cx, cy } = worldToCell(w.x, w.y);
+        if (cx < 0 || cy < 0 || cx >= this.map.cols || cy >= this.map.rows) return;
+        if (!this.walkTo(cx, cy)) toast("거긴 갈 수 없어요");
+      },
+      pan: (dx, dy) => this.cam.panBy(dx, dy),
+      pinch: (ratio, mid) => this.cam.pinch(ratio, mid),
+      pinchEnd: () => this.cam.pinchEnd(),
+      wheel: (dy, p) => this.cam.wheel(dy, p),
     });
   }
 
   private checkDoor(): void {
     if (!this.me || this.asking) return;
-    const cx = Math.floor(this.me.cellX), cy = Math.floor(this.me.cellY - 0.5);
-    const place = this.doors.get(cy * 10_000 + cx);
+    const { cx, cy } = this.me.footCell();
+    const place = this.doors.get(cellKey(cx, cy));
     if (!place) return;
     this.asking = place;
     const room = this.cat.rooms.get(place.room);
@@ -311,8 +386,10 @@ export class MapScene extends Phaser.Scene {
   }
 
   update(time: number, delta: number): void {
+    this.walkByKeys();
     this.me?.update(time, delta);
     this.remotes.update(time, delta);
+    this.cam.update();
     this.updateBackground();
   }
 
@@ -320,7 +397,9 @@ export class MapScene extends Phaser.Scene {
     for (const off of this.unsub) off();
     this.unsub = [];
     if (this.markerTimer !== null) clearInterval(this.markerTimer);
-    // (the camera manager is already gone during SHUTDOWN; no stopFollow needed)
+    this.gestures.destroy();
+    this.keys.destroy();
+    this.cam.destroy();
     this.remotes.destroy();
     this.me?.destroy();
     this.me = null;

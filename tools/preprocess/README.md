@@ -56,6 +56,15 @@ Character strips: 24 frames = 6 per direction in order right, up, left, down. `r
 캐릭터 레이어는 **줄어들면 빌드가 거부**된다 (`refusing to shrink character layers`). 캐릭터 생성기 폴더가 없는 PC에서 빌드하면
 머리 508종이 사라지고 DB에 저장된 아바타 인덱스가 밀리기 때문. 정말 줄이려는 거면 `build --allow-shrink`.
 
+## 타일 메타: 발소리 · 통행 (`step`, `walk`)
+
+슬라이스 편집기에서 `tile_*` 슬라이스나 맵 시트 슬라이스를 고르면 **발소리**(wood / tile / grass / water / none)와 **못 지나감**(walk:false) 칸이 뜬다.
+`slices.json`/`map_slices.json`의 해당 슬라이스에 `"step": "wood"`, `"walk": false`로 저장되고, `build`가 `manifest.json`의 키 정보에 복사한다. 서버는 이를 `/api/catalog`의 `tiles` (`interior`/`map` 아틀라스별)로 내보낸다.
+- 방: 아바타가 서 있는 칸의 바닥 타일(`floor` 격자 → 없으면 `tiles.floor`)의 `step`으로 발소리를 고른다(기본 wood). 맵은 deco → ground 순서로 보고 기본은 grass.
+- `walk:false` 타일은 아바타가 못 밟고(길찾기가 돌아감), 가구·러그도 못 놓는다(`placement.py`·`rules.ts` 양쪽 규칙). 물 타일이 대표적. 지금 `mtile_water`는 `step: water`만 있고 통행은 열려 있다 — 맵에 다리가 다 놓이면 체크박스 하나로 막으면 된다.
+- 가구 충돌은 **플레이어가 놓은 가구**만 막는다. 시드(`$seed`)와 `ruined` 물건은 겹쳐 놓이는 연출용이라 통과된다.
+- 발소리 파일은 `assets/sfx/walking/<종류>_*.mp3` (아래 media 참고).
+
 ## 맵 · 부두 에셋 (`map_slices.json`, `gen/map.*`, `gen/dock/`)
 
 ```
@@ -82,6 +91,7 @@ python tools/preprocess/preprocess.py build                        # map_slices.
 
 **방** 탭: `data/rooms/<id>.json`. 방 추가/복제/삭제, 이름, cols/rows/wall_rows/zoom, 벽·바닥 타일(`tile_*` 슬라이스), 막힌 칸, 스폰.
 - **시드**: 팔레트에서 아이템을 고르고 "시드 놓기"로 클릭. 게임 시작 시 `$seed` 소유로 미리 놓이고 화면엔 "???"로 보인다. 시드는 방 밖으로 삐져나가거나 서로 겹쳐도 된다(원근·연출용). 단 가구는 바닥 칸(발 위치), 벽지·벽 장식은 벽 칸에 있어야 하고, 소품은 is_surface 가구 위여야 한다 — 어기면 빨간 칸으로 표시되고 게임에서 건너뛴다. `ruined` 태그면 팔 수 있고, `fixed`면 못 건드린다.
+- **바닥 칠하기**: 팔레트가 `tile_floor_*` 타일로 바뀐다. 타일을 고르고 클릭/드래그로 칸마다 다른 바닥을 칠한다(우클릭 = 기본 바닥으로). 방 JSON에는 `floor: [[…]]`(rows×cols, `null` = `tiles.floor`)로 저장되고, 전부 비어 있으면 저장 시 필드가 빠진다. 게임은 이 칸의 타일로 **발소리**와 **통행 가능 여부**를 정한다(아래 "타일 메타" 참고).
 - **출구(기믹)**: "출구 그리기"로 사각형을 드래그 → 어느 방(`inn_2f` 등)이나 `map`으로 갈지, 도착 좌표. 아바타가 그 칸에 도착하면 이동. 계단 스프라이트는 같은 자리에 시드로 놓고 `stairs, fixed` 태그.
 - 서버는 시작할 때 방마다 **한 번만** 시드를 놓는다 (`room_meta`의 `seeded:<id>`). 시드를 고친 뒤 다시 놓고 싶으면 VM에서 `sqlite3 server/interior.db "DELETE FROM room_meta WHERE k='seeded:inn'"` 후 재시작 (이미 놓인 물건은 그대로 두고 빈 자리에만 추가된다).
 - 저장하면 `inn`은 예전 서버가 읽던 `data/room.json`에도 복사된다 (`data/rooms/`가 있으면 서버는 그쪽을 쓴다).
@@ -109,13 +119,19 @@ python tools/preprocess/preprocess.py build                        # map_slices.
 `Hairstyle_SS_CC` 식 파일명의 SS가 스타일, CC가 색 → manifest의 `groups`로 묶여 에디터에서 "스타일 / 색" 두 줄이 된다.
 머리·악세서리는 index 0 = 없음.
 
-## media (BGM · 폰트)
+## media (BGM · 폰트 · 효과음)
 
 ```
 python tools/preprocess/preprocess.py media
 ```
 `assets/BGM/day|night/*.mp3` → `client/public/media/bgm/day|night/NN-이름.mp3` + `bgm.json`, `assets/fonts/*.ttf` → `media/fonts/stardust*.ttf`.
 곡을 바꾸면 다시 실행. mp3/ttf는 gitignore라 VM에는 rsync.
+
+**효과음**: `assets/sfx/**/<종류>_아무이름.mp3` → `media/sfx/<종류>.mp3` + `media/sfx.json`. 파일 이름의 첫 `_` 앞이 종류다.
+- `walking/` 폴더 안의 파일은 `step_<종류>`가 된다 (`walking/wood_x.mp3` → `step_wood`). 발소리는 `wood`, `tile`, `grass`, `water` 네 종류.
+- 나머지 폴더(예 `UI/`): `rod_`(던지기), `water_`(찌 착수·입질·낚아올림), `reel_`(버티는 동안 반복), `sell_`(팔기/환불). 이름은 `client/src/audio/sfx.ts`의 `SFX` 표 한 곳에서 잇는다.
+- `legacy/` 폴더와 접두어 없는 파일, `.aup3`는 무시. 같은 종류가 두 개면 빌드가 멈춘다.
+- 음소거는 BGM 버튼(🔊) 하나로 음악·효과음이 같이 꺼진다. VM에 올릴 것: `client/public/media/sfx/*.mp3`, `media/sfx.json`.
 
 ## UI 스킨 바꾸기 (`data/ui_theme.json`)
 

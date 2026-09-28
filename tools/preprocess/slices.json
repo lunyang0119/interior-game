@@ -24445,7 +24445,8 @@
   "x": 176,
   "y": 80,
   "w": 16,
-  "h": 16
+  "h": 16,
+  "step": "tile"
  },
  {
   "key": "tile_wall_left_top",
@@ -24477,7 +24478,8 @@
   "x": 176,
   "y": 112,
   "w": 16,
-  "h": 16
+  "h": 16,
+  "step": "tile"
  },
  {
   "key": "tile_wall_left_mid",
@@ -24533,7 +24535,8 @@
   "x": 224,
   "y": 144,
   "w": 16,
-  "h": 16
+  "h": 16,
+  "step": "tile"
  },
  {
   "key": "tile_floor_wood",
@@ -24541,7 +24544,8 @@
   "x": 176,
   "y": 208,
   "w": 16,
-  "h": 16
+  "h": 16,
+  "step": "wood"
  },
  {
   "key": "badge_shield_red",

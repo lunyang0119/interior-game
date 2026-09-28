@@ -23,6 +23,12 @@ export function togglePanel(id: string): void {
 }
 
 let toastTimer: number | null = null;
+let placing = false;
+
+/** Wide screen with a mouse: panels dock to the right instead of sliding up from the bottom (style.css). */
+export function isDesktop(): boolean {
+  return window.matchMedia("(min-width: 900px) and (pointer: fine)").matches;
+}
 
 /** Click handler that ignores re-taps while the async work is in flight (buttons show disabled meanwhile). */
 export function guard(btn: HTMLElement, fn: () => Promise<void>): void {
@@ -55,6 +61,7 @@ export function initHud(): void {
   });
 
   bus.on("place:state", ({ active, label, ok, mode, busy, span, spanMax }) => {
+    placing = active;
     show("placebar", active);
     show("bottombar", !active);
     $("place-label").textContent = label;
@@ -67,7 +74,25 @@ export function initHud(): void {
       ($("place-span-inc") as HTMLButtonElement).disabled = spanMax != null && span >= spanMax;
     }
     for (const id of ["place-confirm", "place-again", "place-cancel"]) ($(id) as HTMLButtonElement).disabled = !!busy;
-    if (active) closeAllPanels();
+    if (active && !isDesktop()) closeAllPanels(); // on desktop the shop sidebar stays open while placing
+  });
+  // desktop keys: Esc cancels placement / closes panels, Enter confirms placement
+  document.addEventListener("keydown", (e) => {
+    const el = document.activeElement;
+    if (el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.tagName === "SELECT")) return;
+    if (e.key === "Escape") {
+      if (placing) bus.emit("place:cancel");
+      else { closeAllPanels(); show("ctx", false); show("panel-enter", false); }
+    } else if (e.key === "Enter" && placing && !($("place-confirm") as HTMLButtonElement).disabled) {
+      bus.emit("place:confirm");
+    }
+  });
+  bus.on("scene:ready", () => show("loading", false));
+  bus.on("dock:ready", () => show("loading", false));
+  bus.on("net:state", ({ online, reason }) => {
+    show("hud-conn", !online);
+    $("hud-conn").textContent = reason === "replaced" ? "🔌 다른 곳에서 열려서 끊겼어요"
+      : reason === "rotated" ? "🔌 로그인이 바뀌어서 끊겼어요" : "🔌 연결 끊김 · 다시 연결 중…";
   });
   $("place-confirm").addEventListener("click", () => bus.emit("place:confirm"));
   $("place-again").addEventListener("click", () => bus.emit("place:confirm-again"));
@@ -93,28 +118,30 @@ export function initHud(): void {
   $("enter-yes").addEventListener("click", () => { show("panel-enter", false); bus.emit("map:enter-answer", { yes: true }); });
   $("enter-no").addEventListener("click", () => { show("panel-enter", false); bus.emit("map:enter-answer", { yes: false }); });
   $("btn-dock-exit").addEventListener("click", () => bus.emit("dock:exit"));
-  // fishing: the button is a hold button (pointer events so touch and mouse behave the same)
+  // fishing: one press-and-hold button (pointer events so touch and mouse behave the same).
+  // While waiting it only looks disabled — a press then scares the fish away.
   const fishBtn = $("btn-fish");
   let fishDown = false;
-  const down = (e: Event) => { e.preventDefault(); if (fishDown) return; fishDown = true; fishBtn.classList.add("holding"); bus.emit("fish:press"); };
-  const up = () => { if (!fishDown) return; fishDown = false; fishBtn.classList.remove("holding"); bus.emit("fish:release"); };
+  const down = (e: Event) => { e.preventDefault(); if (fishDown) return; fishDown = true; bus.emit("fish:press"); };
+  const up = () => { if (!fishDown) return; fishDown = false; bus.emit("fish:release"); };
   fishBtn.addEventListener("pointerdown", down);
   fishBtn.addEventListener("pointerup", up);
   fishBtn.addEventListener("pointercancel", up);
   fishBtn.addEventListener("pointerleave", up);
   fishBtn.addEventListener("contextmenu", (e) => e.preventDefault());
   window.addEventListener("blur", up);
-  bus.on("fish:state", ({ status, holding, active, real }) => {
+  const fishLabel: Record<string, string> = { idle: "🎣 낚시", wait: "🎣 낚시", bite: "🎣 낚아올리기", hold: "🎣 버티는 중…" };
+  bus.on("fish:state", ({ status, mode }) => {
     $("fish-status").textContent = status;
-    $("fish-status").classList.toggle("real", real);
-    $("fish-meter").style.visibility = holding ? "visible" : "hidden";
-    if (!holding) { $("fish-meter-fill").style.width = "0"; $("fish-meter-fill").classList.remove("enough"); }
-    fishBtn.textContent = active ? (holding ? "🎣 잡는 중…" : "🎣 꾹!") : "🎣 낚시";
+    $("fish-status").classList.toggle("real", mode === "bite" || mode === "hold");
+    fishBtn.classList.toggle("waiting", mode === "wait");
+    fishBtn.classList.toggle("bite", mode === "bite");
+    fishBtn.classList.toggle("holding", mode === "hold");
+    fishBtn.textContent = fishLabel[mode];
+    $("fish-meter").style.visibility = mode === "hold" ? "visible" : "hidden";
   });
-  bus.on("fish:meter", ({ meter, enough }) => {
-    $("fish-meter").style.visibility = "visible";
+  bus.on("fish:meter", ({ meter }) => {
     $("fish-meter-fill").style.width = `${Math.round(meter * 100)}%`;
-    $("fish-meter-fill").classList.toggle("enough", enough);
   });
   let catchTimer: number | null = null;
   bus.on("fish:catch", ({ ok, id, name, value, who }) => {

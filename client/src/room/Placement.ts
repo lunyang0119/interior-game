@@ -35,14 +35,15 @@ export class PlacementController {
     return this.ghost !== null;
   }
 
-  begin(itemId: string): void {
+  /** Start placing a new item; the ghost appears at `at` (the avatar's cell) or the room spawn. */
+  begin(itemId: string, at?: { cx: number; cy: number }): void {
     this.cancel();
     this.itemId = itemId;
     this.moveUid = null;
     const it = this.cat.byId.get(itemId)!;
     this.span = it.layer === "wallpaper" ? Math.min(this.lastSpan.get(itemId) ?? it.w, this.room.cols) : null;
     this.makeGhost();
-    const s = this.room.spawn;
+    const s = at ? { x: at.cx, y: at.cy } : this.room.spawn;
     this.setCell(s.x, s.y);
     this.publish();
   }

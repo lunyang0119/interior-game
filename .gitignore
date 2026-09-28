@@ -4,7 +4,7 @@ assets/
 client/public/gen/*.png
 client/public/gen/chars/
 client/public/gen/dock/
-# media (BGM, fonts, UI frames) — derived from assets/, only the json/css manifests are committed
+# media (BGM, SFX, fonts, UI frames) — derived from assets/, only the json/css manifests are committed
 client/public/media/**/*.mp3
 client/public/media/**/*.ttf
 client/public/media/**/*.png

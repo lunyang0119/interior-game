@@ -21066,25 +21066,29 @@
     "w": 16,
     "h": 16,
     "cw": 1,
-    "ch": 1
+    "ch": 1,
+    "step": "tile"
    },
    "tile_floor_cream": {
     "w": 16,
     "h": 16,
     "cw": 1,
-    "ch": 1
+    "ch": 1,
+    "step": "tile"
    },
    "tile_floor_gray": {
     "w": 16,
     "h": 16,
     "cw": 1,
-    "ch": 1
+    "ch": 1,
+    "step": "tile"
    },
    "tile_floor_wood": {
     "w": 16,
     "h": 16,
     "cw": 1,
-    "ch": 1
+    "ch": 1,
+    "step": "wood"
    },
    "tile_wall_bottom": {
     "w": 16,
@@ -21887,25 +21891,29 @@
     "w": 16,
     "h": 16,
     "cw": 1,
-    "ch": 1
+    "ch": 1,
+    "step": "wood"
    },
    "mtile_grass": {
     "w": 16,
     "h": 16,
     "cw": 1,
-    "ch": 1
+    "ch": 1,
+    "step": "grass"
    },
    "mtile_path": {
     "w": 16,
     "h": 16,
     "cw": 1,
-    "ch": 1
+    "ch": 1,
+    "step": "tile"
    },
    "mtile_water": {
     "w": 16,
     "h": 16,
     "cw": 1,
-    "ch": 1
+    "ch": 1,
+    "step": "water"
    },
    "mushroom_red": {
     "w": 16,
