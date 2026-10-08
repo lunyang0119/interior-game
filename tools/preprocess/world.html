@@ -12,7 +12,7 @@
   #left, #right { background: var(--panel); overflow: auto; padding: 8px; }
   #left { border-right: 1px solid var(--line); } #right { border-left: 1px solid var(--line); }
   #center { position: relative; overflow: auto; background: #111 repeating-conic-gradient(#1a1a1a 0 25%, #202020 0 50%) 0 0/16px 16px; }
-  #bottom { grid-column: 1 / -1; border-top: 1px solid var(--line); background: var(--panel); padding: 6px 8px; display: flex; gap: 8px; align-items: flex-start; }
+  #bottom { grid-column: 1 / -1; border-top: 1px solid var(--line); background: var(--panel); padding: 6px 8px; display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-start; }
   #log { flex: 1; margin: 0; max-height: 100px; overflow: auto; font: 11px/1.3 ui-monospace, monospace; color: var(--dim); white-space: pre-wrap; }
   h3 { margin: 10px 0 4px; font-size: 12px; color: var(--dim); text-transform: uppercase; letter-spacing: .05em; }
   label { display: flex; align-items: center; gap: 6px; margin: 3px 0; }
@@ -44,6 +44,18 @@
   ul.plain { list-style: none; margin: 4px 0; padding: 0; } ul.plain li { padding: 2px 4px; cursor: pointer; border-radius: 3px; }
   ul.plain li:hover { background: #33334a; } ul.plain li.sel { background: #4a4a2a; }
   .tag { display: inline-block; padding: 0 5px; border-radius: 8px; background: #3a3a5a; font-size: 11px; margin-right: 3px; }
+  #deploy { flex-basis: 100%; border: 1px solid var(--line); border-radius: 4px; padding: 4px 8px; font-size: 12px; background: #1a1a22; }
+  #deploy.hidden { display: none; }
+  #deploy.need { border-color: var(--sel); }
+  #deploy.restart { border-color: var(--red); }
+  #deploy summary { cursor: pointer; }
+  #deploy summary b { color: var(--sel); } #deploy.restart summary b { color: var(--red); }
+  #deploy .grp { margin: 4px 0 2px 12px; }
+  #deploy .grp code { color: var(--blue); user-select: all; }
+  #deploy .f { margin-left: 16px; color: var(--dim); } #deploy .f.new { color: var(--green); } #deploy .f.deleted { color: var(--red); text-decoration: line-through; }
+  #deploy .cmd { margin: 4px 0 2px 12px; font: 11px ui-monospace, monospace; color: var(--red); user-select: all; }
+  #deploy .warn { color: var(--sel); margin-left: 12px; }
+  #deploy button { margin-left: 8px; padding: 1px 8px; }
 </style>
 </head>
 <body data-mode="room">
@@ -203,6 +215,7 @@
   <button id="save" class="primary">저장</button>
   <button id="reload">다시 불러오기</button>
   <span class="hint">방은 data/rooms/&lt;id&gt;.json (+ inn은 data/room.json에도 복사) · 맵은 data/map.json · 저장 후 게임 서버 재시작</span>
+  <details id="deploy" class="hidden"><summary></summary><div id="deployBody"></div></details>
   <pre id="log"></pre>
 </div>
 
@@ -931,6 +944,47 @@
   });
 
   load().catch((e) => log("로드 실패: " + e.message));
+})();
+</script>
+<script>
+// ---- VM 업로드 알림: 마지막 "올렸음" 이후 바뀐 배포 파일을 폴더별로 보여준다 (tools/preprocess/deploy.py)
+(() => {
+  const box = document.getElementById("deploy"), body = document.getElementById("deployBody");
+  const KIND = { new: "새 파일", changed: "수정됨", deleted: "삭제됨" };
+  let last = "";
+  async function poll() {
+    let d;
+    try { d = await (await fetch("/api/deploy")).json(); } catch { return; }
+    const key = JSON.stringify(d);
+    if (key === last) return;
+    last = key;
+    box.className = d.never ? "need" : d.count === 0 && !d.bundle_stale ? "hidden" : d.restart ? "restart" : "need";
+    const sum = box.querySelector("summary");
+    if (d.never) {
+      sum.innerHTML = `<b>VM 업로드 기록 없음</b> — 지금 VM에 올라간 상태와 같다면 <button id="deployMark">지금 상태를 기준으로 삼기</button>`;
+      body.innerHTML = "";
+    } else {
+      sum.innerHTML = `<b>VM에 올릴 파일 ${d.count}개</b>${d.restart ? " · <b>재시작 필요</b>" : d.count ? " · 재시작 불필요" : ""}${d.bundle_stale ? " · <b>npm run build 필요</b>" : ""}<button id="deployMark" title="파일을 전부 올린 뒤 누르면 목록이 비워져요">올렸음 ✔</button>`;
+      let h = "";
+      if (d.bundle_stale) h += `<div class="warn">client/src가 마지막 빌드보다 새로워요: client/ 에서 <code>npm run build</code> 먼저 (그 결과 server/static/ 이 목록에 잡혀요)</div>`;
+      for (const g of d.groups) {
+        h += `<div class="grp">📁 <code>${g.folder}/</code> → <code>${g.vm}/</code>${g.restart ? " <span style=\"color:var(--red)\">재시작</span>" : ""}</div>`;
+        for (const f of g.files) h += `<div class="f ${f.kind}">${f.name} <span style="opacity:.7">· ${KIND[f.kind]} · ${f.note}</span></div>`;
+      }
+      if (d.restart) h += `<div class="cmd">sudo systemctl restart interior</div>`;
+      body.innerHTML = h;
+    }
+    document.getElementById("deployMark").onclick = async (e) => {
+      e.preventDefault();
+      if (!d.never && !confirm(`목록의 파일 ${d.count}개를 전부 VM에 올렸나요?${d.restart ? " (재시작까지 했나요?)" : ""}`)) return;
+      await fetch("/api/deploy/mark", { method: "POST" });
+      last = ""; poll();
+    };
+  }
+  poll();
+  setInterval(poll, 4000);
+  // 저장/빌드 직후엔 바로 갱신
+  document.addEventListener("click", (e) => { if (e.target.closest("button.primary, #build, #save")) setTimeout(() => { last = ""; poll(); }, 800); });
 })();
 </script>
 </body>

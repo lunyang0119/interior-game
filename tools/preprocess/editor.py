@@ -31,6 +31,7 @@ from PIL import Image, ImageDraw
 
 sys.path.insert(0, str(Path(__file__).parent))
 import config as C  # noqa: E402
+import deploy as D  # noqa: E402
 import preprocess as P  # noqa: E402
 
 HTML_FILE = Path(__file__).with_name("editor.html")
@@ -548,6 +549,8 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_bytes(HTML_FILE.read_bytes(), "text/html; charset=utf-8")
             elif u.path == "/world":
                 self.send_bytes(WORLD_FILE.read_bytes(), "text/html; charset=utf-8")
+            elif u.path == "/api/deploy":
+                self.send_json(D.status())
             elif u.path == "/api/state":
                 room = load_room()
                 self.send_json({
@@ -731,6 +734,8 @@ class Handler(BaseHTTPRequestHandler):
         try:
             if u.path == "/api/build":
                 self.send_json({"ok": True, "log": run_build()})
+            elif u.path == "/api/deploy/mark":
+                self.send_json({"ok": True, "marked_at": D.mark()["marked_at"]})
             elif u.path == "/api/char-upload":
                 # raw PNG body; ?layer=hair&name=Hairstyle_30_01.png → assets/custom/Hairstyles/
                 layer, name = q.get("layer", [""])[0], q.get("name", [""])[0]

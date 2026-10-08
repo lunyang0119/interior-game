@@ -18,6 +18,9 @@ import { initShop } from "./ui/shop";
 import { socket } from "./ws";
 import { refreshThemeLink } from "./assets";
 
+/** Accounts that may leave the inn before it is cleaned up (debugging). The gate is client-only anyway. */
+const DEBUG_IDS = new Set(["안나"]);
+
 async function loadAccount(id: string | null): Promise<void> {
   state.id = null;
   state.token = null;
@@ -133,7 +136,7 @@ async function boot(): Promise<void> {
   // walking onto an exit inside a room
   bus.on("room:exit", ({ from, to, spawn }) => {
     if (to === MAP_ROOM) {
-      if (from === base.id && state.ruined > 0) { toast(`${base.name || "여관"} 정리가 다 끝나면 바깥으로 나갈 수 있어요 (부서진 물건 ${state.ruined}개 남음)`); return; }
+      if (from === base.id && state.ruined > 0 && !(state.id && DEBUG_IDS.has(state.id))) { toast(`${base.name || "여관"} 정리가 다 끝나면 바깥으로 나갈 수 있어요 (부서진 물건 ${state.ruined}개 남음)`); return; }
       goMap(from);
       return;
     }

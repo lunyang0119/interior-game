@@ -9,6 +9,8 @@ client/public/media/**/*.mp3
 client/public/media/**/*.ttf
 client/public/media/**/*.png
 tools/preprocess/contact_*.png
+# per-PC record of what was last uploaded to the VM (editor's upload notice)
+tools/preprocess/.deploy_state.json
 # build outputs
 server/static/
 client/dist/

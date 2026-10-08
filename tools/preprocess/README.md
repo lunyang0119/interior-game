@@ -76,6 +76,18 @@ python tools/preprocess/preprocess.py build                        # map_slices.
 - 키에 `sheet`라는 단어는 쓰지 말 것 (서버 테스트가 `/api/catalog` 출력에 그 문자열이 없는지 검사한다).
 - manifest에 `map: {atlas, keys}`, `dock: {layers, w, h}`가 추가된다. 부두 레이어는 0(뒤) → 8(앞) 순서, 전부 같은 크기여야 한다.
 
+## VM 업로드 알림 (에디터 하단 바)
+
+에디터(`/`)와 방·맵 에디터(`/world`) 하단에 **VM에 올릴 파일 N개** 상자가 뜬다. 마지막으로 `올렸음 ✔`을 누른 시점의 파일 해시를
+`tools/preprocess/.deploy_state.json`(gitignore)에 기억해두고, 그 뒤 내용이 바뀐 배포 대상 파일을 폴더별로 보여준다.
+
+- 폴더마다 VM 경로(`/opt/interior/...`)가 같이 나오니 그 폴더에 그대로 SFTP로 올리면 된다.
+- 서버가 시작할 때만 읽는 파일(`server/app`, `data/`, `gen/manifest.json`)이 끼어 있으면 **재시작 필요**가 빨갛게 뜨고 명령이 같이 나온다.
+  아틀라스 png/json, `media/`, `server/static/`만 바뀌었으면 재시작 없이 브라우저 새로고침으로 충분하다 (URL에 `asset_version`이 붙어 캐시를 우회).
+- `client/src`가 마지막 `npm run build`보다 새로우면 **npm run build 필요**가 뜬다. 빌드하면 `server/static/`이 목록에 들어온다.
+- 처음엔 기록이 없어서 "지금 상태를 기준으로 삼기" 버튼만 보인다. VM과 같은 상태일 때 한 번 눌러두면 그 뒤부터 차이만 보인다.
+- 파일을 다 올리고(재시작까지 하고) `올렸음 ✔`을 누르면 목록이 비워진다. 4초마다 다시 검사하므로 저장/빌드 직후에 바로 반영된다.
+
 ## 에디터 탭 정리
 
 - **시트·슬라이스**: 시트 드롭다운에 `assets/graphic/Interior`·`Map` 아래 모든 PNG가 자동으로 뜬다 (이름 있는 시트 / 팩 전체 / 맵 세 그룹, 위 칸에 이름 일부를 치면 걸러짐).
