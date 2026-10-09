@@ -2,7 +2,7 @@
  "items": [
   {
    "id": "i1_counter_green",
-   "name": "초록 침대",
+   "name": "초록 카운터",
    "price": 3,
    "sprite": "i1_counter_green",
    "w": 3,
@@ -13,7 +13,7 @@
   },
   {
    "id": "i1_counter_white",
-   "name": "하얀 침대",
+   "name": "하얀 카운터",
    "price": 3,
    "sprite": "i1_counter_white",
    "w": 3,
@@ -762,7 +762,10 @@
    "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "bed"
+   ]
   },
   {
    "id": "bed_pixel_red_double",
@@ -773,7 +776,10 @@
    "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "bed"
+   ]
   },
   {
    "id": "bed_pixel_gray_single",
@@ -784,7 +790,10 @@
    "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "bed"
+   ]
   },
   {
    "id": "bed_pixel_gray_double",
@@ -795,7 +804,10 @@
    "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "bed"
+   ]
   },
   {
    "id": "bed_pixel_olive_single",
@@ -806,7 +818,10 @@
    "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "bed"
+   ]
   },
   {
    "id": "bed_pixel_olive_double",
@@ -817,7 +832,10 @@
    "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "bed"
+   ]
   },
   {
    "id": "bed_pixel_black_single",
@@ -828,7 +846,10 @@
    "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "bed"
+   ]
   },
   {
    "id": "bed_pixel_black_double",
@@ -839,7 +860,10 @@
    "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "bed"
+   ]
   },
   {
    "id": "bed_pixel_blue_single",
@@ -850,7 +874,10 @@
    "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "bed"
+   ]
   },
   {
    "id": "bed_pixel_blue_double",
@@ -861,7 +888,10 @@
    "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "bed"
+   ]
   },
   {
    "id": "cabinet_vanity_brown_a",
@@ -4487,7 +4517,10 @@
    "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "bed"
+   ]
   },
   {
    "id": "carpet_large_fa",
@@ -6344,7 +6377,10 @@
    "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "bed"
+   ]
   },
   {
    "id": "book_stack_fp",
@@ -6443,7 +6479,10 @@
    "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "bed"
+   ]
   },
   {
    "id": "round_table_fp1",
@@ -6560,17 +6599,6 @@
    "name": "작은 옷장",
    "price": 16,
    "sprite": "wardrobe_fnp",
-   "w": 1,
-   "h": 2,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
-   "id": "bed_pink_fnp",
-   "name": "분홍 침대",
-   "price": 18,
-   "sprite": "bed_pink_fnp",
    "w": 1,
    "h": 2,
    "layer": "furniture",
@@ -7824,17 +7852,6 @@
    "surface_offset_y": 0
   },
   {
-   "id": "med_001",
-   "name": "나무 캐비닛 001",
-   "price": 45,
-   "sprite": "med_001",
-   "w": 5,
-   "h": 2,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
    "id": "med_002",
    "name": "돌 화로",
    "price": 20,
@@ -7880,12 +7897,12 @@
   },
   {
    "id": "med_006",
-   "name": "벤치 006",
+   "name": "수배서 006",
    "price": 39,
    "sprite": "med_006",
    "w": 6,
    "h": 2,
-   "layer": "furniture",
+   "layer": "wall",
    "is_surface": false,
    "surface_offset_y": 0
   },
@@ -8059,7 +8076,7 @@
   },
   {
    "id": "med_023",
-   "name": "침대 023",
+   "name": "부엌",
    "price": 31,
    "sprite": "med_023",
    "w": 4,
@@ -8132,7 +8149,10 @@
    "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "bed"
+   ]
   },
   {
    "id": "med_032",
@@ -8506,7 +8526,10 @@
    "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "bed"
+   ]
   },
   {
    "id": "f03_haning_key_02",
@@ -9100,7 +9123,10 @@
    "h": 2,
    "layer": "furniture",
    "is_surface": true,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "bed"
+   ]
   },
   {
    "id": "f03_plants",
@@ -9199,7 +9225,10 @@
    "h": 3,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "bed"
+   ]
   },
   {
    "id": "f03_wood_table_vertical",
@@ -9276,7 +9305,10 @@
    "h": 3,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "bed"
+   ]
   },
   {
    "id": "f03_stool_03",
@@ -10475,7 +10507,10 @@
    "h": 3,
    "layer": "furniture",
    "is_surface": true,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "bed"
+   ]
   },
   {
    "id": "mordernhospital_06_door",
@@ -10497,7 +10532,10 @@
    "h": 3,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "bed"
+   ]
   },
   {
    "id": "mordernhospital_09_dentistchair",
@@ -10508,7 +10546,10 @@
    "h": 2,
    "layer": "furniture",
    "is_surface": true,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "bed"
+   ]
   },
   {
    "id": "mordernhospital_10_japangi",
@@ -11281,7 +11322,10 @@
    "h": 3,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "bed"
+   ]
   },
   {
    "id": "mordbed_035_bed_blue",
@@ -11292,7 +11336,10 @@
    "h": 3,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "bed"
+   ]
   },
   {
    "id": "mordbed_036_bed_navy",
@@ -11303,7 +11350,10 @@
    "h": 3,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "bed"
+   ]
   },
   {
    "id": "mordbed_037_bed_forest",
@@ -11314,7 +11364,10 @@
    "h": 3,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "bed"
+   ]
   },
   {
    "id": "mordbed_041_rug_checker_pink",
@@ -11402,7 +11455,10 @@
    "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "bed"
+   ]
   },
   {
    "id": "mordbed_049_bed_toddler_blue",
@@ -11413,7 +11469,10 @@
    "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "bed"
+   ]
   },
   {
    "id": "mordbed_050_bed_toddler_skyblue",
@@ -11424,7 +11483,10 @@
    "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "bed"
+   ]
   },
   {
    "id": "mordbed_051_bed_toddler_green",
@@ -11435,7 +11497,10 @@
    "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "bed"
+   ]
   },
   {
    "id": "mordbed_053_toy_train_track",
@@ -11472,7 +11537,7 @@
   },
   {
    "id": "mordbed_056_toy_train_green",
-   "name": "mordbed 056 toy train green",
+   "name": "수수께끼의 가희 피규어",
    "price": 50,
    "sprite": "mordbed_056_toy_train_green",
    "w": 1,
@@ -11488,17 +11553,6 @@
    "sprite": "mordbed_057_dresser_small_orange",
    "w": 2,
    "h": 1,
-   "layer": "furniture",
-   "is_surface": true,
-   "surface_offset_y": 8
-  },
-  {
-   "id": "mordbed_058_dresser_mannequins_cluster",
-   "name": "mordbed 058 dresser mannequins cluster",
-   "price": 50,
-   "sprite": "mordbed_058_dresser_mannequins_cluster",
-   "w": 5,
-   "h": 5,
    "layer": "furniture",
    "is_surface": true,
    "surface_offset_y": 8
@@ -11524,138 +11578,6 @@
    "layer": "furniture",
    "is_surface": true,
    "surface_offset_y": 8
-  },
-  {
-   "id": "mordbed_061_bed_deluxe_bluegray_a",
-   "name": "mordbed 061 bed deluxe bluegray a",
-   "price": 50,
-   "sprite": "mordbed_061_bed_deluxe_bluegray_a",
-   "w": 2,
-   "h": 2,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
-   "id": "mordbed_062_bed_deluxe_bluegray_b",
-   "name": "mordbed 062 bed deluxe bluegray b",
-   "price": 50,
-   "sprite": "mordbed_062_bed_deluxe_bluegray_b",
-   "w": 2,
-   "h": 2,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
-   "id": "mordbed_063_bed_part_blue_headboard",
-   "name": "mordbed 063 bed part blue headboard",
-   "price": 50,
-   "sprite": "mordbed_063_bed_part_blue_headboard",
-   "w": 1,
-   "h": 1,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
-   "id": "mordbed_064_bed_part_blue_footboard",
-   "name": "mordbed 064 bed part blue footboard",
-   "price": 50,
-   "sprite": "mordbed_064_bed_part_blue_footboard",
-   "w": 1,
-   "h": 1,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
-   "id": "mordbed_065_nightstand_gold_a",
-   "name": "mordbed 065 nightstand gold a",
-   "price": 50,
-   "sprite": "mordbed_065_nightstand_gold_a",
-   "w": 1,
-   "h": 1,
-   "layer": "furniture",
-   "is_surface": true,
-   "surface_offset_y": 8
-  },
-  {
-   "id": "mordbed_066_bed_deluxe_gold_a",
-   "name": "mordbed 066 bed deluxe gold a",
-   "price": 50,
-   "sprite": "mordbed_066_bed_deluxe_gold_a",
-   "w": 2,
-   "h": 2,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
-   "id": "mordbed_067_bed_deluxe_gold_b",
-   "name": "mordbed 067 bed deluxe gold b",
-   "price": 50,
-   "sprite": "mordbed_067_bed_deluxe_gold_b",
-   "w": 2,
-   "h": 2,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
-   "id": "mordbed_068_nightstand_gold_b",
-   "name": "mordbed 068 nightstand gold b",
-   "price": 50,
-   "sprite": "mordbed_068_nightstand_gold_b",
-   "w": 1,
-   "h": 1,
-   "layer": "furniture",
-   "is_surface": true,
-   "surface_offset_y": 8
-  },
-  {
-   "id": "mordbed_069_nightstand_pink",
-   "name": "mordbed 069 nightstand pink",
-   "price": 50,
-   "sprite": "mordbed_069_nightstand_pink",
-   "w": 1,
-   "h": 1,
-   "layer": "furniture",
-   "is_surface": true,
-   "surface_offset_y": 8
-  },
-  {
-   "id": "mordbed_070_bed_deluxe_brown_a",
-   "name": "mordbed 070 bed deluxe brown a",
-   "price": 50,
-   "sprite": "mordbed_070_bed_deluxe_brown_a",
-   "w": 2,
-   "h": 2,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
-   "id": "mordbed_071_bed_deluxe_brown_b",
-   "name": "mordbed 071 bed deluxe brown b",
-   "price": 50,
-   "sprite": "mordbed_071_bed_deluxe_brown_b",
-   "w": 2,
-   "h": 2,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
-   "id": "mordbed_072_bed_part_pink",
-   "name": "mordbed 072 bed part pink",
-   "price": 50,
-   "sprite": "mordbed_072_bed_part_pink",
-   "w": 1,
-   "h": 1,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
   },
   {
    "id": "mordbed_078_rug_olive_square",
@@ -12593,17 +12515,6 @@
    "surface_offset_y": 8
   },
   {
-   "id": "mordbed_169_dresser_drawer_pink_narrow",
-   "name": "mordbed 169 dresser drawer pink narrow",
-   "price": 50,
-   "sprite": "mordbed_169_dresser_drawer_pink_narrow",
-   "w": 1,
-   "h": 1,
-   "layer": "furniture",
-   "is_surface": true,
-   "surface_offset_y": 8
-  },
-  {
    "id": "mordbed_170_bench_toy_gray",
    "name": "mordbed 170 bench toy gray",
    "price": 50,
@@ -12703,33 +12614,11 @@
    "surface_offset_y": 8
   },
   {
-   "id": "mordbed_179_dresser_micro_pink_narrow",
-   "name": "mordbed 179 dresser micro pink narrow",
-   "price": 50,
-   "sprite": "mordbed_179_dresser_micro_pink_narrow",
-   "w": 1,
-   "h": 1,
-   "layer": "furniture",
-   "is_surface": true,
-   "surface_offset_y": 8
-  },
-  {
    "id": "mordbed_180_dresser_micro_orange",
    "name": "mordbed 180 dresser micro orange",
    "price": 50,
    "sprite": "mordbed_180_dresser_micro_orange",
    "w": 2,
-   "h": 1,
-   "layer": "furniture",
-   "is_surface": true,
-   "surface_offset_y": 8
-  },
-  {
-   "id": "mordbed_181_dresser_micro_orange_narrow",
-   "name": "mordbed 181 dresser micro orange narrow",
-   "price": 50,
-   "sprite": "mordbed_181_dresser_micro_orange_narrow",
-   "w": 1,
    "h": 1,
    "layer": "furniture",
    "is_surface": true,
@@ -12777,7 +12666,10 @@
    "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "bed"
+   ]
   },
   {
    "id": "mordbed_186_bunkbed_tan",
@@ -12788,7 +12680,10 @@
    "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "bed"
+   ]
   },
   {
    "id": "mordbed_187_bunkbed_teal",
@@ -12799,7 +12694,10 @@
    "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "bed"
+   ]
   },
   {
    "id": "mordbed_188_vase_lamp_a",
@@ -12887,7 +12785,10 @@
    "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "bed"
+   ]
   },
   {
    "id": "mordbed_196_bunkbed_tan_b",
@@ -12898,7 +12799,10 @@
    "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "bed"
+   ]
   },
   {
    "id": "mordbed_197_bunkbed_purple",
@@ -12909,7 +12813,10 @@
    "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "bed"
+   ]
   },
   {
    "id": "mordbed_198_dollhouse_figure_cluster_b",
@@ -12962,83 +12869,6 @@
    "sprite": "mordbed_202_dollhouse_shelf_cluster",
    "w": 2,
    "h": 2,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
-   "id": "mordbed_203_bunkbed_cloud_blue",
-   "name": "mordbed 203 bunkbed cloud blue",
-   "price": 50,
-   "sprite": "mordbed_203_bunkbed_cloud_blue",
-   "w": 2,
-   "h": 3,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
-   "id": "mordbed_204_bunkbed_green",
-   "name": "mordbed 204 bunkbed green",
-   "price": 50,
-   "sprite": "mordbed_204_bunkbed_green",
-   "w": 2,
-   "h": 3,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
-   "id": "mordbed_205_bunkbed_purple_b",
-   "name": "mordbed 205 bunkbed purple b",
-   "price": 50,
-   "sprite": "mordbed_205_bunkbed_purple_b",
-   "w": 2,
-   "h": 3,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
-   "id": "mordbed_206_bunkbed_pink",
-   "name": "mordbed 206 bunkbed pink",
-   "price": 50,
-   "sprite": "mordbed_206_bunkbed_pink",
-   "w": 2,
-   "h": 3,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
-   "id": "mordbed_213_bunkbed_diag_blue",
-   "name": "mordbed 213 bunkbed diag blue",
-   "price": 50,
-   "sprite": "mordbed_213_bunkbed_diag_blue",
-   "w": 2,
-   "h": 3,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
-   "id": "mordbed_214_bunkbed_cloud_blue_b",
-   "name": "mordbed 214 bunkbed cloud blue b",
-   "price": 50,
-   "sprite": "mordbed_214_bunkbed_cloud_blue_b",
-   "w": 2,
-   "h": 3,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
-   "id": "mordbed_215_bunkbed_cloud_gray",
-   "name": "mordbed 215 bunkbed cloud gray",
-   "price": 50,
-   "sprite": "mordbed_215_bunkbed_cloud_gray",
-   "w": 2,
-   "h": 3,
    "layer": "furniture",
    "is_surface": false,
    "surface_offset_y": 0
@@ -19135,7 +18965,10 @@
    "h": 3,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "bed"
+   ]
   },
   {
    "id": "mordhalloween_073_bone_pile_c",
@@ -30248,17 +30081,6 @@
    "surface_offset_y": 0
   },
   {
-   "id": "moritl_026_tall_cabinet_wardrobe",
-   "name": "moritl 026 tall cabinet wardrobe",
-   "price": 50,
-   "sprite": "moritl_026_tall_cabinet_wardrobe",
-   "w": 2,
-   "h": 3,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
    "id": "moritl_027_lamp_pole_thin",
    "name": "moritl 027 lamp pole thin",
    "price": 50,
@@ -30296,11 +30118,14 @@
    "name": "moritl 030 bathroom fixture cluster",
    "price": 50,
    "sprite": "moritl_030_bathroom_fixture_cluster",
-   "w": 2,
-   "h": 2,
+   "w": 6,
+   "h": 4,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "bed"
+   ]
   },
   {
    "id": "moritl_031_sink_pedestal",
@@ -30417,8 +30242,8 @@
    "name": "moritl 041 tv stand dark",
    "price": 50,
    "sprite": "moritl_041_tv_stand_dark",
-   "w": 2,
-   "h": 1,
+   "w": 4,
+   "h": 3,
    "layer": "furniture",
    "is_surface": true,
    "surface_offset_y": 10
@@ -30439,11 +30264,14 @@
    "name": "moritl 043 bed maroon wide",
    "price": 50,
    "sprite": "moritl_043_bed_maroon_wide",
-   "w": 3,
-   "h": 2,
+   "w": 6,
+   "h": 4,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "bed"
+   ]
   },
   {
    "id": "moritl_044_toilet_e",
@@ -30472,8 +30300,8 @@
    "name": "moritl 046 brick wall pattern",
    "price": 50,
    "sprite": "moritl_046_brick_wall_pattern",
-   "w": 1,
-   "h": 1,
+   "w": 2,
+   "h": 4,
    "layer": "wallpaper",
    "is_surface": false,
    "surface_offset_y": 0
@@ -30483,8 +30311,8 @@
    "name": "moritl 047 sofa brown wide",
    "price": 50,
    "sprite": "moritl_047_sofa_brown_wide",
-   "w": 3,
-   "h": 1,
+   "w": 6,
+   "h": 3,
    "layer": "furniture",
    "is_surface": false,
    "surface_offset_y": 0
@@ -30553,7 +30381,10 @@
    "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "bed"
+   ]
   },
   {
    "id": "ppfurn_006_bed_brown_a",
@@ -30597,7 +30428,10 @@
    "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "bed"
+   ]
   },
   {
    "id": "ppfurn_010_wardrobe_thin_icon",
@@ -32346,7 +32180,10 @@
    "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "bed"
+   ]
   },
   {
    "id": "nosh_013_bed_green",
@@ -32357,7 +32194,10 @@
    "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "bed"
+   ]
   },
   {
    "id": "nosh_014_bed_red",
@@ -32368,7 +32208,10 @@
    "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "bed"
+   ]
   },
   {
    "id": "nosh_015_bed_red",
@@ -32379,7 +32222,10 @@
    "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "bed"
+   ]
   },
   {
    "id": "nosh_016_cabinet_small_double_door_brown",
@@ -32544,7 +32390,10 @@
    "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "bed"
+   ]
   },
   {
    "id": "nosh_031_bed_pink",
@@ -32555,7 +32404,10 @@
    "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "bed"
+   ]
   },
   {
    "id": "nosh_032_bed_orange",
@@ -32566,7 +32418,10 @@
    "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "bed"
+   ]
   },
   {
    "id": "nosh_033_bed_orange",
@@ -32577,7 +32432,10 @@
    "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "bed"
+   ]
   },
   {
    "id": "nosh_034_dresser_wide_brown",
@@ -32687,7 +32545,10 @@
    "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "bed"
+   ]
   },
   {
    "id": "nosh_044_bed_coral",
@@ -32698,7 +32559,10 @@
    "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "bed"
+   ]
   },
   {
    "id": "nosh_045_bed_slate",
@@ -32709,7 +32573,10 @@
    "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "bed"
+   ]
   },
   {
    "id": "nosh_046_bed_slate",
@@ -32720,7 +32587,10 @@
    "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "bed"
+   ]
   },
   {
    "id": "nosh_047_table_brown",
@@ -33050,7 +32920,10 @@
    "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "bed"
+   ]
   },
   {
    "id": "nosh_077_bed_green_tan",
@@ -33061,7 +32934,10 @@
    "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "bed"
+   ]
   },
   {
    "id": "nosh_078_bed_red_tan",
@@ -33072,7 +32948,10 @@
    "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "bed"
+   ]
   },
   {
    "id": "nosh_079_bed_red_tan",
@@ -33083,7 +32962,10 @@
    "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "bed"
+   ]
   },
   {
    "id": "nosh_080_cabinet_small_double_door_tan",
@@ -33248,7 +33130,10 @@
    "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "bed"
+   ]
   },
   {
    "id": "nosh_095_bed_pink_tan",
@@ -33259,7 +33144,10 @@
    "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "bed"
+   ]
   },
   {
    "id": "nosh_096_bed_orange_tan",
@@ -33270,7 +33158,10 @@
    "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "bed"
+   ]
   },
   {
    "id": "nosh_097_bed_orange_tan",
@@ -33281,7 +33172,10 @@
    "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "bed"
+   ]
   },
   {
    "id": "nosh_098_dresser_wide_tan",
@@ -33391,7 +33285,10 @@
    "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "bed"
+   ]
   },
   {
    "id": "nosh_108_bed_coral_tan",
@@ -33402,7 +33299,10 @@
    "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "bed"
+   ]
   },
   {
    "id": "nosh_109_bed_slate_tan",
@@ -33413,7 +33313,10 @@
    "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "bed"
+   ]
   },
   {
    "id": "nosh_110_bed_slate_tan",
@@ -33424,7 +33327,10 @@
    "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "bed"
+   ]
   },
   {
    "id": "nosh_111_table_tan",
@@ -34760,6 +34666,94 @@
     "fixed",
     "stairs"
    ]
+  },
+  {
+   "id": "inn_wall",
+   "name": "inn wall",
+   "price": 50,
+   "sprite": "inn_wall",
+   "w": 3,
+   "h": 2,
+   "layer": "wallpaper",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "inn_wall_left",
+   "name": "inn wall left",
+   "price": 50,
+   "sprite": "inn_wall_left",
+   "w": 3,
+   "h": 3,
+   "layer": "wallpaper",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "inn_wall_right",
+   "name": "inn wall right",
+   "price": 50,
+   "sprite": "inn_wall_right",
+   "w": 3,
+   "h": 3,
+   "layer": "wallpaper",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "med_beer",
+   "name": "med beer",
+   "price": 50,
+   "sprite": "med_beer",
+   "w": 1,
+   "h": 1,
+   "layer": "surface_item",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "med_028",
+   "name": "med 028",
+   "price": 50,
+   "sprite": "med_028",
+   "w": 3,
+   "h": 2,
+   "layer": "wallpaper",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "med_029",
+   "name": "med 029",
+   "price": 50,
+   "sprite": "med_029",
+   "w": 3,
+   "h": 2,
+   "layer": "wallpaper",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "ppfurn_oven",
+   "name": "ppfurn oven",
+   "price": 50,
+   "sprite": "ppfurn_oven",
+   "w": 2,
+   "h": 2,
+   "layer": "furniture",
+   "is_surface": true,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "moritl_wallpaper",
+   "name": "moritl wallpaper",
+   "price": 50,
+   "sprite": "moritl_wallpaper",
+   "w": 6,
+   "h": 4,
+   "layer": "wallpaper",
+   "is_surface": false,
+   "surface_offset_y": 0
   }
  ]
 }

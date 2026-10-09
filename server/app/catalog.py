@@ -48,6 +48,9 @@ class Item(BaseModel):
     surface_offset_y: int = 0
     tags: list[str] = []
     pair: str | None = None  # the intact/ruined counterpart (informational)
+    # furniture set (same source pack/theme) — not in items.json: filled from the manifest key's `set` at load,
+    # which `build` derives from the slice source. Used by the comfort score's set bonus.
+    set: str | None = None
 
     @field_validator("tags")
     @classmethod
@@ -284,6 +287,9 @@ def load(data_dir: Path | None = None, gen_dir: Path | None = None) -> Catalog:
             raise ValueError(f"duplicate item id {it.id}")
         if it.sprite not in keys:
             raise ValueError(f"{it.id}: sprite '{it.sprite}' not in manifest")
+        spec = keys[it.sprite]
+        if isinstance(spec, dict) and spec.get("set"):
+            it.set = str(spec["set"])
         items[it.id] = it
     for it in items.values():
         if it.pair is not None and it.pair not in items:

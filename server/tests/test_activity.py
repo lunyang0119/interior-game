@@ -10,7 +10,8 @@ def test_events_and_cap(client, env):
     kim = register(client, "kim")
     # a fresh DB after the first sheet fetch: nothing yet (the first snapshot never counts as income)
     r = client.get("/api/activity", headers=auth(lun)).json()
-    assert r["events"] == [] and r["max"] == 5 and r["today"] == {"earned": 0, "spent": 0, "fish": 0}
+    assert r["events"] == [] and r["max"] == 5
+    assert r["today"] == {"earned": 0, "fish": 0, "fish_count": 0, "furniture": 0, "sold": 0, "deliver": 0}
     assert r["progress"] == {} and r["locked"] == []
 
     uid = client.post("/api/room/place", json={"item_id": "table", "x": 1, "y": 1}, headers=auth(lun)).json()["uid"]
@@ -28,7 +29,8 @@ def test_events_and_cap(client, env):
     rows = [(e["kind"], e["player_id"], e["room_id"], e["item_id"], e["amount"]) for e in r["events"]]
     assert rows == [("fish", "lun", None, fish["id"], fish["value"]), ("sell", "lun", "house_a", "junk", 40),
                     ("remove", "kim", "inn", "cup", 10), ("place", "kim", "inn", "cup", -10), ("place", "lun", "inn", "table", -100)]
-    assert r["today"] == {"earned": 0, "spent": 110, "fish": 1}
+    # refunds and sales are counted, so the furniture line is the net spend (−100 −10 +10) and junk sales stand alone
+    assert r["today"] == {"earned": 0, "fish": fish["value"], "fish_count": 1, "furniture": -100, "sold": 40, "deliver": 0}
 
     # one more row pushes the oldest one out: only the newest five are ever served
     client.post("/api/room/place", json={"item_id": "chair", "x": 5, "y": 4}, headers=auth(lun))

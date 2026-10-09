@@ -4,7 +4,7 @@
  * socket (`event`), stage completions as `progress`. The HUD room chip opens the same panel at the checklist.
  */
 
-import { api, ApiError, msgFor, type ActivityEvent, type NeedProgress, type RoomProgress } from "../api";
+import { api, ApiError, msgFor, type ActivityEvent, type NeedProgress, type RoomProgress, type TodayTotals } from "../api";
 import { bus, toast } from "../bus";
 import { placeName, SEED_PLAYER } from "../catalog";
 import { applyProgress, catalog, state } from "../state";
@@ -15,7 +15,7 @@ const MAX_ROWS = 5;
 
 let rows: ActivityEvent[] = [];
 let loot = new Map<string, string>(); // loot id → name, from /api/fish
-let today = { earned: 0, spent: 0, fish: 0 };
+let today: TodayTotals = { earned: 0, fish: 0, fish_count: 0, furniture: 0, sold: 0, deliver: 0 };
 let loaded = false;
 
 const NEED_LABEL: Record<NeedProgress["type"], string> = {
@@ -92,7 +92,11 @@ function renderRows(): void {
 }
 
 function renderSummary(): void {
-  $("log-today").textContent = `오늘 · 벌이 +${today.earned}💰 · 지출 −${today.spent}💰 · 낚시 ${today.fish}마리`;
+  const signed = (n: number) => (n < 0 ? `−${-n}` : `+${n}`) + "💰";
+  const parts = [`벌이 ${signed(today.earned)}`, `낚시 ${signed(today.fish)} (${today.fish_count}마리)`, `가구 ${signed(today.furniture)}`];
+  if (today.sold) parts.push(`판매 ${signed(today.sold)}`);
+  if (today.deliver) parts.push(`납품 ${signed(today.deliver)}`);
+  $("log-today").textContent = "오늘 · " + parts.join(" · ");
 }
 
 function needLine(n: NeedProgress): string {
@@ -176,9 +180,14 @@ export function initLog(): void {
   });
   socket.on("event", (m: { event: ActivityEvent }) => {
     rows = [m.event, ...rows.filter((r) => r.seq !== m.event.seq)].slice(0, MAX_ROWS);
-    if (m.event.kind === "earn") today.earned += m.event.amount ?? 0;
-    if (m.event.kind === "fish") today.fish += 1;
-    if (m.event.kind === "place") today.spent += -(m.event.amount ?? 0);
+    const amt = m.event.amount ?? 0;
+    switch (m.event.kind) {
+      case "earn": today.earned += amt; break;
+      case "fish": today.fish += amt; today.fish_count += 1; break;
+      case "place": case "remove": today.furniture += amt; break;
+      case "sell": today.sold += amt; break;
+      case "deliver": today.deliver += amt; break;
+    }
     if (!$("panel-log").classList.contains("hidden")) { renderRows(); renderSummary(); }
   });
   socket.on("progress", (m: { rooms: Record<string, RoomProgress>; locked: string[] }) => applyProgress(m.rooms, m.locked));

@@ -97,6 +97,21 @@ MAP_SHEETS = {
     "nature_rocks": MAP / "Nature_MP" / "Nature_MP_Rocks.png",
 }
 MAP_ICONS_DIR = GUI / "Map Legend Icons" / "Icons"   # 16x24 marker icons, referenced as `file` slices
+# Furniture "sets" for the comfort score: `build` derives a set slug for every interior slice from its source
+# (SHEETS key, discovered path stem, or `file` top folder) and writes it as `set` on the manifest key. Sources
+# listed here are merged into one set (the pixelinterior pack is split by room across several PNGs, etc.).
+# Slugs must never contain the word "sheet" (the catalog is checked for it).
+SET_ALIASES = {
+    "interiors": "mi_free", "room_builder": "mi_free",
+    "pi_cabinets_lrk": "pi_living", "pi_decorations_lrk": "pi_living", "pi_doorswindowsstairs_lrk": "pi_living",
+    "pi_floorswalls_lrk": "pi_living", "pi_kitchen_lrk": "pi_living", "pi_livingroom_lrk": "pi_living",
+    "pi_beds_br": "pi_bedroom", "pi_decorations_br": "pi_bedroom", "pi_wardrobes_br": "pi_bedroom",
+    "pi_cabinets_ba": "pi_bath", "pi_fixtures_ba": "pi_bath", "pi_textiles_ba": "pi_bath",
+    "topdown_doors_windows": "topdown", "topdown_floors_walls": "topdown", "topdown_floors_walls_open": "topdown",
+    "topdown_furniture1": "topdown", "topdown_furniture2": "topdown", "topdown_small_items": "topdown",
+    "axulart_all": "axulart", "axulart_basic": "axulart",
+    "spritesheet_misc": "misc",
+}
 DOCK_FILE = REPO_ROOT / "data" / "dock.json"   # layer order/positions for the dock scene (editor "부두" tab)
 MAP_BG_DIR = MAP / "Backgrounds"                    # full-screen backdrops for the overworld (any PNG; name = file stem)
 DOCK_DIR = MAP / "Dock"                              # 0.png .. 8.png, 384x216 parallax layers (back → front)

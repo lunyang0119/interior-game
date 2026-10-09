@@ -1,0 +1,31 @@
+{
+ "checkout_hour_kst": 9,
+ "max_catchup_days": 3,
+ "comfort": {
+  "k_per_cell": 0.5,
+  "dup_decay": 0.5,
+  "set_bonus_max": 0.5,
+  "set_min_items": 4,
+  "ruined_penalty": 5,
+  "affection_bonus": 3
+ },
+ "guests": {
+  "min_comfort": 10,
+  "band": 34,
+  "max_guests": 3,
+  "pay_base": 4,
+  "pay_per_comfort": 0.36
+ },
+ "reservation": {
+  "chance": 0.25,
+  "lead_days": [2, 4],
+  "min_price": 10,
+  "pay_mult": 2,
+  "dominant_set_pct": 70
+ },
+ "dog": {
+  "tag": "dog",
+  "comfort_fallback": 70,
+  "pay_mult": 3
+ }
+}

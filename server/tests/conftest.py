@@ -33,6 +33,7 @@ def env(tmp_path, monkeypatch):
         {"id": "junk", "name": "junk", "price": 40, "sprite": "junk", "w": 1, "h": 1, "layer": "furniture", "tags": ["ruined"], "pair": "chair"},
         {"id": "stairs", "name": "stairs", "price": 0, "sprite": "stairs", "w": 1, "h": 1, "layer": "furniture", "tags": ["fixed", "stairs"]},
         {"id": "memo", "name": "memo", "price": 2, "sprite": "memo", "w": 1, "h": 1, "layer": "furniture", "tags": ["note"]},
+        {"id": "bed", "name": "bed", "price": 60, "sprite": "bed", "w": 2, "h": 2, "layer": "furniture", "tags": ["bed"]},
     ]}), encoding="utf-8")
     rooms = data / "rooms"
     rooms.mkdir()
@@ -71,7 +72,8 @@ def env(tmp_path, monkeypatch):
                              "preset": {"count": 3, "none": 0, "exclusive": True},
                              "outfit": {"count": 0}, "acc": {"count": 0}}},
         "interiors": {"atlas": "gen/interiors.json",
-                      "keys": {**{k: {} for k in ["table", "chair", "cup", "tray", "rug", "frame", "paper", "junk", "stairs", "memo", "tile_wall"]},
+                      "keys": {**{k: {} for k in ["chair", "rug", "frame", "paper", "junk", "stairs", "memo", "tile_wall"]},
+                               "table": {"set": "oak"}, "bed": {"set": "oak"}, "tray": {"set": "oak"}, "cup": {"set": "pine"},
                                "tile_floor": {"step": "wood"}, "tile_water": {"step": "water", "walk": False}}},
         "map": {"atlas": "gen/map.json", "keys": {**{k: {} for k in ["house", "icon_bridge", "icon_exclamation", "tree"]},
                                                   "g": {"step": "grass"}, "w": {"step": "water", "walk": False}}},

@@ -482,8 +482,42 @@ def report_frozen(what: str, slices: list[dict]) -> None:
     print("  (editing those slices' rects has no effect until the source is back on disk)")
 
 
-def atlas_keys(atlas_json: dict, slices: list[dict] | None = None) -> dict:
-    """Manifest entry per frame: size in px/cells plus the tile metadata (step/walk) set on the slice."""
+_THEME_SORTER = re.compile(r"Theme_Sorter/\d+_(.+?)(?:_16x16)?\.png$")
+
+
+def set_of(sl: dict) -> str | None:
+    """The furniture set a slice belongs to: a short slug of its source (same source → same set).
+
+    SHEETS keys map through C.SET_ALIASES; discovered Modern Interiors theme files become `mi_<theme>`; other
+    discovered PNGs use their file stem; `file` slices use their top folder; `parts` follow the first part.
+    None for slices with no source. Set slugs never contain "sheet" (the catalog output is checked for it).
+    """
+    src = sl.get("sheet") or sl.get("file")
+    if src is None and sl.get("parts"):
+        return set_of(sl["parts"][0])
+    if not src:
+        return None
+    if "sheet" in sl and src in C.SET_ALIASES:
+        slug = C.SET_ALIASES[src]
+    elif "sheet" in sl and "/" not in src:
+        slug = src
+    elif (m := _THEME_SORTER.search(src)):
+        slug = "mi_" + m.group(1)
+    elif "sheet" in sl:
+        slug = Path(src).stem
+    else:
+        slug = src.split("/")[0]
+    slug = re.sub(r"[^a-z0-9]+", "_", slug.lower()).strip("_")
+    if "sheet" in slug:
+        raise SystemExit(f"slice {sl.get('key')}: set slug '{slug}' must not contain 'sheet'")
+    return slug or None
+
+
+def atlas_keys(atlas_json: dict, slices: list[dict] | None = None, sets: bool = False) -> dict:
+    """Manifest entry per frame: size in px/cells plus the tile metadata (step/walk) set on the slice.
+
+    With sets=True (the interiors atlas) each key also carries its furniture `set` (see set_of()).
+    """
     keys = {k: {"w": f["frame"]["w"], "h": f["frame"]["h"],
                 "cw": f["frame"]["w"] // C.CELL, "ch": f["frame"]["h"] // C.CELL}
             for k, f in atlas_json["frames"].items()}
@@ -491,6 +525,8 @@ def atlas_keys(atlas_json: dict, slices: list[dict] | None = None) -> dict:
         k = sl["key"]
         if k not in keys:
             continue
+        if sets and (s := set_of(sl)):
+            keys[k]["set"] = s
         step = sl.get("step")
         if step is not None:
             if step not in TILE_STEPS:
@@ -746,7 +782,7 @@ def cmd_build(args: argparse.Namespace) -> None:
             "layerOrder": C.LAYER_ORDER,
             "layers": layers,
         },
-        "interiors": {"atlas": "gen/interiors.json", "keys": atlas_keys(atlas_json, slices)},
+        "interiors": {"atlas": "gen/interiors.json", "keys": atlas_keys(atlas_json, slices, sets=True)},
     }
     map_entry = build_map_atlas()
     if map_entry:

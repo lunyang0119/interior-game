@@ -1149,12 +1149,12 @@
   "file": "GUI/Map Legend Icons/Icons/Exclamation.png"
  },
  {
-  "key": "icon_lock",
-  "file": "GUI/Map Legend Icons/Icons/Lock.png"
- },
- {
   "key": "icon_house",
   "file": "GUI/Map Legend Icons/Icons/House.png"
+ },
+ {
+  "key": "icon_lock",
+  "file": "GUI/Map Legend Icons/Icons/Lock.png"
  },
  {
   "key": "icon_question",

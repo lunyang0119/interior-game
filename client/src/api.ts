@@ -85,8 +85,12 @@ export interface ActivityEvent {
   room_id: string | null; player_id: string | null; item_id: string | null; amount: number | null;
   data: { stage?: string; name?: string; index?: number; unlocks?: string[] } | null;
 }
+/** Signed pool changes since KST midnight (+ = the pool grew); `furniture` nets buys against refunds. */
+export interface TodayTotals {
+  earned: number; fish: number; fish_count: number; furniture: number; sold: number; deliver: number;
+}
 export interface ActivityResponse {
-  events: ActivityEvent[]; max: number; today: { earned: number; spent: number; fish: number };
+  events: ActivityEvent[]; max: number; today: TodayTotals;
   progress: Record<string, RoomProgress>; locked: string[];
 }
 

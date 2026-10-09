@@ -23,6 +23,7 @@ export interface Item {
   surface_offset_y: number;
   tags?: string[];
   pair?: string | null;
+  set?: string | null; // furniture set from the slice source (build → manifest), for the comfort set bonus
 }
 
 /** Cells that lead somewhere else; `to` is a room id or "map", `spawn` is the arrival cell there. */

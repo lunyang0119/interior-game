@@ -37,10 +37,21 @@ def activity(request: Request, me: Player = Depends(current_player), conn: sqlit
     cat = request.app.state.catalog
     rows = conn.execute("SELECT seq, ts, kind, room_id, player_id, item_id, amount, data FROM events ORDER BY seq DESC LIMIT ?",
                         (MAX_EVENTS,)).fetchall()
-    since = kst_midnight(now())
-    earned = conn.execute("SELECT COALESCE(SUM(amount), 0) FROM events WHERE kind = 'earn' AND ts >= ?", (since,)).fetchone()[0]
-    spent = conn.execute("SELECT COALESCE(SUM(amount), 0) FROM ledger WHERE kind = 'place' AND ts >= ?", (since,)).fetchone()[0]
-    fish = conn.execute("SELECT COUNT(*) FROM events WHERE kind = 'fish' AND ts >= ?", (since,)).fetchone()[0]
-    return {"events": [_row(r) for r in rows], "max": MAX_EVENTS,
-            "today": {"earned": int(earned), "spent": int(spent), "fish": int(fish)},
+    return {"events": [_row(r) for r in rows], "max": MAX_EVENTS, "today": today_totals(conn, kst_midnight(now())),
             "progress": progress.all_progress(conn, cat), "locked": sorted(progress.locked(conn, cat))}
+
+
+def today_totals(conn: sqlite3.Connection, since: int) -> dict:
+    """Signed pool changes since `since`, grouped the way the panel shows them.
+
+    Every number is the sum of `events.amount` (+ = the pool grew), so refunds for removed furniture and the
+    money a delivery takes back are counted instead of being lost: earned = sheet income, fish = catch value,
+    furniture = buys minus refunds (≤ 0 unless more was refunded than bought), sold = junk sales, deliver = the
+    reversed catch value (≤ 0).
+    """
+    sums = {r["kind"]: int(r["s"]) for r in conn.execute(
+        "SELECT kind, COALESCE(SUM(amount), 0) AS s FROM events WHERE ts >= ? GROUP BY kind", (since,)).fetchall()}
+    fish_count = conn.execute("SELECT COUNT(*) FROM events WHERE kind = 'fish' AND ts >= ?", (since,)).fetchone()[0]
+    return {"earned": sums.get("earn", 0), "fish": sums.get("fish", 0), "fish_count": int(fish_count),
+            "furniture": sums.get("place", 0) + sums.get("remove", 0), "sold": sums.get("sell", 0),
+            "deliver": sums.get("deliver", 0)}

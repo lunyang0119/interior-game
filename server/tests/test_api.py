@@ -144,6 +144,9 @@ def test_catalog_has_no_secrets(client):
     junk = next(i for i in body["items"] if i["id"] == "junk")
     assert junk["tags"] == ["ruined"] and junk["pair"] == "chair"
     assert next(i for i in body["items"] if i["id"] == "chair")["tags"] == []
+    # the furniture set comes from the manifest key, not from items.json
+    assert next(i for i in body["items"] if i["id"] == "table")["set"] == "oak"
+    assert next(i for i in body["items"] if i["id"] == "chair")["set"] is None
     assert body["chars"]["layers"]["skin"]["count"] == 2
     assert body["tiles"]["interior"]["tile_water"] == {"step": "water", "walk": False}
     assert body["tiles"]["map"]["g"] == {"step": "grass", "walk": True}

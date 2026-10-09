@@ -78,3 +78,23 @@ def test_transparent_knocks_out_backdrop(tmp_path: Path):
 
 def test_load_frozen_returns_none_without_previous_atlas(tmp_path: Path):
     assert P.load_frozen(tmp_path / "a.json", tmp_path / "a.png") is None
+
+
+def test_set_of_slugs_sources_into_furniture_sets():
+    mi = "Interior/moderninteriors-win/1_Interiors/16x16/Theme_Sorter/4_Bedroom_16x16.png"
+    assert P.set_of({"key": "a", "sheet": mi, "x": 0, "y": 0, "w": 16, "h": 16}) == "mi_bedroom"
+    assert P.set_of({"key": "b", "sheet": "pi_beds_br"}) == "pi_bedroom"          # alias table merges a pack
+    assert P.set_of({"key": "c", "sheet": "interiors"}) == "mi_free"
+    assert P.set_of({"key": "d", "sheet": "furniture03"}) == "furniture03"        # plain SHEETS key stays itself
+    assert P.set_of({"key": "e", "file": "Furniture Assets/Rooms/Bath.png"}) == "furniture_assets"
+    assert P.set_of({"key": "f", "parts": [{"sheet": mi, "x": 0, "y": 0, "w": 16, "h": 16}]}) == "mi_bedroom"
+    assert P.set_of({"key": "g"}) is None
+    with pytest.raises(SystemExit):
+        P.set_of({"key": "h", "sheet": "Interior/my_sheet_thing.png"})
+
+
+def test_atlas_keys_carry_sets_only_for_interiors():
+    atlas = {"frames": {"a": {"frame": {"x": 0, "y": 0, "w": 16, "h": 32}}}}
+    sl = [{"key": "a", "sheet": "pi_beds_br", "step": "wood"}]
+    assert P.atlas_keys(atlas, sl, sets=True)["a"] == {"w": 16, "h": 32, "cw": 1, "ch": 2, "set": "pi_bedroom", "step": "wood"}
+    assert "set" not in P.atlas_keys(atlas, sl)["a"]
