@@ -42,6 +42,8 @@ export function guard(btn: HTMLElement, fn: () => Promise<void>): void {
 }
 
 export function initHud(): void {
+  initFold("bottombar", "btn-fold", "bar_folded");
+  initFold("hud", "btn-hud-fold", "hud_folded");
   document.querySelectorAll<HTMLElement>("[data-close]").forEach((b) => {
     b.addEventListener("click", () => show(b.dataset.close!, false));
   });
@@ -53,6 +55,7 @@ export function initHud(): void {
     $("hud-room-ruined").textContent = ruined > 0 ? ` · 🧹 ${ruined}` : "";
     show("hud-room", true);
   });
+  $("hud-room").addEventListener("click", () => bus.emit("log:open", { section: "progress" }));
   bus.on("toast", ({ text, ms }) => {
     const t = $("toast");
     t.textContent = text;
@@ -144,8 +147,11 @@ export function initHud(): void {
   bus.on("fish:meter", ({ meter }) => {
     $("fish-meter-fill").style.width = `${Math.round(meter * 100)}%`;
   });
+  // the catch overlay; my own catch may offer "납품하기" (hand it in toward a room's stage instead of keeping the money)
   let catchTimer: number | null = null;
-  bus.on("fish:catch", ({ ok, id, name, value, who }) => {
+  let deliverSeq: number | null = null;
+  const deliverBtn = $("fish-deliver") as HTMLButtonElement;
+  bus.on("fish:catch", ({ ok, id, name, value, who, seq, deliverable }) => {
     const img = $("fish-catch-img") as HTMLImageElement;
     img.src = assetUrl(`/gen/fish/${id}.png`);
     img.style.visibility = ok ? "visible" : "hidden";
@@ -153,9 +159,29 @@ export function initHud(): void {
     $("fish-catch-text").textContent = ok
       ? (who && who !== state.id ? `${who}가 ${name}을(를) 낚았어요!${gain}` : `${name}을(를) 낚았어요!${gain}`)
       : `놓쳤어요… ${name}이(가) 도망쳤어요`;
+    const want = ok && seq != null && deliverable && deliverable.length ? deliverable[0] : null;
+    deliverSeq = want ? seq! : null;
+    deliverBtn.disabled = false;
+    deliverBtn.textContent = want ? `${want.name}에 납품하기 (${want.have}/${want.want})` : "";
+    show("fish-deliver", !!want);
     show("fish-catch", true);
     if (catchTimer !== null) clearTimeout(catchTimer);
-    catchTimer = window.setTimeout(() => show("fish-catch", false), 2600);
+    catchTimer = window.setTimeout(() => show("fish-catch", false), want ? 10_000 : 2600);
+  });
+  deliverBtn.addEventListener("click", async () => {
+    if (deliverSeq === null || deliverBtn.disabled) return;
+    deliverBtn.disabled = true;
+    try {
+      const r = await api.fishDeliver(deliverSeq);
+      deliverSeq = null;
+      state.balance = r.balance;
+      bus.emit("money", { balance: r.balance });
+      bus.emit("toast", { text: `납품했어요 (${r.have}/${r.want})` });
+      show("fish-catch", false);
+    } catch (e) {
+      bus.emit("toast", { text: e instanceof ApiError ? msgFor(e.code) : String(e) });
+      deliverBtn.disabled = false;
+    }
   });
   $("place-span-dec").addEventListener("click", () => bus.emit("place:span", { delta: -1 }));
   $("place-span-inc").addEventListener("click", () => bus.emit("place:span", { delta: 1 }));
@@ -179,4 +205,24 @@ export function initHud(): void {
 export function renderIdentity(): void {
   $("hud-id").textContent = state.id ?? "계정 없음";
   $("hud-balance-val").textContent = state.id ? state.balance.toLocaleString() : "–";
+}
+
+/** The ▾/▸ chips fold a bar's content away (bottom bar: shop/avatar buttons; top HUD: everything but the
+ *  account chip and the connection warning, see style.css). Remembered per bar in localStorage. */
+function initFold(barId: string, btnId: string, key: string): void {
+  const bar = $(barId), btn = $(btnId);
+  const apply = (folded: boolean) => {
+    bar.classList.toggle("folded", folded);
+    btn.textContent = folded ? "▸" : "▾";
+    btn.title = folded ? "펼치기" : "접기";
+  };
+  let folded = false;
+  try { folded = localStorage.getItem(key) === "1"; } catch { /* ignore */ }
+  apply(folded);
+  btn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    folded = !bar.classList.contains("folded");
+    apply(folded);
+    try { localStorage.setItem(key, folded ? "1" : "0"); } catch { /* ignore */ }
+  });
 }

@@ -32,6 +32,7 @@ def env(tmp_path, monkeypatch):
         {"id": "paper", "name": "paper", "price": 15, "sprite": "paper", "w": 2, "h": 1, "layer": "wallpaper"},
         {"id": "junk", "name": "junk", "price": 40, "sprite": "junk", "w": 1, "h": 1, "layer": "furniture", "tags": ["ruined"], "pair": "chair"},
         {"id": "stairs", "name": "stairs", "price": 0, "sprite": "stairs", "w": 1, "h": 1, "layer": "furniture", "tags": ["fixed", "stairs"]},
+        {"id": "memo", "name": "memo", "price": 2, "sprite": "memo", "w": 1, "h": 1, "layer": "furniture", "tags": ["note"]},
     ]}), encoding="utf-8")
     rooms = data / "rooms"
     rooms.mkdir()
@@ -70,7 +71,7 @@ def env(tmp_path, monkeypatch):
                              "preset": {"count": 3, "none": 0, "exclusive": True},
                              "outfit": {"count": 0}, "acc": {"count": 0}}},
         "interiors": {"atlas": "gen/interiors.json",
-                      "keys": {**{k: {} for k in ["table", "chair", "cup", "tray", "rug", "frame", "paper", "junk", "stairs", "tile_wall"]},
+                      "keys": {**{k: {} for k in ["table", "chair", "cup", "tray", "rug", "frame", "paper", "junk", "stairs", "memo", "tile_wall"]},
                                "tile_floor": {"step": "wood"}, "tile_water": {"step": "water", "walk": False}}},
         "map": {"atlas": "gen/map.json", "keys": {**{k: {} for k in ["house", "icon_bridge", "icon_exclamation", "tree"]},
                                                   "g": {"step": "grass"}, "w": {"step": "water", "walk": False}}},
@@ -119,3 +120,12 @@ def register(client, pid: str) -> str:
 
 def auth(token: str) -> dict:
     return {"Authorization": f"Bearer {token}"}
+
+
+def recv(ws, kind: str, skip: tuple[str, ...] = ("event", "progress")) -> dict:
+    """Next frame of the given type; log/progress frames (sent on every change) are skipped unless asked for."""
+    while True:
+        m = ws.receive_json()
+        if m["type"] == kind:
+            return m
+        assert m["type"] in skip, f"expected {kind}, got {m}"

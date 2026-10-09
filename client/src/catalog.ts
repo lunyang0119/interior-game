@@ -5,6 +5,7 @@ export const TAG_RUINED = "ruined";
 export const TAG_FIXED = "fixed";
 /** Tapping a stairs item walks to the exit it sits on instead of opening its menu. */
 export const TAG_STAIRS = "stairs";
+export const TAG_NOTE = "note"; // carries a text anyone can rewrite (ui/note.ts)
 /** Owner id of items pre-placed by the server (never a real player). */
 export const SEED_PLAYER = "$seed";
 export const MAP_ROOM = "map";
@@ -40,6 +41,31 @@ export interface Room {
   /** Per-cell floor tiles painted in the world editor (rows × cols); null cells fall back to tiles.floor. */
   floor?: (string | null)[][] | null;
   exits: Exit[];
+  /** Restoration stages (mirror server/app/restore.py); progress comes from /api/rooms and the ws `progress` message. */
+  restore?: Stage[];
+}
+
+export type NeedType = "ruined_zero" | "placed" | "deliver" | "pool";
+export interface Need { type: NeedType; count?: number; layer?: string | null; tag?: string | null; item_id?: string | null; id?: string | null; amount?: number | null; label?: string }
+export interface Reward { type: "unlock"; room: string }
+export interface Stage { id: string; name: string; need: Need[]; reward: Reward[] }
+
+/** Which room's stage opens `target` (a room id, "map" or "dock"); null when nothing locks it. */
+export function unlockerOf(cat: Catalog, target: string): { room: Room; stage: Stage; index: number } | null {
+  for (const room of cat.rooms.values()) {
+    const stages = room.restore ?? [];
+    for (let index = 0; index < stages.length; index++) {
+      if (stages[index].reward.some((r) => r.room === target)) return { room, stage: stages[index], index };
+    }
+  }
+  return null;
+}
+
+/** Display name of a place: a room's name, or the two scene rooms. */
+export function placeName(cat: Catalog, id: string): string {
+  if (id === MAP_ROOM) return "바깥";
+  if (id === DOCK_ROOM) return "부두";
+  return cat.rooms.get(id)?.name || id;
 }
 
 /** Footstep sound kinds a tile can carry (mirror preprocess TILE_STEPS). "none" = silent. */
@@ -113,6 +139,10 @@ export interface RoomItem {
   ts: number;
   span?: number | null; // wallpaper: width in cells chosen when placed (null → item.w)
   room_id?: string;
+  // note items only
+  note?: string | null;
+  note_by?: string | null;
+  note_ts?: number | null;
 }
 
 export interface AvatarLook {

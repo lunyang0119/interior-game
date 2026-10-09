@@ -1,7 +1,7 @@
 """Phase 1 (tags / ruined / seed) + Phase 2 (multiple rooms, exits, presence rooms)."""
 import json
 
-from conftest import auth, register
+from conftest import auth, recv, register
 
 
 def test_seed_once_and_sell(env):
@@ -131,19 +131,19 @@ def test_ws_enter_scopes_presence(client):
         b.send_text(json.dumps({"type": "move", "x": 2, "y": 2, "dir": "up", "moving": False}))
         # a room change anywhere still reaches everyone, tagged with its room
         client.post("/api/room/place", json={"item_id": "chair", "x": 1, "y": 1, "room_id": "house_a"}, headers=auth(lun))
-        assert a.receive_json() == {"type": "room", "room": "house_a", "version": 2, "balance": 750}
-        assert b.receive_json() == {"type": "room", "room": "house_a", "version": 2, "balance": 750}
+        assert recv(a, "room") == {"type": "room", "room": "house_a", "version": 2, "balance": 750}
+        assert recv(b, "room") == {"type": "room", "room": "house_a", "version": 2, "balance": 750}
         # lun follows: sees kim there
         a.send_text(json.dumps({"type": "enter", "room": "house_a", "x": 1, "y": 3}))
-        entered = a.receive_json()
+        entered = recv(a, "entered")
         assert entered["type"] == "entered" and [o["id"] for o in entered["online"]] == ["kim"]
         assert entered["online"][0]["x"] == 2.0
-        assert b.receive_json()["type"] == "join"
+        assert recv(b, "join")["type"] == "join"
         # unknown room is ignored, scene rooms are fine
         a.send_text(json.dumps({"type": "enter", "room": "nope"}))
         a.send_text(json.dumps({"type": "enter", "room": "dock"}))
-        assert a.receive_json()["room"] == "dock"
-        assert b.receive_json() == {"type": "leave", "id": "lun"}
+        assert recv(a, "entered")["room"] == "dock"
+        assert recv(b, "leave") == {"type": "leave", "id": "lun"}
         rooms = {x["id"]: x["online"] for x in client.get("/api/rooms").json()["rooms"]}
         assert rooms == {"inn": 0, "house_a": 1}
 

@@ -1341,5 +1341,46 @@
    "x": 8,
    "y": 19
   }
+ ],
+ "restore": [
+  {
+   "id": "clean",
+   "name": "청소",
+   "need": [
+    {
+     "type": "ruined_zero",
+     "label": "부서진 물건 치우기"
+    }
+   ],
+   "reward": [
+    {
+     "type": "unlock",
+     "room": "map"
+    }
+   ]
+  },
+  {
+   "id": "fishing",
+   "name": "낚시",
+   "need": [
+    {
+     "type": "deliver",
+     "kind": "fish",
+     "count": 20,
+     "label": "물고기 납품"
+    },
+    {
+     "type": "pool",
+     "amount": 1000,
+     "label": "공동 자금 모으기"
+    }
+   ],
+   "reward": [
+    {
+     "type": "unlock",
+     "room": "floor_2"
+    }
+   ]
+  }
  ]
 }

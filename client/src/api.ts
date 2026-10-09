@@ -31,6 +31,11 @@ const MESSAGES: Record<string, string> = {
   fish_cooldown: "잠깐 쉬었다가 다시 던져요",
   too_early: "아직 입질이 안 끝났어요",
   no_session: "낚싯대를 먼저 던져요",
+  room_locked: "아직 들어갈 수 없는 곳이에요",
+  nothing_to_deliver: "지금은 납품할 곳이 없어요",
+  deliver_expired: "너무 늦었어요. 이 물고기는 이미 팔렸어요",
+  already_delivered: "이미 납품한 물고기예요",
+  not_your_catch: "내가 낚은 물고기만 납품할 수 있어요",
   network: "네트워크 오류네요",
 };
 
@@ -61,14 +66,40 @@ async function call<T>(method: string, path: string, body?: unknown, extra: Reco
 
 export interface MeResponse { id: string; balance: number; contributions: Contribution[]; avatar: AvatarLook }
 export interface RoomResponse { room: string; version: number; items: RoomItem[]; ruined: number }
-export interface RoomSummary { id: string; name: string; version: number; ruined: number; online: number }
+/** One need of a room's current restoration stage (server restore.py NeedProgress.public()). */
+export interface NeedProgress { type: "ruined_zero" | "placed" | "deliver" | "pool"; label: string; have: number; want: number; done: boolean }
+export interface StageProgress { id: string; name: string; done: boolean; unlocks: string[]; needs: NeedProgress[] }
+/** A room's restoration: completed count, total, and the current stage (null once everything is done). */
+export interface RoomProgress { stage: number; total: number; done: boolean; current: StageProgress | null }
+export interface RoomSummary { id: string; name: string; version: number; ruined: number; online: number; progress: RoomProgress | null }
+export interface RoomsResponse { rooms: RoomSummary[]; locked: string[] }
+/** A room's current stage wants this catch: where, and how far along it is. */
+export interface Deliverable { room: string; name: string; have: number; want: number }
+export interface FishFinishResponse {
+  ok: boolean; pulls: number; escaped: boolean; id: string; name: string; value: number; balance: number;
+  seq: number | null; deliverable: Deliverable[];
+}
+/** One row of the activity log (server events table). amount = change of the shared pool, + means it grew. */
+export interface ActivityEvent {
+  seq: number; ts: number; kind: "place" | "remove" | "sell" | "fish" | "deliver" | "stage" | "earn" | string;
+  room_id: string | null; player_id: string | null; item_id: string | null; amount: number | null;
+  data: { stage?: string; name?: string; index?: number; unlocks?: string[] } | null;
+}
+export interface ActivityResponse {
+  events: ActivityEvent[]; max: number; today: { earned: number; spent: number; fish: number };
+  progress: Record<string, RoomProgress>; locked: string[];
+}
 
 export const api = {
   catalog: () => call<RawCatalog>("GET", "/api/catalog"),
-  rooms: () => call<{ rooms: RoomSummary[] }>("GET", "/api/rooms"),
+  rooms: () => call<RoomsResponse>("GET", "/api/rooms"),
+  activity: () => call<ActivityResponse>("GET", "/api/activity"),
+  fishInfo: () => call<{ loot: { id: string; name: string; value: number }[]; cooldown_s: number }>("GET", "/api/fish"),
   fishStart: () => call<{ session: string; bites: { at_ms: number; window_ms: number; hold_ms: number }[] }>("POST", "/api/fish/start", {}),
   fishFinish: (session: string, holds: { start_ms: number; end_ms: number }[], escaped: boolean) =>
-    call<{ ok: boolean; pulls: number; escaped: boolean; id: string; name: string; value: number; balance: number }>("POST", "/api/fish/finish", { session, holds, escaped }),
+    call<FishFinishResponse>("POST", "/api/fish/finish", { session, holds, escaped }),
+  fishDeliver: (seq: number, room?: string) =>
+    call<{ balance: number; room: string; have: number; want: number; completed: { room: string; stage: string; name: string }[] }>("POST", "/api/fish/deliver", { seq, room }),
   register: (id: string) => call<{ id: string; token: string; existing: boolean; created: boolean; name: string; earned: number }>("POST", "/api/register", { id }),
   me: () => call<MeResponse>("GET", "/api/me"),
   sync: () => call<{ refreshed: boolean; balance: number; contributions: Contribution[] }>("POST", "/api/sync"),
@@ -81,6 +112,8 @@ export const api = {
   move: (uid: number, x: number, y: number, span?: number | null) =>
     call<{ uid: number; version: number; balance: number }>("POST", "/api/room/move", { uid, x, y, span: span ?? undefined }),
   remove: (uid: number) => call<{ balance: number; version: number; room?: string; ruined?: number }>("DELETE", `/api/room/item/${uid}`),
+  note: (uid: number, text: string) =>
+    call<{ uid: number; version: number; room: string; note: string | null; note_by: string | null; note_ts: number | null }>("PUT", `/api/room/item/${uid}/note`, { text }),
   rotate: () => call<{ id: string; token: string }>("POST", "/api/token/rotate"),
   logins: () => call<{ logins: { ts: number; action: string; ip_hash: string; ua: string; ok: number }[] }>("GET", "/api/me/logins"),
   /** Verify a token without touching global state. */

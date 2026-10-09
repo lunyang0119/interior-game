@@ -98,6 +98,10 @@
   <input type="text" id="sheetFilter" placeholder="시트 이름 걸러내기… (예: Basement)" style="width:100%">
   <label><span>시트</span><select id="sheetSel"></select></label>
   <div class="row">
+    <button id="shrinkBtn" title="이 시트의 절반 크기 사본을 assets/graphic/<루트>/_16px/ 에 만들어요. 32px 타일 시트를 16px 격자로 자르고 싶을 때.">32→16 축소본 만들기</button>
+    <select id="shrinkMethod" title="nearest: 2배 확대된 그림을 픽셀 그대로 되돌림 · box: 진짜 고해상도 그림을 평균내서 축소 · auto: 그림을 보고 고름"><option value="auto" selected>auto</option><option value="nearest">nearest</option><option value="box">box</option></select>
+  </div>
+  <div class="row">
     <label><span>줌</span><select id="zoomSel"><option>1</option><option>2</option><option selected>3</option><option>4</option><option>6</option></select></label>
     <label><input type="checkbox" id="gridChk" checked> 격자</label>
     <label><span>스냅</span><select id="snapSel"><option>16</option><option>8</option><option>1</option></select></label>
@@ -464,6 +468,21 @@
     if ([...sel_.options].some((o) => o.value === cur)) sel_.value = cur;
   }
   $("sheetFilter").oninput = fillSheetSelect;
+  $("shrinkBtn").onclick = async () => {
+    if (!sheet || sheet === FILE_SHEET) return;
+    const info = sheetInfo(sheet);
+    if (!info?.exists) { alert("원본이 없는 시트는 축소할 수 없어요"); return; }
+    if (info.name.includes("/_16px/") && !confirm("이미 축소본이에요. 또 절반으로 줄일까요?")) return;
+    const b = $("shrinkBtn"); b.disabled = true;
+    try {
+      const r = await (await fetch("/api/shrink", { method: "POST", body: JSON.stringify({ sheet, method: $("shrinkMethod").value }) })).json();
+      if (!r.ok) { alert(r.error || "실패"); return; }
+      S.sheets = (await (await fetch("/api/state")).json()).sheets;
+      fillSheetSelect();
+      setSheet(r.sheet);
+      alert(`축소본을 만들었어요 (${r.method})\n${r.sheet}`);
+    } finally { b.disabled = false; }
+  };
 
   function setSheet(name, thenSelect = null) {
     sheet = name; sel = null; drag = null; sheetPixels = null;

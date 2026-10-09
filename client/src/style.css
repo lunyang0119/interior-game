@@ -25,6 +25,7 @@
   --frame-input: none; --slice-input: 0; --slice-input-px: 0px; --pad-input: 10px;
   --frame-ctx: none; --slice-ctx: 0; --slice-ctx-px: 0px; --pad-ctx: 8px;
   --frame-toast: none; --slice-toast: 0; --slice-toast-px: 0px; --pad-toast: 10px;
+  --frame-note: none; --slice-note: 0; --slice-note-px: 0px; --pad-note: 10px;
 }
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -38,6 +39,11 @@ img, .framed { image-rendering: pixelated; }
 .overlay > * { pointer-events: auto; }
 #hud { top: var(--safe-top); flex-wrap: wrap; }
 #bottombar { bottom: var(--safe-bottom); justify-content: center; }
+/* fold chips (▾/▸): the bottom bar hides its big buttons; the HUD keeps only the account chip and the
+   connection warning. Remembered per bar in localStorage (hud.ts initFold). */
+#bottombar.folded > button.big { display: none; }
+#hud.folded > *:not(#btn-accounts):not(#btn-hud-fold):not(#hud-conn) { display: none; }
+#btn-fold, #btn-hud-fold { min-width: 44px; font-weight: 700; }
 #placebar { bottom: var(--safe-bottom); justify-content: center; background: var(--chip); backdrop-filter: blur(6px); }
 #dockbar { top: calc(var(--safe-top) + 48px); justify-content: flex-start; }
 #fishbar { bottom: var(--safe-bottom); flex-direction: column; align-items: center; gap: 6px; }
@@ -50,9 +56,28 @@ img, .framed { image-rendering: pixelated; }
 #btn-fish.holding { transform: scale(0.96); filter: brightness(1.2); }
 #btn-fish.bite { animation: fish-bite .35s ease-in-out infinite alternate; }
 @keyframes fish-bite { from { transform: scale(1); } to { transform: scale(1.08); filter: brightness(1.2); } }
-#fish-catch { position: fixed; left: 50%; top: 40%; transform: translate(-50%, -50%); display: flex; align-items: center; gap: 10px;
+#fish-catch { position: fixed; left: 50%; top: 40%; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; gap: 10px;
   background: var(--panel); padding: 12px 18px; border-radius: 12px; z-index: 30; box-shadow: 0 8px 30px rgba(0,0,0,.5); font-weight: 700; }
+.fish-catch-row { display: flex; align-items: center; gap: 10px; }
 #fish-catch img { width: 48px; height: 48px; image-rendering: pixelated; object-fit: contain; }
+#fish-deliver { padding: 8px 16px; font-weight: 700; }
+
+/* 📜 기록 */
+.log-today { color: var(--muted); margin-bottom: 8px; }
+#log-list .ev { display: flex; justify-content: space-between; gap: 10px; padding: 8px 10px; border-radius: 10px; background: var(--card); margin-bottom: 6px; line-height: 1.4; }
+#log-list .ev .when { color: var(--muted); font-size: 11px; white-space: nowrap; align-self: flex-start; }
+#log-list .ev.stage { background: rgba(255, 211, 92, .14); }
+#log-list .ev.empty { color: var(--muted); justify-content: center; }
+.panel-sub { font-weight: 700; margin: 12px 0 6px; }
+#log-progress .restore { padding: 8px 10px; border-radius: 10px; background: var(--card); margin-bottom: 6px; }
+#log-progress .restore.here { outline: 2px solid var(--primary); }
+#log-progress .restore-head { font-weight: 700; margin-bottom: 4px; }
+#log-progress .need { padding-left: 4px; color: var(--text); }
+#log-progress .need::before { content: "☐ "; color: var(--muted); }
+#log-progress .need.done { color: var(--muted); text-decoration: line-through; }
+#log-progress .need.done::before { content: "☑ "; }
+#log-progress .reward { color: var(--muted); font-size: var(--fs-small); margin-top: 4px; }
+#log-progress .restore.done .restore-head { color: var(--muted); }
 #place-label { color: var(--text); margin-right: 8px; }
 #place-span { display: inline-flex; align-items: center; gap: 6px; }
 #place-span button { padding: 4px 10px; font-weight: 700; }
@@ -88,6 +113,14 @@ input {
   border: var(--slice-input-px) solid transparent; border-image: var(--frame-input) var(--slice-input) fill round;
 }
 .hidden { display: none !important; }
+
+/* 쪽지: a plain card until the theme defines a `note` frame (paper tile from data/ui_theme.json) */
+.note-paper {
+  background: var(--card); border-radius: 10px; padding: var(--pad-note);
+  border: var(--slice-note-px) solid transparent; border-image: var(--frame-note) var(--slice-note) fill round; image-rendering: pixelated;
+}
+.note-paper textarea { display: block; width: 100%; resize: vertical; min-height: 96px; border: 0; background: transparent; color: var(--text); font: inherit; line-height: 1.5; outline: none; -webkit-user-select: text; user-select: text; }
+.note-foot { display: flex; justify-content: space-between; gap: 8px; margin-top: 6px; font-size: 11px; color: var(--muted); opacity: .55; }
 
 #accounts-list .acct { display: flex; align-items: center; gap: 8px; padding: 8px; border-radius: 10px; background: var(--card); margin-bottom: 6px; }
 #accounts-list .acct.active { outline: 2px solid var(--primary); }

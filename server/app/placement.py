@@ -36,6 +36,10 @@ class ItemRow:
     ts: int
     span: int | None = None  # wallpaper only: width in cells chosen at placement
     room_id: str = DEFAULT_ROOM
+    # note items only (TAG_NOTE): the text, who wrote it last, when
+    note: str | None = None
+    note_by: str | None = None
+    note_ts: int | None = None
 
 
 @dataclass(frozen=True)

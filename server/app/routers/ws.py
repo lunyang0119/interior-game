@@ -5,10 +5,12 @@ Protocol (plan §4):
   S→C {"type":"hello","you","room","online":[...],"room_version"}   online = players in your room
   C→S {"type":"enter","room","x","y"}    walk through an exit (room id, "map" or "dock")
   S→C {"type":"entered","room","online","room_version"}            to the sender only
+  S→C {"type":"error","code":"room_locked","room"}                 enter refused: that place's restoration stage is not done
   C→S {"type":"move","x","y","dir","moving"}
   S→C {"type":"move","id",...}           to everyone else in the same room
   S→C {"type":"join"|"leave"}            same room only
   S→C {"type":"avatar_look"|"room"|"money"}   everyone
+  S→C {"type":"event","event"} | {"type":"progress","rooms","locked"}   everyone (activity log / restoration, progress.py)
   C→S {"type":"ping"} → S→C {"type":"pong"}
 """
 
@@ -19,7 +21,7 @@ import time
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
-from .. import config
+from .. import config, progress
 from ..auth import lookup_token
 from ..db import connect, room_version
 from ..presence import Online, hub
@@ -42,6 +44,14 @@ def _version(room: str) -> int:
     conn = connect()
     try:
         return room_version(conn, room)
+    finally:
+        conn.close()
+
+
+def _is_locked(app, room: str) -> bool:
+    conn = connect()
+    try:
+        return room in progress.locked(conn, app.state.catalog)
     finally:
         conn.close()
 
@@ -101,6 +111,9 @@ async def ws_endpoint(ws: WebSocket):
                     x = min(max(float(msg.get("x", 0)), 0.0), mx)
                     y = min(max(float(msg.get("y", 0)), 0.0), my)
                 except (TypeError, ValueError):
+                    continue
+                if await asyncio.to_thread(_is_locked, ws.app, room):
+                    await ws.send_text(json.dumps({"type": "error", "code": "room_locked", "room": room}))
                     continue
                 await hub.move_room(o, room, x, y)
                 ver = await asyncio.to_thread(_version, room) if room in cat.rooms else 0

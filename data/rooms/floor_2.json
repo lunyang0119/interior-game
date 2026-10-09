@@ -1,6 +1,6 @@
 {
  "id": "floor_2",
- "name": "floor_2",
+ "name": "2층",
  "cols": 41,
  "rows": 31,
  "wall_rows": 3,
@@ -501,6 +501,30 @@
    "item_id": "back_stair_red",
    "x": 0,
    "y": 3
+  }
+ ],
+ "restore": [
+  {
+   "id": "furnish",
+   "name": "2층 꾸미기",
+   "need": [
+    {
+     "type": "ruined_zero",
+     "label": "부서진 물건 치우기"
+    },
+    {
+     "type": "placed",
+     "layer": "furniture",
+     "count": 8,
+     "label": "가구 놓기"
+    }
+   ],
+   "reward": [
+    {
+     "type": "unlock",
+     "room": "room2"
+    }
+   ]
   }
  ]
 }

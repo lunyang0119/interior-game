@@ -13,7 +13,7 @@
 
 ## BGM
 
-`assets/BGM/day/`, `assets/BGM/night/`의 mp3가 한국시간 08:00–18:00 / 그 외로 나뉘어 랜덤 재생된다. 첫 터치 후 시작, HUD 🔊 버튼으로 끄면 기억됨. 테스트용 `?bgm=day|night` 쿼리로 강제 가능.
+`assets/BGM/day/`, `assets/BGM/night/`의 mp3가 기본 BGM으로 한국시간 08:00–18:00 / 그 외로 나뉘어 랜덤 재생된다. 장소별 BGM은 `assets/BGM/<장소>/*.mp3`(낮밤 공용) 또는 `assets/BGM/<장소>/day|night/*.mp3`에 넣는다 — 장소 이름은 `dock`(낚시터), `field`(필드 지도), `room`(방들). 해당 장소·시간대에 곡이 없으면 기본 목록을 쓰고, `legacy/`는 무시된다. 장면이 바뀌면 재생 목록이 실제로 달라질 때만 페이드로 전환된다. 필드 배경은 밤(18:00–08:00)에 어둡게 덮어 그려진다(아직 전용 밤 그림은 없음). 첫 터치 후 시작, HUD 🔊 버튼으로 끄면 기억됨. 테스트용 `?bgm=day|night` 쿼리로 강제 가능.
 
 ## 배포 (Oracle Free Tier + Caddy + DuckDNS)
 
@@ -37,6 +37,8 @@ sudo systemctl restart interior
 sudo systemctl stop interior
 grep DB_PATH /opt/interior/server/.env
 sqlite3 <그 경로> "DELETE FROM room_meta WHERE k IN ('seeded:room2','seed_hash:room2');"
+# 복구 단계를 처음부터 다시 하고 싶으면 (납품 기록은 남음)
+sqlite3 <그 경로> "DELETE FROM room_meta WHERE k LIKE 'stage:%' OR k LIKE 'stage_ts:%';"
 sudo systemctl start interior
 ```
   로그에 seeded room inn: N items (M old seed rows replaced)가 나오면 된 거
@@ -50,8 +52,11 @@ sudo systemctl start interior
 | POST | `/api/sync` | 시트 강제 동기화 |
 | PUT | `/api/avatar` | 아바타 레이어 인덱스 |
 | GET | `/api/catalog` | 아이템/방/캐릭터 메타 |
-| GET | `/api/rooms` | 방 목록: 버전, 남은 `ruined` 개수, 접속자 수 |
+| GET | `/api/rooms` | 방 목록: 버전, 남은 `ruined` 개수, 접속자 수, 복구 `progress`(단계 수·현재 단계의 need별 진행), 최상위 `locked`(아직 못 들어가는 장소) |
+| GET | `/api/activity` | 📜 기록: 최근 이벤트 **5개만**(서버가 더는 안 줌), 오늘 요약(벌이·지출·낚시 수), 모든 방의 복구 진행 |
+| POST | `/api/fish/deliver` (`seq`, `room?`) | 방금 낚은 물고기(`/finish`의 `seq`)를 팔지 않고 어떤 방의 복구 단계에 **납품**. 120초 안에 1번만, 그 돈은 풀에서 다시 빠짐(`ledger.kind='deliver'`) |
 | GET | `/api/room/{id}` (`/api/room` = inn) | 방 아이템 + `ruined` (ETag = 방 버전) |
+| PUT | `/api/room/item/{uid}/note` `{text}` | `note` 태그 아이템(메모지·칠판·게시판)에 글 남기기(200자, 빈 문자열이면 지움). 누구나 고쳐 쓸 수 있고 방 버전이 올라가 모두에게 갱신 |
 | POST | `/api/room/place` (`room_id`) · `/api/room/move` · DELETE `/api/room/item/{uid}` | 배치/이동/삭제 (서버가 규칙 검증). `ruined`/`fixed` 태그는 구매 불가(`not_for_sale`), `fixed`는 이동·삭제도 불가(`fixed_item`) |
 | GET `/api/fish` · POST `/api/fish/start` · `/api/fish/finish` | 부두 낚시: 서버가 입질 일정을 만들고(진짜 1번 + 미끼 건드림), 클라가 버튼을 누른 구간을 보내면 판정. 잡으면 공용 풀에 바로 입금(`ledger.kind='fish'`) + 전원 알림. 설정은 `data/fishing.json` |
 | POST | `/api/token/rotate` · GET `/api/me/logins` | 토큰 재발급 / 접속 기록 |

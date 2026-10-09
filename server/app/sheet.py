@@ -11,6 +11,7 @@ import logging
 import sqlite3
 import threading
 import time
+from typing import Callable
 
 import httpx
 
@@ -34,6 +35,10 @@ class SheetService:
         self._last_manual = 0.0
         self._lock = threading.Lock()
         self._inflight = False  # a background refresh thread is running
+        # Called inside the snapshot transaction after a successful fetch: (conn, events) -> completed stages.
+        # main.py points it at progress.advance_rooms so `pool` needs react to new income; `catalog` is the live one.
+        self.on_snapshot: Callable[[sqlite3.Connection, list[dict]], list] | None = None
+        self.catalog = None
 
     # -- fetching -----------------------------------------------------------
 
@@ -159,14 +164,27 @@ class SheetService:
             if m["id"] in merged:
                 log.warning("sheet: duplicate id %r, summing earned", m["id"])
             merged[m["id"]] = merged.get(m["id"], 0) + int(m["earned"])
+        from .progress import add_event, after_commit  # (progress imports this module)
+
+        events: list[dict] = []
+        completed: list = []
         with self._lock:
             with transaction(conn):
+                prev = {r["player_id"]: int(r["earned"]) for r in conn.execute("SELECT player_id, earned FROM sheet_snapshot")}
                 conn.execute("DELETE FROM sheet_snapshot")
                 conn.executemany(
                     "INSERT INTO sheet_snapshot(player_id, earned, fetched_ts) VALUES (?, ?, ?)",
                     [(pid, earned, ts) for pid, earned in merged.items()],
                 )
+                # new income since the last snapshot goes to the activity log (first fetch / new members: nothing)
+                for pid, earned in merged.items():
+                    if pid in prev and earned > prev[pid]:
+                        events.append(add_event(conn, "earn", player_id=pid, amount=earned - prev[pid]))
+                if self.on_snapshot is not None:
+                    completed = self.on_snapshot(conn, events)
             self._last_fetch = time.monotonic()
+        if (events or completed) and self.catalog is not None:
+            after_commit(conn, self.catalog, events, completed)
         return True
 
     def manual_sync(self, conn: sqlite3.Connection) -> bool:

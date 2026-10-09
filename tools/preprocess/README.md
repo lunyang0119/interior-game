@@ -93,8 +93,11 @@ python tools/preprocess/preprocess.py build                        # map_slices.
 - **시트·슬라이스**: 시트 드롭다운에 `assets/graphic/Interior`·`Map` 아래 모든 PNG가 자동으로 뜬다 (이름 있는 시트 / 팩 전체 / 맵 세 그룹, 위 칸에 이름 일부를 치면 걸러짐).
   맵 그룹 시트에서 만든 슬라이스는 `map_slices.json`으로 간다. 슬라이스에 `scale`(32px 타일은 0.5)과 `배경색 제거`(단색 배경 시트용, "찍기"로 픽셀 클릭)를 줄 수 있다.
   원본이 없는 시트(동결)도 목록에 뜨지만 좌표는 못 바꾼다.
+  **32px 시트**는 슬라이스마다 `scale` 0.5를 주는 대신 **32→16 축소본 만들기** 버튼(또는 `python tools/preprocess/preprocess.py shrink <시트 경로|폴더>`)으로
+  `assets/graphic/<Interior|Map>/_16px/<경로를 __로 이은 이름>.png` 사본을 만들고 그 시트를 16px 격자로 자른다. 방식 `auto`는 그림이 2배 확대된 픽셀아트면
+  `nearest`(픽셀 그대로 되돌림), 아니면 `box`(평균 축소)를 고른다. 원본이 바뀌면 다시 만들어야 하고, 사본도 `assets/`라 gitignore.
 - **아이템**: items.json 전체를 썸네일로 검색·태그·레이어로 거른다. 카드 클릭 → 그 슬라이스로 이동.
-  오른쪽 아이템 폼의 **태그**(`ruined`, `fixed`, `stairs` …)와 **쌍(pair)**: 부서진 가구 ↔ 멀쩡한 가구를 양방향으로 잇는다. `ruined` 체크박스는 태그 단축키.
+  오른쪽 아이템 폼의 **태그**(`ruined`, `fixed`, `stairs`, `note`=쪽지로 글을 남길 수 있는 아이템 …)와 **쌍(pair)**: 부서진 가구 ↔ 멀쩡한 가구를 양방향으로 잇는다. `ruined` 체크박스는 태그 단축키.
 - **낱개**: 정식 팩 `Theme_Sorter_Singles`의 낱개 PNG를 테마별 썸네일로 보고 클릭하면 `file` 슬라이스가 생긴다.
 - **캐릭터**: 전과 같음.
 - **방·맵 에디터** (`/world`): 아래 참고.
@@ -105,10 +108,20 @@ python tools/preprocess/preprocess.py build                        # map_slices.
 - **시드**: 팔레트에서 아이템을 고르고 "시드 놓기"로 클릭. 게임 시작 시 `$seed` 소유로 미리 놓이고 화면엔 "???"로 보인다. 시드는 방 밖으로 삐져나가거나 서로 겹쳐도 된다(원근·연출용). 단 가구는 바닥 칸(발 위치), 벽지·벽 장식은 벽 칸에 있어야 하고, 소품은 is_surface 가구 위여야 한다 — 어기면 빨간 칸으로 표시되고 게임에서 건너뛴다. `ruined` 태그면 팔 수 있고, `fixed`면 못 건드린다.
 - **바닥 칠하기**: 팔레트가 `tile_floor_*` 타일로 바뀐다. 타일을 고르고 클릭/드래그로 칸마다 다른 바닥을 칠한다(우클릭 = 기본 바닥으로). 방 JSON에는 `floor: [[…]]`(rows×cols, `null` = `tiles.floor`)로 저장되고, 전부 비어 있으면 저장 시 필드가 빠진다. 게임은 이 칸의 타일로 **발소리**와 **통행 가능 여부**를 정한다(아래 "타일 메타" 참고).
 - **출구(기믹)**: "출구 그리기"로 사각형을 드래그 → 어느 방(`inn_2f` 등)이나 `map`으로 갈지, 도착 좌표. 아바타가 그 칸에 도착하면 이동. 계단 스프라이트는 같은 자리에 시드로 놓고 `stairs, fixed` 태그.
+- **복구 단계(`restore`)**: 방 JSON에 직접 적는다(에디터 UI는 아직 없음). 단계마다 `need`(조건)와 `reward`(보상)이 있고, 서버(`server/app/restore.py`)가 아이템·납품·공동 자금을 보고 판정해서 완료 단계 수만 `room_meta`의 `stage:<id>`에 저장한다. 단계는 되돌아가지 않는다(돈을 나중에 써도 안 잠김).
+  ```json
+  "restore": [
+    {"id": "clean", "name": "청소", "need": [{"type": "ruined_zero"}], "reward": [{"type": "unlock", "room": "map"}]},
+    {"id": "fishing", "name": "낚시", "need": [{"type": "deliver", "kind": "fish", "count": 20}, {"type": "pool", "amount": 1000}],
+     "reward": [{"type": "unlock", "room": "floor_2"}]}
+  ]
+  ```
+  need 타입: `ruined_zero`(이 방의 ruined 0개) · `placed`(플레이어가 놓은 아이템 수; `layer`/`tag`/`item_id` 중 하나로 거를 수 있음, `count`) · `deliver`(이 단계에 납품된 물고기 수, `id`로 종류 지정 가능, `count`) · `pool`(공동 자금 잔액 ≥ `amount`, 소비 안 함 — 납품하면 그 물고기 값은 풀에서 빠지니 같이 쓸 때 감안). `label`은 체크리스트 문구(없으면 기본 문구).
+  reward: `unlock {room}` — 방 id, `"map"`, `"dock"`. 어떤 단계가 unlock으로 가리키는 장소는 그 단계가 끝날 때까지 **잠긴다**(배치·이동 거부, 들어가기 거부, 맵에 `icon_lock`). 아무도 가리키지 않는 장소는 늘 열려 있다. 여관(inn)·자기 방·같은 장소를 두 단계가 여는 것·순환은 서버가 시작할 때 거부한다.
 - 서버는 시작할 때 방마다 **한 번만** 시드를 놓는다 (`room_meta`의 `seeded:<id>`). 시드를 고친 뒤 다시 놓고 싶으면 VM에서 `sqlite3 server/interior.db "DELETE FROM room_meta WHERE k='seeded:inn'"` 후 재시작 (이미 놓인 물건은 그대로 두고 빈 자리에만 추가된다).
 - 저장하면 `inn`은 예전 서버가 읽던 `data/room.json`에도 복사된다 (`data/rooms/`가 있으면 서버는 그쪽을 쓴다).
 
-**맵** 탭: `data/map.json`. 서버가 시작할 때 읽어 `/api/catalog`의 `map`으로 내보내고, 게임의 `MapScene`이 그린다(20×14칸 창이 아바타를 따라 스크롤). 장소 footprint는 문 칸만 빼고 막힌 칸이 되고, 데코는 막지 않는다. 부서진 물건이 남은 방의 장소 위엔 `icon_exclamation`이 둥둥 뜬다. 방에서 `to: "map"` 출구로 나오면 그 방을 가리키는 장소의 스폰에 선다(여관은 부서진 물건이 0개일 때만 나갈 수 있음). cols/rows(크기 적용 버튼), ground/deco 두 레이어에 맵 슬라이스를 칠하기(우클릭=지우개), 막힌 칸, 스폰.
+**맵** 탭: `data/map.json`. 서버가 시작할 때 읽어 `/api/catalog`의 `map`으로 내보내고, 게임의 `MapScene`이 그린다(20×14칸 창이 아바타를 따라 스크롤). 장소 footprint는 문 칸만 빼고 막힌 칸이 되고, 데코는 막지 않는다. 부서진 물건이 남은 방의 장소 위엔 `icon_exclamation`이 둥둥 뜨고, 복구 단계가 아직 안 연 장소엔 `icon_lock`이 뜬다(둘 다 `GUI/Map Legend Icons`의 맵 슬라이스). 방에서 `to: "map"` 출구로 나오면 그 방을 가리키는 장소의 스폰에 선다(바깥·2층 같은 장소는 방의 `restore` 단계가 열어 준다 — 위 "방" 절). cols/rows(크기 적용 버튼), ground/deco 두 레이어에 맵 슬라이스를 칠하기(우클릭=지우개), 막힌 칸, 스폰.
 - **장소**: 큰 스프라이트(집·표지판)를 고르면 "장소 놓기"로 바뀐다. 클릭해서 놓고 → 방 id(또는 `dock`), 이름, 문 칸("문 칸 찍기"). 아바타가 문 칸에 도착하면 "들어가시겠습니까?".
 - 비교용 캐릭터(16×32)가 스폰 위치에 그려진다. 집이 너무 크면 슬라이스 에디터에서 그 집 슬라이스에 `scale` 0.5를 주고 빌드.
 - 팔레트는 마지막 빌드의 `gen/map.png` 기준. 슬라이스를 추가했으면 빌드 후 새로고침.
@@ -136,7 +149,7 @@ python tools/preprocess/preprocess.py build                        # map_slices.
 ```
 python tools/preprocess/preprocess.py media
 ```
-`assets/BGM/day|night/*.mp3` → `client/public/media/bgm/day|night/NN-이름.mp3` + `bgm.json`, `assets/fonts/*.ttf` → `media/fonts/stardust*.ttf`.
+`assets/BGM/day|night/*.mp3` → `client/public/media/bgm/default/day|night/NN-이름.mp3`, `assets/BGM/<장소>/*.mp3` → `media/bgm/<장소>/any/`, `assets/BGM/<장소>/day|night/*.mp3` → `media/bgm/<장소>/day|night/` (장소 = `dock`, `field`, `room`; `legacy/`는 건너뜀) + `bgm.json`(`{장소: {day: [...], night: [...]}}`, 공용 곡은 양쪽에 들어감), `assets/fonts/*.ttf` → `media/fonts/stardust*.ttf`.
 곡을 바꾸면 다시 실행. mp3/ttf는 gitignore라 VM에는 rsync.
 
 **효과음**: `assets/sfx/**/<종류>_아무이름.mp3` → `media/sfx/<종류>.mp3` + `media/sfx.json`. 파일 이름의 첫 `_` 앞이 종류다.

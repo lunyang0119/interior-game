@@ -7,13 +7,13 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from . import catalog as catalog_mod
-from . import config, fishing, sheet
+from . import config, fishing, progress, sheet
 from .db import connect, ensure_room_meta, migrate, now, transaction
 from .errors import ApiError
 from .presence import hub
 from .reconcile import reconcile_items
 from .seed import seed_room
-from .routers import auth, fish, me, room, ws
+from .routers import activity, auth, fish, me, room, ws
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s %(message)s")
 log = logging.getLogger("main")
@@ -53,9 +53,20 @@ async def lifespan(app: FastAPI):
         reconcile_items(conn, app.state.catalog)
         for room in app.state.catalog.rooms.values():
             seed_room(conn, app.state.catalog, room)
+        # stages whose needs are already met (e.g. a DB from before restoration existed) complete right away
+        progress.advance_rooms(conn, app.state.catalog)
     conn.close()
     app.state.sheet = sheet.from_config()
+    # `pool` needs can only be met by new income, which arrives through sheet fetches
+    app.state.sheet.catalog = app.state.catalog
+    app.state.sheet.on_snapshot = lambda c, ev: progress.advance_rooms(c, app.state.catalog, ev)
     app.state.fishing = fishing.Fishing(cfg=fishing.load_config())
+    loot_ids = {lt.id for lt in app.state.fishing.cfg.loot}
+    for rm in app.state.catalog.rooms.values():
+        for st in rm.restore:
+            for n in st.need:
+                if n.type == "deliver" and n.id is not None and n.id not in loot_ids:
+                    raise ValueError(f"room {rm.id}: stage '{st.id}' needs unknown loot '{n.id}' (data/fishing.json)")
     hub.bind_loop()
     prune_task = asyncio.create_task(_prune_loop())
     yield
@@ -73,6 +84,7 @@ def create_app() -> FastAPI:
     app.include_router(me.router)
     app.include_router(room.router)
     app.include_router(fish.router)
+    app.include_router(activity.router)
     app.include_router(ws.router)
 
     # Generated sprites are served from the same origin in production. In dev Vite serves them.

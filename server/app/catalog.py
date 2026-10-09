@@ -13,6 +13,7 @@ from typing import Literal
 from pydantic import BaseModel, Field, field_validator, model_validator
 
 from . import config
+from .restore import Stage, validate_restore
 
 log = logging.getLogger("catalog")
 
@@ -26,6 +27,7 @@ ROOM_ID_RE = re.compile(r"^[a-z][a-z0-9_]*$")
 # tags with rules: ruined = seeded junk that can only be sold; fixed = part of the room (no buy/move/sell)
 TAG_RUINED = "ruined"
 TAG_FIXED = "fixed"
+TAG_NOTE = "note"  # carries a short text anyone can rewrite (PUT /api/room/item/{uid}/note)
 DEFAULT_ROOM = "inn"
 MAP_ROOM = "map"
 DOCK_ROOM = "dock"
@@ -111,6 +113,8 @@ class Room(BaseModel):
     floor: list[list[str | None]] | None = None
     exits: list[Exit] = []
     seed: list[Seed] = []
+    # Restoration stages (needs → unlock rewards), see restore.py. Empty = the room has no progression.
+    restore: list[Stage] = []
 
     def floor_key(self, x: int, y: int) -> str:
         """The floor tile drawn at a cell (wall rows still answer with the default floor)."""
@@ -311,6 +315,13 @@ def load(data_dir: Path | None = None, gen_dir: Path | None = None) -> Catalog:
         for sd in room.seed:
             if sd.item_id not in items:
                 raise ValueError(f"room {room.id}: seed item '{sd.item_id}' is not an item")
+        if len({st.id for st in room.restore}) != len(room.restore):
+            raise ValueError(f"room {room.id}: duplicate restore stage id")
+        for st in room.restore:
+            for n in st.need:
+                if n.type == "placed" and n.item_id is not None and n.item_id not in items:
+                    raise ValueError(f"room {room.id}: stage '{st.id}' needs unknown item '{n.item_id}'")
+    validate_restore(rooms, config.SCENE_ROOMS, DEFAULT_ROOM)
 
     layer_counts = {name: spec["count"] for name, spec in manifest["chars"]["layers"].items()}
     tiles = {"interior": _tile_meta(keys), "map": _tile_meta(manifest.get("map", {}).get("keys", {}))}

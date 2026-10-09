@@ -3,23 +3,42 @@ import { api, ApiError, msgFor } from "./api";
 import { initBgm } from "./audio/bgm";
 import { initSfx } from "./audio/sfx";
 import { bus, toast } from "./bus";
-import { DOCK_ROOM, makeCatalog, MAP_ROOM } from "./catalog";
+import { DOCK_ROOM, makeCatalog, MAP_ROOM, placeName, unlockerOf } from "./catalog";
 import { BootScene } from "./scenes/BootScene";
 import { DockScene } from "./scenes/DockScene";
 import { MapScene, type MapSceneData } from "./scenes/MapScene";
 import { RoomScene, type RoomSceneData } from "./scenes/RoomScene";
-import { state } from "./state";
+import { applyProgress, state } from "./state";
 import * as storage from "./storage";
 import { initAccounts } from "./ui/accounts";
 import { initAvatarEditor } from "./ui/avatarEditor";
 import { initContextMenu } from "./ui/contextMenu";
+import { initLog } from "./ui/log";
+import { initNote } from "./ui/note";
 import { $, initHud, renderIdentity, show } from "./ui/hud";
 import { initShop } from "./ui/shop";
 import { socket } from "./ws";
 import { refreshThemeLink } from "./assets";
 
-/** Accounts that may leave the inn before it is cleaned up (debugging). The gate is client-only anyway. */
+/** Accounts that may walk into locked places (debugging). The server still refuses to place anything there. */
 const DEBUG_IDS = new Set(["안나"]);
+
+/** Fetch the restoration picture (public endpoint; also refreshed by every ws `progress` message). */
+async function loadProgress(): Promise<void> {
+  try {
+    const r = await api.rooms();
+    applyProgress(Object.fromEntries(r.rooms.filter((x) => x.progress).map((x) => [x.id, x.progress!])), r.locked);
+  } catch { /* offline: keep what we have */ }
+}
+
+/** True when `target` may not be entered yet; shows why (which room's stage opens it). */
+function blockedByLock(target: string): boolean {
+  if (!state.locked.has(target) || (state.id && DEBUG_IDS.has(state.id))) return false;
+  const cat = state.catalog!;
+  const u = unlockerOf(cat, target);
+  toast(u ? `아직 들어갈 수 없어요 — ${placeName(cat, u.room.id)} '${u.stage.name}' 단계를 끝내면 열려요` : "아직 들어갈 수 없어요");
+  return true;
+}
 
 async function loadAccount(id: string | null): Promise<void> {
   state.id = null;
@@ -76,8 +95,8 @@ async function boot(): Promise<void> {
   const hasMap = !!state.catalog.map;
   state.roomId = base.id;
 
-  // 3. active account
-  await loadAccount(storage.activeAccount()?.id ?? null);
+  // 3. active account (+ the restoration picture, which does not need one)
+  await Promise.all([loadAccount(storage.activeAccount()?.id ?? null), loadProgress()]);
 
   // 4. UI
   initHud();
@@ -85,6 +104,8 @@ async function boot(): Promise<void> {
   initAvatarEditor();
   initShop();
   initContextMenu();
+  initNote();
+  initLog();
   void initBgm();
   void initSfx();
 
@@ -128,27 +149,31 @@ async function boot(): Promise<void> {
   game.scene.start("Boot", roomData());
 
   bus.on("account:switch", async ({ id }) => {
-    await loadAccount(id || null);
+    await Promise.all([loadAccount(id || null), loadProgress()]);
     const cur = active();
     if (cur === "Dock") goDock(); else if (cur === "Map") goMap(); else goRoom();
   });
+  // a socket (re)connect may have missed a `progress` broadcast
+  socket.on("open", () => void loadProgress());
 
-  // walking onto an exit inside a room
+  // walking onto an exit inside a room (locked places come from the restoration stages, see restore.py)
   bus.on("room:exit", ({ from, to, spawn }) => {
-    if (to === MAP_ROOM) {
-      if (from === base.id && state.ruined > 0 && !(state.id && DEBUG_IDS.has(state.id))) { toast(`${base.name || "여관"} 정리가 다 끝나면 바깥으로 나갈 수 있어요 (부서진 물건 ${state.ruined}개 남음)`); return; }
-      goMap(from);
-      return;
-    }
+    if (blockedByLock(to)) return;
+    if (to === MAP_ROOM) { goMap(from); return; }
     if (!state.catalog?.rooms.has(to)) { toast("아직 갈 수 없는 곳이에요"); return; }
     goRoom(to, spawn);
   });
 
   // said yes at a door on the map
   bus.on("map:enter", ({ room }) => {
+    if (blockedByLock(room)) return;
     if (room === DOCK_ROOM) { goDock(); return; }
     if (!state.catalog?.rooms.has(room)) { toast("아직 갈 수 없는 곳이에요"); return; }
     goRoom(room);
+  });
+  // the server refused a presence enter (e.g. a stage was reset by hand): say so, the scene itself is harmless
+  socket.on("error", (m: { code: string; room?: string }) => {
+    if (m.code === "room_locked") toast(`${m.room ? placeName(state.catalog!, m.room) : "거기"}는 아직 잠겨 있어요`);
   });
 
   // dock: 나가기 goes back to the map (or the base room when there is no map yet); #dock deep-links in

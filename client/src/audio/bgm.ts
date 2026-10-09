@@ -1,28 +1,38 @@
-/** Background music: day list 08:00–18:00 KST, night list otherwise. Random order, no immediate repeats.
+/** Background music: one list per place (default / dock / field / room) and per period (day 08:00–18:00 KST,
+ * night otherwise).
  *
- * Tracks come from /media/bgm.json (built by `preprocess.py media`). Playback can only start after a user
- * gesture, so we wait for the first pointerdown/keydown. Mute is remembered in localStorage.
+ * Tracks come from /media/bgm.json (built by `preprocess.py media`): `{ "<place>": { "day": [...], "night": [...] } }`.
+ * Scenes report where the player is via the `scene:changed` bus event (room → "room", map → "field",
+ * dock → "dock"); a place without tracks of its own falls back to the default lists. Random order, no immediate
+ * repeats. Playback can only start after a user gesture, so we wait for the first pointerdown/keydown. Mute is
+ * remembered in localStorage.
  */
 
 import { $ } from "../ui/hud";
+import { bus } from "../bus";
 import { onUnlock } from "./unlock";
 import { assetUrl } from "../assets";
 
 interface Track { file: string; title: string }
 type Period = "day" | "night";
+type Manifest = Record<string, Partial<Record<Period, Track[]>>>;
+export type BgmScene = "room" | "map" | "dock";
 
 const KEY_MUTED = "bgm_muted";
 const VOLUME = 0.5;
 const FADE_MS = 1000;
 const CHECK_MS = 60_000;
+const PLACE_OF: Record<BgmScene, string> = { room: "room", map: "field", dock: "dock" };
 
-let lists: Record<Period, Track[]> = { day: [], night: [] };
+let manifest: Manifest = {};
 let audio: HTMLAudioElement | null = null;
-let current: Period | null = null;
+let place = "default";
+let currentKey = ""; // identifies the list the queue was filled from
 let queue: Track[] = [];
 let lastFile = "";
 let muted = false;
 let started = false;
+let fading = false;
 const muteListeners = new Set<(muted: boolean) => void>();
 
 /** One mute switch for music and sound effects (the 🔊 button). */
@@ -47,6 +57,26 @@ export function period(now = new Date()): Period {
   return hour >= 8 && hour < 18 ? "day" : "night";
 }
 
+/** Tracks for a place and period: own period → own other period → default period → default other period. */
+function resolve(loc: string, p: Period): Track[] {
+  const other: Period = p === "day" ? "night" : "day";
+  const own = manifest[loc], def = manifest.default;
+  for (const l of [own?.[p], own?.[other], def?.[p], def?.[other]]) if (l && l.length) return l;
+  return [];
+}
+
+function listKey(tracks: Track[]): string {
+  return tracks.map((t) => t.file).join("|");
+}
+
+/** Called on every scene change: switch lists (with a fade) only when the new place plays a different list. */
+export function setBgmScene(kind: BgmScene): void {
+  const loc = PLACE_OF[kind];
+  if (loc === place) return;
+  place = loc;
+  if (audio && started && !muted && listKey(resolve(place, period())) !== currentKey) fadeOutThen(next);
+}
+
 function shuffled(tracks: Track[]): Track[] {
   const out = [...tracks];
   for (let i = out.length - 1; i > 0; i--) {
@@ -60,10 +90,11 @@ function shuffled(tracks: Track[]): Track[] {
 
 function next(): void {
   if (!audio) return;
-  const p = period();
-  if (p !== current || queue.length === 0) {
-    current = p;
-    queue = shuffled(lists[p]);
+  const list = resolve(place, period());
+  const key = listKey(list);
+  if (key !== currentKey || queue.length === 0) {
+    currentKey = key;
+    queue = shuffled(list);
   }
   const t = queue.shift();
   if (!t) return;
@@ -74,14 +105,16 @@ function next(): void {
 }
 
 function fadeOutThen(fn: () => void): void {
+  if (fading) return; // the running fade ends in next(), which re-reads place/period
   if (!audio || audio.paused || muted) { fn(); return; }
   const a = audio;
   const start = performance.now();
   const from = a.volume;
+  fading = true;
   const tick = () => {
     const k = Math.min(1, (performance.now() - start) / FADE_MS);
     a.volume = from * (1 - k);
-    if (k < 1) requestAnimationFrame(tick); else fn();
+    if (k < 1) requestAnimationFrame(tick); else { fading = false; fn(); }
   };
   requestAnimationFrame(tick);
 }
@@ -107,25 +140,31 @@ export function toggleMute(): void {
     audio.pause();
   } else {
     started = true;
-    if (audio.src && audio.currentTime > 0) { audio.volume = VOLUME; void audio.play().catch(() => undefined); }
-    else next();
+    // resume the paused track only if it still belongs to the current place/period
+    if (audio.src && audio.currentTime > 0 && listKey(resolve(place, period())) === currentKey) {
+      audio.volume = VOLUME;
+      void audio.play().catch(() => undefined);
+    } else next();
   }
+}
+
+function hasTracks(m: Manifest): boolean {
+  return Object.values(m).some((lists) => (lists.day?.length ?? 0) + (lists.night?.length ?? 0) > 0);
 }
 
 export async function initBgm(): Promise<void> {
   try { muted = localStorage.getItem(KEY_MUTED) === "1"; } catch { /* ignore */ }
   renderButton();
   $("btn-bgm").addEventListener("click", (e) => { e.stopPropagation(); toggleMute(); });
+  bus.on("scene:changed", ({ scene }) => setBgmScene(scene));
   try {
     const res = await fetch(assetUrl("/media/bgm.json"));
     if (!res.ok) return;
-    lists = await res.json();
+    manifest = await res.json();
   } catch {
     return;
   }
-  if (!lists.day.length && !lists.night.length) return;
-  if (!lists.day.length) lists.day = lists.night;
-  if (!lists.night.length) lists.night = lists.day;
+  if (!manifest || typeof manifest !== "object" || !hasTracks(manifest)) return;
 
   audio = new Audio();
   audio.preload = "none";
@@ -138,7 +177,7 @@ export async function initBgm(): Promise<void> {
   // switch lists when the KST period changes while a track is playing
   window.setInterval(() => {
     if (!audio || muted || !started) return;
-    if (period() !== current) fadeOutThen(next);
+    if (listKey(resolve(place, period())) !== currentKey) fadeOutThen(next);
   }, CHECK_MS);
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible" && audio && started && !muted && audio.paused && audio.src) {

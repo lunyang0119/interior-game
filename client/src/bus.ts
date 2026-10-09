@@ -1,5 +1,6 @@
 /** Tiny typed event bus between the Phaser scene and the DOM UI. */
 
+import type { Deliverable } from "./api";
 import type { AvatarLook, RoomItem } from "./catalog";
 
 export interface Events {
@@ -31,10 +32,14 @@ export interface Events {
   "fish:release": void;
   "fish:state": { status: string; mode: "idle" | "wait" | "bite" | "hold" };
   "fish:meter": { meter: number }; // 0..1 of the current bite's hold
-  "fish:catch": { ok: boolean; id: string; name: string; value: number; who: string };
+  // seq + deliverable only for my own catch: the overlay then offers "납품하기" (ui/hud.ts)
+  "fish:catch": { ok: boolean; id: string; name: string; value: number; who: string; seq?: number | null; deliverable?: Deliverable[] };
   "item:menu": { item: RoomItem; screenX: number; screenY: number };
   "item:remove": { uid: number };
   "item:walk": { uid: number }; // context menu "여기로 가기": walk the avatar up to that item
+  "item:note": { item: RoomItem }; // context menu "쪽지 읽기/쓰기": open the note panel
+  "progress:changed": { completed: { room: string; from: number; to: number }[] }; // state.progress / state.locked replaced
+  "log:open": { section?: "progress" }; // open the 📜 panel (optionally scrolled to the restoration checklist)
 }
 
 type Handler<K extends keyof Events> = (payload: Events[K]) => void;

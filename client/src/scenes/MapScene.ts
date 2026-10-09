@@ -5,25 +5,33 @@ import { Avatar } from "../avatar/Avatar";
 import { ensureAvatarTextures } from "../avatar/AvatarLoader";
 import { RemoteAvatars } from "../avatar/RemoteAvatars";
 import { bus, toast } from "../bus";
-import { DOCK_ROOM, MAP_ROOM, type Catalog, type MapData, type MapPlace } from "../catalog";
+import { DOCK_ROOM, MAP_ROOM, placeName, unlockerOf, type Catalog, type MapData, type MapPlace } from "../catalog";
 import { Gestures } from "../input/Gestures";
 import { dirDelta, WalkKeys } from "../input/Keyboard";
 import { depthOf, TILE_DEPTH } from "../room/depth";
 import { CELL, worldToCell } from "../room/grid";
 import { cellKey, mapTileAt, mapWalkGrid, pathToward, type WalkGrid } from "../room/walk";
-import { catalog, state } from "../state";
+import { applyProgress, catalog, state } from "../state";
 import { socket } from "../ws";
 import { CameraController } from "./CameraController";
+import { period } from "../audio/bgm";
 import { assetUrl } from "../assets";
 
 export const MAP_ATLAS = "map";
 const MARKER = "icon_exclamation";
+const LOCK = "icon_lock"; // map slice from GUI/Map Legend Icons/Icons/Lock.png (add in the editor + build)
 const CHUNK = 64; // cells per RenderTexture, keeps textures well under GPU limits on huge maps
 const MARKER_REFRESH_MS = 60_000;
 const BG_FADE_MS = 500;
 const BG_DEPTH = TILE_DEPTH - 10; // under the tiles; the map's unpainted cells let it show through
 const MAP_ZOOM_HINT = 3;
 const STEP_HEAR_CELLS = 10;
+/** Night look: a screen-space multiply tint over the whole map (tiles, backdrop, avatars). When a real night
+ *  backdrop exists, swap `bgKey(name)` for a `-night` texture in makeBg() instead and drop the overlay. */
+const NIGHT_TINT = 0x6f7cc4;
+const NIGHT_DEPTH = 1_000_000; // over everything in the world (the HUD is DOM, so it stays bright)
+const NIGHT_FADE_MS = 1500;
+const PERIOD_CHECK_MS = 60_000;
 const bgKey = (name: string) => `mapbg-${name}`;
 
 export interface MapSceneData { from?: string }
@@ -43,6 +51,8 @@ export class MapScene extends Phaser.Scene {
   private blocked = new Set<number>();
   private doors = new Map<number, MapPlace>();
   private markers = new Map<string, Phaser.GameObjects.Image>(); // by place room id
+  private locks = new Map<string, Phaser.GameObjects.Image>(); // 🔒 by place room id
+  private lockedDoor: MapPlace | null = null; // the shut door we last complained about
   private markerTimer: number | null = null;
   private spawn = { x: 0, y: 0 };
   private asking: MapPlace | null = null;
@@ -52,6 +62,9 @@ export class MapScene extends Phaser.Scene {
   private bgBack: Phaser.GameObjects.Image | null = null;
   private bgName: string | null = null;
   private bgCell = { x: -1, y: -1 };
+  private night: Phaser.GameObjects.Rectangle | null = null;
+  private nightOn = false;
+  private periodTimer: number | null = null;
 
   constructor() {
     super("Map");
@@ -79,10 +92,13 @@ export class MapScene extends Phaser.Scene {
     this.cameras.main.setBackgroundColor("#1b1b24");
     this.cam = new CameraController(this, { worldW: cols * CELL, worldH: rows * CELL, zoomHint: MAP_ZOOM_HINT });
     this.cam.onZoom = () => this.refitBg();
+    this.night = null;
     this.bgCell = { x: -1, y: -1 };
     this.bgName = null;
     this.bgFront = this.bgBack = null;
     this.setBackground(this.bgFor(this.spawn.x, this.spawn.y), false);
+    this.applyPeriod(false);
+    this.periodTimer = window.setInterval(() => this.applyPeriod(true), PERIOD_CHECK_MS);
     this.drawTiles();
     this.drawObjects();
     this.grid = mapWalkGrid(this.cat, this.map, this.blocked);
@@ -131,6 +147,35 @@ export class MapScene extends Phaser.Scene {
   private refitBg(): void {
     if (this.bgFront) this.fitBg(this.bgFront);
     if (this.bgBack) this.fitBg(this.bgBack);
+    if (this.night) this.fitNight(this.night);
+  }
+
+  // ---------------------------------------------------------------- day / night
+
+  /** Same screen-space trick as fitBg: cover the view at 1/zoom (a little oversize hides rounding seams). */
+  private fitNight(r: Phaser.GameObjects.Rectangle): void {
+    const vw = this.scale.width, vh = this.scale.height, z = this.cam.zoom;
+    r.setPosition(vw / 2, vh / 2).setSize((vw + 4) / z, (vh + 4) / z);
+  }
+
+  /** Shows / hides the night tint according to the KST period (shared with the BGM; `?bgm=night` forces it). */
+  private applyPeriod(fade: boolean): void {
+    const on = period() === "night";
+    if (on === this.nightOn && (this.night !== null) === on) return;
+    this.nightOn = on;
+    if (on) {
+      if (!this.night) {
+        this.night = this.add.rectangle(0, 0, 1, 1, NIGHT_TINT, 1).setScrollFactor(0).setDepth(NIGHT_DEPTH).setBlendMode(Phaser.BlendModes.MULTIPLY);
+        this.fitNight(this.night);
+      }
+      if (fade) { this.night.setAlpha(0); this.tweens.add({ targets: this.night, alpha: 1, duration: NIGHT_FADE_MS }); }
+      else this.night.setAlpha(1);
+    } else if (this.night) {
+      const r = this.night;
+      this.night = null;
+      if (fade) this.tweens.add({ targets: r, alpha: 0, duration: NIGHT_FADE_MS, onComplete: () => r.destroy() });
+      else r.destroy();
+    }
   }
 
   private setBackground(name: string | null, fade: boolean): void {
@@ -234,8 +279,9 @@ export class MapScene extends Phaser.Scene {
 
   private async refreshMarkers(): Promise<void> {
     try {
-      const { rooms } = await api.rooms();
+      const { rooms, locked } = await api.rooms();
       if (!this.scene.isActive()) return;
+      applyProgress(Object.fromEntries(rooms.filter((r) => r.progress).map((r) => [r.id, r.progress!])), locked);
       const ruined = new Map(rooms.map((r) => [r.id, r.ruined]));
       for (const p of this.map.places) {
         const n = ruined.get(p.room) ?? 0;
@@ -249,7 +295,23 @@ export class MapScene extends Phaser.Scene {
           this.markers.delete(p.room);
         }
       }
+      this.refreshLocks();
     } catch { /* offline: markers just stay as they were */ }
+  }
+
+  /** 🔒 over places that a restoration stage still keeps shut (needs the `icon_lock` map slice; silently absent otherwise). */
+  private refreshLocks(): void {
+    for (const p of this.map.places) {
+      const shut = state.locked.has(p.room);
+      const has = this.locks.get(p.room);
+      if (shut && !has && this.textures.get(MAP_ATLAS).has(LOCK)) {
+        const m = this.add.image((p.x + p.w / 2) * CELL, (p.y + p.h / 2) * CELL, MAP_ATLAS, LOCK).setDepth(depthOf(p.y + p.h, 51));
+        this.locks.set(p.room, m);
+      } else if (!shut && has) {
+        has.destroy();
+        this.locks.delete(p.room);
+      }
+    }
   }
 
   // ---------------------------------------------------------------- avatar / presence
@@ -291,6 +353,7 @@ export class MapScene extends Phaser.Scene {
         void this.refreshMarkers(); // somebody sold junk somewhere: a marker may go away
       }),
       socket.on("money", (m) => { if (m.balance !== state.balance) { state.balance = m.balance; bus.emit("money", { balance: m.balance }); } }),
+      socket.on("progress", () => void this.refreshMarkers()), // a stage completed: a lock may open
       socket.on("open", () => this.publishOnline()),
       socket.on("close", () => { this.remotes.reset([]); this.publishOnline(); }),
     );
@@ -372,7 +435,16 @@ export class MapScene extends Phaser.Scene {
     if (!this.me || this.asking) return;
     const { cx, cy } = this.me.footCell();
     const place = this.doors.get(cellKey(cx, cy));
-    if (!place) return;
+    if (!place) { this.lockedDoor = null; return; }
+    if (state.locked.has(place.room)) {
+      // a shut place: say why once per visit to the door instead of asking "들어가시겠어요?"
+      if (this.lockedDoor !== place) {
+        this.lockedDoor = place;
+        const u = unlockerOf(this.cat, place.room);
+        toast(u ? `아직 들어갈 수 없어요 — ${placeName(this.cat, u.room.id)} '${u.stage.name}' 단계를 끝내면 열려요` : "아직 들어갈 수 없어요");
+      }
+      return;
+    }
     this.asking = place;
     const room = this.cat.rooms.get(place.room);
     const name = place.room === DOCK_ROOM ? "부두" : room?.name || place.name || place.room;
@@ -398,6 +470,8 @@ export class MapScene extends Phaser.Scene {
     for (const off of this.unsub) off();
     this.unsub = [];
     if (this.markerTimer !== null) clearInterval(this.markerTimer);
+    if (this.periodTimer !== null) clearInterval(this.periodTimer);
+    this.night = null; // scene shutdown destroys the game objects themselves
     this.gestures.destroy();
     this.keys.destroy();
     this.cam.destroy();
@@ -405,6 +479,7 @@ export class MapScene extends Phaser.Scene {
     this.me?.destroy();
     this.me = null;
     this.markers.clear();
+    this.locks.clear();
     this.blocked.clear();
     this.doors.clear();
     bus.emit("map:enter-ask", { name: "" }); // closes the panel if it was open

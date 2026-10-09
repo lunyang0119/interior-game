@@ -1,6 +1,6 @@
 import json
 
-from conftest import auth, register
+from conftest import auth, recv, register
 
 
 def test_register_new_nickname_creates_sheet_row(client, env):
@@ -170,7 +170,10 @@ def test_ws_presence(client):
             client.post("/api/room/place", json={"item_id": "chair", "x": 1, "y": 1}, headers=auth(lun))
             # ...with the shared pool balance so every client's HUD follows (800 - chair 50)
             assert a.receive_json() == {"type": "room", "room": "inn", "version": 1, "balance": 750}
-        assert a.receive_json()["type"] == "leave"
+            # ...and the activity log row
+            ev = recv(a, "event")["event"]
+            assert ev["kind"] == "place" and ev["player_id"] == "lun" and ev["item_id"] == "chair" and ev["amount"] == -50
+        assert recv(a, "leave")["type"] == "leave"
 
 
 def test_ws_bad_auth(client):

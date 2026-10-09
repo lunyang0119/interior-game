@@ -734,6 +734,18 @@ class Handler(BaseHTTPRequestHandler):
         try:
             if u.path == "/api/build":
                 self.send_json({"ok": True, "log": run_build()})
+            elif u.path == "/api/shrink":
+                # {sheet, method?, scale?} → 16px copy under <Root>/_16px/, then the sheet list is rescanned
+                n = int(self.headers.get("Content-Length") or 0)
+                body = json.loads(self.rfile.read(n).decode("utf-8")) if n else {}
+                src = sheet_path(body.get("sheet", ""))
+                if not src or not src.exists():
+                    self.send_json({"ok": False, "error": "원본 시트가 없어요"})
+                    return
+                out, used = P.shrink_sheet(src, float(body.get("scale") or 0.5), body.get("method") or "auto")
+                C.all_sheets(refresh=True)
+                name = next((n_ for n_, p_ in C.all_sheets().items() if p_.resolve() == out.resolve()), out.name)
+                self.send_json({"ok": True, "sheet": name, "method": used})
             elif u.path == "/api/deploy/mark":
                 self.send_json({"ok": True, "marked_at": D.mark()["marked_at"]})
             elif u.path == "/api/char-upload":

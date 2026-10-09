@@ -4,7 +4,7 @@ import random
 import time
 
 from app.fishing import HoldSpan
-from conftest import auth, register
+from conftest import auth, recv, register
 
 
 def _wait_until_judgeable(cast):
@@ -67,10 +67,16 @@ def test_three_pulls_pay_the_pool_and_tell_everyone(client):
         assert r.status_code == 200, r.text
         body = r.json()
         assert body["ok"] is True and body["pulls"] == 3 and body["balance"] == 800 + body["value"]
-        money = k.receive_json()
+        money = recv(k, "money")
         assert money == {"type": "money", "balance": 800 + body["value"]}
-        fish = k.receive_json()
+        fish = recv(k, "fish")
         assert fish["type"] == "fish" and fish["id"] == "lun" and fish["loot"] == body["id"] and fish["value"] == body["value"]
+        ev = recv(k, "event")["event"]
+        assert ev["kind"] == "fish" and ev["item_id"] == body["id"] and ev["amount"] == body["value"]
+        # no stage wants fish in this catalog → nothing to deliver, the money stays
+        assert body["seq"] is not None and body["deliverable"] == []
+        r = client.post("/api/fish/deliver", json={"seq": body["seq"]}, headers=auth(lun))
+        assert r.status_code == 400 and r.json()["error"] == "nothing_to_deliver"
     assert client.get("/api/me", headers=auth(lun)).json()["balance"] == 800 + body["value"]
     # the session is spent
     r = _finish(client, lun, cast, _holds(cast, 3))

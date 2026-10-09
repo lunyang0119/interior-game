@@ -22,7 +22,8 @@ Usage (from repo root):
         Adds a placeholder items.json entry for every atlas key that has none.
 
     python tools/preprocess/preprocess.py media
-        Copies BGM (assets/BGM/{day,night}/*.mp3), fonts (assets/fonts/*.ttf) and
+        Copies BGM (assets/bgm/{day,night}/*.mp3 = default lists; assets/bgm/<place>/[day|night/]*.mp3
+        = per-place lists, e.g. dock/; legacy/ is skipped), fonts (assets/fonts/*.ttf) and
         sound effects (assets/sfx/**/<kind>_*.mp3 → media/sfx/<kind>.mp3) into
         client/public/media/ with ASCII names and writes media/bgm.json + media/sfx.json.
 
@@ -152,6 +153,99 @@ def rescale(im: Image.Image, scale) -> Image.Image:
         return im
     f = float(scale)
     return im.resize((max(1, round(im.width * f)), max(1, round(im.height * f))), Image.NEAREST)
+
+
+SHRUNK_DIR = "_16px"  # assets/graphic/<Root>/_16px/<flattened source path>.png
+
+
+def is_blocky(im: Image.Image, k: int = 2) -> bool:
+    """True when every k×k block is one colour: the image is a k× nearest-neighbour upscale (LimeZu 32x32 = 16x16 ×2)."""
+    if im.width % k or im.height % k:
+        return False
+    px = im.convert("RGBA").load()
+    for y in range(0, im.height, k):
+        for x in range(0, im.width, k):
+            c = px[x, y]
+            for dy in range(k):
+                for dx in range(k):
+                    if px[x + dx, y + dy] != c:
+                        return False
+    return True
+
+
+def shrink_image(im: Image.Image, scale: float = 0.5, method: str = "auto") -> tuple[Image.Image, str]:
+    """Downscale a sheet for the 16px grid. `nearest` keeps 2×-upscaled art pixel-exact, `box` averages native
+    high-res art; `auto` picks nearest when the image is blocky at 1/scale, else box. Returns (image, method used)."""
+    im = im.convert("RGBA")
+    size = (max(1, round(im.width * scale)), max(1, round(im.height * scale)))
+    if method == "auto":
+        k = round(1 / scale)
+        method = "nearest" if k >= 2 and abs(k * scale - 1) < 1e-9 and is_blocky(im, k) else "box"
+    if method == "nearest":
+        return im.resize(size, Image.NEAREST), method
+    if method == "box":
+        # premultiply so transparent pixels do not bleed dark fringes into the average
+        pre = Image.new("RGBA", im.size)
+        src = im.load()
+        dst = pre.load()
+        for y in range(im.height):
+            for x in range(im.width):
+                r, g, b, a = src[x, y]
+                dst[x, y] = (r * a // 255, g * a // 255, b * a // 255, a)
+        out = pre.resize(size, Image.BOX)
+        o = out.load()
+        for y in range(out.height):
+            for x in range(out.width):
+                r, g, b, a = o[x, y]
+                if a:
+                    o[x, y] = (min(255, r * 255 // a), min(255, g * 255 // a), min(255, b * 255 // a), a)
+        return out, method
+    raise ValueError(f"unknown method '{method}' (auto | nearest | box)")
+
+
+def shrunk_path(src: Path, group: str | None = None) -> Path:
+    """Where the 16px copy of `src` goes: assets/graphic/<Interior|Map>/_16px/<path flattened with __>.png.
+    The root is the sheet's own root under assets/graphic when it has one, else `group` (default Interior)."""
+    src = src.resolve()
+    try:
+        rel = src.relative_to(C.ASSETS.resolve())
+        root = rel.parts[0] if rel.parts[0] in C.DISCOVER_ROOTS else (group or "Interior")
+        rest = rel.parts[1:] if rel.parts[0] in C.DISCOVER_ROOTS else rel.parts
+    except ValueError:
+        root, rest = (group or "Interior"), (src.name,)
+    flat = "__".join(rest)
+    if flat.lower().endswith(".png"):
+        flat = flat[:-4]
+    return C.ASSETS / root / SHRUNK_DIR / f"{flat}.png"
+
+
+def shrink_sheet(src: Path, scale: float = 0.5, method: str = "auto", group: str | None = None) -> tuple[Path, str]:
+    """Write the downscaled copy of one sheet; the editor and `build` pick it up like any other sheet."""
+    out = shrunk_path(src, group)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    with Image.open(src) as im:
+        small, used = shrink_image(im, scale, method)
+    small.save(out, optimize=True)
+    return out, used
+
+
+def cmd_shrink(args: argparse.Namespace) -> None:
+    """32px (or any) sheets → 16px copies under assets/graphic/<Root>/_16px/."""
+    paths: list[Path] = []
+    for raw in args.paths:
+        p = Path(raw)
+        if not p.is_absolute():
+            p = (C.ASSETS / raw) if (C.ASSETS / raw).exists() else Path.cwd() / raw
+        if p.is_dir():
+            paths += sorted(q for q in p.rglob("*.png") if SHRUNK_DIR not in q.parts)
+        elif p.exists():
+            paths.append(p)
+        else:
+            sys.exit(f"not found: {raw}")
+    for p in paths:
+        out, used = shrink_sheet(p, args.scale, args.method, args.group)
+        print(f"{p.name} → {out.relative_to(C.ASSETS).as_posix()} ({used})")
+    print(f"{len(paths)} sheet(s) shrunk")
 
 
 def knock_out(im: Image.Image, rgb: tuple[int, ...]) -> Image.Image:
@@ -758,22 +852,52 @@ def copy_sfx(src: Path | None = None, out: Path | None = None) -> list[str]:
     return kinds
 
 
-def cmd_media(_: argparse.Namespace) -> None:
-    bgm_out = C.MEDIA_DIR / "bgm"
-    manifest: dict[str, list[dict]] = {}
-    for period in ("day", "night"):
-        src = C.BGM_DIR / period
-        dst = bgm_out / period
+BGM_PERIODS = ("day", "night")
+BGM_SKIP_DIRS = {"legacy"}
+
+
+def _bgm_tracks(src: Path, dst: Path, rel: str) -> list[dict]:
+    """Copy the mp3s of one source folder into dst (NN-slug.mp3) and return their manifest rows."""
+    tracks: list[dict] = []
+    files = sorted(src.glob("*.mp3")) if src.exists() else []
+    if files:
         dst.mkdir(parents=True, exist_ok=True)
-        for stale in dst.glob("*.mp3"):
-            stale.unlink()
-        tracks = []
-        for i, f in enumerate(sorted(src.glob("*.mp3")) if src.exists() else [], start=1):
-            name = f"{i:02d}-{_ascii_slug(f.stem)[:40]}.mp3"
-            shutil.copyfile(f, dst / name)
-            tracks.append({"file": f"{period}/{name}", "title": f.stem})
-        manifest[period] = tracks
-        print(f"bgm/{period}: {len(tracks)} tracks")
+    for i, f in enumerate(files, start=1):
+        name = f"{i:02d}-{_ascii_slug(f.stem)[:40]}.mp3"
+        shutil.copyfile(f, dst / name)
+        tracks.append({"file": f"{rel}/{name}", "title": f.stem})
+    return tracks
+
+
+def build_bgm_manifest(bgm_dir: Path, bgm_out: Path) -> dict[str, dict[str, list[dict]]]:
+    """assets/bgm/ → media/bgm/<location>/<period>/NN-slug.mp3 + manifest {location: {day, night}}.
+
+    Top-level day/ and night/ are the `default` location (rooms, and the fallback for every other place).
+    Any other folder (e.g. dock/) is a location: its day/ and night/ subfolders are period lists, loose mp3s
+    directly inside it play in both periods. `legacy/` is ignored. An empty list means "fall back" (client side).
+    """
+    if bgm_out.exists():
+        shutil.rmtree(bgm_out)
+    bgm_out.mkdir(parents=True, exist_ok=True)
+    manifest: dict[str, dict[str, list[dict]]] = {}
+    manifest["default"] = {
+        p: _bgm_tracks(bgm_dir / p, bgm_out / "default" / p, f"default/{p}") for p in BGM_PERIODS
+    }
+    for loc_dir in sorted(bgm_dir.iterdir()) if bgm_dir.exists() else []:
+        loc = loc_dir.name.lower()
+        if not loc_dir.is_dir() or loc in BGM_PERIODS or loc in BGM_SKIP_DIRS or loc.startswith("."):
+            continue
+        both = _bgm_tracks(loc_dir, bgm_out / loc / "any", f"{loc}/any")
+        manifest[loc] = {
+            p: both + _bgm_tracks(loc_dir / p, bgm_out / loc / p, f"{loc}/{p}") for p in BGM_PERIODS
+        }
+    return manifest
+
+
+def cmd_media(_: argparse.Namespace) -> None:
+    manifest = build_bgm_manifest(C.BGM_DIR, C.MEDIA_DIR / "bgm")
+    for loc, lists in manifest.items():
+        print(f"bgm/{loc}: " + ", ".join(f"{p} {len(t)}" for p, t in lists.items()) + " tracks")
     (C.MEDIA_DIR / "bgm.json").write_text(json.dumps(manifest, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
 
     fonts_out = C.MEDIA_DIR / "fonts"
@@ -797,7 +921,7 @@ def cmd_media(_: argparse.Namespace) -> None:
 # element selectors whose rounded default look is dropped once a frame is defined for them
 FRAME_SELECTORS = {
     "panel": ".panel", "button": "button, button.big", "button_primary": "button.primary", "chip": ".chip",
-    "input": "input", "ctx": "#ctx", "toast": "#toast",
+    "input": "input", "ctx": "#ctx", "toast": "#toast", "note": ".note-paper",
 }
 
 
@@ -902,6 +1026,13 @@ def main() -> None:
     p = sub.add_parser("build")
     p.add_argument("--allow-shrink", action="store_true", help="allow a character layer to lose variants")
     p.set_defaults(fn=cmd_build)
+    p = sub.add_parser("shrink", help="downscale 32px sheets to 16px copies the editor can slice")
+    p.add_argument("paths", nargs="+", help="PNG files or folders, relative to assets/graphic or absolute")
+    p.add_argument("--scale", type=float, default=0.5)
+    p.add_argument("--method", choices=("auto", "nearest", "box"), default="auto",
+                   help="nearest = pixel-exact for 2x-upscaled art, box = average native hi-res art, auto = detect")
+    p.add_argument("--group", choices=("Interior", "Map"), default=None, help="root for sheets outside assets/graphic")
+    p.set_defaults(fn=cmd_shrink)
     sub.add_parser("scaffold").set_defaults(fn=cmd_scaffold)
     sub.add_parser("media").set_defaults(fn=cmd_media)
     sub.add_parser("ui").set_defaults(fn=cmd_ui)

@@ -28,3 +28,7 @@ class MoveIn(BaseModel):
     x: int
     y: int
     span: int | None = Field(default=None, ge=1)  # wallpaper: new width (None keeps the current one)
+
+
+class NoteIn(BaseModel):
+    text: str = Field(max_length=200)  # empty = clear the note

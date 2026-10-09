@@ -1,90 +1,106 @@
 {
- "day": [
-  {
-   "file": "day/01-gameplay-by-chillpeach.mp3",
-   "title": "Gameplay by Chillpeach"
-  },
-  {
-   "file": "day/02-snoozy-beats-card-games-lofi-chill.mp3",
-   "title": "snoozy beats - card games (lofi chill)"
-  },
-  {
-   "file": "day/03-snoozy-beats-chase-that-feeling-summer-t.mp3",
-   "title": "snoozy beats - chase that feeling [summer travel vlog music]-2"
-  },
-  {
-   "file": "day/04-snoozy-beats-chase-that-feeling-summer-t.mp3",
-   "title": "snoozy beats - chase that feeling [summer travel vlog music]"
-  },
-  {
-   "file": "day/05-snoozy-beats-cherry-blossom.mp3",
-   "title": "snoozy beats - cherry blossom"
-  },
-  {
-   "file": "day/06-snoozy-beats-dreams-in-slow-motion.mp3",
-   "title": "snoozy beats - dreams in slow motion"
-  },
-  {
-   "file": "day/07-snoozy-beats-green-valley-2.mp3",
-   "title": "snoozy beats - green valley-2"
-  },
-  {
-   "file": "day/08-snoozy-beats-green-valley.mp3",
-   "title": "snoozy beats - green valley"
-  },
-  {
-   "file": "day/09-snoozy-beats-moonlit-whisper-2.mp3",
-   "title": "snoozy beats - Moonlit Whisper-2"
-  },
-  {
-   "file": "day/10-snoozy-beats-moonlit-whisper.mp3",
-   "title": "snoozy beats - Moonlit Whisper"
-  },
-  {
-   "file": "day/11-snoozy-beats-see-you-again-2.mp3",
-   "title": "snoozy beats - see you again-2"
-  },
-  {
-   "file": "day/12-snoozy-beats-see-you-again.mp3",
-   "title": "snoozy beats - see you again"
-  },
-  {
-   "file": "day/13-snoozy-beats-sunny-days-2.mp3",
-   "title": "snoozy beats - Sunny Days-2"
-  },
-  {
-   "file": "day/14-snoozy-beats-sunny-days.mp3",
-   "title": "snoozy beats - Sunny Days"
-  },
-  {
-   "file": "day/15-snoozy-beats-sunny-vibes.mp3",
-   "title": "snoozy beats - Sunny Vibes"
-  }
- ],
- "night": [
-  {
-   "file": "night/01-2-00-am-by-chillpeach.mp3",
-   "title": "2_00 AM by Chillpeach"
-  },
-  {
-   "file": "night/02-in-dreamland-by-chillpeach.mp3",
-   "title": "In Dreamland by Chillpeach"
-  },
-  {
-   "file": "night/03-snoozy-beats-card-games-lofi-chill.mp3",
-   "title": "snoozy beats - card games (lofi chill)"
-  },
-  {
-   "file": "night/04-snoozy-beats-cherry-blossom.mp3",
-   "title": "snoozy beats - cherry blossom"
-  },
-  {
-   "file": "night/05-snoozy-beats-dreams-in-slow-motion.mp3",
-   "title": "snoozy beats - dreams in slow motion"
-  },
-  {
-   "file": "night/06-snoozy-beats-sunny-vibes.mp3",
-   "title": "snoozy beats - Sunny Vibes"
-  }
- ]
+ "default": {
+  "day": [
+   {
+    "file": "default/day/01-gameplay-by-chillpeach.mp3",
+    "title": "Gameplay by Chillpeach"
+   },
+   {
+    "file": "default/day/02-snoozy-beats-card-games-lofi-chill.mp3",
+    "title": "snoozy beats - card games (lofi chill)"
+   },
+   {
+    "file": "default/day/03-snoozy-beats-chase-that-feeling-summer-t.mp3",
+    "title": "snoozy beats - chase that feeling [summer travel vlog music]-2"
+   },
+   {
+    "file": "default/day/04-snoozy-beats-chase-that-feeling-summer-t.mp3",
+    "title": "snoozy beats - chase that feeling [summer travel vlog music]"
+   },
+   {
+    "file": "default/day/05-snoozy-beats-cherry-blossom.mp3",
+    "title": "snoozy beats - cherry blossom"
+   },
+   {
+    "file": "default/day/06-snoozy-beats-dreams-in-slow-motion.mp3",
+    "title": "snoozy beats - dreams in slow motion"
+   },
+   {
+    "file": "default/day/07-snoozy-beats-green-valley-2.mp3",
+    "title": "snoozy beats - green valley-2"
+   },
+   {
+    "file": "default/day/08-snoozy-beats-green-valley.mp3",
+    "title": "snoozy beats - green valley"
+   },
+   {
+    "file": "default/day/09-snoozy-beats-moonlit-whisper-2.mp3",
+    "title": "snoozy beats - Moonlit Whisper-2"
+   },
+   {
+    "file": "default/day/10-snoozy-beats-moonlit-whisper.mp3",
+    "title": "snoozy beats - Moonlit Whisper"
+   },
+   {
+    "file": "default/day/11-snoozy-beats-see-you-again-2.mp3",
+    "title": "snoozy beats - see you again-2"
+   },
+   {
+    "file": "default/day/12-snoozy-beats-see-you-again.mp3",
+    "title": "snoozy beats - see you again"
+   },
+   {
+    "file": "default/day/13-snoozy-beats-sunny-days-2.mp3",
+    "title": "snoozy beats - Sunny Days-2"
+   },
+   {
+    "file": "default/day/14-snoozy-beats-sunny-days.mp3",
+    "title": "snoozy beats - Sunny Days"
+   },
+   {
+    "file": "default/day/15-snoozy-beats-sunny-vibes.mp3",
+    "title": "snoozy beats - Sunny Vibes"
+   }
+  ],
+  "night": [
+   {
+    "file": "default/night/01-2-00-am-by-chillpeach.mp3",
+    "title": "2_00 AM by Chillpeach"
+   },
+   {
+    "file": "default/night/02-in-dreamland-by-chillpeach.mp3",
+    "title": "In Dreamland by Chillpeach"
+   },
+   {
+    "file": "default/night/03-snoozy-beats-card-games-lofi-chill.mp3",
+    "title": "snoozy beats - card games (lofi chill)"
+   },
+   {
+    "file": "default/night/04-snoozy-beats-cherry-blossom.mp3",
+    "title": "snoozy beats - cherry blossom"
+   },
+   {
+    "file": "default/night/05-snoozy-beats-dreams-in-slow-motion.mp3",
+    "title": "snoozy beats - dreams in slow motion"
+   },
+   {
+    "file": "default/night/06-snoozy-beats-sunny-vibes.mp3",
+    "title": "snoozy beats - Sunny Vibes"
+   }
+  ]
+ },
+ "dock": {
+  "day": [
+   {
+    "file": "dock/any/01-jonathanslattermusic-seagulls-in-coastal.mp3",
+    "title": "jonathanslattermusic-seagulls-in-coastal-village-486871"
+   }
+  ],
+  "night": [
+   {
+    "file": "dock/any/01-jonathanslattermusic-seagulls-in-coastal.mp3",
+    "title": "jonathanslattermusic-seagulls-in-coastal-village-486871"
+   }
+  ]
+ }
 }

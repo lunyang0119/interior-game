@@ -1,3 +1,4 @@
+import type { ActivityEvent, RoomProgress } from "./api";
 import type { AvatarLook } from "./catalog";
 
 export interface OnlineState { id: string; x: number; y: number; dir: string; moving: boolean; avatar: AvatarLook; room?: string }
@@ -12,6 +13,9 @@ export type WsMsg =
   | { type: "room"; room?: string; version: number; balance?: number; ruined?: number }
   | { type: "money"; balance: number }
   | { type: "fish"; id: string; loot: string; name: string; value: number }
+  | { type: "progress"; rooms: Record<string, RoomProgress>; locked: string[] } // a restoration stage completed somewhere
+  | { type: "event"; event: ActivityEvent } // one new activity-log row
+  | { type: "error"; code: string; room?: string } // e.g. enter into a locked room
   | { type: "pong" };
 
 type Handler = (msg: any) => void;

@@ -86,9 +86,11 @@ export class DockScene extends Phaser.Scene {
       return;
     }
     const { w, h } = this.layout;
-    // the layout has a fixed pixel size; scale it to the window (letterboxed) and re-fit on resize
+    // the layout has a fixed pixel size; scale it to fill the window (cropping the sides in portrait),
+    // keeping the water band centred, and re-fit on resize
     this.cameras.main.setBackgroundColor("#1b1b24");
-    this.unfit = fitToView(this, w, h);
+    const water = this.waterRect();
+    this.unfit = fitToView(this, w, h, { cover: true, focus: { x: water.x + water.w / 2, y: water.y + water.h / 2 } });
 
     // second pass: fetch the images this layout needs, then draw
     for (const l of this.layout.layers) {
@@ -217,10 +219,33 @@ export class DockScene extends Phaser.Scene {
     }
   }
 
-  /** Where the marker's anchor (bottom centre) may go so the whole icon, hop included, stays in the water. */
-  private markerRange(m: Phaser.GameObjects.Image | Phaser.GameObjects.Text): { x0: number; x1: number; y0: number; y1: number } {
+  private waterRect(): Rect {
     const L = this.layout!;
-    const w = L.water ?? { x: 0, y: Math.round(L.h * 0.45), w: L.w, h: Math.round(L.h * 0.4) };
+    return L.water ?? { x: 0, y: Math.round(L.h * 0.45), w: L.w, h: Math.round(L.h * 0.4) };
+  }
+
+  /**
+   * The part of the water that is actually on screen and not hidden under the DOM bars (dock buttons at the
+   * top, fish status/button at the bottom). Falls back to the whole water rect when nothing is left.
+   */
+  private visibleWater(): Rect {
+    const water = this.waterRect();
+    const cam = this.cameras.main;
+    const sw = this.scale.width, sh = this.scale.height;
+    const top = document.getElementById("dockbar")?.getBoundingClientRect().bottom ?? 0;
+    const bottom = document.getElementById("fishbar")?.getBoundingClientRect().top ?? sh;
+    const pad = 4; // screen px of breathing room next to the bars / edges
+    const tl = cam.getWorldPoint(pad, Math.max(0, top) + pad);
+    const br = cam.getWorldPoint(sw - pad, Math.min(sh, bottom) - pad);
+    const x0 = Math.max(water.x, tl.x), y0 = Math.max(water.y, tl.y);
+    const x1 = Math.min(water.x + water.w, br.x), y1 = Math.min(water.y + water.h, br.y);
+    if (x1 - x0 < 24 || y1 - y0 < 16) return water;
+    return { x: x0, y: y0, w: x1 - x0, h: y1 - y0 };
+  }
+
+  /** Where the marker's anchor (bottom centre) may go so the whole icon, hop included, stays in the visible water. */
+  private markerRange(m: Phaser.GameObjects.Image | Phaser.GameObjects.Text): { x0: number; x1: number; y0: number; y1: number } {
+    const w = this.visibleWater();
     const hw = m.displayWidth / 2;
     const x0 = w.x + hw, y0 = w.y + m.displayHeight + BOUNCE_PX;
     return { x0, x1: Math.max(x0, w.x + w.w - hw), y0, y1: Math.max(y0, w.y + w.h) };
@@ -295,7 +320,7 @@ export class DockScene extends Phaser.Scene {
     try {
       const r = await api.fishFinish(cast.session, this.holds, escaped);
       if (typeof r.balance === "number" && r.balance !== state.balance) { state.balance = r.balance; bus.emit("money", { balance: r.balance }); }
-      bus.emit("fish:catch", { ok: r.ok, id: r.id, name: r.name, value: r.value, who: state.id ?? "" });
+      bus.emit("fish:catch", { ok: r.ok, id: r.id, name: r.name, value: r.value, who: state.id ?? "", seq: r.seq, deliverable: r.deliverable });
       this.publishState(
         r.ok ? `${r.name}을(를) 낚았어요! +${r.value}💰`
           : r.escaped ? `놀라서 도망갔어요… ${r.name}이었는데`

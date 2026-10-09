@@ -405,7 +405,10 @@
    "h": 2,
    "layer": "wall",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "note"
+   ]
   },
   {
    "id": "plant_tree",
@@ -4957,7 +4960,10 @@
    "h": 1,
    "layer": "surface_item",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "note"
+   ]
   },
   {
    "id": "book_brown",
@@ -5771,7 +5777,10 @@
    "h": 1,
    "layer": "surface_item",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "note"
+   ]
   },
   {
    "id": "note_scrap_td",
@@ -5782,7 +5791,10 @@
    "h": 1,
    "layer": "surface_item",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "note"
+   ]
   },
   {
    "id": "wood_crate_td",
@@ -6695,7 +6707,10 @@
    "h": 2,
    "layer": "wall",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "note"
+   ]
   },
   {
    "id": "wallpaper_brick_office",
@@ -7993,7 +8008,10 @@
    "h": 2,
    "layer": "wall",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "note"
+   ]
   },
   {
    "id": "med_019",
@@ -10418,7 +10436,10 @@
    "h": 1,
    "layer": "wall",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "note"
+   ]
   },
   {
    "id": "mordernhospital_04_whiteboard",
@@ -10429,7 +10450,10 @@
    "h": 2,
    "layer": "wall",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "note"
+   ]
   },
   {
    "id": "mordernhospital_05_table",
@@ -10517,7 +10541,10 @@
    "h": 1,
    "layer": "surface_item",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "note"
+   ]
   },
   {
    "id": "mordcloth_01_mannequin",
