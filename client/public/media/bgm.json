@@ -89,18 +89,68 @@
    }
   ]
  },
+ "cave": {
+  "day": [
+   {
+    "file": "cave/any/01-bgmemon.mp3",
+    "title": "BGMemon_ミスティックフォレスト"
+   },
+   {
+    "file": "cave/any/02-bgmemon.mp3",
+    "title": "BGMemon_帰らずの洞窟"
+   },
+   {
+    "file": "cave/any/03-bgmemon.mp3",
+    "title": "BGMemon_雫の妖精"
+   }
+  ],
+  "night": [
+   {
+    "file": "cave/any/01-bgmemon.mp3",
+    "title": "BGMemon_ミスティックフォレスト"
+   },
+   {
+    "file": "cave/any/02-bgmemon.mp3",
+    "title": "BGMemon_帰らずの洞窟"
+   },
+   {
+    "file": "cave/any/03-bgmemon.mp3",
+    "title": "BGMemon_雫の妖精"
+   }
+  ]
+ },
  "dock": {
   "day": [
    {
-    "file": "dock/any/01-jonathanslattermusic-seagulls-in-coastal.mp3",
+    "file": "dock/any/01-bgmemon.mp3",
+    "title": "BGMemon_マヌチッシ村"
+   },
+   {
+    "file": "dock/any/02-jonathanslattermusic-seagulls-in-coastal.mp3",
     "title": "jonathanslattermusic-seagulls-in-coastal-village-486871"
    }
   ],
   "night": [
    {
-    "file": "dock/any/01-jonathanslattermusic-seagulls-in-coastal.mp3",
+    "file": "dock/any/01-bgmemon.mp3",
+    "title": "BGMemon_マヌチッシ村"
+   },
+   {
+    "file": "dock/any/02-jonathanslattermusic-seagulls-in-coastal.mp3",
     "title": "jonathanslattermusic-seagulls-in-coastal-village-486871"
    }
   ]
+ },
+ "field": {
+  "day": [],
+  "night": []
+ },
+ "room": {
+  "day": [],
+  "night": []
+ },
+ "unknown": {
+  "day": [],
+  "night": []
  }
 }
