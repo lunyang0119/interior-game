@@ -6,6 +6,7 @@
  */
 
 import type { StepKind, TileInfo } from "../catalog";
+import { bus } from "../bus";
 import { isMuted, onMuteChange } from "./bgm";
 import { onUnlock } from "./unlock";
 import { assetUrl } from "../assets";
@@ -18,6 +19,7 @@ export const SFX = {
   reel: "reel", // looping while holding
   sell: "sell", // sold or refunded an item
   meow: "cat", // the inn cat was petted (assets/sfx/<any>/cat_*.mp3 → media/sfx/cat.mp3; missing = silent)
+  ocean: "ocean", // dock ambience: its files play back to back under the BGM while at the dock (setAmbientScene)
 } as const;
 
 export const SFX_VOL = { step: 0.35, ui: 0.6, reel: 0.4 };
@@ -26,33 +28,55 @@ const POOL_MAX = 4; // simultaneous plays per kind
 
 export interface SfxHandle { stop(): void }
 
-const base = new Map<string, HTMLAudioElement>();
+const base = new Map<string, HTMLAudioElement>(); // by file key: "cat", "cat_2", …
+const variants = new Map<string, number>(); // kind → how many files (media/sfx.json "variants")
 const pools = new Map<string, HTMLAudioElement[]>();
 const loops = new Set<HTMLAudioElement>();
 let unlocked = false;
 
+/** `cat` with 3 files → media/sfx/cat.mp3, cat_2.mp3, cat_3.mp3 */
+function fileKey(kind: string, n: number): string {
+  return n <= 1 ? kind : `${kind}_${n}`;
+}
+
 export async function initSfx(): Promise<void> {
   let kinds: string[] = [];
+  let counts: Record<string, number> = {};
   try {
     const res = await fetch(assetUrl("/media/sfx.json"));
-    if (res.ok) kinds = ((await res.json()) as { kinds?: string[] }).kinds ?? [];
+    if (res.ok) {
+      const j = (await res.json()) as { kinds?: string[]; variants?: Record<string, number> };
+      kinds = j.kinds ?? [];
+      counts = j.variants ?? {};
+    }
   } catch {
     return;
   }
   for (const k of kinds) {
-    const a = new Audio(`/media/sfx/${k}.mp3`);
-    a.preload = "auto";
-    base.set(k, a);
+    const n = Math.max(1, counts[k] ?? 1);
+    variants.set(k, n);
+    for (let i = 1; i <= n; i++) {
+      const a = new Audio(`/media/sfx/${fileKey(k, i)}.mp3`);
+      a.preload = "auto";
+      base.set(fileKey(k, i), a);
+    }
   }
-  onUnlock(() => { unlocked = true; });
-  onMuteChange((m) => { if (m) for (const l of loops) { l.pause(); loops.delete(l); } });
+  onUnlock(() => { unlocked = true; if (ambientKind && !ambientEl) ambientNext(); });
+  onMuteChange((m) => {
+    if (m) { for (const l of loops) { l.pause(); loops.delete(l); } ambientStop(); }
+    else if (ambientKind && !ambientEl) ambientNext();
+  });
+  bus.on("scene:changed", ({ scene }) => setAmbientScene(scene));
 }
 
+/** One of the kind's files at random (a kind with several variants sounds less repetitive). */
 function take(kind: string): HTMLAudioElement | null {
-  const proto = base.get(kind);
+  const n = variants.get(kind) ?? 1;
+  const key = fileKey(kind, n > 1 ? 1 + Math.floor(Math.random() * n) : 1);
+  const proto = base.get(key);
   if (!proto) return null;
-  let pool = pools.get(kind);
-  if (!pool) pools.set(kind, (pool = []));
+  let pool = pools.get(key);
+  if (!pool) pools.set(key, (pool = []));
   const idle = pool.find((a) => a.paused || a.ended);
   if (idle) return idle;
   if (pool.length >= POOL_MAX) return null;
@@ -72,6 +96,44 @@ export function play(kind: string, opts: { volume?: number; loop?: boolean } = {
   if (a.loop) loops.add(a);
   void a.play().catch(() => undefined);
   return { stop: () => { a.pause(); a.loop = false; loops.delete(a); } };
+}
+
+// ---------------------------------------------------------------- ambient loop (the dock's waves)
+
+/** Which ambient kind plays in each scene; a kind with several files cycles through them without repeats. */
+const AMBIENT: Partial<Record<"room" | "map" | "dock", string>> = { dock: SFX.ocean };
+const AMBIENT_VOL = 0.4;
+
+let ambientKind: string | null = null; // what the current scene wants (null = silence)
+let ambientEl: HTMLAudioElement | null = null;
+let ambientIdx = 0;
+
+/** Play the next file of the ambient kind; when it ends, the next one follows (back-to-back, no gap on `ended`). */
+function ambientNext(): void {
+  if (!ambientKind || !unlocked || isMuted()) return;
+  const n = variants.get(ambientKind) ?? 0;
+  if (!n) return;
+  ambientIdx = n > 1 ? (ambientIdx + 1 + Math.floor(Math.random() * (n - 1))) % n : 0; // never the same twice in a row
+  const proto = base.get(fileKey(ambientKind, ambientIdx + 1));
+  if (!proto) return;
+  const a = proto.cloneNode() as HTMLAudioElement;
+  a.volume = AMBIENT_VOL;
+  a.addEventListener("ended", () => { if (ambientEl === a) { ambientEl = null; ambientNext(); } });
+  ambientEl = a;
+  void a.play().catch(() => undefined);
+}
+
+function ambientStop(): void {
+  if (ambientEl) { ambientEl.pause(); ambientEl.src = ""; ambientEl = null; }
+}
+
+/** The scene changed: stop the old ambience, start the new one (if any). Safe before unlock — starts then. */
+export function setAmbientScene(scene: "room" | "map" | "dock"): void {
+  const kind = AMBIENT[scene] ?? null;
+  if (kind === ambientKind && ambientEl) return;
+  ambientStop();
+  ambientKind = kind;
+  ambientNext();
 }
 
 /** The footstep kind for a tile: its `step`, else the scene's default; "none" is silent. */

@@ -907,66 +907,87 @@ def sfx_kind(f: Path, root: Path) -> str | None:
     return f"step_{kind}" if SFX_STEP_FOLDER in rel[:-1] else kind
 
 
-def copy_sfx(src: Path | None = None, out: Path | None = None) -> list[str]:
-    """assets/sfx/**/<kind>_*.mp3 → media/sfx/<kind>.mp3; returns the sorted kinds (also written to media/sfx.json)."""
+def copy_sfx(src: Path | None = None, out: Path | None = None) -> dict[str, int]:
+    """assets/sfx/**/<kind>_*.mp3 → media/sfx/<kind>.mp3 (+ <kind>_2.mp3, <kind>_3.mp3 … when a kind has
+    several files: the client picks one at random per play). Returns {kind: variant count}, also written to
+    media/sfx.json as {"kinds": [...], "variants": {...}}."""
     src = src or C.SFX_DIR
     out = out or (C.MEDIA_DIR / "sfx")
     out.mkdir(parents=True, exist_ok=True)
     for stale in out.glob("*.mp3"):
         stale.unlink()
-    seen: dict[str, Path] = {}
+    groups: dict[str, list[Path]] = {}
     for f in sorted(src.rglob("*.mp3")) if src.exists() else []:
         kind = sfx_kind(f, src)
-        if kind is None:
-            continue
-        if kind in seen:
-            raise SystemExit(f"sfx: two files for '{kind}': {seen[kind].name} and {f.name} — keep one")
-        seen[kind] = f
-        shutil.copyfile(f, out / f"{kind}.mp3")
-    kinds = sorted(seen)
-    (out.parent / "sfx.json").write_text(json.dumps({"kinds": kinds}, indent=1) + "\n", encoding="utf-8")
-    return kinds
+        if kind is not None:
+            groups.setdefault(kind, []).append(f)
+    counts: dict[str, int] = {}
+    for kind in sorted(groups):
+        for i, f in enumerate(groups[kind], start=1):
+            shutil.copyfile(f, out / (f"{kind}.mp3" if i == 1 else f"{kind}_{i}.mp3"))
+        counts[kind] = len(groups[kind])
+    (out.parent / "sfx.json").write_text(json.dumps({"kinds": sorted(counts), "variants": counts}, indent=1) + "\n",
+                                         encoding="utf-8")
+    return counts
 
 
 BGM_PERIODS = ("day", "night")
 BGM_SKIP_DIRS = {"legacy"}
 
 
-def _bgm_tracks(src: Path, dst: Path, rel: str) -> list[dict]:
-    """Copy the mp3s of one source folder into dst (NN-slug.mp3) and return their manifest rows."""
+BGM_NIGHT_PREFIX = "night_"  # a loose `night_*.mp3` in a location folder plays at night only
+
+
+def _bgm_title(f: Path) -> str:
+    stem = f.stem
+    return stem[len(BGM_NIGHT_PREFIX):] if stem.lower().startswith(BGM_NIGHT_PREFIX) else stem
+
+
+def _bgm_tracks(files: list[Path], dst: Path, rel: str, start: int = 1) -> list[dict]:
+    """Copy mp3s into dst (NN-slug.mp3, numbered from `start`) and return their manifest rows."""
     tracks: list[dict] = []
-    files = sorted(src.glob("*.mp3")) if src.exists() else []
     if files:
         dst.mkdir(parents=True, exist_ok=True)
-    for i, f in enumerate(files, start=1):
-        name = f"{i:02d}-{_ascii_slug(f.stem)[:40]}.mp3"
+    for i, f in enumerate(files, start=start):
+        name = f"{i:02d}-{_ascii_slug(_bgm_title(f))[:40]}.mp3"
         shutil.copyfile(f, dst / name)
-        tracks.append({"file": f"{rel}/{name}", "title": f.stem})
+        tracks.append({"file": f"{rel}/{name}", "title": _bgm_title(f)})
     return tracks
+
+
+def _period_lists(folder: Path) -> dict[str, list[Path]]:
+    """The mp3s that belong to each period of one location folder.
+
+    Loose files: `night_*.mp3` → night, anything else → day. Plus the optional day/ and night/ subfolders.
+    """
+    loose = sorted(folder.glob("*.mp3")) if folder.exists() else []
+    out = {p: sorted((folder / p).glob("*.mp3")) if (folder / p).exists() else [] for p in BGM_PERIODS}
+    for f in loose:
+        out["night" if f.name.lower().startswith(BGM_NIGHT_PREFIX) else "day"].append(f)
+    return out
 
 
 def build_bgm_manifest(bgm_dir: Path, bgm_out: Path) -> dict[str, dict[str, list[dict]]]:
     """assets/bgm/ → media/bgm/<location>/<period>/NN-slug.mp3 + manifest {location: {day, night}}.
 
-    Top-level day/ and night/ are the `default` location (rooms, and the fallback for every other place).
-    Any other folder (e.g. dock/) is a location: its day/ and night/ subfolders are period lists, loose mp3s
-    directly inside it play in both periods. `legacy/` is ignored. An empty list means "fall back" (client side).
+    The top level is the `default` location (rooms, and the fallback for every other place); any other folder
+    (e.g. dock/) is a location. In each: loose `night_*.mp3` play at night only, other loose mp3s by day, and
+    the optional day/ and night/ subfolders add to those lists. `legacy/` is ignored. An empty list means
+    "fall back" (client side: a place without night tracks keeps playing its day list at night).
     """
     if bgm_out.exists():
         shutil.rmtree(bgm_out)
     bgm_out.mkdir(parents=True, exist_ok=True)
     manifest: dict[str, dict[str, list[dict]]] = {}
-    manifest["default"] = {
-        p: _bgm_tracks(bgm_dir / p, bgm_out / "default" / p, f"default/{p}") for p in BGM_PERIODS
-    }
+    locations: list[tuple[str, Path]] = [("default", bgm_dir)]
     for loc_dir in sorted(bgm_dir.iterdir()) if bgm_dir.exists() else []:
         loc = loc_dir.name.lower()
         if not loc_dir.is_dir() or loc in BGM_PERIODS or loc in BGM_SKIP_DIRS or loc.startswith("."):
             continue
-        both = _bgm_tracks(loc_dir, bgm_out / loc / "any", f"{loc}/any")
-        manifest[loc] = {
-            p: both + _bgm_tracks(loc_dir / p, bgm_out / loc / p, f"{loc}/{p}") for p in BGM_PERIODS
-        }
+        locations.append((loc, loc_dir))
+    for loc, folder in locations:
+        lists = _period_lists(folder)
+        manifest[loc] = {p: _bgm_tracks(lists[p], bgm_out / loc / p, f"{loc}/{p}") for p in BGM_PERIODS}
     return manifest
 
 
@@ -986,8 +1007,9 @@ def cmd_media(_: argparse.Namespace) -> None:
         n += 1
     print(f"fonts: {n} files → media/fonts/")
 
-    kinds = copy_sfx()
-    print(f"sfx: {len(kinds)} sounds → media/sfx/ ({', '.join(kinds)})")
+    counts = copy_sfx()
+    names = [k if n == 1 else f"{k}×{n}" for k, n in counts.items()]
+    print(f"sfx: {len(counts)} sounds → media/sfx/ ({', '.join(names)})")
 
 
 # ----------------------------------------------------------------------------

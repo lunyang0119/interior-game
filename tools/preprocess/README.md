@@ -169,12 +169,12 @@ python tools/preprocess/preprocess.py build                        # map_slices.
 ```
 python tools/preprocess/preprocess.py media
 ```
-`assets/BGM/day|night/*.mp3` → `client/public/media/bgm/default/day|night/NN-이름.mp3`, `assets/BGM/<장소>/*.mp3` → `media/bgm/<장소>/any/`, `assets/BGM/<장소>/day|night/*.mp3` → `media/bgm/<장소>/day|night/` (장소 = `dock`, `field`, `room`; `legacy/`는 건너뜀) + `bgm.json`(`{장소: {day: [...], night: [...]}}`, 공용 곡은 양쪽에 들어감), `assets/fonts/*.ttf` → `media/fonts/stardust*.ttf`.
+`assets/BGM/` 최상위가 `default`(방들, 다른 장소의 폴백), `assets/BGM/<장소>/`가 장소별(`dock`, `field`, `room`; `legacy/`는 건너뜀). 각 폴더 안에서 **`night_`로 시작하는 mp3는 밤 전용, 접두사 없는 mp3는 낮** 목록이고, `day/`·`night/` 하위 폴더가 있으면 그 목록에 더해진다 → `media/bgm/<장소>/day|night/NN-이름.mp3` + `bgm.json`(`{장소: {day: [...], night: [...]}}`). 밤 곡이 하나도 없는 장소는 밤에도 낮 곡을 튼다(클라이언트 폴백), `assets/fonts/*.ttf` → `media/fonts/stardust*.ttf`.
 곡을 바꾸면 다시 실행. mp3/ttf는 gitignore라 VM에는 rsync.
 
-**효과음**: `assets/sfx/**/<종류>_아무이름.mp3` → `media/sfx/<종류>.mp3` + `media/sfx.json`. 파일 이름의 첫 `_` 앞이 종류다.
+**효과음**: `assets/sfx/**/<종류>_아무이름.mp3` → `media/sfx/<종류>.mp3` + `media/sfx.json`. 파일 이름의 첫 `_` 앞이 종류다. 같은 종류 파일이 여러 개면 `<종류>.mp3`, `<종류>_2.mp3`, `<종류>_3.mp3`…로 전부 들어가고(`sfx.json`의 `variants`에 개수) 게임이 재생할 때마다 하나를 랜덤으로 고른다 — 고양이 울음(`cat_*.mp3`)처럼 여러 목소리를 두고 싶을 때.
 - `walking/` 폴더 안의 파일은 `step_<종류>`가 된다 (`walking/wood_x.mp3` → `step_wood`). 발소리는 `wood`, `tile`, `grass`, `water` 네 종류.
-- 나머지 폴더(예 `UI/`): `rod_`(던지기), `water_`(찌 착수·입질·낚아올림), `reel_`(버티는 동안 반복), `sell_`(팔기/환불). 이름은 `client/src/audio/sfx.ts`의 `SFX` 표 한 곳에서 잇는다.
+- 나머지 폴더(예 `UI/`): `rod_`(던지기), `water_`(찌 착수·입질·낚아올림), `reel_`(버티는 동안 반복), `sell_`(팔기/환불), `cat_`(여관 고양이 울음, 여러 개면 랜덤), `ocean_`(부두 환경음: 부두에 있는 동안 BGM 밑에서 파일들을 번갈아 이어서 틂). 이름은 `client/src/audio/sfx.ts`의 `SFX` 표 한 곳에서 잇는다.
 - `legacy/` 폴더와 접두어 없는 파일, `.aup3`는 무시. 같은 종류가 두 개면 빌드가 멈춘다.
 - 음소거는 BGM 버튼(🔊) 하나로 음악·효과음이 같이 꺼진다. VM에 올릴 것: `client/public/media/sfx/*.mp3`, `media/sfx.json`.
 

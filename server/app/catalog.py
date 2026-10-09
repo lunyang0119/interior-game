@@ -322,10 +322,13 @@ def _load_rooms(data_dir: Path) -> dict[str, Room]:
 
 
 def asset_version(gen_dir: Path, media_dir: Path | None = None) -> str:
-    """Short hash of the files whose layout the client caches (atlas frames, theme). Missing files are skipped."""
+    """Short hash of the files whose layout the client caches (atlas frames, theme, BGM/SFX lists). Missing files
+    are skipped. Caddy caches /gen and /media for a day, so anything the client fetches from there must be in
+    this hash (and the server restarted after uploading it) or browsers keep the old copy."""
+    media = media_dir or config.MEDIA_DIR
     h = hashlib.sha1()
     for p in (gen_dir / "manifest.json", gen_dir / "interiors.json", gen_dir / "map.json", gen_dir / "dock.json",
-              (media_dir or config.MEDIA_DIR) / "theme.css"):
+              media / "theme.css", media / "bgm.json", media / "sfx.json"):
         if p.is_file():
             h.update(p.name.encode())
             h.update(p.read_bytes())

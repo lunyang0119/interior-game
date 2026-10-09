@@ -15,6 +15,12 @@
   {
    "id": "park",
    "earned": 300
+  },
+  {
+   "id": "claude",
+   "name": "claude",
+   "earned": 0,
+   "registered": true
   }
  ]
 }

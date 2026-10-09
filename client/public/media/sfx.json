@@ -1,5 +1,7 @@
 {
  "kinds": [
+  "cat",
+  "ocean",
   "reel",
   "rod",
   "sell",
@@ -8,5 +10,17 @@
   "step_water",
   "step_wood",
   "water"
- ]
+ ],
+ "variants": {
+  "cat": 3,
+  "ocean": 2,
+  "reel": 1,
+  "rod": 1,
+  "sell": 1,
+  "step_grass": 1,
+  "step_tile": 1,
+  "step_water": 1,
+  "step_wood": 1,
+  "water": 1
+ }
 }

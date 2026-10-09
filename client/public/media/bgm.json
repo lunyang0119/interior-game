@@ -92,62 +92,77 @@
  "cave": {
   "day": [
    {
-    "file": "cave/any/01-bgmemon.mp3",
+    "file": "cave/day/01-bgmemon.mp3",
     "title": "BGMemon_ミスティックフォレスト"
    },
    {
-    "file": "cave/any/02-bgmemon.mp3",
+    "file": "cave/day/02-bgmemon.mp3",
     "title": "BGMemon_帰らずの洞窟"
    },
    {
-    "file": "cave/any/03-bgmemon.mp3",
+    "file": "cave/day/03-bgmemon.mp3",
     "title": "BGMemon_雫の妖精"
    }
   ],
-  "night": [
-   {
-    "file": "cave/any/01-bgmemon.mp3",
-    "title": "BGMemon_ミスティックフォレスト"
-   },
-   {
-    "file": "cave/any/02-bgmemon.mp3",
-    "title": "BGMemon_帰らずの洞窟"
-   },
-   {
-    "file": "cave/any/03-bgmemon.mp3",
-    "title": "BGMemon_雫の妖精"
-   }
-  ]
+  "night": []
  },
  "dock": {
   "day": [
    {
-    "file": "dock/any/01-bgmemon.mp3",
+    "file": "dock/day/01-bgmemon.mp3",
     "title": "BGMemon_マヌチッシ村"
    },
    {
-    "file": "dock/any/02-jonathanslattermusic-seagulls-in-coastal.mp3",
+    "file": "dock/day/02-jonathanslattermusic-seagulls-in-coastal.mp3",
     "title": "jonathanslattermusic-seagulls-in-coastal-village-486871"
+   },
+   {
+    "file": "dock/day/03-sumire0505-seaside-serenade-312014.mp3",
+    "title": "sumire0505-seaside-serenade-312014"
+   },
+   {
+    "file": "dock/day/04-valeriigomeniuk-sea-breeze-261384.mp3",
+    "title": "valeriigomeniuk-sea-breeze-261384"
    }
   ],
   "night": [
    {
-    "file": "dock/any/01-bgmemon.mp3",
-    "title": "BGMemon_マヌチッシ村"
+    "file": "dock/night/01-flatsoundworks-to-evening-20584.mp3",
+    "title": "flatsoundworks-to-evening-20584"
    },
    {
-    "file": "dock/any/02-jonathanslattermusic-seagulls-in-coastal.mp3",
-    "title": "jonathanslattermusic-seagulls-in-coastal-village-486871"
+    "file": "dock/night/02-twotwice-ocean-breeze-553748.mp3",
+    "title": "twotwice-ocean-breeze-553748"
    }
   ]
  },
  "field": {
-  "day": [],
-  "night": []
+  "day": [
+   {
+    "file": "field/day/01-bensound-yesterday.mp3",
+    "title": "bensound-yesterday"
+   }
+  ],
+  "night": [
+   {
+    "file": "field/night/01-bensound-firesidechat.mp3",
+    "title": "bensound-firesidechat"
+   }
+  ]
  },
  "room": {
-  "day": [],
-  "night": []
+  "day": [
+   {
+    "file": "room/day/01-bensound-moonlightcoffee.mp3",
+    "title": "bensound-moonlightcoffee"
+   }
+  ],
+  "night": [
+   {
+    "file": "room/night/01-bensound-floatinggarden.mp3",
+    "title": "bensound-floatinggarden"
+   }
+  ]
  },
  "unknown": {
   "day": [],

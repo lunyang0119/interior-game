@@ -80,7 +80,9 @@ export class InnCat {
   /** Loads the strip and puts the cat on a random walkable floor cell (nothing when there is none). */
   async spawn(): Promise<void> {
     const ok = await ensureTexture(this.scene, this.spec);
-    if (!ok || !this.alive || !this.scene.scene.isActive()) return;
+    // no scene.isActive() here: spawn() is called from create(), when the scene is still CREATING, and a cached
+    // texture resolves right away — `alive` (cleared by destroy()) is the only guard that matters
+    if (!ok || !this.alive) return;
     const free = this.freeCells();
     if (!free.length) return;
     const start = free[Math.floor(Math.random() * free.length)];

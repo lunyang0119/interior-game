@@ -148,7 +148,7 @@ export class GuestNpcs {
     if (!free.length) return; // nowhere to stand (unit packed with furniture)
     const start = free[Math.floor(rnd() * free.length)];
     await ensureAvatarTextures(this.scene, look, this.cat.chars);
-    if (gen !== this.gen || !this.scene.scene.isActive()) return;
+    if (gen !== this.gen) return; // destroy()/rebuild bumps gen; scene.isActive() is false while still creating
     const avatar = new Avatar(this.scene, this.cat.chars, look, start.cx, start.cy, GUEST_NAME);
     avatar.onStep = () => { /* facing is derived from movement; nothing is sent */ };
     avatar.face(DIRS[Math.floor(rnd() * DIRS.length)]);
