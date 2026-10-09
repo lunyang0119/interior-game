@@ -46,8 +46,8 @@ export function catalog(): Catalog {
 /** New progress picture (from /api/rooms, /api/activity or the ws `progress` message). Emits progress:changed with
  *  the stages that completed since the last picture, so the UI can celebrate them. */
 /** New comfort picture for every open guest unit (merged from /api/rooms' per-room dicts or /api/activity). */
-export function applyComfort(views: Record<string, ComfortView>): void {
-  state.comfort = views;
+export function applyComfort(views: Record<string, ComfortView> | null | undefined): void {
+  state.comfort = views ?? {}; // an older server (no `comfort` in /api/activity) must not wipe the picture to undefined
   bus.emit("comfort:changed");
 }
 
