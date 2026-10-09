@@ -74,6 +74,12 @@ sudo systemctl start interior
 
 # 에러 로그 보는 법
 
+## 502 떴을 때 (제일 먼저)
+  journalctl -u interior -n 60 --no-pager   # 마지막 60줄, 페이저 없이 — 보통 기동 중 ImportError/ValueError가 여기 있음
+  systemctl status interior --no-pager      # 죽어 있는지, 몇 번 재시작했는지
+
+  새 파일을 빼먹고 올렸을 때(`cannot import name ...`)나 data/ 검증 실패(`ValueError: room ...`)가 대부분. 고친 뒤 `sudo systemctl restart interior`.
+
 ## 실시간으로 보기 (tail -f 같은 느낌)
   journalctl -u interior -f
 
