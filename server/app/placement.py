@@ -3,9 +3,10 @@
 Rules (see plan §3):
 1. item exists, footprint inside the room, no blocked cells, no unwalkable tiles (walk:false) under
    furniture or rugs
-2. every footprint cell has the right type for the layer (wallpaper/wall ↔ wall rows, else floor)
-3. wallpaper/wall/floor/furniture only collide with items of the same layer
-   (so frames, doors and chalkboards can hang over wallpaper)
+2. every footprint cell has the right type for the layer (wallpaper/wall ↔ wall rows, else floor);
+   a `partition`-tagged wall sprite is the exception: it stands on floor rows
+3. wallpaper/wall/floor/furniture only collide with items of the same collision layer
+   (so frames, doors and chalkboards can hang over wallpaper; partitions collide with furniture)
 4. surface_item needs exactly one is_surface furniture under every cell, the same
    one for all cells, and no other surface_item in those cells
 
@@ -20,7 +21,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from .catalog import DEFAULT_ROOM, Catalog, Item, WALL_LAYERS, Z_OF_LAYER
+from .catalog import DEFAULT_ROOM, Catalog, Item, Z_OF_LAYER
 from .errors import ApiError
 
 
@@ -88,10 +89,10 @@ def validate_place(catalog: Catalog, others: list[ItemRow], item_id: str, x: int
     if not relaxed and any(not room.in_bounds(cx, cy) or (cx, cy) in blocked for cx, cy in cells):
         raise fail("out_of_bounds")
     # floor things cannot sit on water etc. (wall layers never touch floor tiles; surface items need a table)
-    if not relaxed and it.layer in ("furniture", "floor") and any(not catalog.tile_walkable(room, cx, cy) for cx, cy in cells):
+    if not relaxed and it.collision_layer in ("furniture", "floor") and any(not catalog.tile_walkable(room, cx, cy) for cx, cy in cells):
         raise fail("out_of_bounds")
 
-    want = "wall" if it.layer in WALL_LAYERS else "floor"
+    want = "wall" if it.on_wall else "floor"
     if any(room.cell_type(cx, cy) != want for cx, cy in cells):
         raise fail("bad_cell_type")
 
@@ -99,11 +100,11 @@ def validate_place(catalog: Catalog, others: list[ItemRow], item_id: str, x: int
 
     if it.layer != "surface_item":
         for o in [] if relaxed else others:
-            if catalog.items[o.item_id].layer != it.layer:
+            if catalog.items[o.item_id].collision_layer != it.collision_layer:
                 continue
             if cell_set & set(footprint_of(catalog, o)):
                 raise fail("collision")
-        return Placement(z=Z_OF_LAYER[it.layer], parent_uid=None)
+        return Placement(z=Z_OF_LAYER[it.collision_layer], parent_uid=None)
 
     # surface_item
     surfaces = [o for o in others if catalog.items[o.item_id].layer == "furniture" and catalog.items[o.item_id].is_surface]

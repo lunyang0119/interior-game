@@ -1,9 +1,9 @@
 import Phaser from "phaser";
 import { api, ApiError, msgFor } from "../api";
 import { bus, toast } from "../bus";
-import { Z_SCALE, priceOf, widthOf, type Catalog, type Room, type RoomItem } from "../catalog";
+import { Z_SCALE, collisionLayer, onWall, priceOf, widthOf, type Catalog, type Room, type RoomItem } from "../catalog";
 import { state } from "../state";
-import { depthOf, isWallLayer, sortRowFor } from "./depth";
+import { depthOf, sortRowFor } from "./depth";
 import { anchorUnderPointer, CELL } from "./grid";
 import { makeItemSprite, type ItemLayer } from "./ItemLayer";
 import { checkPlace } from "./rules";
@@ -99,8 +99,8 @@ export class PlacementController {
     const others = this.items.rows.filter((r) => r.uid !== this.moveUid);
     const check = checkPlace(this.cat, this.room, others, this.itemId, cx, cy, this.span);
     this.ok = check.ok;
-    let y = isWallLayer(it.layer) ? cy * CELL : (cy + it.h) * CELL;
-    let sortRow = sortRowFor(it.layer, cy + it.h - 1);
+    let y = (onWall(it) ? cy * CELL : (cy + it.h) * CELL) + (it.offset_y ?? 0);
+    let sortRow = sortRowFor(collisionLayer(it), cy + it.h - 1);
     if (check.ok && check.parentUid != null) {
       const parent = this.items.get(check.parentUid);
       const pit = parent && this.cat.byId.get(parent.item_id);

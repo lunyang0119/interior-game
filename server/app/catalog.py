@@ -28,6 +28,10 @@ ROOM_ID_RE = re.compile(r"^[a-z][a-z0-9_]*$")
 TAG_RUINED = "ruined"
 TAG_FIXED = "fixed"
 TAG_NOTE = "note"  # carries a short text anyone can rewrite (PUT /api/room/item/{uid}/note)
+# partition = a wall-layer sprite that stands on the floor (room dividers): placed on floor rows, collides and
+# blocks walking like furniture, drawn like furniture. door = a partition avatars may walk through.
+TAG_PARTITION = "partition"
+TAG_DOOR = "door"
 DEFAULT_ROOM = "inn"
 MAP_ROOM = "map"
 DOCK_ROOM = "dock"
@@ -46,6 +50,9 @@ class Item(BaseModel):
     layer: Layer
     is_surface: bool = False
     surface_offset_y: int = 0
+    # draw the sprite this many px lower than its footprint anchor (an open door hanging below a wall's base);
+    # purely visual, the footprint does not move
+    offset_y: int = 0
     tags: list[str] = []
     pair: str | None = None  # the intact/ruined counterpart (informational)
     # furniture set (same source pack/theme) — not in items.json: filled from the manifest key's `set` at load,
@@ -68,6 +75,16 @@ class Item(BaseModel):
 
     def has_tag(self, tag: str) -> bool:
         return tag in self.tags
+
+    @property
+    def on_wall(self) -> bool:
+        """Lives on the wall rows (wallpaper / wall decor), unless it is a partition standing on the floor."""
+        return self.layer in WALL_LAYERS and not self.has_tag(TAG_PARTITION)
+
+    @property
+    def collision_layer(self) -> str:
+        """Items only collide within this group; partitions share the floor with furniture."""
+        return "furniture" if self.has_tag(TAG_PARTITION) else self.layer
 
     @property
     def for_sale(self) -> bool:
@@ -102,6 +119,24 @@ class Seed(BaseModel):
     span: int | None = Field(default=None, ge=1)
 
 
+class Zone(BaseModel):
+    """A rectangle inside a room that takes guests on its own (a guest room on a floor). Drawn in the world
+    editor ("구역 그리기"). Rooms without zones are one guest unit as a whole."""
+    id: str = Field(pattern=r"^[a-z][a-z0-9_]*$")
+    name: str = ""
+    x: int = Field(ge=0)
+    y: int = Field(ge=0)
+    w: int = Field(ge=1)
+    h: int = Field(ge=1)
+
+    def contains(self, x: int, y: int) -> bool:
+        return self.x <= x < self.x + self.w and self.y <= y < self.y + self.h
+
+    @property
+    def cells(self) -> int:
+        return self.w * self.h
+
+
 class Room(BaseModel):
     id: str = DEFAULT_ROOM
     name: str = ""
@@ -118,6 +153,30 @@ class Room(BaseModel):
     seed: list[Seed] = []
     # Restoration stages (needs → unlock rewards), see restore.py. Empty = the room has no progression.
     restore: list[Stage] = []
+    # Guest rooms inside this room (comfort/guests per zone). Empty = the whole room is one guest unit.
+    zones: list[Zone] = []
+
+    @model_validator(mode="after")
+    def _zones(self) -> "Room":
+        seen: set[str] = set()
+        for z in self.zones:
+            if z.id in seen:
+                raise ValueError(f"room {self.id}: duplicate zone id '{z.id}'")
+            seen.add(z.id)
+            if z.x + z.w > self.cols or z.y + z.h > self.rows:
+                raise ValueError(f"room {self.id}: zone '{z.id}' sticks out of the room")
+        for i, a in enumerate(self.zones):
+            for b in self.zones[i + 1:]:
+                if a.x < b.x + b.w and b.x < a.x + a.w and a.y < b.y + b.h and b.y < a.y + a.h:
+                    raise ValueError(f"room {self.id}: zones '{a.id}' and '{b.id}' overlap")
+        return self
+
+    def zone_at(self, x: int, y: int) -> "Zone | None":
+        return next((z for z in self.zones if z.contains(x, y)), None)
+
+    @property
+    def cells(self) -> int:
+        return self.cols * self.rows
 
     def floor_key(self, x: int, y: int) -> str:
         """The floor tile drawn at a cell (wall rows still answer with the default floor)."""

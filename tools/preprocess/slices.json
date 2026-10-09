@@ -21001,12 +21001,28 @@
   "h": 22
  },
  {
+  "key": "new_84",
+  "sheet": "medieval_pack",
+  "x": 32,
+  "y": 16,
+  "w": 16,
+  "h": 16
+ },
+ {
   "key": "med_002",
   "sheet": "medieval_pack",
   "x": 448,
   "y": 16,
   "w": 64,
   "h": 64
+ },
+ {
+  "key": "new_83",
+  "sheet": "medieval_pack",
+  "x": 16,
+  "y": 32,
+  "w": 16,
+  "h": 16
  },
  {
   "key": "med_003",
@@ -21053,8 +21069,32 @@
   "sheet": "medieval_pack",
   "x": 608,
   "y": 32,
-  "w": 64,
+  "w": 16,
   "h": 48
+ },
+ {
+  "key": "med_wall_medium",
+  "sheet": "medieval_pack",
+  "x": 624,
+  "y": 32,
+  "w": 16,
+  "h": 48
+ },
+ {
+  "key": "med_wall_right",
+  "sheet": "medieval_pack",
+  "x": 656,
+  "y": 32,
+  "w": 16,
+  "h": 48
+ },
+ {
+  "key": "med_wall_vertical_up",
+  "sheet": "medieval_pack",
+  "x": 688,
+  "y": 32,
+  "w": 16,
+  "h": 16
  },
  {
   "key": "med_007",
@@ -21076,6 +21116,14 @@
   "key": "med_013",
   "sheet": "medieval_pack",
   "x": 528,
+  "y": 48,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "med_wall_vertical",
+  "sheet": "medieval_pack",
+  "x": 688,
   "y": 48,
   "w": 16,
   "h": 16
@@ -21108,6 +21156,14 @@
   "key": "med_017",
   "sheet": "medieval_pack",
   "x": 544,
+  "y": 64,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "med_wall_vertical_down",
+  "sheet": "medieval_pack",
+  "x": 688,
   "y": 64,
   "w": 16,
   "h": 16
@@ -21399,14 +21455,6 @@
   "y": 144,
   "w": 16,
   "h": 16
- },
- {
-  "key": "med_053",
-  "sheet": "medieval_pack",
-  "x": 720,
-  "y": 160,
-  "w": 64,
-  "h": 51
  },
  {
   "key": "med_052",
@@ -25437,22 +25485,6 @@
   "h": 16
  },
  {
-  "key": "notepad_td",
-  "sheet": "topdown_small_items",
-  "x": 32,
-  "y": 16,
-  "w": 16,
-  "h": 16
- },
- {
-  "key": "note_scrap_td",
-  "sheet": "topdown_small_items",
-  "x": 48,
-  "y": 16,
-  "w": 16,
-  "h": 16
- },
- {
   "key": "wood_crate_td",
   "sheet": "topdown_small_items",
   "x": 64,
@@ -25483,6 +25515,22 @@
   "y": 16,
   "w": 16,
   "h": 16
+ },
+ {
+  "key": "notepad_td",
+  "sheet": "topdown_small_items",
+  "x": 36,
+  "y": 20,
+  "w": 10,
+  "h": 11
+ },
+ {
+  "key": "note_scrap_td",
+  "sheet": "topdown_small_items",
+  "x": 53,
+  "y": 21,
+  "w": 8,
+  "h": 10
  },
  {
   "key": "dog_bone_td",
@@ -25549,22 +25597,6 @@
   "h": 16
  },
  {
-  "key": "book_open_td",
-  "sheet": "topdown_small_items",
-  "x": 0,
-  "y": 48,
-  "w": 16,
-  "h": 16
- },
- {
-  "key": "book_dark_td",
-  "sheet": "topdown_small_items",
-  "x": 16,
-  "y": 48,
-  "w": 16,
-  "h": 16
- },
- {
   "key": "perfume_bottle_td",
   "sheet": "topdown_small_items",
   "x": 32,
@@ -25611,6 +25643,22 @@
   "y": 48,
   "w": 16,
   "h": 16
+ },
+ {
+  "key": "book_open_td",
+  "sheet": "topdown_small_items",
+  "x": 0,
+  "y": 54,
+  "w": 16,
+  "h": 10
+ },
+ {
+  "key": "book_dark_td",
+  "sheet": "topdown_small_items",
+  "x": 16,
+  "y": 55,
+  "w": 16,
+  "h": 8
  },
  {
   "key": "plate_white_td",
@@ -26119,6 +26167,25 @@
  {
   "key": "kitchen_workspace_fa",
   "file": "Furniture Assets/Rooms/Kitchen/Kitchen PNG/Kitchen Workspace.png"
+ },
+ {
+  "key": "med_053",
+  "parts": [
+   {
+    "sheet": "medieval_pack",
+    "x": 720,
+    "y": 160,
+    "w": 64,
+    "h": 48
+   },
+   {
+    "sheet": "medieval_pack",
+    "x": 720,
+    "y": 208,
+    "w": 64,
+    "h": 3
+   }
+  ]
  },
  {
   "key": "mirror_fa",

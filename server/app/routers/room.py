@@ -2,7 +2,7 @@ import sqlite3
 
 from fastapi import APIRouter, Depends, Request, Response
 
-from .. import guests, progress
+from .. import config, guests, progress
 from ..auth import Player, current_player, log_access
 from ..catalog import TAG_FIXED, TAG_NOTE, TAG_RUINED, Catalog
 from ..db import bump_room_version, get_db, now, room_version, transaction
@@ -48,13 +48,15 @@ def rooms(request: Request, conn: sqlite3.Connection = Depends(get_db)):
     """Every room's version, junk left and restoration progress (map markers, room chips) + the locked places."""
     cat = request.app.state.catalog
     prog = progress.all_progress(conn, cat)
-    views = guests.all_views(conn, cat, request.app.state.guests)
+    locks = progress.locked(conn, cat)
     out = []
     for room in cat.rooms.values():
         rows = load_items(conn, room.id)
+        # comfort: {unit key: view} for the room's guest units (the room itself, or each of its zones); null when locked
+        views = None if room.id in locks else guests.room_view(conn, cat, room, request.app.state.guests)
         out.append({"id": room.id, "name": room.name, "version": room_version(conn, room.id),
                     "ruined": ruined_count(cat, rows), "online": hub.count(room.id), "progress": prog.get(room.id),
-                    "comfort": views.get(room.id)})
+                    "comfort": views})
     return {"rooms": out, "locked": sorted(progress.locked(conn, cat))}
 
 
@@ -190,7 +192,8 @@ def remove(uid: int, request: Request, me: Player = Depends(current_player),
             items = load_items(conn, target.room_id)
             if has_children(uid, items):
                 raise ApiError(400, "has_children")
-            price = price_of(it, target.span)
+            # a guest's note was never paid for either, but unlike junk it is worth nothing
+            price = 0 if target.placed_by == config.GUEST_PLAYER else price_of(it, target.span)
             conn.execute("DELETE FROM items WHERE uid = ?", (uid,))
             # seeded junk was never paid for: selling it is how the pool earns from cleaning up
             conn.execute(

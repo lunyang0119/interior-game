@@ -1,6 +1,6 @@
 import Phaser from "phaser";
-import { Z_SCALE, widthOf, type Catalog, type Item, type Layer, type RoomItem } from "../catalog";
-import { depthOf, isWallLayer, sortRowFor } from "./depth";
+import { Z_SCALE, collisionLayer, onWall, widthOf, type Catalog, type Item, type Layer, type RoomItem } from "../catalog";
+import { depthOf, sortRowFor } from "./depth";
 import { CELL } from "./grid";
 import { footprintOf } from "./rules";
 import { buildOccupancy } from "./walk";
@@ -14,9 +14,9 @@ interface Entry { row: RoomItem; sprite: ItemSprite }
 export function makeItemSprite(scene: Phaser.Scene, it: Item | undefined, span?: number | null): ItemSprite {
   if (it?.layer === "wallpaper") {
     const frame = scene.textures.getFrame(ATLAS, it.sprite);
-    return scene.add.tileSprite(0, 0, widthOf(it, span) * CELL, frame.height, ATLAS, it.sprite).setOrigin(0, 0);
+    return scene.add.tileSprite(0, 0, widthOf(it, span) * CELL, frame.height, ATLAS, it.sprite).setOrigin(0, onWall(it) ? 0 : 1);
   }
-  return scene.add.image(0, 0, ATLAS, it?.sprite ?? "").setOrigin(0, isWallLayer(it?.layer) ? 0 : 1);
+  return scene.add.image(0, 0, ATLAS, it?.sprite ?? "").setOrigin(0, onWall(it) ? 0 : 1);
 }
 
 /** Keeps one sprite per room item and diffs against server snapshots. */
@@ -59,8 +59,8 @@ export class ItemLayer {
     const it = this.cat.byId.get(row.item_id);
     const h = it?.h ?? 1;
     let x = row.x * CELL;
-    let y = isWallLayer(it?.layer) ? row.y * CELL : (row.y + h) * CELL;
-    let sortRow = sortRowFor(it?.layer, row.y + h - 1);
+    let y = (onWall(it) ? row.y * CELL : (row.y + h) * CELL) + (it?.offset_y ?? 0);
+    let sortRow = sortRowFor(it && collisionLayer(it), row.y + h - 1);
     if (it?.layer === "surface_item" && row.parent_uid != null) {
       const parent = this.entries.get(row.parent_uid)?.row ?? this.rows.find((r) => r.uid === row.parent_uid);
       const pit = parent && this.cat.byId.get(parent.item_id);

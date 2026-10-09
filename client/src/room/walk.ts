@@ -8,7 +8,7 @@
  * (map cells + building footprints minus doors) and not an unwalkable ground/deco tile.
  */
 
-import { exitAt, floorKeyAt, hasTag, SEED_PLAYER, TAG_RUINED, TAG_STAIRS, type Catalog, type MapData, type Room, type RoomItem } from "../catalog";
+import { collisionLayer, exitAt, floorKeyAt, GUEST_PLAYER, hasTag, SEED_PLAYER, TAG_DOOR, TAG_RUINED, TAG_STAIRS, type Catalog, type MapData, type Room, type RoomItem } from "../catalog";
 import { footprintOf } from "./rules";
 
 export interface Cell { cx: number; cy: number }
@@ -27,8 +27,10 @@ export function buildOccupancy(cat: Catalog, rows: RoomItem[]): Set<number> {
   const occ = new Set<number>();
   for (const row of rows) {
     const it = cat.byId.get(row.item_id);
-    if (!it || it.layer !== "furniture" || hasTag(it, TAG_STAIRS) || hasTag(it, TAG_RUINED)) continue;
-    if (row.placed_by === SEED_PLAYER) continue;
+    if (!it || hasTag(it, TAG_STAIRS) || hasTag(it, TAG_RUINED)) continue;
+    // furniture and partition walls block; a `door` partition is walked through
+    if (collisionLayer(it) !== "furniture" || hasTag(it, TAG_DOOR)) continue;
+    if (row.placed_by === SEED_PLAYER || row.placed_by === GUEST_PLAYER) continue;
     for (const [x, y] of footprintOf(cat, row)) occ.add(cellKey(x, y));
   }
   return occ;

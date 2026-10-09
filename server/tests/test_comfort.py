@@ -16,7 +16,7 @@ def _row(uid, item_id, placed_by="lun", span=None):
 
 
 def _score(catalog, items, affection=0):
-    return comfort(catalog, catalog.rooms["inn"], items, CFG, affection)
+    return comfort(catalog, catalog.rooms["inn"].cells, items, CFG, affection)
 
 
 def test_empty_room_scores_nothing(catalog):

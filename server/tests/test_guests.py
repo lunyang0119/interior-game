@@ -55,7 +55,7 @@ def test_first_boot_marks_today_and_the_views_show_no_guests_without_a_bed(clien
     assert _sql("SELECT * FROM ledger WHERE kind = 'guest'") == []
     lun = register(client, "lun")
     inn = next(r for r in client.get("/api/rooms").json()["rooms"] if r["id"] == "inn")
-    assert inn["comfort"]["beds"] == 0 and inn["comfort"]["guests"] == 0 and inn["comfort"]["reservation"] is None
+    assert inn["comfort"]["inn"]["beds"] == 0 and inn["comfort"]["inn"]["guests"] == 0 and inn["comfort"]["inn"]["reservation"] is None
     act = client.get("/api/activity", headers=auth(lun)).json()
     assert act["comfort"]["inn"]["score"] == 0 and act["today"]["guests"] == 0
     # settling again today changes nothing
@@ -68,8 +68,8 @@ def test_nightly_pay_once_per_day_with_capped_catch_up(client):
     _place(client, lun, "table", 4, 2)
     before = _balance(client, lun)
     inn = next(r for r in client.get("/api/rooms").json()["rooms"] if r["id"] == "inn")
-    expect = inn["comfort"]["pay"]
-    assert inn["comfort"]["beds"] == 1 and inn["comfort"]["guests"] == 1 and expect > 0
+    expect = inn["comfort"]["inn"]["pay"]
+    assert inn["comfort"]["inn"]["beds"] == 1 and inn["comfort"]["inn"]["guests"] == 1 and expect > 0
     cfg = load_config().model_copy(deep=True)
     cfg.reservation.chance = 0.0  # a random reservation would be missed during the catch-up and skip a night
     t0 = now()
@@ -78,7 +78,7 @@ def test_nightly_pay_once_per_day_with_capped_catch_up(client):
     assert _balance(client, lun) == before + expect
     guest = [e for e in ev if e["kind"] == "guest"]
     assert len(guest) == 1 and guest[0]["room_id"] == "inn" and guest[0]["amount"] == expect
-    assert guest[0]["data"]["guests"] == 1 and guest[0]["data"]["score"] == inn["comfort"]["score"]
+    assert guest[0]["data"]["guests"] == 1 and guest[0]["data"]["score"] == inn["comfort"]["inn"]["score"]
     assert _settle(client, t0 + DAY, cfg=cfg) == 0  # same day twice
     # five days asleep → only max_catchup_days (3) nights are paid
     assert _settle(client, t0 + 6 * DAY, cfg=cfg) == 3 * expect
@@ -98,7 +98,7 @@ def test_reservation_fulfilled_pays_double_and_missed_keeps_guests_away(client):
     today = guests.day_key(t0, cfg)
     _sql("INSERT INTO reservations(room_id, kind, item_id, due_day, created_ts) VALUES ('inn', 'item', 'chair', ?, ?)",
          today + 1, t0)
-    view = next(r for r in client.get("/api/rooms").json()["rooms"] if r["id"] == "inn")["comfort"]
+    view = next(r for r in client.get("/api/rooms").json()["rooms"] if r["id"] == "inn")["comfort"]["inn"]
     assert view["reservation"] == {"id": 1, "kind": "item", "item_id": "chair", "due_day": today + 1, "days_left": 1}
     # no chair on the due day: the guest leaves, tomorrow nobody comes
     ev = []
@@ -110,7 +110,7 @@ def test_reservation_fulfilled_pays_double_and_missed_keeps_guests_away(client):
     conn = connect()
     try:
         cat = client.app.state.catalog
-        view = guests.room_view(conn, cat, cat.rooms["inn"], cfg, t0 + DAY)
+        view = guests.room_view(conn, cat, cat.rooms["inn"], cfg, t0 + DAY)["inn"]
     finally:
         conn.close()
     assert view["skipped"] is True and view["guests"] == 0 and view["pay"] == 0 and view["reservation"] is None
@@ -121,7 +121,7 @@ def test_reservation_fulfilled_pays_double_and_missed_keeps_guests_away(client):
     _sql("INSERT INTO reservations(room_id, kind, item_id, due_day, created_ts) VALUES ('inn', 'item', 'chair', ?, ?)",
          today + 3, t0)
     _place(client, lun, "chair", 6, 3)
-    view = next(r for r in client.get("/api/rooms").json()["rooms"] if r["id"] == "inn")["comfort"]
+    view = next(r for r in client.get("/api/rooms").json()["rooms"] if r["id"] == "inn")["comfort"]["inn"]
     ev = []
     paid = _settle(client, t0 + 3 * DAY, cfg=cfg, events=ev)
     g = next(e for e in ev if e["kind"] == "guest")
@@ -170,9 +170,9 @@ def test_dog_lover_books_the_comfiest_room_once_a_month(client):
     if not dog:  # this month's date is already past: no booking, and nothing breaks
         assert row == [] and _meta("dog_month") > 0
         return
-    assert len(row) == 1 and row[0]["room_id"] == "inn"
+    assert len(row) == 1 and row[0]["room_id"] == "inn" and row[0]["zone_id"] is None
     due = row[0]["due_day"]
-    view = next(r for r in client.get("/api/rooms").json()["rooms"] if r["id"] == "inn")["comfort"]
+    view = next(r for r in client.get("/api/rooms").json()["rooms"] if r["id"] == "inn")["comfort"]["inn"]
     days = due - guests.day_key(t0 + DAY, cfg)
     ev = []
     paid = _settle(client, t0 + (1 + days) * DAY, cfg=cfg, events=ev)
@@ -180,6 +180,69 @@ def test_dog_lover_books_the_comfiest_room_once_a_month(client):
     assert len(g) == 1 and g[0]["data"]["dog"] == round(view["per_guest"] * cfg.dog.pay_mult)
     assert paid >= g[0]["data"]["dog"]
     assert _sql("SELECT status FROM reservations WHERE kind = 'dog'")[0]["status"] == "paid"
+
+
+def test_guests_leave_a_note_on_a_table(client):
+    """A paid night leaves a `note` surface item owned by $guest on a surface in the unit; it scores and refunds nothing."""
+    from app import guests
+    lun = register(client, "lun")
+    _place(client, lun, "bed", 1, 2)
+    _place(client, lun, "table", 4, 2)
+    cfg = load_config().model_copy(deep=True)
+    cfg.reservation.chance = 0.0
+    t0 = now()
+    changed = set()
+    conn = connect()
+    try:
+        with transaction(conn):
+            paid = guests.settle(conn, client.app.state.catalog, cfg, t0 + DAY, random.Random(3), [], changed)
+    finally:
+        conn.close()
+    assert paid > 0 and changed == {"inn"}
+    notes = [i for i in client.get("/api/room/inn").json()["items"] if i["placed_by"] == "$guest"]
+    assert len(notes) == 1 and notes[0]["item_id"] == "scrap" and notes[0]["note_by"] == "손님"
+    assert notes[0]["note"] in guests.NOTES_LOW + guests.NOTES_MID + guests.NOTES_HIGH
+    assert notes[0]["parent_uid"] is not None and 4 <= notes[0]["x"] <= 5 and notes[0]["y"] == 2  # on the table
+    # the note never scores, and taking it away refunds nothing
+    inn = next(r for r in client.get("/api/rooms").json()["rooms"] if r["id"] == "inn")["comfort"]["inn"]
+    assert inn["raw"] == 160
+    before = _balance(client, lun)
+    r = client.delete(f"/api/room/item/{notes[0]['uid']}", headers=auth(lun))
+    assert r.status_code == 200 and _balance(client, lun) == before
+    # three nights → only the newest two notes stay
+    conn = connect()
+    try:
+        with transaction(conn):
+            guests.settle(conn, client.app.state.catalog, cfg, t0 + 4 * DAY, random.Random(3), [], set())
+    finally:
+        conn.close()
+    notes = [i for i in client.get("/api/room/inn").json()["items"] if i["placed_by"] == "$guest"]
+    assert len(notes) == guests.MAX_GUEST_NOTES
+
+
+def test_dev_settle_simulates_days(env, monkeypatch):
+    """DEV_TOOLS=1 mounts /api/dev/settle: a night passes on demand, with forced reservation odds."""
+    import importlib
+    from app import config
+    monkeypatch.setattr(config, "DEV_TOOLS", True)
+    from fastapi.testclient import TestClient
+    from app.main import create_app
+    with TestClient(create_app()) as client:
+        lun = register(client, "lun")
+        _place(client, lun, "bed", 1, 2)
+        before = _balance(client, lun)
+        r = client.post("/api/dev/settle", json={"days": 1, "chance": 1.0, "seed": 7}, headers=auth(lun))
+        assert r.status_code == 200, r.text
+        body = r.json()
+        assert body["paid"] > 0 and _balance(client, lun) == before + body["paid"]
+        kinds = sorted(e["kind"] for e in body["events"])
+        assert kinds == ["guest", "reserve"] and body["views"]["inn"]["reservation"] is not None
+        # the same day again pays nothing; reset forgets everything and starts over
+        assert client.post("/api/dev/settle", json={"days": 1}, headers=auth(lun)).json()["paid"] == 0
+        r = client.post("/api/dev/settle", json={"days": 0, "reset": True}, headers=auth(lun)).json()
+        assert r["paid"] == 0 and r["views"]["inn"]["reservation"] is None
+        assert client.post("/api/dev/settle", json={"days": 2, "chance": 0}, headers=auth(lun)).json()["paid"] > 0
+    importlib.reload(config)
 
 
 def test_locked_rooms_take_no_guests(env):
@@ -200,3 +263,51 @@ def test_locked_rooms_take_no_guests(env):
         assert body["locked"] == ["house_a"]
         assert next(r for r in body["rooms"] if r["id"] == "house_a")["comfort"] is None
         assert _meta("guest_day:house_a") == 0
+        # special guests wait for the gate place: ordinary guests come, reservations and the dog lover do not
+        lun = register(client, "lun")
+        _place(client, lun, "bed", 1, 2)
+        cfg = load_config().model_copy(deep=True)
+        cfg.reservation.chance = 1.0
+        cfg.special_after = "house_a"
+        _sql("DELETE FROM room_meta WHERE k = 'dog_month'")
+        ev = []
+        assert _settle(client, now() + DAY, cfg=cfg, events=ev) > 0
+        assert [e["kind"] for e in ev] == ["guest"] and _sql("SELECT * FROM reservations") == []
+
+
+def test_zones_are_separate_guest_units(env):
+    """A room with zones: each zone scores its own items, needs its own bed, settles on its own key."""
+    import importlib
+    import json
+    import sys
+    p = env["rooms"] / "house_a.json"
+    room = json.loads(p.read_text(encoding="utf-8"))
+    room["zones"] = [{"id": "r1", "name": "1호실", "x": 0, "y": 1, "w": 3, "h": 4}, {"id": "r2", "name": "2호실", "x": 3, "y": 1, "w": 3, "h": 4}]
+    p.write_text(json.dumps(room, ensure_ascii=False), encoding="utf-8")
+    importlib.reload(sys.modules["app.catalog"])
+    from fastapi.testclient import TestClient
+    from app import guests
+    from app.main import create_app
+    with TestClient(create_app()) as client:
+        lun = register(client, "lun")
+        cfg = load_config().model_copy(deep=True)
+        cfg.reservation.chance = 0.0
+        today = guests.day_key(now(), cfg)
+        assert _meta("guest_day:house_a:r1") == today and _meta("guest_day:house_a:r2") == today and _meta("guest_day:house_a") == 0
+        house = next(r for r in client.get("/api/rooms").json()["rooms"] if r["id"] == "house_a")
+        assert set(house["comfort"]) == {"house_a:r1", "house_a:r2"}
+        assert house["comfort"]["house_a:r1"]["zone_name"] == "1호실" and house["comfort"]["house_a:r1"]["room"] == "house_a"
+        # a bed and a table in r1, a lone chair in r2 (no bed): only r1 takes guests, r2's chair scores nowhere else
+        _place(client, lun, "bed", 0, 2, room="house_a")
+        _place(client, lun, "table", 0, 1, room="house_a")
+        _place(client, lun, "chair", 4, 2, room="house_a")
+        house = next(r for r in client.get("/api/rooms").json()["rooms"] if r["id"] == "house_a")
+        r1, r2 = house["comfort"]["house_a:r1"], house["comfort"]["house_a:r2"]
+        assert r1["beds"] == 1 and r1["guests"] == 1 and r1["raw"] == 160
+        assert r2["beds"] == 0 and r2["guests"] == 0 and r2["raw"] == 50
+        ev = []
+        paid = _settle(client, now() + DAY, cfg=cfg, events=ev)
+        assert paid == r1["pay"] > 0
+        g = [e for e in ev if e["kind"] == "guest"]
+        assert len(g) == 1 and g[0]["room_id"] == "house_a" and g[0]["data"]["zone"] == "r1"
+        assert _sql("SELECT item_id FROM ledger WHERE kind = 'guest'") == [{"item_id": "room:house_a:r1"}]

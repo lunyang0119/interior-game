@@ -50,6 +50,11 @@ IP_SALT = os.environ.get("IP_SALT", "dev-salt-change-me")
 
 # Owner of items pre-placed by data/rooms/<id>.json "seed" (migration 005). Shown as "???" in the client.
 SEED_PLAYER = "$seed"
+# System player that owns the notes guests leave (migration 011). Its items never score, block or refund.
+GUEST_PLAYER = "$guest"
+SYSTEM_PLAYERS = (SEED_PLAYER, GUEST_PLAYER)
+# DEV_TOOLS=1 mounts /api/dev/* (simulate guest days etc.). Never set it on the VM.
+DEV_TOOLS = os.environ.get("DEV_TOOLS", "") in ("1", "true", "yes")
 # Presence rooms that are not grid rooms (no items, free coordinates).
 SCENE_ROOMS = ("map", "dock")
 

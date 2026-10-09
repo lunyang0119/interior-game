@@ -75,13 +75,15 @@ export interface RoomProgress { stage: number; total: number; done: boolean; cur
 export interface ReservationView { id: number; kind: "item" | "dog"; item_id: string | null; due_day: number; days_left: number }
 /** A room's comfort (server comfort.py) and tonight's expected guests (guests.py room_view). Absent for locked rooms. */
 export interface ComfortView {
+  room: string; zone: string | null; zone_name: string | null;
   score: number; beds: number; raw: number; base: number; mult: number; set: string | null; set_share: number;
   ruined: number; affection: number; guests: number; per_guest: number; pay: number; skipped: boolean;
   reservation: ReservationView | null;
 }
 export interface RoomSummary {
   id: string; name: string; version: number; ruined: number; online: number; progress: RoomProgress | null;
-  comfort: ComfortView | null;
+  /** {unit key: view} for the room's guest units (the room itself, or each zone); null while the room is locked. */
+  comfort: Record<string, ComfortView> | null;
 }
 export interface RoomsResponse { rooms: RoomSummary[]; locked: string[] }
 /** A room's current stage wants this catch: where, and how far along it is. */
@@ -100,6 +102,7 @@ export interface ActivityEvent {
     // guest: how many stayed, the rate, the comfort that night; reserved/dog = the extra a special guest paid
     guests?: number; per_guest?: number; score?: number; skipped?: boolean; reserved?: number; dog?: number | boolean;
     due_day?: number; days?: number; // reserve
+    zone?: string | null; // guest/reserve/missed: the zone of the room (null = whole room)
   } | null;
 }
 /** Signed pool changes since KST midnight (+ = the pool grew); `furniture` nets buys against refunds. */

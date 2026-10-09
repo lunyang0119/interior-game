@@ -5,7 +5,7 @@ import { Avatar } from "../avatar/Avatar";
 import { ensureAvatarTextures } from "../avatar/AvatarLoader";
 import { RemoteAvatars } from "../avatar/RemoteAvatars";
 import { bus, toast } from "../bus";
-import { exitAt, floorKeyAt, hasTag, TAG_FIXED, TAG_STAIRS, type Catalog, type Exit, type Layer, type Room } from "../catalog";
+import { exitAt, floorKeyAt, hasTag, TAG_FIXED, TAG_STAIRS, zoneAt, type Catalog, type Exit, type Layer, type Room } from "../catalog";
 import { Gestures } from "../input/Gestures";
 import { dirDelta, WalkKeys } from "../input/Keyboard";
 import { TILE_DEPTH } from "../room/depth";
@@ -14,7 +14,7 @@ import { ATLAS, ItemLayer } from "../room/ItemLayer";
 import { PlacementController } from "../room/Placement";
 import { footprintOf } from "../room/rules";
 import { pathToward, roomWalkGrid, type Cell, type WalkGrid } from "../room/walk";
-import { catalog, state } from "../state";
+import { catalog, setZone, state } from "../state";
 import { socket } from "../ws";
 import { CameraController } from "./CameraController";
 
@@ -74,6 +74,7 @@ export class RoomScene extends Phaser.Scene {
     this.placement.onRestart = () => { this.hoverFollow = true; }; // "+1": the fresh ghost follows the mouse again
     this.remotes = new RemoteAvatars(this, this.cat.chars);
     this.remotes.onCell = (id, cx, cy) => this.footstep(id, cx, cy, this.hearing(cx, cy));
+    setZone(null); // until the avatar stands somewhere
     bus.emit("room:changed", { id: this.room.id, name: this.room.name, ruined: state.ruined });
 
     this.bindBus();
@@ -162,8 +163,11 @@ export class RoomScene extends Phaser.Scene {
     this.me.onArrive = () => { this.keyWalking = false; this.checkExit(); };
     this.me.onCell = (cx, cy) => {
       this.footstep(this.playerId ?? "me", cx, cy, 1);
+      setZone(zoneAt(this.room, cx, cy)?.id ?? null);
       if (this.keyWalking) this.checkExit();
     };
+    const foot = this.me.footCell();
+    setZone(zoneAt(this.room, foot.cx, foot.cy)?.id ?? null);
     this.cam.follow(this.me);
     this.publishOnline();
   }

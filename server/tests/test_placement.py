@@ -30,6 +30,18 @@ def test_cell_type(catalog):
     assert validate_place(catalog, [], "chair", 1, 1).z == 1
 
 
+def test_partition_walls_stand_on_the_floor_like_furniture(catalog):
+    """A `partition` wall sprite: floor rows only, collides with furniture (and other partitions), furniture z."""
+    assert err(lambda: validate_place(catalog, [], "divider", 1, 0)) == "bad_cell_type"  # not on the wall rows
+    p = validate_place(catalog, [], "divider", 1, 3)
+    assert p.z == 1 and p.parent_uid is None
+    assert err(lambda: validate_place(catalog, [row(1, "chair", 2, 3)], "divider", 1, 3)) == "collision"
+    assert err(lambda: validate_place(catalog, [row(1, "divider", 1, 3)], "chair", 2, 3)) == "collision"
+    assert err(lambda: validate_place(catalog, [row(1, "divider", 1, 3)], "gate", 2, 3)) == "collision"
+    validate_place(catalog, [row(1, "rug", 1, 3)], "divider", 1, 3)  # rugs are another layer
+    assert err(lambda: validate_place(catalog, [], "divider", 3, 3, room_id="house_a")) == "out_of_bounds"  # pond tile at (4,3)
+
+
 def test_wallpaper_under_wall_decor(catalog):
     assert err(lambda: validate_place(catalog, [], "paper", 1, 3)) == "bad_cell_type"  # floor row
     paper = [row(1, "paper", 1, 0, z=0)]

@@ -3685,13 +3685,6 @@
     "ch": 3,
     "set": "free_modern_pack"
    },
-   "med_010": {
-    "w": 64,
-    "h": 48,
-    "cw": 4,
-    "ch": 3,
-    "set": "medieval_pack"
-   },
    "med_030": {
     "w": 64,
     "h": 48,
@@ -6598,6 +6591,27 @@
     "set": "mi_free"
    },
    "med_009": {
+    "w": 16,
+    "h": 48,
+    "cw": 1,
+    "ch": 3,
+    "set": "medieval_pack"
+   },
+   "med_010": {
+    "w": 16,
+    "h": 48,
+    "cw": 1,
+    "ch": 3,
+    "set": "medieval_pack"
+   },
+   "med_wall_medium": {
+    "w": 16,
+    "h": 48,
+    "cw": 1,
+    "ch": 3,
+    "set": "medieval_pack"
+   },
+   "med_wall_right": {
     "w": 16,
     "h": 48,
     "cw": 1,
@@ -19778,20 +19792,6 @@
     "ch": 1,
     "set": "small_items02"
    },
-   "book_dark_td": {
-    "w": 16,
-    "h": 16,
-    "cw": 1,
-    "ch": 1,
-    "set": "topdown"
-   },
-   "book_open_td": {
-    "w": 16,
-    "h": 16,
-    "cw": 1,
-    "ch": 1,
-    "set": "topdown"
-   },
    "bowl1_td": {
     "w": 16,
     "h": 16,
@@ -20556,6 +20556,27 @@
     "set": "medieval_pack"
    },
    "med_051": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "medieval_pack"
+   },
+   "med_wall_vertical": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "medieval_pack"
+   },
+   "med_wall_vertical_down": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "medieval_pack"
+   },
+   "med_wall_vertical_up": {
     "w": 16,
     "h": 16,
     "cw": 1,
@@ -23243,6 +23264,20 @@
     "ch": 1,
     "set": "mi_free"
    },
+   "new_83": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "medieval_pack"
+   },
+   "new_84": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "medieval_pack"
+   },
    "new_9": {
     "w": 16,
     "h": 16,
@@ -23278,26 +23313,12 @@
     "ch": 1,
     "set": "mi_free"
    },
-   "note_scrap_td": {
-    "w": 16,
-    "h": 16,
-    "cw": 1,
-    "ch": 1,
-    "set": "topdown"
-   },
    "notepad_small": {
     "w": 16,
     "h": 16,
     "cw": 1,
     "ch": 1,
     "set": "small_items02"
-   },
-   "notepad_td": {
-    "w": 16,
-    "h": 16,
-    "cw": 1,
-    "ch": 1,
-    "set": "topdown"
    },
    "orange_cone_td": {
     "w": 16,
@@ -24332,12 +24353,40 @@
     "ch": 0,
     "set": "mi_livingroom"
    },
+   "notepad_td": {
+    "w": 10,
+    "h": 11,
+    "cw": 0,
+    "ch": 0,
+    "set": "topdown"
+   },
+   "book_open_td": {
+    "w": 16,
+    "h": 10,
+    "cw": 1,
+    "ch": 0,
+    "set": "topdown"
+   },
+   "note_scrap_td": {
+    "w": 8,
+    "h": 10,
+    "cw": 0,
+    "ch": 0,
+    "set": "topdown"
+   },
    "mordernhospital_12_note": {
     "w": 16,
     "h": 9,
     "cw": 1,
     "ch": 0,
     "set": "mi_hospital"
+   },
+   "book_dark_td": {
+    "w": 16,
+    "h": 8,
+    "cw": 1,
+    "ch": 0,
+    "set": "topdown"
    }
   }
  },

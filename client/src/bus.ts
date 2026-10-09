@@ -40,6 +40,7 @@ export interface Events {
   "item:note": { item: RoomItem }; // context menu "쪽지 읽기/쓰기": open the note panel
   "progress:changed": { completed: { room: string; from: number; to: number }[] }; // state.progress / state.locked replaced
   "comfort:changed": void; // state.comfort replaced
+  "zone:changed": { zone: string | null }; // the avatar walked into another guest zone (or out of all of them)
   "log:open": { section?: "progress" | "guests" }; // open the 📜 panel (optionally scrolled to the restoration checklist)
 }
 

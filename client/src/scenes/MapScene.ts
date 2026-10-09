@@ -11,7 +11,7 @@ import { dirDelta, WalkKeys } from "../input/Keyboard";
 import { depthOf, TILE_DEPTH } from "../room/depth";
 import { CELL, worldToCell } from "../room/grid";
 import { cellKey, mapTileAt, mapWalkGrid, pathToward, type WalkGrid } from "../room/walk";
-import { applyProgress, catalog, state } from "../state";
+import { applyProgress, catalog, setZone, state } from "../state";
 import { socket } from "../ws";
 import { CameraController } from "./CameraController";
 import { period } from "../audio/bgm";
@@ -104,6 +104,7 @@ export class MapScene extends Phaser.Scene {
     this.grid = mapWalkGrid(this.cat, this.map, this.blocked);
     this.remotes = new RemoteAvatars(this, this.cat.chars);
     this.remotes.onCell = (id, cx, cy) => this.footstep(id, cx, cy, this.hearing(cx, cy));
+    setZone(null);
     bus.emit("room:changed", { id: MAP_ROOM, name: "바깥", ruined: 0 });
     bus.emit("scene:changed", { scene: "map" });
 

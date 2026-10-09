@@ -13,7 +13,7 @@ from .errors import ApiError
 from .presence import hub
 from .reconcile import reconcile_items
 from .seed import seed_room
-from .routers import activity, auth, fish, me, room, ws
+from .routers import activity, auth, dev, fish, me, room, ws
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s %(message)s")
 log = logging.getLogger("main")
@@ -51,12 +51,13 @@ def settle_guests(app: FastAPI) -> None:
     conn = connect()
     try:
         events: list[dict] = []
+        changed: set[str] = set()
         with transaction(conn):
-            paid = guests.settle(conn, app.state.catalog, app.state.guests, events=events)
+            paid = guests.settle(conn, app.state.catalog, app.state.guests, events=events, rooms_changed=changed)
             completed = progress.advance_rooms(conn, app.state.catalog, events) if paid else []
         if events:
             log.info("guests: %d💰 from %d event(s)", paid, len(events))
-        guests.after_settle(conn, events, paid)
+        guests.after_settle(conn, events, paid, changed)
         if completed:
             progress.after_commit(conn, app.state.catalog, [], completed)
     finally:
@@ -78,6 +79,8 @@ async def lifespan(app: FastAPI):
     migrate(conn)
     app.state.catalog = catalog_mod.load()
     app.state.guests = comfort.load_config()
+    if app.state.guests.special_after not in (None, "map", "dock", *app.state.catalog.rooms):
+        raise ValueError(f"guests.json: special_after '{app.state.guests.special_after}' is not a room, 'map' or 'dock'")
     with transaction(conn):
         ensure_room_meta(conn, list(app.state.catalog.rooms))
         reconcile_items(conn, app.state.catalog)
@@ -119,6 +122,9 @@ def create_app() -> FastAPI:
     app.include_router(fish.router)
     app.include_router(activity.router)
     app.include_router(ws.router)
+    if config.DEV_TOOLS:
+        log.warning("DEV_TOOLS on: /api/dev/* is mounted")
+        app.include_router(dev.router)
 
     # Generated sprites are served from the same origin in production. In dev Vite serves them.
     if config.GEN_DIR.exists():

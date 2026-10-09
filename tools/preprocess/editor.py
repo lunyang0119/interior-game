@@ -193,7 +193,7 @@ def seed_problem(s: dict, room: dict, items: dict[str, dict], others: list[dict]
     it = items.get(s.get("item_id"))
     if it is None:
         return "모르는 아이템"
-    wall = it["layer"] in ("wall", "wallpaper")
+    wall = it["layer"] in ("wall", "wallpaper") and "partition" not in (it.get("tags") or [])
     w = (s.get("span") or it["w"]) if it["layer"] == "wallpaper" else it["w"]
     h = it["h"]
     x, y = s["x"], s["y"]
@@ -237,6 +237,22 @@ def validate_room(rid: str, room: dict, all_ids: set[str], item_ids: set[str], t
         for f in ("x", "y", "w", "h"):
             if not isinstance(e.get(f), int) or e[f] < 0:
                 return f"{rid}: 출구 {f}가 정수가 아니에요"
+    zones = room.get("zones", [])
+    for z in zones:
+        if not isinstance(z.get("id"), str) or not ROOM_ID_RE.match(z["id"]):
+            return f"{rid}: 구역 id '{z.get('id')}'가 잘못됐어요 (영문 소문자/숫자/_)"
+        for f in ("x", "y", "w", "h"):
+            if not isinstance(z.get(f), int) or z[f] < (1 if f in ("w", "h") else 0):
+                return f"{rid}: 구역 {z['id']}의 {f}가 잘못됐어요"
+        if z["x"] + z["w"] > room["cols"] or z["y"] + z["h"] > room["rows"]:
+            return f"{rid}: 구역 {z['id']}가 방 밖으로 나가요"
+    ids = [z["id"] for z in zones]
+    if len(set(ids)) != len(ids):
+        return f"{rid}: 구역 id가 겹쳐요"
+    for i, a in enumerate(zones):
+        for b in zones[i + 1:]:
+            if a["x"] < b["x"] + b["w"] and b["x"] < a["x"] + a["w"] and a["y"] < b["y"] + b["h"] and b["y"] < a["y"] + a["h"]:
+                return f"{rid}: 구역 {a['id']}와 {b['id']}가 겹쳐요"
     for sd in room.get("seed", []):
         if sd.get("item_id") not in item_ids:
             return f"{rid}: 시드에 모르는 아이템 '{sd.get('item_id')}'"

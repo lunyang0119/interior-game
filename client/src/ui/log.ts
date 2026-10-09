@@ -6,8 +6,8 @@
 
 import { api, ApiError, msgFor, type ActivityEvent, type ComfortView, type NeedProgress, type RoomProgress, type TodayTotals } from "../api";
 import { bus, toast } from "../bus";
-import { placeName, SEED_PLAYER } from "../catalog";
-import { applyComfort, applyProgress, catalog, state } from "../state";
+import { placeName, SEED_PLAYER, unitName } from "../catalog";
+import { applyComfort, applyProgress, catalog, currentUnit, state } from "../state";
 import { socket } from "../ws";
 import { $, show, togglePanel } from "./hud";
 
@@ -53,7 +53,7 @@ function ago(ts: number): string {
 /** One log row as a sentence (해요체). */
 export function describe(e: ActivityEvent): string {
   const cat = catalog();
-  const room = e.room_id ? placeName(cat, e.room_id) : "";
+  const room = e.room_id ? unitName(cat, e.data?.zone ? `${e.room_id}:${e.data.zone}` : e.room_id) : "";
   switch (e.kind) {
     case "place": return `${who(e.player_id)}가 ${room ? room + "에 " : ""}${itemName(e.item_id)}을(를) 놓았어요${money(e.amount)}`;
     case "remove": return `${who(e.player_id)}가 ${room ? room + "의 " : ""}${itemName(e.item_id)}을(를) 치웠어요${money(e.amount)}`;
@@ -129,14 +129,18 @@ function renderGuests(): void {
   const box = $("log-guests");
   box.replaceChildren();
   const cat = catalog();
-  const ids = [...cat.rooms.keys()].filter((id) => state.comfort[id]);
-  if (!ids.length) { box.textContent = "손님을 받을 수 있는 방이 아직 없어요"; return; }
-  ids.sort((a, b) => (a === state.roomId ? -1 : b === state.roomId ? 1 : 0));
-  for (const id of ids) {
-    const c: ComfortView = state.comfort[id];
-    const card = div(`guest${id === state.roomId ? " here" : ""}`);
+  const keys = Object.keys(state.comfort);
+  if (!keys.length) { box.textContent = "손님을 받을 수 있는 방이 아직 없어요"; return; }
+  // the unit we are standing in first, then the rest of this room, then catalog order
+  const here = currentUnit();
+  const order = [...cat.rooms.keys()];
+  const rank = (k: string) => (k === here ? -2 : k.split(":")[0] === state.roomId ? -1 : order.indexOf(k.split(":")[0]));
+  keys.sort((a, b) => rank(a) - rank(b) || a.localeCompare(b));
+  for (const key of keys) {
+    const c: ComfortView = state.comfort[key];
+    const card = div(`guest${key === here ? " here" : ""}`);
     const head = div("guest-head");
-    head.append(document.createTextNode(placeName(cat, id)), Object.assign(document.createElement("span"), { textContent: `☕ ${c.score}` }));
+    head.append(document.createTextNode(unitName(cat, key)), Object.assign(document.createElement("span"), { textContent: `☕ ${c.score}` }));
     card.appendChild(head);
     const bar = div("bar");
     const fill = document.createElement("i");
@@ -235,7 +239,7 @@ function open(section?: "progress" | "guests"): void {
 function refreshComfort(): void {
   window.clearTimeout(comfortTimer);
   comfortTimer = window.setTimeout(() => {
-    void api.rooms().then((r) => applyComfort(Object.fromEntries(r.rooms.filter((x) => x.comfort).map((x) => [x.id, x.comfort!]))))
+    void api.rooms().then((r) => applyComfort(Object.assign({}, ...r.rooms.map((x) => x.comfort ?? {}))))
       .catch(() => { /* offline: keep what we have */ });
   }, 600);
 }
@@ -276,13 +280,18 @@ export function initLog(): void {
     renderChip();
     if (!$("panel-log").classList.contains("hidden")) renderGuests();
   });
+  bus.on("zone:changed", () => {
+    renderChip();
+    if (!$("panel-log").classList.contains("hidden")) renderGuests();
+  });
   socket.on("room", () => refreshComfort()); // a room's version moved: somebody placed/removed something
   show("panel-log", false);
 }
 
-/** `🏠 여관 · 🧹 3 · 1/2단계 · ☕42` — the HUD chip; tapping it opens the checklist. */
+/** `🏠 2층 · 🧹 3 · 1/2단계 · 1호실 ☕42` — the HUD chip; tapping it opens the checklist. */
 function renderChip(): void {
   const p = state.progress[state.roomId];
-  const c = state.comfort[state.roomId];
-  $("hud-room-stage").textContent = (p ? ` · ${p.done ? "복구 완료" : `${p.stage}/${p.total}단계`}` : "") + (c ? ` · ☕${c.score}` : "");
+  const c = state.comfort[currentUnit()];
+  const zone = c?.zone_name ? `${c.zone_name} ` : "";
+  $("hud-room-stage").textContent = (p ? ` · ${p.done ? "복구 완료" : `${p.stage}/${p.total}단계`}` : "") + (c ? ` · ${zone}☕${c.score}` : "");
 }

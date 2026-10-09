@@ -89,7 +89,7 @@ class StageProgress:
 
 
 def _placed_matches(cat: Catalog, need: Need, row: ItemRow) -> bool:
-    if row.placed_by == config.SEED_PLAYER:
+    if row.placed_by in config.SYSTEM_PLAYERS:
         return False
     it = cat.items.get(row.item_id)
     if it is None:

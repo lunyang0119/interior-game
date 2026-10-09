@@ -69,13 +69,13 @@
   },
   {
    "item_id": "int_184",
-   "x": 32,
-   "y": 15
+   "x": 10,
+   "y": 3
   },
   {
    "item_id": "int_184",
    "x": 16,
-   "y": 17
+   "y": 20
   },
   {
    "item_id": "int_184",
@@ -84,13 +84,13 @@
   },
   {
    "item_id": "int_184",
-   "x": 9,
-   "y": 16
+   "x": 5,
+   "y": 19
   },
   {
    "item_id": "int_184",
-   "x": 15,
-   "y": 24
+   "x": 23,
+   "y": 9
   },
   {
    "item_id": "int_184",
@@ -99,23 +99,23 @@
   },
   {
    "item_id": "int_184",
-   "x": 26,
+   "x": 31,
+   "y": 24
+  },
+  {
+   "item_id": "int_184",
+   "x": 3,
+   "y": 21
+  },
+  {
+   "item_id": "int_184",
+   "x": 4,
+   "y": 26
+  },
+  {
+   "item_id": "int_184",
+   "x": 31,
    "y": 12
-  },
-  {
-   "item_id": "int_184",
-   "x": 10,
-   "y": 18
-  },
-  {
-   "item_id": "int_184",
-   "x": 2,
-   "y": 17
-  },
-  {
-   "item_id": "int_184",
-   "x": 15,
-   "y": 18
   },
   {
    "item_id": "int_184",
@@ -124,8 +124,8 @@
   },
   {
    "item_id": "int_184",
-   "x": 7,
-   "y": 17
+   "x": 2,
+   "y": 12
   },
   {
    "item_id": "int_184",
@@ -144,8 +144,8 @@
   },
   {
    "item_id": "int_184",
-   "x": 12,
-   "y": 13
+   "x": 22,
+   "y": 26
   },
   {
    "item_id": "int_184",
@@ -164,8 +164,8 @@
   },
   {
    "item_id": "int_184",
-   "x": 23,
-   "y": 19
+   "x": 33,
+   "y": 3
   },
   {
    "item_id": "int_184",
@@ -189,8 +189,8 @@
   },
   {
    "item_id": "int_182",
-   "x": 18,
-   "y": 22
+   "x": 17,
+   "y": 23
   },
   {
    "item_id": "int_182",
@@ -199,8 +199,8 @@
   },
   {
    "item_id": "int_182",
-   "x": 35,
-   "y": 18
+   "x": 38,
+   "y": 14
   },
   {
    "item_id": "int_182",
@@ -294,11 +294,6 @@
   },
   {
    "item_id": "int_182",
-   "x": 21,
-   "y": 13
-  },
-  {
-   "item_id": "int_182",
    "x": 23,
    "y": 22
   },
@@ -329,8 +324,8 @@
   },
   {
    "item_id": "int_183",
-   "x": 28,
-   "y": 16
+   "x": 31,
+   "y": 24
   },
   {
    "item_id": "int_183",
@@ -404,8 +399,8 @@
   },
   {
    "item_id": "int_183",
-   "x": 32,
-   "y": 16
+   "x": 26,
+   "y": 4
   },
   {
    "item_id": "int_183",
@@ -469,11 +464,6 @@
   },
   {
    "item_id": "int_183",
-   "x": 1,
-   "y": 15
-  },
-  {
-   "item_id": "int_183",
    "x": 4,
    "y": 10
   },
@@ -490,17 +480,435 @@
   {
    "item_id": "int_183",
    "x": 4,
-   "y": 10
-  },
-  {
-   "item_id": "int_183",
-   "x": 4,
    "y": 11
   },
   {
    "item_id": "back_stair_red",
    "x": 0,
    "y": 3
+  },
+  {
+   "item_id": "med_wall_vertical",
+   "x": 14,
+   "y": 18
+  },
+  {
+   "item_id": "med_wall_vertical",
+   "x": 14,
+   "y": 19
+  },
+  {
+   "item_id": "med_wall_vertical",
+   "x": 14,
+   "y": 20
+  },
+  {
+   "item_id": "med_wall_vertical",
+   "x": 14,
+   "y": 21
+  },
+  {
+   "item_id": "med_wall_vertical",
+   "x": 14,
+   "y": 22
+  },
+  {
+   "item_id": "med_wall_vertical",
+   "x": 14,
+   "y": 23
+  },
+  {
+   "item_id": "med_wall_vertical",
+   "x": 14,
+   "y": 24
+  },
+  {
+   "item_id": "med_wall_vertical",
+   "x": 14,
+   "y": 26
+  },
+  {
+   "item_id": "med_wall_vertical",
+   "x": 14,
+   "y": 27
+  },
+  {
+   "item_id": "med_wall_vertical",
+   "x": 14,
+   "y": 25
+  },
+  {
+   "item_id": "med_wall_vertical",
+   "x": 14,
+   "y": 28
+  },
+  {
+   "item_id": "med_wall_vertical",
+   "x": 14,
+   "y": 29
+  },
+  {
+   "item_id": "med_wall_vertical",
+   "x": 15,
+   "y": 29
+  },
+  {
+   "item_id": "med_wall_vertical",
+   "x": 15,
+   "y": 28
+  },
+  {
+   "item_id": "med_wall_vertical",
+   "x": 15,
+   "y": 27
+  },
+  {
+   "item_id": "med_wall_vertical",
+   "x": 15,
+   "y": 26
+  },
+  {
+   "item_id": "med_wall_vertical",
+   "x": 15,
+   "y": 25
+  },
+  {
+   "item_id": "med_wall_vertical",
+   "x": 15,
+   "y": 24
+  },
+  {
+   "item_id": "med_wall_vertical",
+   "x": 15,
+   "y": 23
+  },
+  {
+   "item_id": "med_wall_vertical",
+   "x": 15,
+   "y": 22
+  },
+  {
+   "item_id": "med_wall_vertical",
+   "x": 15,
+   "y": 21
+  },
+  {
+   "item_id": "med_wall_vertical",
+   "x": 15,
+   "y": 20
+  },
+  {
+   "item_id": "med_wall_vertical",
+   "x": 15,
+   "y": 19
+  },
+  {
+   "item_id": "med_wall_vertical",
+   "x": 15,
+   "y": 18
+  },
+  {
+   "item_id": "med_wall_vertical_up",
+   "x": 14,
+   "y": 17
+  },
+  {
+   "item_id": "med_wall_vertical_up",
+   "x": 15,
+   "y": 17
+  },
+  {
+   "item_id": "med_wall_vertical_down",
+   "x": 14,
+   "y": 30
+  },
+  {
+   "item_id": "med_wall_vertical_down",
+   "x": 15,
+   "y": 30
+  },
+  {
+   "item_id": "med_wall_vertical_down",
+   "x": 28,
+   "y": 30
+  },
+  {
+   "item_id": "med_wall_vertical_down",
+   "x": 29,
+   "y": 30
+  },
+  {
+   "item_id": "med_wall_vertical_up",
+   "x": 28,
+   "y": 17
+  },
+  {
+   "item_id": "med_wall_vertical_up",
+   "x": 29,
+   "y": 17
+  },
+  {
+   "item_id": "med_wall_vertical",
+   "x": 28,
+   "y": 18
+  },
+  {
+   "item_id": "med_wall_vertical",
+   "x": 28,
+   "y": 19
+  },
+  {
+   "item_id": "med_wall_vertical",
+   "x": 28,
+   "y": 20
+  },
+  {
+   "item_id": "med_wall_vertical",
+   "x": 28,
+   "y": 21
+  },
+  {
+   "item_id": "med_wall_vertical",
+   "x": 28,
+   "y": 22
+  },
+  {
+   "item_id": "med_wall_vertical",
+   "x": 28,
+   "y": 23
+  },
+  {
+   "item_id": "med_wall_vertical",
+   "x": 28,
+   "y": 24
+  },
+  {
+   "item_id": "med_wall_vertical",
+   "x": 28,
+   "y": 25
+  },
+  {
+   "item_id": "med_wall_vertical",
+   "x": 28,
+   "y": 26
+  },
+  {
+   "item_id": "med_wall_vertical",
+   "x": 28,
+   "y": 27
+  },
+  {
+   "item_id": "med_wall_vertical",
+   "x": 28,
+   "y": 28
+  },
+  {
+   "item_id": "med_wall_vertical",
+   "x": 28,
+   "y": 29
+  },
+  {
+   "item_id": "med_wall_vertical",
+   "x": 29,
+   "y": 29
+  },
+  {
+   "item_id": "med_wall_vertical",
+   "x": 29,
+   "y": 28
+  },
+  {
+   "item_id": "med_wall_vertical",
+   "x": 29,
+   "y": 27
+  },
+  {
+   "item_id": "med_wall_vertical",
+   "x": 29,
+   "y": 25
+  },
+  {
+   "item_id": "med_wall_vertical",
+   "x": 29,
+   "y": 26
+  },
+  {
+   "item_id": "med_wall_vertical",
+   "x": 29,
+   "y": 24
+  },
+  {
+   "item_id": "med_wall_vertical",
+   "x": 29,
+   "y": 23
+  },
+  {
+   "item_id": "med_wall_vertical",
+   "x": 29,
+   "y": 22
+  },
+  {
+   "item_id": "med_wall_vertical",
+   "x": 29,
+   "y": 21
+  },
+  {
+   "item_id": "med_wall_vertical",
+   "x": 29,
+   "y": 20
+  },
+  {
+   "item_id": "med_wall_vertical",
+   "x": 29,
+   "y": 19
+  },
+  {
+   "item_id": "med_wall_vertical",
+   "x": 29,
+   "y": 18
+  },
+  {
+   "item_id": "med_wall_right",
+   "x": 40,
+   "y": 18
+  },
+  {
+   "item_id": "med_wall_medium",
+   "x": 39,
+   "y": 17
+  },
+  {
+   "item_id": "med_wall_medium",
+   "x": 38,
+   "y": 17
+  },
+  {
+   "item_id": "med_wall_medium",
+   "x": 26,
+   "y": 17
+  },
+  {
+   "item_id": "med_wall_medium",
+   "x": 25,
+   "y": 17
+  },
+  {
+   "item_id": "med_wall_medium",
+   "x": 17,
+   "y": 17
+  },
+  {
+   "item_id": "med_wall_medium",
+   "x": 18,
+   "y": 17
+  },
+  {
+   "item_id": "med_wall_medium",
+   "x": 12,
+   "y": 17
+  },
+  {
+   "item_id": "med_wall_medium",
+   "x": 11,
+   "y": 17
+  },
+  {
+   "item_id": "med_wall_medium",
+   "x": 1,
+   "y": 17
+  },
+  {
+   "item_id": "med_wall_medium",
+   "x": 2,
+   "y": 17
+  },
+  {
+   "item_id": "med_010",
+   "x": 0,
+   "y": 17,
+   "span": 1
+  },
+  {
+   "item_id": "med_010",
+   "x": 16,
+   "y": 17,
+   "span": 1
+  },
+  {
+   "item_id": "med_010",
+   "x": 30,
+   "y": 17,
+   "span": 1
+  },
+  {
+   "item_id": "med_053",
+   "x": 33,
+   "y": 17
+  },
+  {
+   "item_id": "med_053",
+   "x": 20,
+   "y": 17
+  },
+  {
+   "item_id": "med_053",
+   "x": 5,
+   "y": 17
+  },
+  {
+   "item_id": "med_wall_medium",
+   "x": 3,
+   "y": 17
+  },
+  {
+   "item_id": "med_wall_medium",
+   "x": 4,
+   "y": 17
+  },
+  {
+   "item_id": "med_wall_medium",
+   "x": 9,
+   "y": 17
+  },
+  {
+   "item_id": "med_wall_medium",
+   "x": 10,
+   "y": 17
+  },
+  {
+   "item_id": "med_wall_medium",
+   "x": 19,
+   "y": 17
+  },
+  {
+   "item_id": "med_wall_medium",
+   "x": 24,
+   "y": 17
+  },
+  {
+   "item_id": "med_wall_medium",
+   "x": 32,
+   "y": 17
+  },
+  {
+   "item_id": "med_wall_medium",
+   "x": 31,
+   "y": 17
+  },
+  {
+   "item_id": "med_wall_medium",
+   "x": 37,
+   "y": 17
+  },
+  {
+   "item_id": "med_wall_right",
+   "x": 13,
+   "y": 18
+  },
+  {
+   "item_id": "med_wall_right",
+   "x": 27,
+   "y": 18
   }
  ],
  "restore": [
@@ -525,6 +933,32 @@
      "room": "room2"
     }
    ]
+  }
+ ],
+ "zones": [
+  {
+   "id": "r1",
+   "name": "1호실",
+   "x": 0,
+   "y": 17,
+   "w": 15,
+   "h": 14
+  },
+  {
+   "id": "r2",
+   "name": "2호실",
+   "x": 15,
+   "y": 17,
+   "w": 14,
+   "h": 14
+  },
+  {
+   "id": "r3",
+   "name": "3호실",
+   "x": 29,
+   "y": 17,
+   "w": 12,
+   "h": 14
   }
  ]
 }

@@ -1,6 +1,7 @@
 {
  "checkout_hour_kst": 9,
  "max_catchup_days": 3,
+ "special_after": "room2",
  "comfort": {
   "k_per_cell": 0.5,
   "dup_decay": 0.5,

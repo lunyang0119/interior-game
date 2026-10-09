@@ -1,5 +1,5 @@
 import { bus } from "../bus";
-import { hasTag, priceOf, SEED_PLAYER, TAG_NOTE, TAG_RUINED, type RoomItem } from "../catalog";
+import { GUEST_PLAYER, hasTag, priceOf, SEED_PLAYER, TAG_NOTE, TAG_RUINED, type RoomItem } from "../catalog";
 import { catalog } from "../state";
 import { $, show } from "./hud";
 
@@ -11,9 +11,10 @@ export function initContextMenu(): void {
     current = item;
     const it = catalog().byId.get(item.item_id);
     const ruined = hasTag(it, TAG_RUINED);
-    const who = item.placed_by === SEED_PLAYER ? "처음부터 있던 물건" : `${item.placed_by}가 놓음`;
+    const guest = item.placed_by === GUEST_PLAYER;
+    const who = item.placed_by === SEED_PLAYER ? "처음부터 있던 물건" : guest ? "손님이 두고 갔어요" : `${item.placed_by}가 놓음`;
     $("ctx-title").textContent = `${it?.name ?? item.item_id} · ${who}`;
-    $("ctx-remove").textContent = ruined ? `팔기 (+${it ? priceOf(it, item.span) : 0}💰)` : "팔기 (전액 환불)";
+    $("ctx-remove").textContent = ruined ? `팔기 (+${it ? priceOf(it, item.span) : 0}💰)` : guest ? "치우기" : "팔기 (전액 환불)";
     const note = hasTag(it, TAG_NOTE);
     show("ctx-note", note);
     $("ctx-note").textContent = note && item.note ? "📝 쪽지 읽기" : "📝 쪽지 쓰기";

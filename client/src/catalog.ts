@@ -6,8 +6,24 @@ export const TAG_FIXED = "fixed";
 /** Tapping a stairs item walks to the exit it sits on instead of opening its menu. */
 export const TAG_STAIRS = "stairs";
 export const TAG_NOTE = "note"; // carries a text anyone can rewrite (ui/note.ts)
+/** A wall-layer sprite standing on the floor (room divider): placed, drawn and walked around like furniture. */
+export const TAG_PARTITION = "partition";
+/** A partition avatars may walk through. */
+export const TAG_DOOR = "door";
+
+/** Lives on the wall rows (mirrors Item.on_wall on the server). */
+export function onWall(it: Item | undefined): boolean {
+  return (it?.layer === "wall" || it?.layer === "wallpaper") && !hasTag(it, TAG_PARTITION);
+}
+
+/** Items only collide within this group; partitions share the floor with furniture. */
+export function collisionLayer(it: Item): Layer {
+  return hasTag(it, TAG_PARTITION) ? "furniture" : it.layer;
+}
 /** Owner id of items pre-placed by the server (never a real player). */
 export const SEED_PLAYER = "$seed";
+/** Owner of the notes guests leave behind (worth nothing, never blocks, never scores). */
+export const GUEST_PLAYER = "$guest";
 export const MAP_ROOM = "map";
 export const DOCK_ROOM = "dock";
 
@@ -21,6 +37,8 @@ export interface Item {
   layer: Layer;
   is_surface: boolean;
   surface_offset_y: number;
+  /** Sprite drawn this many px below its footprint anchor (visual only, e.g. an open door hanging past the wall base). */
+  offset_y?: number;
   tags?: string[];
   pair?: string | null;
   set?: string | null; // furniture set from the slice source (build → manifest), for the comfort set bonus
@@ -44,6 +62,22 @@ export interface Room {
   exits: Exit[];
   /** Restoration stages (mirror server/app/restore.py); progress comes from /api/rooms and the ws `progress` message. */
   restore?: Stage[];
+  /** Guest rooms inside this room (comfort/guests per zone, unit key `room:zone`). Empty = the whole room is one unit. */
+  zones?: Zone[];
+}
+
+export interface Zone { id: string; name: string; x: number; y: number; w: number; h: number }
+
+export function zoneAt(room: Room, x: number, y: number): Zone | null {
+  return room.zones?.find((z) => x >= z.x && x < z.x + z.w && y >= z.y && y < z.y + z.h) ?? null;
+}
+
+/** "2층 1호실" — a guest unit's display name (unit key `room` or `room:zone`). */
+export function unitName(cat: Catalog, key: string): string {
+  const [room, zone] = key.split(":");
+  const name = placeName(cat, room);
+  const z = zone ? cat.rooms.get(room)?.zones?.find((q) => q.id === zone) : null;
+  return z ? `${name} ${z.name || z.id}` : name;
 }
 
 export type NeedType = "ruined_zero" | "placed" | "deliver" | "pool";

@@ -1,5 +1,4 @@
 import json
-import shutil
 import os
 import sys
 from pathlib import Path
@@ -27,6 +26,7 @@ def env(tmp_path, monkeypatch):
          "layer": "furniture", "is_surface": True, "surface_offset_y": 10},
         {"id": "chair", "name": "chair", "price": 50, "sprite": "chair", "w": 1, "h": 1, "layer": "furniture"},
         {"id": "cup", "name": "cup", "price": 10, "sprite": "cup", "w": 1, "h": 1, "layer": "surface_item"},
+        {"id": "scrap", "name": "scrap", "price": 3, "sprite": "scrap", "w": 1, "h": 1, "layer": "surface_item", "tags": ["note"]},
         {"id": "tray", "name": "tray", "price": 10, "sprite": "tray", "w": 2, "h": 1, "layer": "surface_item"},
         {"id": "rug", "name": "rug", "price": 30, "sprite": "rug", "w": 2, "h": 2, "layer": "floor"},
         {"id": "frame", "name": "frame", "price": 20, "sprite": "frame", "w": 1, "h": 1, "layer": "wall"},
@@ -35,6 +35,8 @@ def env(tmp_path, monkeypatch):
         {"id": "stairs", "name": "stairs", "price": 0, "sprite": "stairs", "w": 1, "h": 1, "layer": "furniture", "tags": ["fixed", "stairs"]},
         {"id": "memo", "name": "memo", "price": 2, "sprite": "memo", "w": 1, "h": 1, "layer": "furniture", "tags": ["note"]},
         {"id": "bed", "name": "bed", "price": 60, "sprite": "bed", "w": 2, "h": 2, "layer": "furniture", "tags": ["bed"]},
+        {"id": "divider", "name": "divider", "price": 20, "sprite": "divider", "w": 2, "h": 1, "layer": "wall", "tags": ["partition"]},
+        {"id": "gate", "name": "gate", "price": 25, "sprite": "gate", "w": 2, "h": 1, "layer": "wall", "tags": ["partition", "door"]},
     ]}), encoding="utf-8")
     rooms = data / "rooms"
     rooms.mkdir()
@@ -63,7 +65,9 @@ def env(tmp_path, monkeypatch):
         "bg_default": "sky", "bg_zones": [{"x": 5, "y": 0, "w": 3, "h": 6, "bg": "sea"}],
     }, ensure_ascii=False), encoding="utf-8")
     # guests: the shipped tuning (tests that care pass their own GuestConfig)
-    shutil.copy(Path(__file__).resolve().parents[2] / "data" / "guests.json", data / "guests.json")
+    g = json.loads((Path(__file__).resolve().parents[2] / "data" / "guests.json").read_text(encoding="utf-8"))
+    g["special_after"] = None  # the test catalog has no room2; a test gates it explicitly
+    (data / "guests.json").write_text(json.dumps(g), encoding="utf-8")
     (data / "fishing.json").write_text(json.dumps({
         "bites": 3, "gap_ms": [100, 100], "window_ms": [200, 200], "hold_ms": [100, 100], "catch_pct": [0, 0, 50, 100],
         "slack_ms": 50, "cooldown_s": 0,
@@ -75,7 +79,7 @@ def env(tmp_path, monkeypatch):
                              "preset": {"count": 3, "none": 0, "exclusive": True},
                              "outfit": {"count": 0}, "acc": {"count": 0}}},
         "interiors": {"atlas": "gen/interiors.json",
-                      "keys": {**{k: {} for k in ["chair", "rug", "frame", "paper", "junk", "stairs", "memo", "tile_wall"]},
+                      "keys": {**{k: {} for k in ["chair", "rug", "frame", "paper", "junk", "stairs", "memo", "tile_wall", "divider", "gate", "scrap"]},
                                "table": {"set": "oak"}, "bed": {"set": "oak"}, "tray": {"set": "oak"}, "cup": {"set": "pine"},
                                "tile_floor": {"step": "wood"}, "tile_water": {"step": "water", "walk": False}}},
         "map": {"atlas": "gen/map.json", "keys": {**{k: {} for k in ["house", "icon_bridge", "icon_exclamation", "tree"]},

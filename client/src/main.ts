@@ -28,7 +28,7 @@ async function loadProgress(): Promise<void> {
   try {
     const r = await api.rooms();
     applyProgress(Object.fromEntries(r.rooms.filter((x) => x.progress).map((x) => [x.id, x.progress!])), r.locked);
-    applyComfort(Object.fromEntries(r.rooms.filter((x) => x.comfort).map((x) => [x.id, x.comfort!])));
+    applyComfort(Object.assign({}, ...r.rooms.map((x) => x.comfort ?? {})));
   } catch { /* offline: keep what we have */ }
 }
 
@@ -174,7 +174,7 @@ async function boot(): Promise<void> {
   });
   // the server refused a presence enter (e.g. a stage was reset by hand): say so, the scene itself is harmless
   socket.on("error", (m: { code: string; room?: string }) => {
-    if (m.code === "room_locked") toast(`${m.room ? placeName(state.catalog!, m.room) : "거기"}는 아직 잠겨 있어요`);
+    if (m.code === "room_locked") toast(`${m.room ? placeName(state.catalog!, m.room) : "거기"}(은)는 아직 잠겨 있어요`);
   });
 
   // dock: 나가기 goes back to the map (or the base room when there is no map yet); #dock deep-links in

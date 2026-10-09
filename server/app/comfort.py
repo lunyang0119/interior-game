@@ -3,10 +3,11 @@
 A room's comfort (0–100) is what the decorating is worth to a guest:
 
     raw    = Σ price × dup_decay^(copies of the same item before this one)     (player-placed, not ruined)
-    base   = 100 × raw / (raw + K),  K = cols × rows × k_per_cell                 (saturates per room size)
+    base   = 100 × raw / (raw + K),  K = cells × k_per_cell                       (saturates per unit size)
     mult   = 1 + set_bonus_max × clamp((share − 0.5) / 0.5, 0, 1)                (share = biggest furniture set)
     score  = clamp(round(base × mult − ruined × ruined_penalty + affection × affection_bonus), 0, 100)
 
+The unit is a whole room or one of its zones (`cells` = its area; `items` = the rows that belong to it).
 Seeded ("???") items never score but a seeded bed still counts as a bed. Guests need a bed: guests/day =
 min(beds, ceil(score / band)) capped at max_guests, each paying pay_base + pay_per_comfort × score.
 Everything is tuned in data/guests.json (GuestConfig).
@@ -25,7 +26,7 @@ from pydantic import BaseModel, Field
 from . import config
 
 if TYPE_CHECKING:
-    from .catalog import Catalog, Room
+    from .catalog import Catalog
     from .placement import ItemRow
 
 TAG_BED = "bed"
@@ -71,6 +72,9 @@ class GuestConfig(BaseModel):
     guests: GuestRules
     reservation: ReservationRules
     dog: DogRules
+    # Reservations and the dog lover only start once this place (room id, "map" or "dock") is unlocked.
+    # None = from the start. Ordinary guests are not gated.
+    special_after: str | None = None
 
 
 def load_config(path: Path | None = None) -> GuestConfig:
@@ -102,8 +106,8 @@ def _price(cat: Catalog, row: ItemRow) -> int:
     return price_of(cat.items[row.item_id], row.span)
 
 
-def comfort(cat: Catalog, room: Room, items: list[ItemRow], cfg: ComfortConfig, affection: int = 0) -> Comfort:
-    """Score a room from its live item rows (see the module docstring for the formula)."""
+def comfort(cat: Catalog, cells: int, items: list[ItemRow], cfg: ComfortConfig, affection: int = 0) -> Comfort:
+    """Score a unit of `cells` cells from its live item rows (see the module docstring for the formula)."""
     beds = ruined = 0
     raw = 0.0
     seen: Counter[str] = Counter()
@@ -117,7 +121,7 @@ def comfort(cat: Catalog, room: Room, items: list[ItemRow], cfg: ComfortConfig, 
             continue
         if it.has_tag(TAG_BED):
             beds += 1
-        if row.placed_by == config.SEED_PLAYER:
+        if row.placed_by in config.SYSTEM_PLAYERS:
             continue
         price = _price(cat, row) * (cfg.dup_decay ** seen[row.item_id])
         seen[row.item_id] += 1
@@ -128,7 +132,7 @@ def comfort(cat: Catalog, room: Room, items: list[ItemRow], cfg: ComfortConfig, 
                 set_sums[it.set] += price
                 set_items[it.set] += 1
 
-    k = room.cols * room.rows * cfg.k_per_cell
+    k = cells * cfg.k_per_cell
     base = 100.0 * raw / (raw + k) if raw > 0 else 0.0
 
     best, share, mult = None, 0.0, 1.0

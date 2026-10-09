@@ -206,6 +206,7 @@
       <label><span>layer</span><select id="iLayer"></select></label>
       <label><input type="checkbox" id="iSurface"> is_surface (위에 소품 올릴 수 있음)</label>
       <label><span>surface_offset_y</span><input type="number" id="iOff"></label>
+      <label><span>offset_y</span><input type="number" id="iOffY" title="그림만 이만큼(px) 아래로 내려 그려요. 발자국은 그대로. 예: 열린 문짝이 벽 밑으로 3px 삐져나오면 3"></label>
       <label><span>태그</span><input type="text" id="iTags" placeholder="ruined, fixed, stairs (쉼표)"></label>
       <div class="row small" style="gap:10px">
         <label><input type="checkbox" class="tagBox" data-tag="ruined"> <b>ruined</b> <span class="dim">팔 수만 있음</span></label>
@@ -868,7 +869,7 @@
     $("itemNone").style.display = it ? "none" : ""; $("itemForm").style.display = it ? "" : "none";
     if (!it) return;
     $("iId").value = it.id; $("iName").value = it.name; $("iPrice").value = it.price; $("iW").value = it.w; $("iH").value = it.h;
-    $("iLayer").value = it.layer; $("iSurface").checked = !!it.is_surface; $("iOff").value = it.surface_offset_y || 0;
+    $("iLayer").value = it.layer; $("iSurface").checked = !!it.is_surface; $("iOff").value = it.surface_offset_y || 0; $("iOffY").value = it.offset_y || 0;
     $("iSurface").disabled = it.layer !== "furniture"; // the server only accepts surfaces on furniture
     $("iTags").value = tagsOf(it).join(", ");
     document.querySelectorAll(".tagBox").forEach((cb) => { cb.checked = tagsOf(it).includes(cb.dataset.tag); });
@@ -898,7 +899,7 @@
     it.w = Math.max(1, Math.ceil(img.naturalWidth / S.cell)); it.h = Math.max(1, Math.ceil(img.naturalHeight / S.cell));
     dirtyItems = true; renderItem(); refreshPreview();
   };
-  const itemFields = { iId: "id", iName: "name", iPrice: "price", iW: "w", iH: "h", iLayer: "layer", iSurface: "is_surface", iOff: "surface_offset_y" };
+  const itemFields = { iId: "id", iName: "name", iPrice: "price", iW: "w", iH: "h", iLayer: "layer", iSurface: "is_surface", iOff: "surface_offset_y", iOffY: "offset_y" };
   for (const [id, f] of Object.entries(itemFields)) $(id).addEventListener("change", () => {
     const it = itemOf(sel), el = $(id);
     let v = el.type === "checkbox" ? el.checked : el.type === "number" ? (parseInt(el.value, 10) || 0) : el.value.trim();

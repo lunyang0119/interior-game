@@ -5970,7 +5970,10 @@
    "h": 1,
    "layer": "surface_item",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "note"
+   ]
   },
   {
    "id": "book_dark_td",
@@ -5981,7 +5984,10 @@
    "h": 1,
    "layer": "surface_item",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "note"
+   ]
   },
   {
    "id": "perfume_bottle_td",
@@ -7937,18 +7943,26 @@
    "h": 3,
    "layer": "wallpaper",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "fixed",
+    "partition"
+   ]
   },
   {
    "id": "med_010",
-   "name": "중세 벽 패널",
+   "name": "중세 벽 패널 왼쪽",
    "price": 8,
    "sprite": "med_010",
-   "w": 4,
+   "w": 1,
    "h": 3,
    "layer": "wallpaper",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "fixed",
+    "partition"
+   ]
   },
   {
    "id": "med_012",
@@ -8138,7 +8152,11 @@
    "h": 3,
    "layer": "wall",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "fixed",
+    "partition"
+   ]
   },
   {
    "id": "med_031",
@@ -34544,14 +34562,20 @@
   },
   {
    "id": "med_053",
-   "name": "med 053",
+   "name": "중세 문 벽 열림",
    "price": 50,
    "sprite": "med_053",
    "w": 4,
-   "h": 2,
+   "h": 3,
    "layer": "wall",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "door",
+    "fixed",
+    "partition"
+   ],
+   "offset_y": 3
   },
   {
    "id": "fmp_051",
@@ -34754,6 +34778,81 @@
    "layer": "wallpaper",
    "is_surface": false,
    "surface_offset_y": 0
+  },
+  {
+   "id": "med_wall_vertical_up",
+   "name": "med wall vertical up",
+   "price": 50,
+   "sprite": "med_wall_vertical_up",
+   "w": 1,
+   "h": 1,
+   "layer": "wall",
+   "is_surface": false,
+   "surface_offset_y": 0,
+   "tags": [
+    "fixed",
+    "partition"
+   ]
+  },
+  {
+   "id": "med_wall_vertical_down",
+   "name": "med wall vertical down",
+   "price": 50,
+   "sprite": "med_wall_vertical_down",
+   "w": 1,
+   "h": 1,
+   "layer": "wall",
+   "is_surface": false,
+   "surface_offset_y": 0,
+   "tags": [
+    "fixed",
+    "partition"
+   ]
+  },
+  {
+   "id": "med_wall_medium",
+   "name": "med wall medium",
+   "price": 50,
+   "sprite": "med_wall_medium",
+   "w": 1,
+   "h": 3,
+   "layer": "wall",
+   "is_surface": false,
+   "surface_offset_y": 0,
+   "tags": [
+    "fixed",
+    "partition"
+   ]
+  },
+  {
+   "id": "med_wall_right",
+   "name": "med wall right",
+   "price": 50,
+   "sprite": "med_wall_right",
+   "w": 1,
+   "h": 2,
+   "layer": "wall",
+   "is_surface": false,
+   "surface_offset_y": 0,
+   "tags": [
+    "fixed",
+    "partition"
+   ]
+  },
+  {
+   "id": "med_wall_vertical",
+   "name": "med wall vertical",
+   "price": 50,
+   "sprite": "med_wall_vertical",
+   "w": 1,
+   "h": 1,
+   "layer": "wall",
+   "is_surface": false,
+   "surface_offset_y": 0,
+   "tags": [
+    "fixed",
+    "partition"
+   ]
   }
  ]
 }
