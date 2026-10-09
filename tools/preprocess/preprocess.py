@@ -11,8 +11,8 @@ Usage (from repo root):
         Packs every slice in slices.json into client/public/gen/interiors.png +
         interiors.json (Phaser atlas), builds per-layer character sheets under
         client/public/gen/chars/<layer>/<n>.png, packs map_slices.json into
-        gen/map.png + map.json, copies the dock backdrop to gen/dock/, and
-        writes manifest.json.
+        gen/map.png + map.json, copies the dock backdrop to gen/dock/, cuts the
+        inn cat (config.CAT_VARIANT) into gen/cat/<variant>.png and writes manifest.json.
         Slices whose source sheet/file is missing are copied ("frozen") from the
         previous atlas so a pack that went away does not lose items.
         The build refuses to shrink a character layer (that would shift avatar
@@ -600,6 +600,42 @@ def build_char_layer(layer: str, variants: list[dict], out_dir: Path) -> dict:
     return entry
 
 
+def build_cat(variant: str | None = None, out_dir: Path | None = None, src: Path | None = None) -> dict | None:
+    """gen/cat/<variant>.png: one horizontal strip of the cat's real frames (see config.CATS_DIR for the
+    source layout) + the manifest entry {frameW, frameH, variant, file, anims: {"<section>_<dir>": [s, e]}}.
+    Empty cells are skipped, so sections may have a different frame count per direction. None when the
+    variant PNG is missing (the cat is optional)."""
+    variant = variant or C.CAT_VARIANT
+    src = src or (C.CATS_DIR / f"{variant}.png")
+    if not src.exists():
+        print(f"cat: {src} missing — no cat built")
+        return None
+    out_dir = out_dir or (C.OUT_DIR / "cat")
+    cell = C.CAT_CELL
+    im = Image.open(src).convert("RGBA")
+    frames: list[Image.Image] = []
+    anims: dict[str, list[int]] = {}
+    for si, section in enumerate(C.CAT_SECTIONS):
+        for d, block in C.CAT_DIR_BLOCKS.items():
+            start = len(frames)
+            for row in (1 + block * 2, 2 + block * 2):
+                for col in range(si * 4, si * 4 + 4):
+                    fr = im.crop((col * cell, row * cell, (col + 1) * cell, (row + 1) * cell))
+                    if fr.getchannel("A").getbbox():
+                        frames.append(fr)
+            if len(frames) == start:
+                raise SystemExit(f"cat {variant}: no frames for {section}_{d} (layout changed?)")
+            anims[f"{section}_{d}"] = [start, len(frames) - 1]
+    strip = Image.new("RGBA", (cell * len(frames), cell), (0, 0, 0, 0))
+    for i, fr in enumerate(frames):
+        strip.paste(fr, (i * cell, 0))
+    out_dir.mkdir(parents=True, exist_ok=True)
+    for stale in out_dir.glob("*.png"):
+        stale.unlink()
+    strip.save(out_dir / f"{variant}.png", optimize=True)
+    return {"frameW": cell, "frameH": cell, "variant": variant, "file": f"gen/cat/{variant}.png", "anims": anims}
+
+
 def anim_table() -> dict:
     anims = {}
     base = 0
@@ -796,6 +832,10 @@ def cmd_build(args: argparse.Namespace) -> None:
     fish_entry = copy_fish_icons()
     if fish_entry:
         manifest["fish"] = fish_entry
+    cat_entry = build_cat()
+    if cat_entry:
+        manifest["cat"] = cat_entry
+        print(f"cat/{cat_entry['variant']}: {max(e for _, e in cat_entry['anims'].values()) + 1} frames → gen/cat/")
     (C.OUT_DIR / "manifest.json").write_text(json.dumps(manifest, indent=1), encoding="utf-8")
     print("manifest → gen/manifest.json")
 

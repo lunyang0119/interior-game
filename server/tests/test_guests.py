@@ -99,7 +99,8 @@ def test_reservation_fulfilled_pays_double_and_missed_keeps_guests_away(client):
     _sql("INSERT INTO reservations(room_id, kind, item_id, due_day, created_ts) VALUES ('inn', 'item', 'chair', ?, ?)",
          today + 1, t0)
     view = next(r for r in client.get("/api/rooms").json()["rooms"] if r["id"] == "inn")["comfort"]["inn"]
-    assert view["reservation"] == {"id": 1, "kind": "item", "item_id": "chair", "due_day": today + 1, "days_left": 1}
+    assert view["reservation"] == {"id": 1, "kind": "item", "item_id": "chair", "due_day": today + 1, "days_left": 1,
+                                   "ready": False}
     # no chair on the due day: the guest leaves, tomorrow nobody comes
     ev = []
     paid = _settle(client, t0 + DAY, cfg=cfg, events=ev)
@@ -122,6 +123,7 @@ def test_reservation_fulfilled_pays_double_and_missed_keeps_guests_away(client):
          today + 3, t0)
     _place(client, lun, "chair", 6, 3)
     view = next(r for r in client.get("/api/rooms").json()["rooms"] if r["id"] == "inn")["comfort"]["inn"]
+    assert view["reservation"]["ready"] is True  # the board can tick it off
     ev = []
     paid = _settle(client, t0 + 3 * DAY, cfg=cfg, events=ev)
     g = next(e for e in ev if e["kind"] == "guest")

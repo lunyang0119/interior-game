@@ -6,6 +6,7 @@ export const TAG_FIXED = "fixed";
 /** Tapping a stairs item walks to the exit it sits on instead of opening its menu. */
 export const TAG_STAIRS = "stairs";
 export const TAG_NOTE = "note"; // carries a text anyone can rewrite (ui/note.ts)
+export const TAG_BOARD = "board"; // tapping it opens the 📋 board: restoration quests + guest reservations (ui/board.ts)
 /** A wall-layer sprite standing on the floor (room divider): placed, drawn and walked around like furniture. */
 export const TAG_PARTITION = "partition";
 /** A partition avatars may walk through. */
@@ -120,6 +121,16 @@ export interface Chars {
   layers: Record<string, LayerSpec>;
 }
 
+/** The inn cat's sprite strip (`gen/cat/<variant>.png`, built from config.CAT_VARIANT). anims keys are
+ *  `<sit|look|lay|walk|run>_<down|right|up|left>` → inclusive frame range. null when no cat was built. */
+export interface CatSpec {
+  frameW: number;
+  frameH: number;
+  variant: string;
+  file: string;
+  anims: Record<string, [number, number]>;
+}
+
 /** Overworld from data/map.json (world editor). Coordinates are map cells; sprites live in the map atlas. */
 export interface MapPlace {
   room: string; // room id or "dock"
@@ -157,6 +168,7 @@ export interface Catalog {
   rooms: Map<string, Room>;
   map: MapData | null;
   chars: Chars;
+  cat: CatSpec | null;
   /** Tile metadata by atlas ("interior" = room tiles, "map" = overworld tiles); only keys that carry any. */
   tiles: { interior: Record<string, TileInfo>; map: Record<string, TileInfo> };
   /** see assets.ts */
@@ -246,7 +258,7 @@ export function exitAt(room: Room, cx: number, cy: number): Exit | null {
 }
 
 export interface RawCatalog {
-  items: Item[]; room: Room; rooms?: Room[]; map?: MapData | null; chars: Chars;
+  items: Item[]; room: Room; rooms?: Room[]; map?: MapData | null; chars: Chars; cat?: CatSpec | null;
   tiles?: { interior?: Record<string, TileInfo>; map?: Record<string, TileInfo> } | null;
   /** hash of the generated atlases/theme on the server; appended to /gen and /media URLs (see assets.ts) */
   asset_version?: string;
@@ -257,6 +269,6 @@ export function makeCatalog(raw: RawCatalog): Catalog {
   const rooms = new Map(list.map((r) => [r.id, r]));
   const room = rooms.get(raw.room.id ?? "inn") ?? list[0];
   const tiles = { interior: raw.tiles?.interior ?? {}, map: raw.tiles?.map ?? {} };
-  return { items: raw.items, byId: new Map(raw.items.map((i) => [i.id, i])), room, rooms, map: raw.map ?? null, chars: raw.chars, tiles,
+  return { items: raw.items, byId: new Map(raw.items.map((i) => [i.id, i])), room, rooms, map: raw.map ?? null, chars: raw.chars, cat: raw.cat ?? null, tiles,
     assetVersion: raw.asset_version ?? "" };
 }

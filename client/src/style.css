@@ -90,6 +90,34 @@ img, .framed { image-rendering: pixelated; }
 #log-guests .guest-night { margin-top: 4px; }
 #log-guests .guest-warn { color: #e07070; }
 #log-guests .reserve { margin-top: 6px; padding: 6px 8px; border-radius: 8px; background: rgba(255, 211, 92, .14); }
+/* 📋 board: summary line, reservation cards (thumb + request + status + shop link), quest cards with every stage */
+.board-summary { color: var(--muted); margin-bottom: 4px; }
+#board-reserve .empty, #board-quests .empty { color: var(--muted); }
+#board-reserve .rsv { display: flex; gap: 10px; align-items: center; padding: 8px 10px; border-radius: 10px; background: var(--card); margin-bottom: 6px; }
+#board-reserve .rsv canvas { width: 48px; height: 48px; image-rendering: pixelated; flex: none; }
+#board-reserve .rsv .emoji { width: 48px; font-size: 28px; text-align: center; flex: none; }
+#board-reserve .rsv .body { flex: 1; min-width: 0; }
+#board-reserve .rsv .where { font-weight: 700; }
+#board-reserve .rsv .status { font-size: var(--fs-small); margin-top: 2px; }
+#board-reserve .rsv .status.ok { color: #7cc67c; }
+#board-reserve .rsv .status.miss { color: #e07070; }
+#board-reserve .rsv button { padding: 6px 10px; font-size: var(--fs-small); flex: none; }
+#board-quests .quest { padding: 8px 10px; border-radius: 10px; background: var(--card); margin-bottom: 6px; }
+#board-quests .quest.here { outline: 2px solid var(--primary); }
+#board-quests .quest-head { font-weight: 700; margin-bottom: 4px; display: flex; justify-content: space-between; }
+#board-quests .stage { margin-top: 4px; }
+#board-quests .stage.past { color: var(--muted); }
+#board-quests .stage.next { color: var(--muted); opacity: .7; }
+#board-quests .stage-name { font-weight: 700; }
+#board-quests .need { padding-left: 4px; margin-top: 2px; }
+#board-quests .need::before { content: "☐ "; color: var(--muted); }
+#board-quests .need.done { color: var(--muted); text-decoration: line-through; }
+#board-quests .need.done::before { content: "☑ "; }
+#board-quests .bar { height: 6px; border-radius: 3px; background: rgba(128, 128, 128, .25); overflow: hidden; margin: 2px 0 0 18px; }
+#board-quests .bar > i { display: block; height: 100%; background: var(--primary); border-radius: 3px; }
+#board-quests .reward { color: var(--muted); font-size: var(--fs-small); margin-top: 4px; }
+.shop-item.hl { outline: 3px solid var(--primary); animation: shop-hl 2.5s ease-out; }
+@keyframes shop-hl { 0%, 60% { filter: brightness(1.4); } 100% { filter: none; } }
 #place-label { color: var(--text); margin-right: 8px; }
 #place-span { display: inline-flex; align-items: center; gap: 6px; }
 #place-span button { padding: 4px 10px; font-weight: 700; }

@@ -112,6 +112,16 @@ SET_ALIASES = {
     "axulart_all": "axulart", "axulart_basic": "axulart",
     "spritesheet_misc": "misc",
 }
+# The inn cat: assets/graphic/Map/Cats/<variant>.png (1024x544, 32px cells). `build` cuts one variant into
+# gen/cat/<variant>.png. Sheet layout: 6 sections of 4 cells left→right (sitting down, looking around, laying
+# down, walking, running, running 2.0); row 0 is the section title text (never a frame); below it every
+# direction owns 2 rows (frames fill the first row, overflow into the second), 8 directions clockwise from
+# down: down, down-right, right, up-right, up, up-left, left, down-left. Only the 4 cardinal ones are cut.
+CATS_DIR = MAP / "Cats"
+CAT_VARIANT = "orange_0"
+CAT_CELL = 32
+CAT_SECTIONS = ["sit", "look", "lay", "walk", "run"]   # section index = position on the sheet (run 2.0 is skipped)
+CAT_DIR_BLOCKS = {"down": 0, "right": 2, "up": 4, "left": 6}   # direction → 2-row block index below the title row
 DOCK_FILE = REPO_ROOT / "data" / "dock.json"   # layer order/positions for the dock scene (editor "부두" tab)
 MAP_BG_DIR = MAP / "Backgrounds"                    # full-screen backdrops for the overworld (any PNG; name = file stem)
 DOCK_DIR = MAP / "Dock"                              # 0.png .. 8.png, 384x216 parallax layers (back → front)

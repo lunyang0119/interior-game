@@ -8041,6 +8041,8 @@
    "is_surface": false,
    "surface_offset_y": 0,
    "tags": [
+    "board",
+    "fixed",
     "note"
    ]
   },

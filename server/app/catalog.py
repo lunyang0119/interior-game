@@ -283,6 +283,8 @@ class Catalog:
                 "rooms": [r.model_dump() for r in self.rooms.values()],
                 "map": self.map.model_dump() if self.map else None,
                 "chars": self.manifest["chars"],
+                # the inn cat's sprite strip (build writes it when the variant PNG exists); None = no cat
+                "cat": self.manifest.get("cat"),
                 "tiles": {atlas: {k: m.model_dump(exclude_none=True) for k, m in metas.items()}
                           for atlas, metas in self.tiles.items()},
                 "asset_version": self.asset_version,

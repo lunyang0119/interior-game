@@ -1,7 +1,7 @@
 import { bus, toast } from "../bus";
 import { forSale, priceOf, type Item, type Layer } from "../catalog";
 import { catalog, state } from "../state";
-import { $, togglePanel } from "./hud";
+import { $, closeAllPanels, show, togglePanel } from "./hud";
 import { assetUrl } from "../assets";
 
 const TABS: { key: Layer | "all"; label: string }[] = [
@@ -83,10 +83,30 @@ function applyBalance(): void {
   for (const { item, el } of cards.values()) el.classList.toggle("disabled", priceOf(item, 1) > state.balance);
 }
 
-export function openShop(): void {
+/** A 64×64 thumbnail of an item drawn from the atlas (the board uses it for reservation cards). */
+export async function itemThumb(item: Item): Promise<HTMLCanvasElement> {
+  await loadAtlas();
+  return thumb(item);
+}
+
+/** Opens the shop; with `itemId` (a reservation's request) it switches to 전체, scrolls to that card and flashes it. */
+export function openShop(itemId?: string): void {
   if (!state.id) { toast("먼저 계정을 골라주세요"); return; }
   void loadAtlas().then(() => {
     build();
+    if (itemId) {
+      const card = cards.get(itemId);
+      if (!card) { toast("상점에 없는 물건이에요"); return; }
+      tab = "all";
+      applyTab();
+      applyBalance();
+      closeAllPanels();
+      show("panel-shop", true);
+      card.el.scrollIntoView({ block: "center" });
+      card.el.classList.add("hl");
+      window.setTimeout(() => card.el.classList.remove("hl"), 2500);
+      return;
+    }
     applyTab();
     applyBalance();
     togglePanel("panel-shop");
@@ -94,6 +114,7 @@ export function openShop(): void {
 }
 
 export function initShop(): void {
-  $("btn-shop").addEventListener("click", openShop);
+  $("btn-shop").addEventListener("click", () => openShop());
+  bus.on("shop:open", ({ itemId }) => openShop(itemId));
   bus.on("money", () => { if (cards.size) applyBalance(); });
 }

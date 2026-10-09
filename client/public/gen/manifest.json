@@ -25243,5 +25243,93 @@
    "seabream",
    "chest"
   ]
+ },
+ "cat": {
+  "frameW": 32,
+  "frameH": 32,
+  "variant": "orange_0",
+  "file": "gen/cat/orange_0.png",
+  "anims": {
+   "sit_down": [
+    0,
+    6
+   ],
+   "sit_right": [
+    7,
+    12
+   ],
+   "sit_up": [
+    13,
+    19
+   ],
+   "sit_left": [
+    20,
+    25
+   ],
+   "look_down": [
+    26,
+    30
+   ],
+   "look_right": [
+    31,
+    35
+   ],
+   "look_up": [
+    36,
+    40
+   ],
+   "look_left": [
+    41,
+    45
+   ],
+   "lay_down": [
+    46,
+    53
+   ],
+   "lay_right": [
+    54,
+    61
+   ],
+   "lay_up": [
+    62,
+    69
+   ],
+   "lay_left": [
+    70,
+    77
+   ],
+   "walk_down": [
+    78,
+    81
+   ],
+   "walk_right": [
+    82,
+    85
+   ],
+   "walk_up": [
+    86,
+    89
+   ],
+   "walk_left": [
+    90,
+    93
+   ],
+   "run_down": [
+    94,
+    98
+   ],
+   "run_right": [
+    99,
+    103
+   ],
+   "run_up": [
+    104,
+    108
+   ],
+   "run_left": [
+    109,
+    113
+   ]
+  }
  }
 }

@@ -72,7 +72,8 @@ export interface StageProgress { id: string; name: string; done: boolean; unlock
 /** A room's restoration: completed count, total, and the current stage (null once everything is done). */
 export interface RoomProgress { stage: number; total: number; done: boolean; current: StageProgress | null }
 /** A pending reservation: a guest who wants `item_id` (kind "item") or the monthly dog lover (kind "dog"). */
-export interface ReservationView { id: number; kind: "item" | "dog"; item_id: string | null; due_day: number; days_left: number }
+/** `ready`: the unit already satisfies the request (item placed / dog decoration or comfort high enough). */
+export interface ReservationView { id: number; kind: "item" | "dog"; item_id: string | null; due_day: number; days_left: number; ready: boolean }
 /** A room's comfort (server comfort.py) and tonight's expected guests (guests.py room_view). Absent for locked rooms. */
 export interface ComfortView {
   room: string; zone: string | null; zone_name: string | null;
@@ -95,7 +96,7 @@ export interface FishFinishResponse {
 /** One row of the activity log (server events table). amount = change of the shared pool, + means it grew. */
 export interface ActivityEvent {
   seq: number; ts: number;
-  kind: "place" | "remove" | "sell" | "fish" | "deliver" | "stage" | "earn" | "guest" | "reserve" | "missed" | string;
+  kind: "place" | "remove" | "sell" | "fish" | "deliver" | "stage" | "earn" | "guest" | "reserve" | "missed" | "cat" | string;
   room_id: string | null; player_id: string | null; item_id: string | null; amount: number | null;
   data: {
     stage?: string; name?: string; index?: number; unlocks?: string[];
@@ -122,6 +123,8 @@ export const api = {
   fishStart: () => call<{ session: string; bites: { at_ms: number; window_ms: number; hold_ms: number }[] }>("POST", "/api/fish/start", {}),
   fishFinish: (session: string, holds: { start_ms: number; end_ms: number }[], escaped: boolean) =>
     call<FishFinishResponse>("POST", "/api/fish/finish", { session, holds, escaped }),
+  /** Pet the inn cat: the first pet of a KST day raises its affection (the inn's comfort); later ones just purr. */
+  catPet: () => call<{ affection: number; first_today: boolean }>("POST", "/api/cat/pet", {}),
   fishDeliver: (seq: number, room?: string) =>
     call<{ balance: number; room: string; have: number; want: number; completed: { room: string; stage: string; name: string }[] }>("POST", "/api/fish/deliver", { seq, room }),
   register: (id: string) => call<{ id: string; token: string; existing: boolean; created: boolean; name: string; earned: number }>("POST", "/api/register", { id }),

@@ -1340,6 +1340,11 @@
    "item_id": "rug_red_large",
    "x": 1,
    "y": 19
+  },
+  {
+   "item_id": "med_018",
+   "x": 8,
+   "y": 1
   }
  ],
  "restore": [

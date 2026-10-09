@@ -5,9 +5,11 @@ import { Avatar } from "../avatar/Avatar";
 import { ensureAvatarTextures } from "../avatar/AvatarLoader";
 import { RemoteAvatars } from "../avatar/RemoteAvatars";
 import { bus, toast } from "../bus";
-import { exitAt, floorKeyAt, hasTag, TAG_FIXED, TAG_STAIRS, zoneAt, type Catalog, type Exit, type Layer, type Room } from "../catalog";
+import { exitAt, floorKeyAt, hasTag, TAG_BOARD, TAG_FIXED, TAG_STAIRS, zoneAt, type Catalog, type Exit, type Layer, type Room } from "../catalog";
 import { Gestures } from "../input/Gestures";
 import { dirDelta, WalkKeys } from "../input/Keyboard";
+import { InnCat } from "../npc/Cat";
+import { GuestNpcs } from "../npc/GuestNpcs";
 import { TILE_DEPTH } from "../room/depth";
 import { CELL, footprint, worldToCell } from "../room/grid";
 import { ATLAS, ItemLayer } from "../room/ItemLayer";
@@ -38,6 +40,9 @@ export class RoomScene extends Phaser.Scene {
   private steps = new Footsteps();
   private me: Avatar | null = null;
   private remotes!: RemoteAvatars;
+  private guests!: GuestNpcs;
+  /** The inn cat (only in the inn, only when the catalog carries a cat strip). */
+  private innCat: InnCat | null = null;
   private unsub: (() => void)[] = [];
   private pollTimer: number | null = null;
   private playerId: string | null = null;
@@ -74,6 +79,11 @@ export class RoomScene extends Phaser.Scene {
     this.placement.onRestart = () => { this.hoverFollow = true; }; // "+1": the fresh ghost follows the mouse again
     this.remotes = new RemoteAvatars(this, this.cat.chars);
     this.remotes.onCell = (id, cx, cy) => this.footstep(id, cx, cy, this.hearing(cx, cy));
+    this.guests = new GuestNpcs(this, this.cat, this.room, () => this.walkGrid(), () => this.items.rows);
+    if (this.cat.cat && this.room.id === this.cat.room.id) {
+      this.innCat = new InnCat(this, this.cat.cat, this.room, () => this.walkGrid());
+      void this.innCat.spawn();
+    }
     setZone(null); // until the avatar stands somewhere
     bus.emit("room:changed", { id: this.room.id, name: this.room.name, ruined: state.ruined });
 
@@ -134,6 +144,7 @@ export class RoomScene extends Phaser.Scene {
       state.roomVersion = r.version;
       this.items.sync(r.items);
       this.placement.revalidate();
+      this.guests.sync();
       this.setRuined(r.ruined);
     } catch (e) {
       if (e instanceof ApiError && e.code !== "network") toast(msgFor(e.code));
@@ -234,6 +245,7 @@ export class RoomScene extends Phaser.Scene {
       bus.on("item:remove", ({ uid }) => void this.removeItem(uid)),
       bus.on("item:walk", ({ uid }) => this.walkToItem(uid)),
       bus.on("avatar:saved", (look) => void this.applyMyLook(look)),
+      bus.on("comfort:changed", () => this.guests.sync()),
     );
   }
 
@@ -366,10 +378,14 @@ export class RoomScene extends Phaser.Scene {
   private onTap(p: Phaser.Input.Pointer): void {
     const w = this.cam.screenToWorld(p.x, p.y);
     const { cx, cy } = worldToCell(w.x, w.y);
+    if (this.innCat?.tap(w.x, w.y)) return; // the cat is petted before anything under it
+    if (this.guests.tap(w.x, w.y)) return; // a guest answers before anything under them
     // stairs: a tap walks through them (long press still opens the menu)
     const tapped = this.items.itemAt(cx, cy, TAP_MENU_LAYERS);
     const stairs = tapped ?? this.items.itemAt(cx, cy); // stairs may also be a wall-layer item
     if (stairs && hasTag(this.cat.byId.get(stairs.item_id), TAG_STAIRS) && this.walkThrough(stairs.x, stairs.y, stairs.item_id)) return;
+    // the 📋 board on the wall: a tap opens the quest / reservation list
+    if (stairs && hasTag(this.cat.byId.get(stairs.item_id), TAG_BOARD)) { bus.emit("board:open"); return; }
     // a plain tap on a placed item opens its menu too (easier than holding on a phone)
     if (tapped && this.openMenu(w.x, w.y)) return;
     if (this.me && cx >= 0 && cx < this.room.cols && cy >= 0 && cy < this.room.rows && !this.walkTo(cx, cy) && cy < this.room.wall_rows) {
@@ -420,6 +436,8 @@ export class RoomScene extends Phaser.Scene {
     this.walkByKeys();
     this.me?.update(time, delta);
     this.remotes.update(time, delta);
+    this.guests.update(time, delta);
+    this.innCat?.update(time, delta);
     this.cam.update();
   }
 
@@ -432,6 +450,9 @@ export class RoomScene extends Phaser.Scene {
     this.cam.destroy();
     this.placement.cancel();
     this.remotes.destroy();
+    this.guests.destroy();
+    this.innCat?.destroy();
+    this.innCat = null;
     this.items.destroy();
     this.me?.destroy();
     this.me = null;

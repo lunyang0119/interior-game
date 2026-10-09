@@ -71,6 +71,7 @@ export function describe(e: ActivityEvent): string {
         ? `🐶 개를 좋아하는 손님이 ${e.data?.days ?? "?"}일 뒤 ${room}에 묵겠대요 — 개 장식이 있거나 안락도가 높으면 와요`
         : `${room}에 예약이 들어왔어요 — ${e.data?.days ?? "?"}일 안에 ${itemName(e.item_id)}을(를) 놓아 주세요`;
     case "missed": return `${room}의 예약 손님이 ${itemName(e.item_id)}이(가) 없어서 돌아갔어요. 내일은 손님이 안 와요`;
+    case "cat": return `${who(e.player_id)}가 고양이를 쓰다듬었어요`;
     case "stage": {
       const opened = (e.data?.unlocks ?? []).map((r) => placeName(cat, r));
       return `🎉 ${room} '${e.data?.name ?? e.data?.stage ?? ""}' 완료!${opened.length ? ` ${opened.join(", ")}이(가) 열렸어요` : ""}`;
@@ -150,7 +151,7 @@ function renderGuests(): void {
     const parts = [`가구 ${c.base}`];
     if (c.mult > 1) parts.push(`세트 ×${c.mult}`);
     if (c.ruined) parts.push(`부서진 물건 −${c.ruined * 5}`);
-    if (c.affection) parts.push(`고양이 +${c.affection * 3}`);
+    if (c.affection) parts.push(`🐱+${c.affection * 3}`);
     parts.push(`침대 ${c.beds}개`);
     card.appendChild(div("guest-sub", parts.join(" · ")));
     let night: string;
@@ -285,6 +286,7 @@ export function initLog(): void {
     if (!$("panel-log").classList.contains("hidden")) renderGuests();
   });
   socket.on("room", () => refreshComfort()); // a room's version moved: somebody placed/removed something
+  socket.on("cat", (m: { first_today: boolean }) => { if (m.first_today) refreshComfort(); }); // affection moved the inn's comfort
   show("panel-log", false);
 }
 

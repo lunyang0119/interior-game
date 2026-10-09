@@ -22,6 +22,7 @@ from dataclasses import dataclass
 from datetime import date, datetime, timedelta, timezone
 
 from . import config
+from .cat import CAT_ROOM, affection as cat_affection
 from .catalog import Catalog, Room, Zone
 from .comfort import SET_LAYERS, Comfort, GuestConfig, comfort, nightly_pay, pay_per_guest
 from .db import bump_room_version, now
@@ -97,8 +98,13 @@ def day_key(ts: int, cfg: GuestConfig) -> int:
     return local.date().toordinal()
 
 
-def unit_comfort(cat: Catalog, unit: Unit, rows: list[ItemRow], cfg: GuestConfig) -> Comfort:
-    return comfort(cat, unit.cells, unit.items(rows), cfg.comfort)
+def unit_affection(conn: sqlite3.Connection, unit: Unit, ts: int | None = None) -> int:
+    """The inn cat's affection (0..3) for units of the cat's room; every other room gets 0."""
+    return cat_affection(conn, ts) if unit.room.id == CAT_ROOM else 0
+
+
+def unit_comfort(cat: Catalog, unit: Unit, rows: list[ItemRow], cfg: GuestConfig, affection: int = 0) -> Comfort:
+    return comfort(cat, unit.cells, unit.items(rows), cfg.comfort, affection)
 
 
 def pending_reservation(conn: sqlite3.Connection, unit: Unit) -> sqlite3.Row | None:
@@ -107,22 +113,29 @@ def pending_reservation(conn: sqlite3.Connection, unit: Unit) -> sqlite3.Row | N
         (unit.room.id, unit.zone.id if unit.zone else None)).fetchone()
 
 
-def _reservation_view(row: sqlite3.Row | None, today: int) -> dict | None:
+def _reservation_view(row: sqlite3.Row | None, today: int, cat: Catalog, items: list[ItemRow], c: Comfort,
+                      cfg: GuestConfig) -> dict | None:
+    """`ready` = the unit already satisfies the request (the 📋 board shows ✓ / what is still missing)."""
     if row is None:
         return None
+    if row["kind"] == RESERVE_DOG:
+        ready = c.beds > 0 and (_has_item(cat, items, tag=cfg.dog.tag) or c.score >= cfg.dog.comfort_fallback)
+    else:
+        ready = c.beds > 0 and _has_item(cat, items, item_id=row["item_id"])
     return {"id": row["id"], "kind": row["kind"], "item_id": row["item_id"], "due_day": row["due_day"],
-            "days_left": row["due_day"] - today}
+            "days_left": row["due_day"] - today, "ready": ready}
 
 
 def unit_view(conn: sqlite3.Connection, cat: Catalog, unit: Unit, rows: list[ItemRow], cfg: GuestConfig,
               ts: int | None = None) -> dict:
     """What the panel shows for a unit: comfort breakdown, tonight's expected guests/pay, the open reservation."""
     today = day_key(ts if ts is not None else now(), cfg)
-    c = unit_comfort(cat, unit, rows, cfg)
+    c = unit_comfort(cat, unit, rows, cfg, unit_affection(conn, unit, ts))
     skipped = _meta(conn, f"no_guests_day:{unit.key}") == today + 1
     n, pay = (0, 0) if skipped else nightly_pay(c.score, c.beds, cfg.guests)
     return {**unit.public(), **c.public(), "guests": n, "per_guest": pay_per_guest(c.score, cfg.guests), "pay": pay,
-            "skipped": skipped, "reservation": _reservation_view(pending_reservation(conn, unit), today)}
+            "skipped": skipped,
+            "reservation": _reservation_view(pending_reservation(conn, unit), today, cat, unit.items(rows), c, cfg)}
 
 
 def room_view(conn: sqlite3.Connection, cat: Catalog, room: Room, cfg: GuestConfig, ts: int | None = None) -> dict[str, dict]:
@@ -218,7 +231,7 @@ def settle(conn: sqlite3.Connection, cat: Catalog, cfg: GuestConfig, ts: int | N
                 continue
             first = max(last + 1, today - cfg.max_catchup_days + 1)
             items = unit.items(rows)
-            c = comfort(cat, unit.cells, items, cfg.comfort)
+            c = comfort(cat, unit.cells, items, cfg.comfort, unit_affection(conn, unit, ts))
             for d in range(first, today + 1):
                 total += _settle_day(conn, cat, unit, items, c, cfg, d, ts, events, rng, changed)
             _set_meta(conn, f"guest_day:{unit.key}", today)

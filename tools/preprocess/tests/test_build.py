@@ -98,3 +98,39 @@ def test_atlas_keys_carry_sets_only_for_interiors():
     sl = [{"key": "a", "sheet": "pi_beds_br", "step": "wood"}]
     assert P.atlas_keys(atlas, sl, sets=True)["a"] == {"w": 16, "h": 32, "cw": 1, "ch": 2, "set": "pi_bedroom", "step": "wood"}
     assert "set" not in P.atlas_keys(atlas, sl)["a"]
+
+
+def test_build_cat_cuts_only_real_frames_and_skips_the_title_row(tmp_path: Path):
+    # a fake Cats/<variant>.png: 6 sections × 4 cells, title row 0, 8 directions × 2 rows below it
+    cell = P.C.CAT_CELL
+    im = Image.new("RGBA", (32 * cell, 17 * cell), (0, 0, 0, 0))
+    for col in range(24):  # title text across every section: must never become a frame
+        im.putpixel((col * cell + 1, 1), (255, 255, 255, 255))
+    # section 0 (sit): 5 frames facing down (4 on the first row + 1 on the second), 4 facing right
+    for col in range(4):
+        im.putpixel((col * cell + 5, 1 * cell + 5), (200, 100, 0, 255))
+        im.putpixel((col * cell + 5, 5 * cell + 5), (200, 100, 0, 255))
+    im.putpixel((5, 2 * cell + 5), (200, 100, 0, 255))
+    # every other (section, cardinal direction): one frame
+    for si in range(1, len(P.C.CAT_SECTIONS)):
+        for block in P.C.CAT_DIR_BLOCKS.values():
+            im.putpixel((si * 4 * cell + 5, (1 + block * 2) * cell + 5), (200, 100, 0, 255))
+    for d, block in P.C.CAT_DIR_BLOCKS.items():
+        if d in ("up", "left"):
+            im.putpixel((5, (1 + block * 2) * cell + 5), (200, 100, 0, 255))
+    src = tmp_path / "ginger_0.png"
+    im.save(src)
+    out = tmp_path / "cat"
+    entry = P.build_cat("ginger_0", out, src)
+    assert entry is not None
+    assert entry["variant"] == "ginger_0" and entry["file"] == "gen/cat/ginger_0.png"
+    assert entry["frameW"] == cell and entry["frameH"] == cell
+    assert entry["anims"]["sit_down"] == [0, 4]
+    assert entry["anims"]["sit_right"] == [5, 8]
+    assert entry["anims"]["sit_up"] == [9, 9] and entry["anims"]["sit_left"] == [10, 10]
+    assert entry["anims"]["look_down"] == [11, 11] and entry["anims"]["walk_down"] == [19, 19]
+    total = max(e for _, e in entry["anims"].values()) + 1
+    strip = Image.open(out / "ginger_0.png")
+    assert strip.size == (total * cell, cell)
+    assert strip.getpixel((5, 5)) == (200, 100, 0, 255)   # first frame = sit_down frame 0
+    assert P.build_cat("nope", out, tmp_path / "nope.png") is None

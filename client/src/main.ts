@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 import { api, ApiError, msgFor } from "./api";
 import { initBgm } from "./audio/bgm";
-import { initSfx } from "./audio/sfx";
+import { initSfx, play, SFX, SFX_VOL } from "./audio/sfx";
 import { bus, toast } from "./bus";
 import { DOCK_ROOM, makeCatalog, MAP_ROOM, placeName, unlockerOf } from "./catalog";
 import { BootScene } from "./scenes/BootScene";
@@ -12,6 +12,7 @@ import { applyComfort, applyProgress, state } from "./state";
 import * as storage from "./storage";
 import { initAccounts } from "./ui/accounts";
 import { initAvatarEditor } from "./ui/avatarEditor";
+import { initBoard } from "./ui/board";
 import { initContextMenu } from "./ui/contextMenu";
 import { initLog } from "./ui/log";
 import { initNote } from "./ui/note";
@@ -107,6 +108,7 @@ async function boot(): Promise<void> {
   initContextMenu();
   initNote();
   initLog();
+  initBoard();
   void initBgm();
   void initSfx();
 
@@ -191,6 +193,11 @@ async function boot(): Promise<void> {
   });
   bus.on("account:switch", () => bus.emit("net:state", { online: true })); // hide until the new socket reports
 
+  socket.on("cat", (m: { player: string; first_today: boolean }) => {
+    if (m.player === state.id) return; // my own pet is answered by the room scene
+    play(SFX.meow, { volume: SFX_VOL.ui });
+    toast(`${m.player}가 고양이를 쓰다듬었어요`);
+  });
   socket.on("fish", (m) => {
     if (m.id === state.id) return; // my own result is shown by the dock scene
     if (active() === "Dock") bus.emit("fish:catch", { ok: true, id: m.loot, name: m.name, value: m.value, who: m.id });

@@ -16,6 +16,7 @@ export type WsMsg =
   | { type: "progress"; rooms: Record<string, RoomProgress>; locked: string[] } // a restoration stage completed somewhere
   | { type: "event"; event: ActivityEvent } // one new activity-log row
   | { type: "error"; code: string; room?: string } // e.g. enter into a locked room
+  | { type: "cat"; player: string; affection: number; first_today: boolean } // somebody petted the inn cat
   | { type: "pong" };
 
 type Handler = (msg: any) => void;

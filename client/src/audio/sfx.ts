@@ -17,6 +17,7 @@ export const SFX = {
   splash: "water", // bobber lands / bite / pull-up
   reel: "reel", // looping while holding
   sell: "sell", // sold or refunded an item
+  meow: "cat", // the inn cat was petted (assets/sfx/<any>/cat_*.mp3 → media/sfx/cat.mp3; missing = silent)
 } as const;
 
 export const SFX_VOL = { step: 0.35, ui: 0.6, reel: 0.4 };

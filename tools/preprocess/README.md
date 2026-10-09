@@ -113,7 +113,7 @@ python tools/preprocess/preprocess.py build                        # map_slices.
   `assets/graphic/<Interior|Map>/_16px/<경로를 __로 이은 이름>.png` 사본을 만들고 그 시트를 16px 격자로 자른다. 방식 `auto`는 그림이 2배 확대된 픽셀아트면
   `nearest`(픽셀 그대로 되돌림), 아니면 `box`(평균 축소)를 고른다. 원본이 바뀌면 다시 만들어야 하고, 사본도 `assets/`라 gitignore.
 - **아이템**: items.json 전체를 썸네일로 검색·태그·레이어로 거른다. 카드 클릭 → 그 슬라이스로 이동.
-  오른쪽 아이템 폼의 **태그**(`ruined`, `fixed`, `stairs`, `note`=쪽지로 글을 남길 수 있는 아이템 …)와 **쌍(pair)**: 부서진 가구 ↔ 멀쩡한 가구를 양방향으로 잇는다. `ruined` 체크박스는 태그 단축키.
+  오른쪽 아이템 폼의 **태그**(`ruined`, `fixed`, `stairs`, `note`=쪽지로 글을 남길 수 있는 아이템, `board`=탭하면 📋 게시판(의뢰·예약)이 열리는 가구 …)와 **쌍(pair)**: 부서진 가구 ↔ 멀쩡한 가구를 양방향으로 잇는다. `ruined` 체크박스는 태그 단축키.
 - **낱개**: 정식 팩 `Theme_Sorter_Singles`의 낱개 PNG를 테마별 썸네일로 보고 클릭하면 `file` 슬라이스가 생긴다.
 - **캐릭터**: 전과 같음.
 - **방·맵 에디터** (`/world`): 아래 참고.
@@ -159,6 +159,10 @@ python tools/preprocess/preprocess.py build                        # map_slices.
 시트 896×656에서 2번째 줄(idle)·3번째 줄(run)만 잘라 `gen/chars/<layer>/<n>.png`(48프레임)로 만든다.
 `Hairstyle_SS_CC` 식 파일명의 SS가 스타일, CC가 색 → manifest의 `groups`로 묶여 에디터에서 "스타일 / 색" 두 줄이 된다.
 머리·악세서리는 index 0 = 없음.
+
+## 여관 고양이 (`gen/cat/<변종>.png`)
+
+`build`가 `assets/graphic/Map/Cats/<변종>.png`(1024×544, 32px 칸, 변종은 `config.py`의 `CAT_VARIANT`, 기본 `orange_0`; `Markings/`는 안 씀) 하나를 잘라 `gen/cat/<변종>.png` 가로 띠 하나로 만들고 manifest에 `cat: {frameW, frameH, variant, file, anims}`를 넣는다. 원본 배치: 왼쪽부터 4칸짜리 구역 6개(앉기 `sit`, 두리번 `look`, 눕기 `lay`, 걷기 `walk`, 달리기 `run`, 달리기 2.0은 안 씀), 맨 윗줄은 구역 제목 글자라 프레임이 아니고, 그 아래로 방향마다 2줄씩 8방향(아래·우하·오른쪽·우상·위·좌상·왼쪽·좌하 순) — 첫 줄에 프레임 4개, 넘치면 둘째 줄. 빈 칸은 건너뛰므로 방향마다 프레임 수가 달라도 된다(`orange_0`: sit 7/6/7/6, look 5, lay 8, walk 4, run 5). 4방향(`down`/`right`/`up`/`left`)만 잘라서 `anims`는 `sit_down: [시작, 끝]` 식이다. PNG가 없으면 고양이 없이 빌드된다(서버 `catalog.cat` = null, 클라이언트는 고양이를 안 띄움). 변종을 바꾸면 `gen/cat/`의 이전 PNG는 지워진다. 테스트: `tools/preprocess/tests/test_build.py`.
 
 ## media (BGM · 폰트 · 효과음)
 

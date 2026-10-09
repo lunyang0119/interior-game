@@ -13,7 +13,7 @@ from .errors import ApiError
 from .presence import hub
 from .reconcile import reconcile_items
 from .seed import seed_room
-from .routers import activity, auth, fish, me, room, ws
+from .routers import activity, auth, cat, fish, me, room, ws
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s %(message)s")
 log = logging.getLogger("main")
@@ -121,6 +121,7 @@ def create_app() -> FastAPI:
     app.include_router(room.router)
     app.include_router(fish.router)
     app.include_router(activity.router)
+    app.include_router(cat.router)
     app.include_router(ws.router)
     if config.DEV_TOOLS:  # imported lazily so a VM without routers/dev.py still boots
         from .routers import dev
