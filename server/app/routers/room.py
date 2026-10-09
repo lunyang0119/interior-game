@@ -2,7 +2,7 @@ import sqlite3
 
 from fastapi import APIRouter, Depends, Request, Response
 
-from .. import progress
+from .. import guests, progress
 from ..auth import Player, current_player, log_access
 from ..catalog import TAG_FIXED, TAG_NOTE, TAG_RUINED, Catalog
 from ..db import bump_room_version, get_db, now, room_version, transaction
@@ -48,11 +48,13 @@ def rooms(request: Request, conn: sqlite3.Connection = Depends(get_db)):
     """Every room's version, junk left and restoration progress (map markers, room chips) + the locked places."""
     cat = request.app.state.catalog
     prog = progress.all_progress(conn, cat)
+    views = guests.all_views(conn, cat, request.app.state.guests)
     out = []
     for room in cat.rooms.values():
         rows = load_items(conn, room.id)
         out.append({"id": room.id, "name": room.name, "version": room_version(conn, room.id),
-                    "ruined": ruined_count(cat, rows), "online": hub.count(room.id), "progress": prog.get(room.id)})
+                    "ruined": ruined_count(cat, rows), "online": hub.count(room.id), "progress": prog.get(room.id),
+                    "comfort": views.get(room.id)})
     return {"rooms": out, "locked": sorted(progress.locked(conn, cat))}
 
 

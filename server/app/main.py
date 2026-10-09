@@ -7,7 +7,7 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from . import catalog as catalog_mod
-from . import config, fishing, progress, sheet
+from . import comfort, config, fishing, guests, progress, sheet
 from .db import connect, ensure_room_meta, migrate, now, transaction
 from .errors import ApiError
 from .presence import hub
@@ -43,11 +43,41 @@ async def _prune_loop() -> None:
         await asyncio.sleep(PRUNE_INTERVAL_S)
 
 
+GUEST_TICK_S = 60
+
+
+def settle_guests(app: FastAPI) -> None:
+    """One guest settlement pass (idempotent per guest day): on boot and every minute."""
+    conn = connect()
+    try:
+        events: list[dict] = []
+        with transaction(conn):
+            paid = guests.settle(conn, app.state.catalog, app.state.guests, events=events)
+            completed = progress.advance_rooms(conn, app.state.catalog, events) if paid else []
+        if events:
+            log.info("guests: %d💰 from %d event(s)", paid, len(events))
+        guests.after_settle(conn, events, paid)
+        if completed:
+            progress.after_commit(conn, app.state.catalog, [], completed)
+    finally:
+        conn.close()
+
+
+async def _guest_loop(app: FastAPI) -> None:
+    while True:
+        await asyncio.sleep(GUEST_TICK_S)
+        try:
+            await asyncio.to_thread(settle_guests, app)
+        except Exception as e:  # noqa: BLE001
+            log.warning("guest settlement failed: %s", e)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     conn = connect()
     migrate(conn)
     app.state.catalog = catalog_mod.load()
+    app.state.guests = comfort.load_config()
     with transaction(conn):
         ensure_room_meta(conn, list(app.state.catalog.rooms))
         reconcile_items(conn, app.state.catalog)
@@ -56,6 +86,7 @@ async def lifespan(app: FastAPI):
         # stages whose needs are already met (e.g. a DB from before restoration existed) complete right away
         progress.advance_rooms(conn, app.state.catalog)
     conn.close()
+    settle_guests(app)
     app.state.sheet = sheet.from_config()
     # `pool` needs can only be met by new income, which arrives through sheet fetches
     app.state.sheet.catalog = app.state.catalog
@@ -69,8 +100,10 @@ async def lifespan(app: FastAPI):
                     raise ValueError(f"room {rm.id}: stage '{st.id}' needs unknown loot '{n.id}' (data/fishing.json)")
     hub.bind_loop()
     prune_task = asyncio.create_task(_prune_loop())
+    guest_task = asyncio.create_task(_guest_loop(app))
     yield
     prune_task.cancel()
+    guest_task.cancel()
 
 
 def create_app() -> FastAPI:

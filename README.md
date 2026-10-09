@@ -32,6 +32,12 @@ sudo systemctl restart interior
 ```
 수정된 파일 전송 후, 재시작.
 
+## 손님 · 숙박료
+
+방의 **안락도(0–100)** 는 플레이어가 놓은 가구 가격 합(같은 가구는 두 번째부터 절반씩), 방 크기에 따른 포화, 같은 세트(출처 팩) 가구가 과반이면 보너스(최대 ×1.5), 부서진 물건 1개당 −5로 계산된다(`server/app/comfort.py`, 수치는 `data/guests.json`). 매일 **KST 09:00 체크아웃**에 잠기지 않은 방마다 `min(침대 수, 안락도 구간 1~3명)`의 손님이 `4 + 0.36×안락도`💰씩 공동 자금에 넣는다(`ledger.kind='guest'`, 📜 기록 `guest`). `bed` 태그 가구가 없으면 손님 0. 서버가 꺼져 있던 날은 최대 3일까지 소급. 가끔 **예약**(특정 가구를 2~4일 안에 놓으면 손님 1명이 2배, 못 놓으면 다음날 손님 없음)과 매달 한 번 **개를 좋아하는 손님**(`dog` 태그 장식이 있거나 안락도 70 이상이면 3배, 아니면 그냥 안 옴)이 온다. 설계 전문: `docs/261009_comfort_design.md`.
+
+정산 상태는 `room_meta`의 `guest_day:<방>`(마지막 정산일), `no_guests_day:<방>`, `dog_month`와 `reservations` 테이블에 있다. 처음 켜진 날은 "오늘부터 센다"라 돈이 소급되지 않는다.
+
 **맵 바꿀 때 (VM에서)**
 ```bash
 sudo systemctl stop interior
@@ -52,8 +58,8 @@ sudo systemctl start interior
 | POST | `/api/sync` | 시트 강제 동기화 |
 | PUT | `/api/avatar` | 아바타 레이어 인덱스 |
 | GET | `/api/catalog` | 아이템/방/캐릭터 메타 |
-| GET | `/api/rooms` | 방 목록: 버전, 남은 `ruined` 개수, 접속자 수, 복구 `progress`(단계 수·현재 단계의 need별 진행), 최상위 `locked`(아직 못 들어가는 장소) |
-| GET | `/api/activity` | 📜 기록: 최근 이벤트 **5개만**(서버가 더는 안 줌), 오늘 요약(벌이·지출·낚시 수), 모든 방의 복구 진행 |
+| GET | `/api/rooms` | 방 목록: 버전, 남은 `ruined` 개수, 접속자 수, 복구 `progress`(단계 수·현재 단계의 need별 진행), `comfort`(안락도·침대 수·오늘 밤 예상 손님/숙박료·예약; 잠긴 방은 null), 최상위 `locked`(아직 못 들어가는 장소) |
+| GET | `/api/activity` | 📜 기록: 최근 이벤트 **5개만**(서버가 더는 안 줌), 오늘 요약(벌이·지출·낚시 수), 모든 방의 복구 진행, `comfort`(방별 안락도·손님 뷰) |
 | POST | `/api/fish/deliver` (`seq`, `room?`) | 방금 낚은 물고기(`/finish`의 `seq`)를 팔지 않고 어떤 방의 복구 단계에 **납품**. 120초 안에 1번만, 그 돈은 풀에서 다시 빠짐(`ledger.kind='deliver'`) |
 | GET | `/api/room/{id}` (`/api/room` = inn) | 방 아이템 + `ruined` (ETag = 방 버전) |
 | PUT | `/api/room/item/{uid}/note` `{text}` | `note` 태그 아이템(메모지·칠판·게시판)에 글 남기기(200자, 빈 문자열이면 지움). 누구나 고쳐 쓸 수 있고 방 버전이 올라가 모두에게 갱신 |

@@ -10,7 +10,7 @@ from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, Request
 
-from .. import progress
+from .. import guests, progress
 from ..auth import Player, current_player
 from ..db import get_db, now
 
@@ -38,7 +38,8 @@ def activity(request: Request, me: Player = Depends(current_player), conn: sqlit
     rows = conn.execute("SELECT seq, ts, kind, room_id, player_id, item_id, amount, data FROM events ORDER BY seq DESC LIMIT ?",
                         (MAX_EVENTS,)).fetchall()
     return {"events": [_row(r) for r in rows], "max": MAX_EVENTS, "today": today_totals(conn, kst_midnight(now())),
-            "progress": progress.all_progress(conn, cat), "locked": sorted(progress.locked(conn, cat))}
+            "progress": progress.all_progress(conn, cat), "locked": sorted(progress.locked(conn, cat)),
+            "comfort": guests.all_views(conn, cat, request.app.state.guests)}
 
 
 def today_totals(conn: sqlite3.Connection, since: int) -> dict:
@@ -54,4 +55,4 @@ def today_totals(conn: sqlite3.Connection, since: int) -> dict:
     fish_count = conn.execute("SELECT COUNT(*) FROM events WHERE kind = 'fish' AND ts >= ?", (since,)).fetchone()[0]
     return {"earned": sums.get("earn", 0), "fish": sums.get("fish", 0), "fish_count": int(fish_count),
             "furniture": sums.get("place", 0) + sums.get("remove", 0), "sold": sums.get("sell", 0),
-            "deliver": sums.get("deliver", 0)}
+            "deliver": sums.get("deliver", 0), "guests": sums.get("guest", 0)}

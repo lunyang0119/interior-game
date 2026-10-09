@@ -65,6 +65,10 @@ Character strips: 24 frames = 6 per direction in order right, up, left, down. `r
 - 가구 충돌은 **플레이어가 놓은 가구**만 막는다. 시드(`$seed`)와 `ruined` 물건은 겹쳐 놓이는 연출용이라 통과된다.
 - 발소리 파일은 `assets/sfx/walking/<종류>_*.mp3` (아래 media 참고).
 
+## 가구 태그 `bed` · `dog` (손님용)
+
+아이템 탭 태그 입력에 `bed`를 넣은 가구가 방에 있어야 손님이 온다(침대 수 = 손님 상한, 시드 침대도 셈). `dog`는 매달 오는 "개를 좋아하는 손님"이 찾는 장식(강아지 인형·개집 등). 둘 다 `items.json`에 저장되고, 카탈로그는 기동 때 읽으니 바꾼 뒤 **서버 재시작 필요**.
+
 ## 가구 세트 (`set`, 안락도 세트 보너스용)
 
 `build`가 인테리어 슬라이스마다 **출처**에서 세트 슬러그를 만들어 `manifest.json` 키에 `set`으로 넣고, 서버가 `/api/catalog`의 `items[].set`으로 내보낸다(`items.json`에는 저장하지 않는다 — 수정할 게 없음). 규칙(`preprocess.py set_of`): `SHEETS` 키는 `config.py`의 `SET_ALIASES`로 묶이고(`pi_*_lrk` → `pi_living`, `pi_*_br` → `pi_bedroom`, `topdown_*` → `topdown` …), Modern Interiors `Theme_Sorter/NN_이름_16x16.png`은 `mi_<이름>`(`mi_bedroom`, `mi_halloween`), 그 외 발견된 PNG는 파일 이름, `file` 슬라이스는 맨 위 폴더 이름. 같은 세트 가구로만 방을 채우면 안락도 보너스(설계: `docs/261009_comfort_design.md`). 세트를 합치거나 쪼개고 싶으면 `SET_ALIASES`만 고치고 `build`. 슬러그에 `sheet`가 들어가면 빌드가 거부한다.

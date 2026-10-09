@@ -1,4 +1,4 @@
-import type { RoomProgress } from "./api";
+import type { ComfortView, RoomProgress } from "./api";
 import { bus } from "./bus";
 import { DEFAULT_LOOK, type AvatarLook, type Catalog } from "./catalog";
 
@@ -21,6 +21,8 @@ export const state = {
   /** Restoration progress per room id (rooms without stages are absent) and the places that are still locked. */
   progress: {} as Record<string, RoomProgress>,
   locked: new Set<string>(),
+  /** Comfort + tonight's guests per open room id (from /api/rooms or /api/activity). */
+  comfort: {} as Record<string, ComfortView>,
 };
 
 export function catalog(): Catalog {
@@ -30,6 +32,12 @@ export function catalog(): Catalog {
 
 /** New progress picture (from /api/rooms, /api/activity or the ws `progress` message). Emits progress:changed with
  *  the stages that completed since the last picture, so the UI can celebrate them. */
+/** New comfort picture for every open room. */
+export function applyComfort(views: Record<string, ComfortView>): void {
+  state.comfort = views;
+  bus.emit("comfort:changed");
+}
+
 export function applyProgress(progress: Record<string, RoomProgress>, locked: string[]): void {
   const completed: { room: string; from: number; to: number }[] = [];
   for (const [room, p] of Object.entries(progress)) {

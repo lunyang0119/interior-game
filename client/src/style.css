@@ -78,6 +78,18 @@ img, .framed { image-rendering: pixelated; }
 #log-progress .need.done::before { content: "☑ "; }
 #log-progress .reward { color: var(--muted); font-size: var(--fs-small); margin-top: 4px; }
 #log-progress .restore.done .restore-head { color: var(--muted); }
+#log-list .ev.guest { background: rgba(120, 200, 140, .14); }
+#log-list .ev.missed { background: rgba(230, 110, 110, .14); }
+/* 🛏️ guests: one card per open room — comfort bar, breakdown, tonight's guests, the open reservation */
+#log-guests .guest { padding: 8px 10px; border-radius: 10px; background: var(--card); margin-bottom: 6px; }
+#log-guests .guest.here { outline: 2px solid var(--primary); }
+#log-guests .guest-head { font-weight: 700; margin-bottom: 4px; display: flex; justify-content: space-between; }
+#log-guests .bar { height: 8px; border-radius: 4px; background: rgba(128, 128, 128, .25); overflow: hidden; margin: 4px 0; }
+#log-guests .bar > i { display: block; height: 100%; background: var(--primary); border-radius: 4px; }
+#log-guests .guest-sub { color: var(--muted); font-size: var(--fs-small); }
+#log-guests .guest-night { margin-top: 4px; }
+#log-guests .guest-warn { color: #e07070; }
+#log-guests .reserve { margin-top: 6px; padding: 6px 8px; border-radius: 8px; background: rgba(255, 211, 92, .14); }
 #place-label { color: var(--text); margin-right: 8px; }
 #place-span { display: inline-flex; align-items: center; gap: 6px; }
 #place-span button { padding: 4px 10px; font-weight: 700; }

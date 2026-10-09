@@ -1,6 +1,6 @@
-# 안락도 · 손님 · 숙박료 설계 (2026-10-09, 구현 전 초안)
+# 안락도 · 손님 · 숙박료 설계 (2026-10-09)
 
-기획서 `261008_plan_1.md` §4-A를 수치와 데이터 구조까지 내린 것. 아직 구현 안 함. 상수는 전부 `data/guests.json`에 두고, 판정은 `restore.py`처럼 DB 없는 순수 함수(`server/app/comfort.py`)로 만든다.
+기획서 `261008_plan_1.md` §4-A를 수치와 데이터 구조까지 내린 것. **같은 날 구현됨** — 아래 §1~§3은 `server/app/comfort.py`·`guests.py`·`data/guests.json`과 일치. 구현에서 달라진 점: 손님 수 구간은 `score // 34 + 1`(10–33→1, 34–67→2, 68+→3); 예약 테이블은 `reservations(id, room_id, kind, item_id, due_day, created_ts, status, pay)`; 개파 손님 예약은 매달 첫 정산 때 `room_meta dog_month`로 1회 생성(그 달 날짜가 이미 지났으면 건너뜀); 손님 NPC가 걸어다니는 연출·상점 링크는 아직 없음(§6 2차). 상수는 전부 `data/guests.json`에 두고, 판정은 `restore.py`처럼 DB 없는 순수 함수(`server/app/comfort.py`)로 만든다.
 
 ## 0. 한 줄 요약
 

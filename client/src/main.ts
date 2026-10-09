@@ -8,7 +8,7 @@ import { BootScene } from "./scenes/BootScene";
 import { DockScene } from "./scenes/DockScene";
 import { MapScene, type MapSceneData } from "./scenes/MapScene";
 import { RoomScene, type RoomSceneData } from "./scenes/RoomScene";
-import { applyProgress, state } from "./state";
+import { applyComfort, applyProgress, state } from "./state";
 import * as storage from "./storage";
 import { initAccounts } from "./ui/accounts";
 import { initAvatarEditor } from "./ui/avatarEditor";
@@ -28,6 +28,7 @@ async function loadProgress(): Promise<void> {
   try {
     const r = await api.rooms();
     applyProgress(Object.fromEntries(r.rooms.filter((x) => x.progress).map((x) => [x.id, x.progress!])), r.locked);
+    applyComfort(Object.fromEntries(r.rooms.filter((x) => x.comfort).map((x) => [x.id, x.comfort!])));
   } catch { /* offline: keep what we have */ }
 }
 

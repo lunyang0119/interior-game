@@ -39,7 +39,8 @@ export interface Events {
   "item:walk": { uid: number }; // context menu "여기로 가기": walk the avatar up to that item
   "item:note": { item: RoomItem }; // context menu "쪽지 읽기/쓰기": open the note panel
   "progress:changed": { completed: { room: string; from: number; to: number }[] }; // state.progress / state.locked replaced
-  "log:open": { section?: "progress" }; // open the 📜 panel (optionally scrolled to the restoration checklist)
+  "comfort:changed": void; // state.comfort replaced
+  "log:open": { section?: "progress" | "guests" }; // open the 📜 panel (optionally scrolled to the restoration checklist)
 }
 
 type Handler<K extends keyof Events> = (payload: Events[K]) => void;

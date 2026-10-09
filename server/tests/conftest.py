@@ -1,4 +1,5 @@
 import json
+import shutil
 import os
 import sys
 from pathlib import Path
@@ -61,6 +62,8 @@ def env(tmp_path, monkeypatch):
         "decos": [{"sprite": "tree", "x": 0, "y": 4}],
         "bg_default": "sky", "bg_zones": [{"x": 5, "y": 0, "w": 3, "h": 6, "bg": "sea"}],
     }, ensure_ascii=False), encoding="utf-8")
+    # guests: the shipped tuning (tests that care pass their own GuestConfig)
+    shutil.copy(Path(__file__).resolve().parents[2] / "data" / "guests.json", data / "guests.json")
     (data / "fishing.json").write_text(json.dumps({
         "bites": 3, "gap_ms": [100, 100], "window_ms": [200, 200], "hold_ms": [100, 100], "catch_pct": [0, 0, 50, 100],
         "slack_ms": 50, "cooldown_s": 0,

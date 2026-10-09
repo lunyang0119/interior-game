@@ -71,7 +71,18 @@ export interface NeedProgress { type: "ruined_zero" | "placed" | "deliver" | "po
 export interface StageProgress { id: string; name: string; done: boolean; unlocks: string[]; needs: NeedProgress[] }
 /** A room's restoration: completed count, total, and the current stage (null once everything is done). */
 export interface RoomProgress { stage: number; total: number; done: boolean; current: StageProgress | null }
-export interface RoomSummary { id: string; name: string; version: number; ruined: number; online: number; progress: RoomProgress | null }
+/** A pending reservation: a guest who wants `item_id` (kind "item") or the monthly dog lover (kind "dog"). */
+export interface ReservationView { id: number; kind: "item" | "dog"; item_id: string | null; due_day: number; days_left: number }
+/** A room's comfort (server comfort.py) and tonight's expected guests (guests.py room_view). Absent for locked rooms. */
+export interface ComfortView {
+  score: number; beds: number; raw: number; base: number; mult: number; set: string | null; set_share: number;
+  ruined: number; affection: number; guests: number; per_guest: number; pay: number; skipped: boolean;
+  reservation: ReservationView | null;
+}
+export interface RoomSummary {
+  id: string; name: string; version: number; ruined: number; online: number; progress: RoomProgress | null;
+  comfort: ComfortView | null;
+}
 export interface RoomsResponse { rooms: RoomSummary[]; locked: string[] }
 /** A room's current stage wants this catch: where, and how far along it is. */
 export interface Deliverable { room: string; name: string; have: number; want: number }
@@ -81,17 +92,23 @@ export interface FishFinishResponse {
 }
 /** One row of the activity log (server events table). amount = change of the shared pool, + means it grew. */
 export interface ActivityEvent {
-  seq: number; ts: number; kind: "place" | "remove" | "sell" | "fish" | "deliver" | "stage" | "earn" | string;
+  seq: number; ts: number;
+  kind: "place" | "remove" | "sell" | "fish" | "deliver" | "stage" | "earn" | "guest" | "reserve" | "missed" | string;
   room_id: string | null; player_id: string | null; item_id: string | null; amount: number | null;
-  data: { stage?: string; name?: string; index?: number; unlocks?: string[] } | null;
+  data: {
+    stage?: string; name?: string; index?: number; unlocks?: string[];
+    // guest: how many stayed, the rate, the comfort that night; reserved/dog = the extra a special guest paid
+    guests?: number; per_guest?: number; score?: number; skipped?: boolean; reserved?: number; dog?: number | boolean;
+    due_day?: number; days?: number; // reserve
+  } | null;
 }
 /** Signed pool changes since KST midnight (+ = the pool grew); `furniture` nets buys against refunds. */
 export interface TodayTotals {
-  earned: number; fish: number; fish_count: number; furniture: number; sold: number; deliver: number;
+  earned: number; fish: number; fish_count: number; furniture: number; sold: number; deliver: number; guests: number;
 }
 export interface ActivityResponse {
   events: ActivityEvent[]; max: number; today: TodayTotals;
-  progress: Record<string, RoomProgress>; locked: string[];
+  progress: Record<string, RoomProgress>; locked: string[]; comfort: Record<string, ComfortView>;
 }
 
 export const api = {
