@@ -40,6 +40,14 @@ function fileKey(kind: string, n: number): string {
 }
 
 export async function initSfx(): Promise<void> {
+  // hooks first: a scene:changed (the #dock deep link) or unlock that arrives while sfx.json loads must not be lost
+  onUnlock(() => { unlocked = true; if (ambientKind && !ambientEl) ambientNext(); });
+  onMuteChange((m) => {
+    if (m) { for (const l of loops) { l.pause(); loops.delete(l); } ambientStop(); }
+    else if (ambientKind && !ambientEl) ambientNext();
+  });
+  bus.on("scene:changed", ({ scene }) => setAmbientScene(scene));
+  document.addEventListener("visibilitychange", () => { if (!document.hidden && ambientEl?.paused) void ambientEl.play().catch(() => { ambientEl = null; }); });
   let kinds: string[] = [];
   let counts: Record<string, number> = {};
   try {
@@ -61,12 +69,7 @@ export async function initSfx(): Promise<void> {
       base.set(fileKey(k, i), a);
     }
   }
-  onUnlock(() => { unlocked = true; if (ambientKind && !ambientEl) ambientNext(); });
-  onMuteChange((m) => {
-    if (m) { for (const l of loops) { l.pause(); loops.delete(l); } ambientStop(); }
-    else if (ambientKind && !ambientEl) ambientNext();
-  });
-  bus.on("scene:changed", ({ scene }) => setAmbientScene(scene));
+  if (ambientKind && !ambientEl) ambientNext(); // the scene was already set while the list loaded
 }
 
 /** One of the kind's files at random (a kind with several variants sounds less repetitive). */
@@ -120,7 +123,7 @@ function ambientNext(): void {
   a.volume = AMBIENT_VOL;
   a.addEventListener("ended", () => { if (ambientEl === a) { ambientEl = null; ambientNext(); } });
   ambientEl = a;
-  void a.play().catch(() => undefined);
+  void a.play().catch(() => { if (ambientEl === a) ambientEl = null; }); // a refused play must not block the next attempt
 }
 
 function ambientStop(): void {

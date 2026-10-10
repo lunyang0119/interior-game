@@ -20,5 +20,6 @@ export class BootScene extends Phaser.Scene {
     // #dock deep link: go straight to the dock instead of starting the room first (both would run at once)
     if (location.hash === "#dock") { this.scene.start("Dock"); bus.emit("scene:changed", { scene: "dock" }); return; }
     this.scene.start("Room", data);
+    bus.emit("scene:changed", { scene: "room" }); // the DOM bars and the BGM playlist follow the scene from the first frame
   }
 }

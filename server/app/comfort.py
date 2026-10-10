@@ -21,7 +21,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 from . import config
 
@@ -57,6 +57,13 @@ class ReservationRules(BaseModel):
     min_price: int = Field(ge=0)
     pay_mult: float = Field(ge=1)
     dominant_set_pct: int = Field(ge=0, le=100)
+
+    @model_validator(mode="after")
+    def _lead_days_ordered(self):
+        lo, hi = self.lead_days
+        if not 1 <= lo <= hi:
+            raise ValueError(f"lead_days must be [lo, hi] with 1 <= lo <= hi, got {self.lead_days}")
+        return self
 
 
 class DogRules(BaseModel):

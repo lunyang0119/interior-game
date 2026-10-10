@@ -319,26 +319,30 @@ def leave_note(conn, cat: Catalog, unit: Unit, items: list[ItemRow], c: Comfort,
     if not surfaces:
         return False
     room_rows = load_items(conn, unit.room.id)
+    # the oldest notes go with the guest first, so a small table never fills up with stale notes
+    old = [r for r in room_rows if r.placed_by == config.GUEST_PLAYER and unit.items([r])]
+    old.sort(key=lambda r: (r.ts, r.uid))
+    gone = old[: max(0, len(old) + 1 - MAX_GUEST_NOTES)]
     cells = []
     for s in surfaces:
         sit = cat.items[s.item_id]
         cells += [(s.x + dx, s.y + dy) for dx in range(sit.w) for dy in range(sit.h)]
+    # a table straddling a zone border: only its cells inside the unit (a note outside would never be cleaned up)
+    cells = [(x, y) for x, y in cells if unit.zone is None or unit.zone.contains(x, y)]
     rng.shuffle(cells)
+    rows = [r for r in room_rows if r not in gone]
     for x, y in cells[:NOTE_TRIES]:
         try:
-            p = validate_place(cat, room_rows, it.id, x, y, room_id=unit.room.id)
+            p = validate_place(cat, rows, it.id, x, y, room_id=unit.room.id)
         except ApiError:
             continue
+        for r in gone:
+            conn.execute("DELETE FROM items WHERE uid = ?", (r.uid,))
         text = note_text(c.score, data, rng)
         by = "개를 좋아하는 손님" if data.get("dog") else "손님"
         conn.execute("INSERT INTO items(item_id, x, y, z, parent_uid, placed_by, ts, span, room_id, note, note_by, note_ts) "
                      "VALUES (?, ?, ?, ?, ?, ?, ?, NULL, ?, ?, ?, ?)",
                      (it.id, x, y, p.z, p.parent_uid, config.GUEST_PLAYER, ts, unit.room.id, text, by, ts))
-        # older notes go with the guest
-        old = [r for r in room_rows if r.placed_by == config.GUEST_PLAYER and unit.items([r])]
-        old.sort(key=lambda r: (r.ts, r.uid))
-        for r in old[: max(0, len(old) + 1 - MAX_GUEST_NOTES)]:
-            conn.execute("DELETE FROM items WHERE uid = ?", (r.uid,))
         return True
     return False
 
@@ -371,7 +375,10 @@ def _maybe_dog(conn, cat, open_units: list[tuple[Unit, list[ItemRow]]], cfg, tod
     due = _dog_due(d.year, d.month, 0)
     if due <= today:
         return  # the server first ran after this month's date: skip the month
-    best, _ = max(open_units, key=lambda ur: unit_comfort(cat, ur[0], ur[1], cfg).score)
+    def key(ur):
+        c = unit_comfort(cat, ur[0], ur[1], cfg)
+        return c.score if c.beds else -1  # a unit without a bed could never host the guest
+    best, _ = max(open_units, key=key)
     zone = best.zone.id if best.zone else None
     conn.execute("INSERT INTO reservations(room_id, zone_id, kind, item_id, due_day, created_ts) VALUES (?, ?, 'dog', NULL, ?, ?)",
                  (best.room.id, zone, due, ts))

@@ -75,7 +75,7 @@ class Hub:
         return [o.state() for pid, o in self.online.items() if pid != exclude and (room is None or o.room == room)]
 
     def count(self, room: str) -> int:
-        return sum(1 for o in self.online.values() if o.room == room)
+        return sum(1 for o in list(self.online.values()) if o.room == room)  # called from worker threads; snapshot first
 
     # -- messaging -------------------------------------------------------------
 

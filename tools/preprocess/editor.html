@@ -51,6 +51,18 @@
   .hint { color: var(--dim); font-size: 11px; }
   .tag { display: inline-block; padding: 0 5px; border-radius: 8px; background: #3a3a5a; font-size: 11px; margin-right: 3px; }
   .tag.ruined { background: #6f2f2f; }
+  .tag .x { margin-left: 3px; color: var(--dim); cursor: pointer; }
+  .tag .x:hover { color: var(--red); }
+  .chip { padding: 1px 7px; border-radius: 10px; font-size: 11px; }
+  .chip.on { background: #2f6f3f; }
+  .chip.part { background: #4a4a2a; }
+  .chip .k { color: var(--dim); margin-left: 3px; }
+  .card.picked { outline: 2px solid var(--sel); outline-offset: -1px; }
+  .card .go { float: right; color: var(--dim); font-size: 10px; cursor: pointer; }
+  .card .go:hover { color: var(--sel); }
+  #tagCounts .tag { cursor: pointer; }
+  #tagCounts .tag.zero { background: #6f2f2f; }
+  #tagCounts .tag.on { outline: 1px solid var(--sel); }
   #tabs { display: flex; gap: 4px; margin-bottom: 8px; flex-wrap: wrap; }
   #tabs button.on { background: #4a4a2a; color: var(--sel); }
   /* tabs: body[data-tab] = furn | items | singles | chars */
@@ -112,10 +124,7 @@
     <button id="batchRename" class="primary" title="체크한 auto_ 슬라이스의 key를 [폴더_]시트4글자_원래이름 으로">이름 일괄 변경</button>
   </div>
   <div class="row small" style="margin:0 0 4px; gap:6px; flex-wrap:wrap" title="체크한 슬라이스의 아이템에 태그를 켜거나 끔">
-    <span class="dim">태그 일괄:</span>
-    <label><input type="checkbox" class="batchTag" data-tag="ruined"> ruined</label>
-    <label><input type="checkbox" class="batchTag" data-tag="fixed"> fixed</label>
-    <label><input type="checkbox" class="batchTag" data-tag="stairs"> stairs</label>
+    <span class="dim">태그 일괄:</span><span id="batchTagBoxes"></span>
     <button id="batchTagOn">켜기</button><button id="batchTagOff">끄기</button>
   </div>
   <div class="hint">초록=이름 있음 · 회색=auto_ · 파랑=tile_ · 분홍=맵 슬라이스 · ⚠ 아이템 없음 · ● 저장 안 됨</div>
@@ -124,10 +133,22 @@
   <div id="itemsLeft">
     <input type="text" id="itemSearch" placeholder="아이템 id/이름 검색…" style="width:100%">
     <label><span>태그</span><select id="itemTagSel"><option value="">(전부)</option></select></label>
+    <label><span>시트</span><select id="itemSheetSel"><option value="">(전부)</option></select></label>
     <label><span>레이어</span><select id="itemLayerSel"><option value="">(전부)</option></select></label>
     <label><input type="checkbox" id="itemNoPair"> 쌍(pair) 없는 것만</label>
-    <div class="hint">썸네일은 마지막 <b>빌드</b> 결과(gen/interiors.png)에서 가져와요. 새 슬라이스는 빌드 후에 보여요.<br>카드 클릭 → 해당 슬라이스 선택 (오른쪽에서 태그·쌍 편집).</div>
+    <div id="tagCounts" class="row small" style="gap:3px" title="태그별 아이템 수 · 클릭하면 그 태그로 거르기"></div>
     <div id="itemsCount" class="dim"></div>
+    <hr style="border:0; border-top:1px solid var(--line); margin:6px 0">
+    <div class="row small">
+      <b id="itemSelInfo">0개 선택</b>
+      <button id="itemPickAll" title="보이는 카드 전부 선택">☑ 보이는 것</button><button id="itemPickNone" title="선택 해제 (Esc)">☐ 해제</button>
+    </div>
+    <div id="itemTagChips" class="row small" style="gap:4px" title="선택한 아이템에 태그 켜기/끄기 — 전부 켜져 있으면 끄고, 아니면 켜요. 숫자키 1~9 = n번째 태그"></div>
+    <div class="row small">
+      <input type="text" id="itemTagNew" placeholder="다른 태그 (영문 소문자/숫자/_)" style="width:150px">
+      <button id="itemTagAdd">켜기</button><button id="itemTagDel">끄기</button>
+    </div>
+    <div class="hint">카드 클릭=선택 토글 · Shift+클릭=범위 · ✎=슬라이스로 이동 · 카드의 태그 ×=그 태그 빼기.<br>바꾼 건 아래 <b>아이템 저장</b>을 눌러야 items.json에 들어가고, 서버는 재시작해야 읽어요.<br>썸네일은 마지막 <b>빌드</b> 결과(gen/interiors.png)라 새 슬라이스는 빌드 후에 보여요.</div>
   </div>
   <div id="singlesLeft">
     <label><span>테마</span><select id="singlesTheme"></select></label>
@@ -207,12 +228,8 @@
       <label><input type="checkbox" id="iSurface"> is_surface (위에 소품 올릴 수 있음)</label>
       <label><span>surface_offset_y</span><input type="number" id="iOff"></label>
       <label><span>offset_y</span><input type="number" id="iOffY" title="그림만 이만큼(px) 아래로 내려 그려요. 발자국은 그대로. 예: 열린 문짝이 벽 밑으로 3px 삐져나오면 3"></label>
-      <label><span>태그</span><input type="text" id="iTags" placeholder="ruined, fixed, stairs (쉼표)"></label>
-      <div class="row small" style="gap:10px">
-        <label><input type="checkbox" class="tagBox" data-tag="ruined"> <b>ruined</b> <span class="dim">팔 수만 있음</span></label>
-        <label><input type="checkbox" class="tagBox" data-tag="fixed"> <b>fixed</b> <span class="dim">못 사고·옮기고·팔음</span></label>
-        <label><input type="checkbox" class="tagBox" data-tag="stairs"> <b>stairs</b> <span class="dim">탭하면 출구로</span></label>
-      </div>
+      <label><span>태그</span><input type="text" id="iTags" placeholder="ruined, fixed, bed … (쉼표)"></label>
+      <div id="tagBoxes" class="row small" style="gap:4px 10px"></div>
       <label><span>쌍(pair)</span><input type="text" id="iPair" list="itemIds" placeholder="짝이 되는 아이템 id"><button id="iPairGo" title="짝 아이템으로 이동">→</button></label>
       <datalist id="itemIds"></datalist>
       <div id="pairBox" class="row" style="display:none"><img id="pairImg" style="max-height:64px"><span id="pairInfo" class="hint"></span></div>
@@ -375,35 +392,103 @@
     return true;
   }
 
-  // ---- items tab
+  // ---- items tab: a tagging workbench. Cards are picked (click / shift+click), tag chips toggle a tag on the picked set.
+  const picked = new Set();     // items picked in the grid
+  const cardOf = new Map();     // item -> card element (for in-place refresh)
+  let gridOrder = [];           // items in the order the grid shows them (for shift+click ranges)
+  let lastPick = null;
+  /** Known tags (server list, in order) followed by any other tag that items.json already uses. */
+  function knownTags() {
+    const known = (S.tags || []).map((t) => t.tag), extra = new Set();
+    items.forEach((it) => tagsOf(it).forEach((t) => { if (!known.includes(t)) extra.add(t); }));
+    return known.concat([...extra].sort());
+  }
+  const tagDesc = (t) => { const k = (S.tags || []).find((x) => x.tag === t); return k ? k.desc : ""; };
+  const sheetOfItem = (it) => { const sl = allSlices().find((x) => x.key === it.sprite); return sl ? sheetOf(sl) : ""; };
+  function fillSelect(sel, values, first) {
+    const cur = sel.value;
+    sel.innerHTML = `<option value="">${first}</option>` + values.map(([v, label]) => `<option value="${v}"${v === cur ? " selected" : ""}>${label}</option>`).join("");
+  }
+  function renderTagCounts() {
+    const counts = {}; items.forEach((it) => tagsOf(it).forEach((t) => { counts[t] = (counts[t] || 0) + 1; }));
+    const cur = $("itemTagSel").value;
+    $("tagCounts").innerHTML = knownTags().map((t) => `<span class="tag ${t}${counts[t] ? "" : " zero"}${cur === t ? " on" : ""}" data-tag="${t}" title="${tagDesc(t)}">${t} ${counts[t] || 0}</span>`).join("");
+    $("tagCounts").querySelectorAll(".tag").forEach((el) => { el.onclick = () => { $("itemTagSel").value = $("itemTagSel").value === el.dataset.tag ? "" : el.dataset.tag; renderItemsGrid(); }; });
+  }
+  function cardMeta(it) {
+    const meta = cardOf.get(it) && cardOf.get(it).querySelector(".meta"); if (!meta) return;
+    meta.innerHTML = tagsOf(it).map((t) => `<span class="tag ${t}">${t}<span class="x" title="${t} 빼기">×</span></span>`).join("") + (it.pair ? `<span class="tag" title="pair">↔ ${it.pair}</span>` : "");
+    meta.querySelectorAll(".x").forEach((x) => { x.onclick = (e) => { e.stopPropagation(); applyTag([it], x.parentElement.firstChild.textContent, false); }; });
+    const card = cardOf.get(it); card.classList.toggle("ruined", tagsOf(it).includes("ruined")); card.classList.toggle("picked", picked.has(it));
+  }
+  function renderPicked() {
+    const n = picked.size; $("itemSelInfo").textContent = `${n}개 선택`;
+    $("itemTagChips").innerHTML = knownTags().map((t, i) => {
+      const k = [...picked].filter((it) => tagsOf(it).includes(t)).length;
+      return `<button class="chip${n && k === n ? " on" : k ? " part" : ""}" data-tag="${t}" title="${i < 9 ? `[${i + 1}] ` : ""}${tagDesc(t)}">${t}<span class="k">${k}/${n}</span></button>`;
+    }).join("");
+    $("itemTagChips").querySelectorAll(".chip").forEach((b) => { b.onclick = () => applyTag([...picked], b.dataset.tag); });
+    $("itemsCount").textContent = `${gridOrder.length} / ${items.length}개` + (dirtyItems ? " · ● 저장 안 됨" : "");
+  }
+  /** Turn `tag` on/off (undefined = on unless every target already has it) for the given items. */
+  function applyTag(targets, tag, on) {
+    if (!targets.length) { alert("먼저 카드를 골라주세요"); return; }
+    tag = (tag || "").trim().toLowerCase();
+    if (!/^[a-z0-9_]+$/.test(tag)) { alert("태그는 영문 소문자/숫자/_ 만"); return; }
+    if (on === undefined) on = !targets.every((it) => tagsOf(it).includes(tag));
+    let n = 0; for (const it of targets) if (toggleTag(it, tag, on)) n++;
+    if (n) dirtyItems = true;
+    targets.forEach(cardMeta); renderTagCounts(); renderPicked(); renderList(); renderItem();
+    log(`태그 ${tag} ${on ? "켜기" : "끄기"}: ${targets.length}개 중 ${n}건 변경 — 아이템 저장으로 반영`);
+  }
+  function pickCard(it, e) {
+    if (e.shiftKey && lastPick && gridOrder.includes(lastPick)) {
+      const a = gridOrder.indexOf(lastPick), b = gridOrder.indexOf(it);
+      for (const o of gridOrder.slice(Math.min(a, b), Math.max(a, b) + 1)) picked.add(o);
+    } else if (picked.has(it)) picked.delete(it); else picked.add(it);
+    lastPick = it;
+    gridOrder.forEach(cardMeta); renderPicked();
+  }
   async function renderItemsGrid() {
     const at = await loadAtlas("interior");
-    const q = $("itemSearch").value.trim().toLowerCase(), tag = $("itemTagSel").value, layer = $("itemLayerSel").value, noPair = $("itemNoPair").checked;
     const tags = new Set(); items.forEach((it) => tagsOf(it).forEach((t) => tags.add(t)));
-    const tsel = $("itemTagSel"), cur = tsel.value;
-    tsel.innerHTML = `<option value="">(전부)</option>` + [...tags].sort().map((t) => `<option${t === cur ? " selected" : ""}>${t}</option>`).join("");
-    const grid = $("itemsGrid"); grid.innerHTML = "";
-    let n = 0;
+    fillSelect($("itemTagSel"), [["__none", "(태그 없음)"]].concat([...tags].sort().map((t) => [t, t])), "(전부)");
+    const sheets = new Set(items.map(sheetOfItem).filter(Boolean));
+    fillSelect($("itemSheetSel"), [...sheets].sort().map((x) => [x, x]), "(전부)");
+    const q = $("itemSearch").value.trim().toLowerCase(), tag = $("itemTagSel").value, sh = $("itemSheetSel").value, layer = $("itemLayerSel").value, noPair = $("itemNoPair").checked;
+    const grid = $("itemsGrid"); grid.innerHTML = ""; cardOf.clear(); gridOrder = [];
     for (const it of items) {
       if (q && !it.id.toLowerCase().includes(q) && !(it.name || "").toLowerCase().includes(q)) continue;
-      if (tag && !tagsOf(it).includes(tag)) continue;
+      if (tag === "__none" ? tagsOf(it).length : tag && !tagsOf(it).includes(tag)) continue;
+      if (sh && sheetOfItem(it) !== sh) continue;
       if (layer && it.layer !== layer) continue;
       if (noPair && it.pair) continue;
-      n++;
-      const card = document.createElement("div");
-      card.className = "card" + (tagsOf(it).includes("ruined") ? " ruined" : "") + (sel && sel.key === it.sprite ? " sel" : "");
+      gridOrder.push(it);
+      const card = document.createElement("div"); card.className = "card" + (sel && sel.key === it.sprite ? " sel" : "");
+      const go = document.createElement("span"); go.className = "go"; go.textContent = "✎"; go.title = "슬라이스로 이동 (오른쪽에서 편집)";
+      go.onclick = (e) => { e.stopPropagation(); const s = allSlices().find((x) => x.key === it.sprite); if (s) goTo(s); else alert(`슬라이스 '${it.sprite}'가 없어요`); };
+      card.appendChild(go);
       const cv = document.createElement("canvas"); cv.width = 88; cv.height = 64; card.appendChild(cv);
       if (!drawFrame(cv, at, it.sprite)) { const c = cv.getContext("2d"); c.fillStyle = "#666"; c.fillText("빌드 필요", 20, 36); }
       const nm = document.createElement("div"); nm.className = "nm"; nm.title = it.id; nm.textContent = it.name || it.id; card.appendChild(nm);
-      const meta = document.createElement("div"); meta.className = "hint";
-      meta.innerHTML = tagsOf(it).map((t) => `<span class="tag ${t}">${t}</span>`).join("") + (it.pair ? `<span class="tag" title="pair">↔ ${it.pair}</span>` : "");
-      card.appendChild(meta);
-      card.onclick = () => { const s = allSlices().find((x) => x.key === it.sprite); if (s) { goTo(s); } else alert(`슬라이스 '${it.sprite}'가 없어요`); };
-      grid.appendChild(card);
+      const meta = document.createElement("div"); meta.className = "hint meta"; card.appendChild(meta);
+      card.onclick = (e) => pickCard(it, e);
+      card.ondblclick = () => go.onclick(new Event("click"));
+      grid.appendChild(card); cardOf.set(it, card); cardMeta(it);
     }
-    $("itemsCount").textContent = `${n} / ${items.length}개`;
+    renderTagCounts(); renderPicked();
   }
-  for (const id of ["itemSearch", "itemTagSel", "itemLayerSel", "itemNoPair"]) $(id).addEventListener("input", renderItemsGrid);
+  for (const id of ["itemSearch", "itemTagSel", "itemSheetSel", "itemLayerSel", "itemNoPair"]) $(id).addEventListener("input", renderItemsGrid);
+  $("itemPickAll").onclick = () => { gridOrder.forEach((it) => picked.add(it)); gridOrder.forEach(cardMeta); renderPicked(); };
+  $("itemPickNone").onclick = () => { picked.clear(); gridOrder.forEach(cardMeta); renderPicked(); };
+  $("itemTagAdd").onclick = () => applyTag([...picked], $("itemTagNew").value, true);
+  $("itemTagDel").onclick = () => applyTag([...picked], $("itemTagNew").value, false);
+  window.addEventListener("keydown", (e) => {
+    if (document.body.dataset.tab !== "items" || ["INPUT", "SELECT", "TEXTAREA"].includes(document.activeElement.tagName)) return;
+    if (e.key === "Escape") { $("itemPickNone").onclick(); return; }
+    const i = parseInt(e.key, 10), t = knownTags()[i - 1];
+    if (i >= 1 && t && picked.size) { applyTag([...picked], t); e.preventDefault(); }
+  });
 
   // ---- singles tab
   let singlesCache = {};
@@ -444,6 +529,7 @@
     S = await (await fetch("/api/state")).json();
     slices = S.slices; mapSlices = S.map_slices || []; items = S.items;
     $("iLayer").innerHTML = S.layers.map((l) => `<option>${l}</option>`).join("");
+    $("batchTagBoxes").innerHTML = knownTags().map((t) => `<label title="${tagDesc(t)}"><input type="checkbox" class="batchTag" data-tag="${t}"> ${t}</label>`).join("");
     $("itemLayerSel").innerHTML = `<option value="">(전부)</option>` + S.layers.map((l) => `<option>${l}</option>`).join("");
     $("rSpan").max = S.room.cols || 20;
     $("singlesTheme").innerHTML = (S.singles || []).map((t) => `<option value="${t.name}">${t.name} (${t.count})</option>`).join("");
@@ -651,7 +737,7 @@
     draw();
   });
   window.addEventListener("keydown", (e) => {
-    if (!sel || ["INPUT", "SELECT", "TEXTAREA"].includes(document.activeElement.tagName)) return;
+    if (document.body.dataset.tab !== "furn" || !sel || ["INPUT", "SELECT", "TEXTAREA"].includes(document.activeElement.tagName)) return;
     const r = rectOf(sel); if (!("x" in r)) return;
     const step = e.shiftKey ? snap * 4 : snap;
     const map = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step] };
@@ -872,7 +958,11 @@
     $("iLayer").value = it.layer; $("iSurface").checked = !!it.is_surface; $("iOff").value = it.surface_offset_y || 0; $("iOffY").value = it.offset_y || 0;
     $("iSurface").disabled = it.layer !== "furniture"; // the server only accepts surfaces on furniture
     $("iTags").value = tagsOf(it).join(", ");
-    document.querySelectorAll(".tagBox").forEach((cb) => { cb.checked = tagsOf(it).includes(cb.dataset.tag); });
+    $("tagBoxes").innerHTML = knownTags().map((t) => `<label title="${tagDesc(t)}"><input type="checkbox" class="tagBox" data-tag="${t}"${tagsOf(it).includes(t) ? " checked" : ""}> <b>${t}</b></label>`).join("");
+    $("tagBoxes").querySelectorAll(".tagBox").forEach((cb) => cb.addEventListener("change", () => {
+      if (toggleTag(it, cb.dataset.tag, cb.checked)) dirtyItems = true;
+      renderList(); renderItem(); if (cardOf.has(it)) { cardMeta(it); renderTagCounts(); renderPicked(); }
+    }));
     $("iPair").value = it.pair || "";
     $("itemIds").innerHTML = items.filter((o) => o !== it).map((o) => `<option value="${o.id}">${o.name || ""}</option>`).join("");
     renderPair(it);
@@ -926,15 +1016,10 @@
     const t = tagsOf(it).filter((x) => x !== tag); if (on) t.push(tag);
     setTags(it, t); return true;
   }
-  document.querySelectorAll(".tagBox").forEach((cb) => cb.addEventListener("change", () => {
-    const it = itemOf(sel); if (!it) return;
-    if (toggleTag(it, cb.dataset.tag, cb.checked)) dirtyItems = true;
-    renderList(); renderItem();
-  }));
   // batch: the ticked slices' items get the ticked tags turned on (켜기) or off (끄기)
   function batchTags(on) {
     const tags = [...document.querySelectorAll(".batchTag:checked")].map((cb) => cb.dataset.tag);
-    if (!tags.length) { alert("먼저 어떤 태그인지 체크하세요 (ruined / fixed / stairs)"); return; }
+    if (!tags.length) { alert("먼저 어떤 태그인지 체크하세요"); return; }
     const targets = [...checked].map(itemOf).filter(Boolean);
     if (!targets.length) { alert("목록에서 아이템이 있는 슬라이스를 체크하세요 (⚠ 표시는 아이템이 없는 것)"); return; }
     let n = 0;
@@ -1006,7 +1091,7 @@
     if (pr.badPair.length) stop.push(`없는 아이템을 pair로 가리킴: ${pr.badPair.map((it) => it.id).join(", ")}`);
     if (stop.length) { alert("저장 못 해요. 먼저 고쳐주세요:\n" + stop.join("\n")); return; }
     try {
-      const j = await put("/api/items", items); dirtyItems = false; log(`items.json 저장 (${items.length}개)`);
+      const j = await put("/api/items", items); dirtyItems = false; log(`items.json 저장 (${items.length}개)`); if (document.body.dataset.tab === "items") renderPicked();
       if (j.unbuilt && j.unbuilt.length) alert(`저장은 됐지만 아직 빌드 안 된 스프라이트를 쓰는 아이템이 ${j.unbuilt.length}개 있어요:\n${j.unbuilt.slice(0, 10).join(", ")}${j.unbuilt.length > 10 ? " …" : ""}\n\n이 상태로 VM에 올리면 서버가 안 떠요(502). "빌드" 버튼을 누른 뒤 gen/ 폴더도 같이 올리세요.`);
     }
     catch (e) { alert("저장 실패: " + e.message); }

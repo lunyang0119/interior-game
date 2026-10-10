@@ -49,7 +49,7 @@ def _clear_seed_rows(conn: sqlite3.Connection, catalog: Catalog, room_id: str) -
     for k in kids:
         it = catalog.items.get(k["item_id"])
         conn.execute("DELETE FROM items WHERE uid = ?", (k["uid"],))
-        if it is not None:
+        if it is not None and k["placed_by"] not in config.SYSTEM_PLAYERS:  # a guest's note was never paid for
             conn.execute(
                 "INSERT INTO ledger(ts, player_id, amount, kind, item_uid, item_id) VALUES (?, ?, ?, 'refund', ?, ?)",
                 (now(), k["placed_by"], -price_of(it, k["span"]), k["uid"], k["item_id"]),

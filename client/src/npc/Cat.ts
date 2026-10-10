@@ -15,6 +15,7 @@ import { Z_AVATAR, type CatSpec, type Room } from "../catalog";
 import { depthOf } from "../room/depth";
 import { CELL } from "../room/grid";
 import { pathToward, type Cell, type WalkGrid } from "../room/walk";
+import { state } from "../state";
 
 const SPEED = 28; // px per second (a stroll; avatars walk at 48)
 const IDLE_MIN_MS = 2500, IDLE_MAX_MS = 7000;
@@ -202,7 +203,7 @@ export class InnCat {
     this.dir = "down";
     this.idle("look");
     this.nextAt = this.scene.time.now + PET_PAUSE_MS;
-    if (this.petting) return true;
+    if (this.petting || !state.token) return true; // without an account the cat still meows, but nothing is recorded
     this.petting = true;
     api.catPet()
       .then((r) => toast(r.first_today ? "고양이가 골골거려요" : "야옹"))

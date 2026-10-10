@@ -40,7 +40,7 @@ def reconcile_items(conn: sqlite3.Connection, catalog: Catalog) -> int:
                                room_id=row.room_id, relaxed=row.placed_by == config.SEED_PLAYER)
         except ApiError as e:
             conn.execute("DELETE FROM items WHERE uid = ?", (row.uid,))
-            if item is not None:
+            if item is not None and row.placed_by not in config.SYSTEM_PLAYERS:  # a guest's note was never paid for
                 conn.execute(
                     "INSERT INTO ledger(ts, player_id, amount, kind, item_uid, item_id) VALUES (?, ?, ?, 'refund', ?, ?)",
                     (now(), row.placed_by, -price_of(item, row.span), row.uid, row.item_id),

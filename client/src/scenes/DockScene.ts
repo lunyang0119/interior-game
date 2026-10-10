@@ -3,7 +3,7 @@ import { api, ApiError, msgFor } from "../api";
 import { play, SFX, SFX_VOL, type SfxHandle } from "../audio/sfx";
 import { bus, toast } from "../bus";
 import { ATLAS } from "../room/ItemLayer";
-import { state } from "../state";
+import { setZone, state } from "../state";
 import { socket } from "../ws";
 import { fitToView } from "./CameraController";
 import { assetUrl } from "../assets";
@@ -63,6 +63,7 @@ export class DockScene extends Phaser.Scene {
   }
 
   create(): void {
+    setZone(null); // currentUnit() must not keep pointing at the room:zone we came from
     // presence: leave the room we came from (nobody is drawn here, but the room's head count should drop)
     if (state.token) {
       if (socket.connected) socket.sendEnter("dock");

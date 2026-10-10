@@ -69,6 +69,7 @@ export class RoomScene extends Phaser.Scene {
     state.ruined = 0; // the snapshot fills it in
     this.leaving = false;
     this.ready = false;
+    this.inflight = null; // a request still running for the previous room must not be handed to this one
   }
 
   create(): void {
@@ -132,15 +133,19 @@ export class RoomScene extends Phaser.Scene {
 
   /** Fetches the room snapshot; concurrent calls share one request (place response + WS notify both ask). */
   refreshRoom(): Promise<void> {
-    if (!this.inflight) this.inflight = this.doRefresh().finally(() => { this.inflight = null; });
+    if (!this.inflight) {
+      const p = this.doRefresh().finally(() => { if (this.inflight === p) this.inflight = null; });
+      this.inflight = p;
+    }
     return this.inflight;
   }
 
   private async doRefresh(): Promise<void> {
+    let stale = false;
     try {
       const r = await api.room(this.room.id, state.roomVersion);
       if (!r) return; // 304
-      if (!this.scene.isActive() || r.room !== this.room.id) return; // answer for a room we already left
+      if (r.room !== this.room.id) { stale = true; return; } // answer for a room we already left: say nothing about readiness
       state.roomVersion = r.version;
       this.items.sync(r.items);
       this.placement.revalidate();
@@ -149,7 +154,7 @@ export class RoomScene extends Phaser.Scene {
     } catch (e) {
       if (e instanceof ApiError && e.code !== "network") toast(msgFor(e.code));
     } finally {
-      this.markReady();
+      if (!stale) this.markReady();
     }
   }
 

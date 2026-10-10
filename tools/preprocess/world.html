@@ -108,6 +108,12 @@
     <div class="hint">구역은 손님을 따로 받는 객실이에요: 구역마다 안락도·침대·예약이 따로 계산되고, 가구는 왼쪽 위 칸이 들어 있는 구역 소속이에요. 구역이 하나도 없으면 방 전체가 한 단위. 구역끼리 겹치면 안 돼요.</div>
     <h3>시드 (처음부터 놓인 물건)</h3>
     <div class="hint">놓인 물건은 <code>$seed</code> 소유라 게임에선 "???"로 보여요. ruined 태그면 팔 수 있고, fixed면 못 건드려요.</div>
+    <div class="row" title="ruined 태그 아이템을 바닥(벽 장식은 벽) 칸에 무작위로 놓아요. 서로 겹쳐도 되지만 partition 시드와는 안 겹쳐요. 소품(surface_item)은 뺌.">
+      <span class="dim">🎲 ruined 흩뿌리기</span>
+      <input type="number" id="scatterN" min="1" max="200" value="8" style="width:56px">개
+      <button id="scatterBtn">흩뿌리기</button>
+      <button id="scatterClear" class="danger" title="이 방의 ruined 시드를 전부 지워요">ruined 시드 비우기</button>
+    </div>
     <ul id="seedList" class="plain"></ul>
   </div>
 
@@ -618,6 +624,37 @@
   $("spanMinus").onclick = () => { const it = itemById(selSeed.item_id); selSeed.span = Math.max(1, (selSeed.span || it.w) - 1); touch(); renderSeedProps(); draw(); };
   $("spanPlus").onclick = () => { const it = itemById(selSeed.item_id); selSeed.span = Math.min(room.cols, (selSeed.span || it.w) + 1); touch(); renderSeedProps(); draw(); };
   $("seedDel").onclick = () => { room.seed.splice(room.seed.indexOf(selSeed), 1); selSeed = null; touch(); renderSide(); draw(); };
+  // ---- scatter: random ruined seeds that may overlap each other but never a partition seed
+  const footprint = (s, it) => ({ x: s.x, y: s.y, w: seedW(s, it), h: it.h });
+  const overlaps = (a, b) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
+  function scatterRuined(n) {
+    const pool = items.filter((it) => tagsOf(it).includes("ruined") && it.layer !== "surface_item");
+    if (!pool.length) { alert("ruined 태그 아이템이 없어요 (소품 제외)"); return; }
+    const walls = room.seed.map((o) => ({ o, it: itemById(o.item_id) })).filter(({ it }) => it && tagsOf(it).includes("partition")).map(({ o, it }) => footprint(o, it));
+    const added = []; let skipped = 0;
+    for (let i = 0; i < n; i++) {
+      const it = pool[Math.floor(Math.random() * pool.length)];
+      const wall = onWall(it), y0 = wall ? 0 : room.wall_rows, y1 = wall ? room.wall_rows - it.h : room.rows - it.h, x1 = room.cols - it.w;
+      let s = null;
+      for (let t = 0; t < 60 && !s; t++) {
+        if (x1 < 0 || y1 < y0) break;
+        const c = { item_id: it.id, x: Math.floor(Math.random() * (x1 + 1)), y: y0 + Math.floor(Math.random() * (y1 - y0 + 1)) };
+        if (it.layer === "wallpaper") c.span = it.w;
+        if (!walls.some((w) => overlaps(footprint(c, it), w))) s = c;
+      }
+      if (s) { room.seed.push(s); added.push(s); } else skipped++;
+    }
+    if (added.length) { selSeed = added[added.length - 1]; selExit = null; touch(); renderSide(); draw(); }
+    alert(`${added.length}개 놓았어요` + (skipped ? ` · ${skipped}개는 partition을 피할 자리가 없어 건너뜀` : "") + "\n마음에 안 들면 'ruined 시드 비우기' 후 다시 굴리세요. 저장은 따로.");
+  }
+  $("scatterBtn").onclick = () => scatterRuined(Math.max(1, parseInt($("scatterN").value, 10) || 1));
+  $("scatterClear").onclick = () => {
+    const keep = room.seed.filter((o) => { const it = itemById(o.item_id); return !(it && tagsOf(it).includes("ruined")); });
+    const n = room.seed.length - keep.length;
+    if (!n) { alert("ruined 시드가 없어요"); return; }
+    if (!confirm(`이 방의 ruined 시드 ${n}개를 지울까요?`)) return;
+    room.seed = keep; selSeed = null; touch(); renderSide(); draw();
+  };
   $("roomSel").onchange = () => setRoom($("roomSel").value);
   $("rId").onchange = () => {
     const v = $("rId").value.trim();

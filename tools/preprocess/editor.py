@@ -41,6 +41,19 @@ ROOMS_DIR = C.REPO_ROOT / "data" / "rooms"
 MAP_FILE = C.REPO_ROOT / "data" / "map.json"
 LAYERS = ["furniture", "surface_item", "floor", "wall", "wallpaper"]
 TAG_RE = re.compile(r"^[a-z0-9_]+$")
+# item tags the game server understands (shown as checkboxes/chips in the editor; any other [a-z0-9_] tag is allowed too)
+KNOWN_TAGS = [
+    ("ruined", "팔 수만 있음 (부서진 가구)"),
+    ("fixed", "못 사고·옮기고·팔음"),
+    ("stairs", "탭하면 출구로"),
+    ("bed", "손님 침대 (침대 수 = 손님 상한)"),
+    ("dog", "개를 좋아하는 손님이 찾는 장식"),
+    ("note", "쪽지로 글을 남길 수 있는 소품"),
+    ("guest_note", "손님이 남기는 쪽지 스프라이트 (없으면 제일 싼 note)"),
+    ("board", "탭하면 📋 게시판"),
+    ("partition", "벽 스프라이트를 바닥에 세움 (칸막이)"),
+    ("door", "partition을 아바타가 통과"),
+]
 ROOM_ID_RE = re.compile(r"^[a-z][a-z0-9_]*$")
 # fields the game server's Room model knows; everything else (name, exits, seed) is for later phases
 LEGACY_ROOM_FIELDS = ("cols", "rows", "wall_rows", "spawn", "blocked", "zoom", "tiles")
@@ -572,6 +585,7 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_json({
                     "sheets": sheet_list(), "slices": P.load_slices(), "map_slices": P.load_slices(C.MAP_SLICES_FILE),
                     "items": load_items()["items"], "layers": LAYERS, "cell": C.CELL,
+                    "tags": [{"tag": t, "desc": d} for t, d in KNOWN_TAGS],
                     "room": {k: room.get(k) for k in ("cols", "rows", "wall_rows", "tiles")},
                     "singles": singles_themes(),
                     "atlas": {"interior": (C.OUT_DIR / "interiors.json").exists(), "map": (C.OUT_DIR / "map.json").exists()},

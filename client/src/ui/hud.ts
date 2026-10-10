@@ -105,6 +105,7 @@ export function initHud(): void {
   // which world scene is up decides the bars: shop only in rooms, 나가기/낚시 only on the dock
   bus.on("scene:changed", ({ scene }) => {
     closeAllPanels();
+    show("ctx", false); // a furniture menu left open belongs to the room we just left
     show("placebar", false);
     show("dockbar", scene === "dock");
     show("fishbar", scene === "dock");

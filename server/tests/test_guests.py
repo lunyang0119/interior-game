@@ -220,6 +220,17 @@ def test_guests_leave_a_note_on_a_table(client):
         conn.close()
     notes = [i for i in client.get("/api/room/inn").json()["items"] if i["placed_by"] == "$guest"]
     assert len(notes) == guests.MAX_GUEST_NOTES
+    # the 2-cell table is now full of notes: the next night still leaves one (the oldest goes first)
+    changed = set()
+    conn = connect()
+    try:
+        with transaction(conn):
+            guests.settle(conn, client.app.state.catalog, cfg, t0 + 5 * DAY, random.Random(3), [], changed)
+    finally:
+        conn.close()
+    after = [i for i in client.get("/api/room/inn").json()["items"] if i["placed_by"] == "$guest"]
+    assert changed == {"inn"} and len(after) == guests.MAX_GUEST_NOTES
+    assert {i["uid"] for i in after} != {i["uid"] for i in notes}
 
 
 def test_dev_settle_simulates_days(env, monkeypatch):
