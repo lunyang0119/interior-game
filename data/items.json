@@ -4564,7 +4564,10 @@
    "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "dog"
+   ]
   },
   {
    "id": "wardrobe_fa",
@@ -4986,17 +4989,14 @@
   },
   {
    "id": "notepad_small",
-   "name": "메모지",
+   "name": "무언가의 병",
    "price": 4,
    "sprite": "notepad_small",
    "w": 1,
    "h": 1,
    "layer": "surface_item",
    "is_surface": false,
-   "surface_offset_y": 0,
-   "tags": [
-    "note"
-   ]
+   "surface_offset_y": 0
   },
   {
    "id": "book_brown",
@@ -5812,6 +5812,7 @@
    "is_surface": false,
    "surface_offset_y": 0,
    "tags": [
+    "guest_note",
     "note"
    ]
   },
@@ -5826,6 +5827,7 @@
    "is_surface": false,
    "surface_offset_y": 0,
    "tags": [
+    "guest_note",
     "note"
    ]
   },
@@ -5972,6 +5974,7 @@
    "is_surface": false,
    "surface_offset_y": 0,
    "tags": [
+    "guest_note",
     "note"
    ]
   },
@@ -5984,10 +5987,7 @@
    "h": 1,
    "layer": "surface_item",
    "is_surface": false,
-   "surface_offset_y": 0,
-   "tags": [
-    "note"
-   ]
+   "surface_offset_y": 0
   },
   {
    "id": "perfume_bottle_td",
@@ -10602,10 +10602,7 @@
    "h": 1,
    "layer": "surface_item",
    "is_surface": false,
-   "surface_offset_y": 0,
-   "tags": [
-    "note"
-   ]
+   "surface_offset_y": 0
   },
   {
    "id": "mordcloth_01_mannequin",
@@ -34855,6 +34852,17 @@
     "fixed",
     "partition"
    ]
+  },
+  {
+   "id": "wa_sans",
+   "name": "wa sans",
+   "price": 50,
+   "sprite": "wa_sans",
+   "w": 1,
+   "h": 2,
+   "layer": "furniture",
+   "is_surface": false,
+   "surface_offset_y": 0
   }
  ]
 }
