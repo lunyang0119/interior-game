@@ -13,9 +13,10 @@ import { GuestNpcs } from "../npc/GuestNpcs";
 import { TILE_DEPTH } from "../room/depth";
 import { CELL, footprint, worldToCell } from "../room/grid";
 import { ATLAS, ItemLayer } from "../room/ItemLayer";
+import { OreNodes } from "../room/OreNodes";
 import { PlacementController } from "../room/Placement";
 import { footprintOf } from "../room/rules";
-import { pathToward, roomWalkGrid, type Cell, type WalkGrid } from "../room/walk";
+import { cellKey, pathToward, roomWalkGrid, type Cell, type WalkGrid } from "../room/walk";
 import { catalog, setZone, state } from "../state";
 import { socket } from "../ws";
 import { CameraController } from "./CameraController";
@@ -43,6 +44,9 @@ export class RoomScene extends Phaser.Scene {
   private guests!: GuestNpcs;
   /** The inn cat (only in the inn, only when the catalog carries a cat strip). */
   private innCat: InnCat | null = null;
+  /** Ore nodes (only in a room of kind "mine"); `pendingOre` = the node to pick once the walk toward it ends. */
+  private oreNodes: OreNodes | null = null;
+  private pendingOre: number | null = null;
   private unsub: (() => void)[] = [];
   private pollTimer: number | null = null;
   private playerId: string | null = null;
@@ -85,8 +89,12 @@ export class RoomScene extends Phaser.Scene {
       this.innCat = new InnCat(this, this.cat.cat, this.room, () => this.walkGrid());
       void this.innCat.spawn();
     }
+    if (this.room.kind === "mine") {
+      this.oreNodes = new OreNodes(this, () => this.me?.footCell() ?? null, (b) => this.setBalance(b));
+      void this.oreNodes.load();
+    }
     setZone(null); // until the avatar stands somewhere
-    bus.emit("room:changed", { id: this.room.id, name: this.room.name, ruined: state.ruined });
+    bus.emit("room:changed", { id: this.room.id, name: this.room.name, ruined: state.ruined, kind: this.room.kind ?? "room" });
 
     this.bindBus();
     this.bindInput();
@@ -167,7 +175,7 @@ export class RoomScene extends Phaser.Scene {
   private setRuined(n: number | undefined): void {
     if (typeof n !== "number" || n === state.ruined) return;
     state.ruined = n;
-    bus.emit("room:changed", { id: this.room.id, name: this.room.name, ruined: n });
+    bus.emit("room:changed", { id: this.room.id, name: this.room.name, ruined: n, kind: this.room.kind ?? "room" });
   }
 
   private async spawnMe(): Promise<void> {
@@ -176,10 +184,16 @@ export class RoomScene extends Phaser.Scene {
     const s = this.spawn;
     this.me = new Avatar(this, this.cat.chars, state.avatar, s.x, s.y, this.playerId ?? "");
     this.me.onStep = (x, y, dir, moving) => socket.sendMove(x, y, dir, moving);
-    this.me.onArrive = () => { this.keyWalking = false; this.checkExit(); };
+    this.me.onArrive = () => {
+      this.keyWalking = false;
+      this.checkExit();
+      // walked up to an ore node: it becomes the 채광 target if we got close enough
+      if (this.pendingOre !== null) { const seq = this.pendingOre; this.pendingOre = null; this.oreNodes?.select(seq); }
+    };
     this.me.onCell = (cx, cy) => {
       this.footstep(this.playerId ?? "me", cx, cy, 1);
       setZone(zoneAt(this.room, cx, cy)?.id ?? null);
+      this.oreNodes?.refreshTarget();
       if (this.keyWalking) this.checkExit();
     };
     const foot = this.me.footCell();
@@ -217,6 +231,8 @@ export class RoomScene extends Phaser.Scene {
         if (m.version !== state.roomVersion) void this.refreshRoom();
       }),
       socket.on("money", (m) => this.setBalance(m.balance)),
+      socket.on("mine", (m) => this.oreNodes?.onMessage(m)),
+      socket.on("mine_reset", () => void this.oreNodes?.load()),
       socket.on("open", () => this.publishOnline()),
       socket.on("close", () => { this.remotes.reset([]); this.publishOnline(); }),
     ];
@@ -251,6 +267,7 @@ export class RoomScene extends Phaser.Scene {
       bus.on("item:walk", ({ uid }) => this.walkToItem(uid)),
       bus.on("avatar:saved", (look) => void this.applyMyLook(look)),
       bus.on("comfort:changed", () => this.guests.sync()),
+      bus.on("mine:press", () => this.oreNodes?.hitTarget()),
     );
   }
 
@@ -285,7 +302,10 @@ export class RoomScene extends Phaser.Scene {
   // ---------------------------------------------------------------- walking
 
   private walkGrid(): WalkGrid {
-    return roomWalkGrid(this.cat, this.room, this.items.occupied);
+    const base = roomWalkGrid(this.cat, this.room, this.items.occupied);
+    const ore = this.oreNodes?.blocked;
+    if (!ore?.size) return base;
+    return { cols: base.cols, rows: base.rows, isWalkable: (cx, cy) => base.isWalkable(cx, cy) && !ore.has(cellKey(cx, cy)) }; // rocks block
   }
 
   /** Walk to a cell along furniture-free cells; an unreachable target walks as close as it can. */
@@ -385,6 +405,14 @@ export class RoomScene extends Phaser.Scene {
     const { cx, cy } = worldToCell(w.x, w.y);
     if (this.innCat?.tap(w.x, w.y)) return; // the cat is petted before anything under it
     if (this.guests.tap(w.x, w.y)) return; // a guest answers before anything under them
+    // an ore node: pick it when I stand next to it, else walk up to it first (the path stops beside the rock)
+    const node = this.oreNodes?.nodeAt(cx, cy);
+    if (node && this.oreNodes) {
+      if (this.oreNodes.select(node.seq, true)) return;
+      this.pendingOre = node.seq;
+      if (!this.walkTo(node.x, node.y)) { this.pendingOre = null; toast("거긴 갈 수 없어요"); }
+      return;
+    }
     // stairs: a tap walks through them (long press still opens the menu)
     const tapped = this.items.itemAt(cx, cy, TAP_MENU_LAYERS);
     const stairs = tapped ?? this.items.itemAt(cx, cy); // stairs may also be a wall-layer item
@@ -428,7 +456,7 @@ export class RoomScene extends Phaser.Scene {
   private openMenu(wx: number, wy: number): boolean {
     const { cx, cy } = worldToCell(wx, wy);
     const row = this.items.itemAt(cx, cy);
-    if (!row || !this.playerId) return false;
+    if (!row || !this.playerId || this.room.kind === "mine") return false; // the mine's props are part of the room
     if (hasTag(this.cat.byId.get(row.item_id), TAG_FIXED)) return false; // stairs etc.: tapping them walks there
     const s = this.cam.toClient(wx, wy);
     bus.emit("item:menu", { item: row, screenX: s.x, screenY: s.y });
@@ -458,6 +486,9 @@ export class RoomScene extends Phaser.Scene {
     this.guests.destroy();
     this.innCat?.destroy();
     this.innCat = null;
+    this.oreNodes?.destroy();
+    this.oreNodes = null;
+    this.pendingOre = null;
     this.items.destroy();
     this.me?.destroy();
     this.me = null;

@@ -321,7 +321,7 @@ export class DockScene extends Phaser.Scene {
     try {
       const r = await api.fishFinish(cast.session, this.holds, escaped);
       if (typeof r.balance === "number" && r.balance !== state.balance) { state.balance = r.balance; bus.emit("money", { balance: r.balance }); }
-      bus.emit("fish:catch", { ok: r.ok, id: r.id, name: r.name, value: r.value, who: state.id ?? "", seq: r.seq, deliverable: r.deliverable });
+      bus.emit("loot:got", { ok: r.ok, kind: "fish", id: r.id, name: r.name, value: r.value, who: state.id ?? "", seq: r.seq, deliverable: r.deliverable });
       this.publishState(
         r.ok ? `${r.name}을(를) 낚았어요! +${r.value}💰`
           : r.escaped ? `놀라서 도망갔어요… ${r.name}이었는데`

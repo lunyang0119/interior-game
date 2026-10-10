@@ -148,7 +148,7 @@ def all_views(conn: sqlite3.Connection, cat: Catalog, cfg: GuestConfig, ts: int 
     locks = locked(conn, cat)
     out: dict[str, dict] = {}
     for r in cat.rooms.values():
-        if r.id not in locks:
+        if r.id not in locks and r.kind == "room":  # the mine takes no guests
             out.update(room_view(conn, cat, r, cfg, ts))
     return out
 
@@ -218,7 +218,7 @@ def settle(conn: sqlite3.Connection, cat: Catalog, cfg: GuestConfig, ts: int | N
     special = cfg.special_after is None or cfg.special_after not in locks
     open_units: list[tuple[Unit, list[ItemRow]]] = []
     for room in cat.rooms.values():
-        if room.id in locks:
+        if room.id in locks or room.kind != "room":
             continue
         rows = load_items(conn, room.id)
         for unit in units_of(room):

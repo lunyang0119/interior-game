@@ -1,44 +1,47 @@
 """The inn cat (pure DB helpers, no HTTP).
 
-Anyone can pet the cat once a day; the first pet of a KST day stores a `cat_pets` row and logs a 'cat' event.
-Affection = how many of the last AFFECTION_DAYS KST days (today included) had a pet, 0..3, and
-comfort.py adds `affection × affection_bonus` to the comfort score of CAT_ROOM only. Petting is free and
-never touches the pool; the cat just likes being remembered.
+Every pet counts, from everyone together: the client sends taps in small batches (`cat_taps` rows), and
+affection = min(MAX_AFFECTION, total taps // TAPS_PER_LEVEL) — it never decays, so 300 taps make the cat
+love the inn forever. comfort.py adds `affection × affection_bonus` to the comfort score of CAT_ROOM only.
+Petting is free and never touches the pool; a level-up logs a 'cat' event (the only noise it makes).
 """
 
 from __future__ import annotations
 
 import sqlite3
-from datetime import datetime, timedelta, timezone
 
 from .db import now
 from .progress import add_event
 
-KST = timezone(timedelta(hours=9))
-AFFECTION_DAYS = 3
 CAT_ROOM = "inn"
+TAPS_PER_LEVEL = 100
+MAX_AFFECTION = 3
+MAX_TAPS_PER_CALL = 50  # one request may not claim more than this many taps
 
 
-def day_str(ts: int) -> str:
-    return datetime.fromtimestamp(ts, KST).strftime("%Y-%m-%d")
+def affection_of(total_taps: int) -> int:
+    return min(MAX_AFFECTION, total_taps // TAPS_PER_LEVEL)
 
 
-def recent_days(ts: int) -> list[str]:
-    """Today and the AFFECTION_DAYS-1 days before it (KST has no DST, so a day is always 86400 s)."""
-    return [day_str(ts - i * 86400) for i in range(AFFECTION_DAYS)]
+def taps(conn: sqlite3.Connection) -> int:
+    return int(conn.execute("SELECT COALESCE(SUM(n), 0) FROM cat_taps").fetchone()[0])
 
 
 def affection(conn: sqlite3.Connection, ts: int | None = None) -> int:
-    days = recent_days(ts if ts is not None else now())
-    q = f"SELECT COUNT(*) FROM cat_pets WHERE day IN ({','.join('?' * len(days))})"
-    return int(conn.execute(q, days).fetchone()[0])
+    """0..MAX_AFFECTION. `ts` is accepted for the callers' convenience; affection does not depend on time."""
+    return affection_of(taps(conn))
 
 
-def pet(conn: sqlite3.Connection, player_id: str, ts: int | None = None) -> tuple[int, bool, dict | None]:
-    """Record a pet inside the caller's transaction. Returns (affection after it, first pet today, the
-    'cat' event row when one was written)."""
+def pet(conn: sqlite3.Connection, player_id: str, n: int = 1, ts: int | None = None) -> tuple[int, int, bool, dict | None]:
+    """Record `n` taps inside the caller's transaction. Returns (affection after, total taps after,
+    leveled up, the 'cat' event row when the level rose)."""
+    n = max(1, min(MAX_TAPS_PER_CALL, int(n)))
     ts = ts if ts is not None else now()
-    cur = conn.execute("INSERT OR IGNORE INTO cat_pets(day, player_id, ts) VALUES (?, ?, ?)", (day_str(ts), player_id, ts))
-    first = cur.rowcount == 1
-    event = add_event(conn, "cat", room_id=CAT_ROOM, player_id=player_id, amount=0) if first else None
-    return affection(conn, ts), first, event
+    before = taps(conn)
+    conn.execute("INSERT INTO cat_taps(ts, player_id, n) VALUES (?, ?, ?)", (ts, player_id, n))
+    total = before + n
+    level = affection_of(total)
+    leveled = level > affection_of(before)
+    event = add_event(conn, "cat", room_id=CAT_ROOM, player_id=player_id, amount=0,
+                      data={"affection": level, "taps": total}) if leveled else None
+    return level, total, leveled, event

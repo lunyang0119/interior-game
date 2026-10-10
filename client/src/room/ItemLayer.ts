@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { Z_SCALE, collisionLayer, onWall, widthOf, type Catalog, type Item, type Layer, type RoomItem } from "../catalog";
+import { Z_HUNG, Z_SCALE, canHang, collisionLayer, onWall, widthOf, type Catalog, type Item, type Layer, type RoomItem } from "../catalog";
 import { depthOf, sortRowFor } from "./depth";
 import { CELL } from "./grid";
 import { footprintOf } from "./rules";
@@ -54,22 +54,25 @@ export class ItemLayer {
     this.occupied = buildOccupancy(this.cat, rows);
   }
 
-  /** Position + depth for a row, using the parent for stacked surface items. */
+  /** Position + depth for a row, using the parent for stacked surface items and for wall decor hung on a partition. */
   placement(row: RoomItem): { x: number; y: number; depth: number } {
     const it = this.cat.byId.get(row.item_id);
     const h = it?.h ?? 1;
     let x = row.x * CELL;
     let y = (onWall(it) ? row.y * CELL : (row.y + h) * CELL) + (it?.offset_y ?? 0);
     let sortRow = sortRowFor(it && collisionLayer(it), row.y + h - 1);
-    if (it?.layer === "surface_item" && row.parent_uid != null) {
-      const parent = this.entries.get(row.parent_uid)?.row ?? this.rows.find((r) => r.uid === row.parent_uid);
-      const pit = parent && this.cat.byId.get(parent.item_id);
-      if (parent && pit) {
-        sortRow = parent.y + pit.h - 1;
-        y = (row.y + h) * CELL - pit.surface_offset_y;
-      }
+    let z = Z_SCALE[it ? collisionLayer(it) : "furniture"];
+    const parent = row.parent_uid != null ? (this.entries.get(row.parent_uid)?.row ?? this.rows.find((r) => r.uid === row.parent_uid)) : undefined;
+    const pit = parent && this.cat.byId.get(parent.item_id);
+    if (parent && pit && it?.layer === "surface_item") {
+      sortRow = parent.y + pit.h - 1;
+      y = (row.y + h) * CELL - pit.surface_offset_y;
+    } else if (parent && pit && canHang(it)) {
+      // hung on a partition: sorted with the partition's feet, just above it
+      sortRow = parent.y + pit.h - 1;
+      z = Z_HUNG;
     }
-    return { x, y, depth: depthOf(sortRow, Z_SCALE[it?.layer ?? "furniture"]) + (row.uid % 97) / 100 };
+    return { x, y, depth: depthOf(sortRow, z) + (row.uid % 97) / 100 };
   }
 
   private layout(e: Entry): void {

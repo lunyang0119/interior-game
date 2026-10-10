@@ -18,8 +18,9 @@ from .restore import Stage, validate_restore
 log = logging.getLogger("catalog")
 
 Layer = Literal["wallpaper", "wall", "floor", "furniture", "surface_item"]
-# wall > wallpaper so a tap on a frame hung over wallpaper picks the frame
-Z_OF_LAYER: dict[str, int] = {"wallpaper": 0, "wall": 1, "floor": 0, "furniture": 1, "surface_item": 2}
+# wall > wallpaper so a tap on a frame hung over wallpaper picks the frame; rug > floor likewise.
+# "hung" = a wall decor hanging on a partition (floor rows): above the partition for taps, like a cup on a table.
+Z_OF_LAYER: dict[str, int] = {"wallpaper": 0, "wall": 1, "floor": 0, "rug": 1, "furniture": 1, "surface_item": 2, "hung": 2}
 WALL_LAYERS = ("wallpaper", "wall")
 
 TAG_RE = re.compile(r"^[a-z0-9_]+$")
@@ -32,6 +33,9 @@ TAG_NOTE = "note"  # carries a short text anyone can rewrite (PUT /api/room/item
 # blocks walking like furniture, drawn like furniture. door = a partition avatars may walk through.
 TAG_PARTITION = "partition"
 TAG_DOOR = "door"
+# rug = a floor-layer item that lies on top of floor patterns (untagged floor items): its own collision group,
+# drawn above them. Wall decor (`wall` layer) may also hang on a partition's face (see placement.py).
+TAG_RUG = "rug"
 DEFAULT_ROOM = "inn"
 MAP_ROOM = "map"
 DOCK_ROOM = "dock"
@@ -58,6 +62,9 @@ class Item(BaseModel):
     # furniture set (same source pack/theme) — not in items.json: filled from the manifest key's `set` at load,
     # which `build` derives from the slice source. Used by the comfort score's set bonus.
     set: str | None = None
+    # rows the sprite is tall (manifest key `ch`), also not in items.json. A partition's "face" that wall decor
+    # can hang on is this many rows up from its footprint bottom (≥ h), so a divider with h=1 still has a face.
+    sprite_rows: int | None = None
 
     @field_validator("tags")
     @classmethod
@@ -83,8 +90,27 @@ class Item(BaseModel):
 
     @property
     def collision_layer(self) -> str:
-        """Items only collide within this group; partitions share the floor with furniture."""
-        return "furniture" if self.has_tag(TAG_PARTITION) else self.layer
+        """Items only collide within this group; partitions share the floor with furniture, rugs lie over floor
+        patterns in a group of their own."""
+        if self.has_tag(TAG_PARTITION):
+            return "furniture"
+        if self.layer == "floor" and self.has_tag(TAG_RUG):
+            return "rug"
+        return self.layer
+
+    @property
+    def is_partition(self) -> bool:
+        return self.layer in WALL_LAYERS and self.has_tag(TAG_PARTITION)
+
+    @property
+    def can_hang(self) -> bool:
+        """Wall decor that may hang on a partition's face as well as on the wall rows."""
+        return self.layer == "wall" and not self.has_tag(TAG_PARTITION)
+
+    @property
+    def face_rows(self) -> int:
+        """Rows of a partition's visible face, counted up from the bottom of its footprint."""
+        return max(self.h, self.sprite_rows or 0)
 
     @property
     def for_sale(self) -> bool:
@@ -137,9 +163,14 @@ class Zone(BaseModel):
         return self.w * self.h
 
 
+RoomKind = Literal["room", "mine"]
+
+
 class Room(BaseModel):
     id: str = DEFAULT_ROOM
     name: str = ""
+    # "room" = decorated (shop, guests); "mine" = the ore room (mine.py): walked and mined, no furniture placing
+    kind: RoomKind = "room"
     cols: int = Field(ge=4)
     rows: int = Field(ge=4)
     wall_rows: int = Field(ge=0)
@@ -354,6 +385,8 @@ def load(data_dir: Path | None = None, gen_dir: Path | None = None) -> Catalog:
         spec = keys[it.sprite]
         if isinstance(spec, dict) and spec.get("set"):
             it.set = str(spec["set"])
+        if isinstance(spec, dict) and isinstance(spec.get("ch"), int):
+            it.sprite_rows = spec["ch"]
         items[it.id] = it
     for it in items.values():
         if it.pair is not None and it.pair not in items:

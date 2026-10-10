@@ -1,6 +1,6 @@
 /** Client mirror of server/app/placement.py. Only used to colour the ghost; the server decides. */
 
-import { collisionLayer, onWall, tileWalkable, widthOf, type Catalog, type Room, type RoomItem } from "../catalog";
+import { canHang, collisionLayer, faceRows, isPartition, onWall, tileWalkable, widthOf, type Catalog, type Room, type RoomItem } from "../catalog";
 import { footprint } from "./grid";
 
 export interface Check { ok: boolean; code?: string; parentUid: number | null }
@@ -15,6 +15,29 @@ export function footprintOf(cat: Catalog, row: RoomItem): [number, number][] {
   return footprint(row.x, row.y, widthOf(it, row.span), it.h);
 }
 
+/** Cells of a partition's visible wall face (its columns, `faceRows` rows up from the footprint bottom); empty otherwise. */
+export function partitionFace(cat: Catalog, row: RoomItem): [number, number][] {
+  const it = cat.byId.get(row.item_id);
+  if (!it || !isPartition(it)) return [];
+  const bottom = row.y + it.h - 1;
+  const rows = faceRows(it);
+  return footprint(row.x, bottom - rows + 1, it.w, rows);
+}
+
+/** The partition a wall decor with this footprint hangs on (every cell on some partition's face; the one under
+ *  the first cell is the parent), or null. Mirrors placement.hanger_of. */
+export function hangerOf(cat: Catalog, others: RoomItem[], cells: [number, number][]): RoomItem | null {
+  let first: RoomItem | null = null;
+  const covered = new Set<number>();
+  for (const o of others) {
+    const face = partitionFace(cat, o);
+    if (!face.length) continue;
+    if (!first && face.some((c) => c[0] === cells[0][0] && c[1] === cells[0][1])) first = o;
+    for (const c of face) covered.add(key(c));
+  }
+  return first && cells.every((c) => covered.has(key(c))) ? first : null;
+}
+
 export function checkPlace(cat: Catalog, room: Room, others: RoomItem[], itemId: string, x: number, y: number, span?: number | null): Check {
   const it = cat.byId.get(itemId);
   if (!it) return { ok: false, code: "unknown_item", parentUid: null };
@@ -25,13 +48,19 @@ export function checkPlace(cat: Catalog, room: Room, others: RoomItem[], itemId:
     if (c[0] < 0 || c[1] < 0 || c[0] >= room.cols || c[1] >= room.rows || blocked.has(key(c))) {
       return { ok: false, code: "out_of_bounds", parentUid: null };
     }
-    const type = c[1] < room.wall_rows ? "wall" : "floor";
-    if (onWall(it) !== (type === "wall")) return { ok: false, code: "bad_cell_type", parentUid: null };
-    // furniture, partitions and rugs cannot sit on unwalkable tiles (water etc.) — mirrors placement.py
+    // furniture, partitions, floor patterns and rugs cannot sit on unwalkable tiles (water etc.) — mirrors placement.py
     const group = collisionLayer(it);
-    if ((group === "furniture" || group === "floor") && !tileWalkable(cat, room, c[0], c[1])) {
+    if ((group === "furniture" || group === "floor" || group === "rug") && !tileWalkable(cat, room, c[0], c[1])) {
       return { ok: false, code: "out_of_bounds", parentUid: null };
     }
+  }
+  const types = cells.map((c) => (c[1] < room.wall_rows ? "wall" : "floor"));
+  const want = onWall(it) ? "wall" : "floor";
+  // wall decor off the wall rows may hang on a partition's face instead; that partition becomes its parent
+  let hanger: RoomItem | null = null;
+  if (types.some((t) => t !== want)) {
+    if (canHang(it) && types.every((t) => t === "floor")) hanger = hangerOf(cat, others, cells);
+    if (!hanger) return { ok: false, code: "bad_cell_type", parentUid: null };
   }
   const cellSet = new Set(cells.map(key));
 
@@ -41,7 +70,7 @@ export function checkPlace(cat: Catalog, room: Room, others: RoomItem[], itemId:
       if (!oi || collisionLayer(oi) !== collisionLayer(it)) continue;
       if (footprintOf(cat, o).some((c) => cellSet.has(key(c)))) return { ok: false, code: "collision", parentUid: null };
     }
-    return { ok: true, parentUid: null };
+    return { ok: true, parentUid: hanger?.uid ?? null };
   }
 
   const surfaces = others.filter((o) => { const oi = cat.byId.get(o.item_id); return oi?.layer === "furniture" && oi.is_surface; });

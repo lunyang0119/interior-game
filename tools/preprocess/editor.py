@@ -51,8 +51,9 @@ KNOWN_TAGS = [
     ("note", "쪽지로 글을 남길 수 있는 소품"),
     ("guest_note", "손님이 남기는 쪽지 스프라이트 (없으면 제일 싼 note)"),
     ("board", "탭하면 📋 게시판"),
-    ("partition", "벽 스프라이트를 바닥에 세움 (칸막이)"),
+    ("partition", "벽 스프라이트를 바닥에 세움 (칸막이) · 벽 장식을 걸 수 있음"),
     ("door", "partition을 아바타가 통과"),
+    ("rug", "바닥 무늬 위에 깔리는 러그 (없으면 바닥 무늬: 서로 못 겹침)"),
 ]
 ROOM_ID_RE = re.compile(r"^[a-z][a-z0-9_]*$")
 # fields the game server's Room model knows; everything else (name, exits, seed) is for later phases
@@ -201,18 +202,63 @@ def load_rooms() -> dict[str, dict]:
     return rooms
 
 
+def sprite_rows(sprite: str) -> int:
+    """Rows the built sprite is tall (0 when not built yet) — a partition's face, see Item.face_rows."""
+    f = _atlas_frames().get(sprite)
+    return -(-f["frame"]["h"] // C.CELL) if f else 0
+
+
+_frames_cache: dict = {}
+
+
+def _atlas_frames() -> dict:
+    p = C.OUT_DIR / "interiors.json"
+    if not p.exists():
+        return {}
+    with _lock:
+        if _frames_cache.get("mtime") != p.stat().st_mtime:
+            _frames_cache.clear()
+            _frames_cache["mtime"] = p.stat().st_mtime
+            _frames_cache["frames"] = json.loads(p.read_text(encoding="utf-8")).get("frames", {})
+        return _frames_cache["frames"]
+
+
+def partition_face(s: dict, it: dict) -> set[tuple[int, int]]:
+    """Cells of a partition seed's wall face (mirrors placement.partition_face)."""
+    if it["layer"] not in ("wall", "wallpaper") or "partition" not in (it.get("tags") or []):
+        return set()
+    rows = max(it["h"], sprite_rows(it["sprite"]))
+    bottom = s["y"] + it["h"] - 1
+    return {(cx, cy) for cy in range(bottom - rows + 1, bottom + 1) for cx in range(s["x"], s["x"] + it["w"])}
+
+
 def seed_problem(s: dict, room: dict, items: dict[str, dict], others: list[dict]) -> str | None:
     """Why the game server would skip this seed (mirrors server/app/placement.py)."""
     it = items.get(s.get("item_id"))
     if it is None:
         return "모르는 아이템"
-    wall = it["layer"] in ("wall", "wallpaper") and "partition" not in (it.get("tags") or [])
+    partition = "partition" in (it.get("tags") or [])
+    wall = it["layer"] in ("wall", "wallpaper") and not partition
     w = (s.get("span") or it["w"]) if it["layer"] == "wallpaper" else it["w"]
     h = it["h"]
     x, y = s["x"], s["y"]
     if (y + h > room["wall_rows"]) if wall else (y < room["wall_rows"]):
+        if wall and it["layer"] == "wall" and y >= room["wall_rows"]:
+            # wall decor on the floor rows is fine when every cell lies on a partition seed's face
+            faces: set[tuple[int, int]] = set()
+            for o in others:
+                oi = items.get(o.get("item_id"))
+                if o is not s and oi:
+                    faces |= partition_face(o, oi)
+            if all((cx, cy) in faces for cy in range(y, y + h) for cx in range(x, x + w)):
+                return None
+            return "벽 칸이나 partition 벽면 위에만"
         return "벽 칸에만" if wall else "바닥 칸에만 (발 위치 기준)"
     return None  # past the edge / overlapping is fine for seeds (the game server places them relaxed)
+
+
+# Room kinds (mirror server catalog.RoomKind): "room" = decorated, "mine" = the ore room (data/mine.json names it).
+ROOM_KINDS = ("room", "mine")
 
 
 def validate_room(rid: str, room: dict, all_ids: set[str], item_ids: set[str], tile_keys: set[str]) -> str | None:
@@ -224,6 +270,8 @@ def validate_room(rid: str, room: dict, all_ids: set[str], item_ids: set[str], t
             return f"{rid}: {f}가 정수가 아니에요"
     if room["cols"] < 4 or room["rows"] < 2 or room["wall_rows"] >= room["rows"]:
         return f"{rid}: 크기가 이상해요 (cols≥4, rows≥2, wall_rows<rows)"
+    if room.get("kind", "room") not in ROOM_KINDS:
+        return f"{rid}: kind는 {' / '.join(ROOM_KINDS)} 중 하나여야 해요"
     sp = room.get("spawn") or {}
     if not (0 <= int(sp.get("x", -1)) < room["cols"] and room["wall_rows"] <= int(sp.get("y", -1)) < room["rows"]):
         return f"{rid}: spawn이 바닥 안에 있어야 해요"

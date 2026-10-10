@@ -10,7 +10,7 @@ from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, Request
 
-from .. import guests, progress
+from .. import cat as inn_cat, guests, progress
 from ..auth import Player, current_player
 from ..db import get_db, now
 
@@ -39,7 +39,8 @@ def activity(request: Request, me: Player = Depends(current_player), conn: sqlit
                         (MAX_EVENTS,)).fetchall()
     return {"events": [_row(r) for r in rows], "max": MAX_EVENTS, "today": today_totals(conn, kst_midnight(now())),
             "progress": progress.all_progress(conn, cat), "locked": sorted(progress.locked(conn, cat)),
-            "comfort": guests.all_views(conn, cat, request.app.state.guests)}
+            "comfort": guests.all_views(conn, cat, request.app.state.guests),
+            "cat": {"affection": inn_cat.affection(conn), "taps": inn_cat.taps(conn)}}
 
 
 def today_totals(conn: sqlite3.Connection, since: int) -> dict:
@@ -47,12 +48,14 @@ def today_totals(conn: sqlite3.Connection, since: int) -> dict:
 
     Every number is the sum of `events.amount` (+ = the pool grew), so refunds for removed furniture and the
     money a delivery takes back are counted instead of being lost: earned = sheet income, fish = catch value,
-    furniture = buys minus refunds (≤ 0 unless more was refunded than bought), sold = junk sales, deliver = the
-    reversed catch value (≤ 0).
+    furniture = buys minus refunds (≤ 0 unless more was refunded than bought), sold = junk sales, mine = ore
+    value, deliver = the reversed catch/ore value (≤ 0).
     """
     sums = {r["kind"]: int(r["s"]) for r in conn.execute(
         "SELECT kind, COALESCE(SUM(amount), 0) AS s FROM events WHERE ts >= ? GROUP BY kind", (since,)).fetchall()}
-    fish_count = conn.execute("SELECT COUNT(*) FROM events WHERE kind = 'fish' AND ts >= ?", (since,)).fetchone()[0]
-    return {"earned": sums.get("earn", 0), "fish": sums.get("fish", 0), "fish_count": int(fish_count),
+    counts = {r["kind"]: int(r["n"]) for r in conn.execute(
+        "SELECT kind, COUNT(*) AS n FROM events WHERE kind IN ('fish', 'mine') AND ts >= ? GROUP BY kind", (since,)).fetchall()}
+    return {"earned": sums.get("earn", 0), "fish": sums.get("fish", 0), "fish_count": counts.get("fish", 0),
+            "mine": sums.get("mine", 0), "mine_count": counts.get("mine", 0),
             "furniture": sums.get("place", 0) + sums.get("remove", 0), "sold": sums.get("sell", 0),
             "deliver": sums.get("deliver", 0), "guests": sums.get("guest", 0)}

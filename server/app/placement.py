@@ -4,9 +4,12 @@ Rules (see plan §3):
 1. item exists, footprint inside the room, no blocked cells, no unwalkable tiles (walk:false) under
    furniture or rugs
 2. every footprint cell has the right type for the layer (wallpaper/wall ↔ wall rows, else floor);
-   a `partition`-tagged wall sprite is the exception: it stands on floor rows
+   a `partition`-tagged wall sprite is the exception: it stands on floor rows — and `wall` decor may instead
+   hang on a partition's face (floor cells covered by a partition's sprite, see partition_face); the partition
+   under its first cell becomes its parent (so it goes when the partition goes), z = "hung"
 3. wallpaper/wall/floor/furniture only collide with items of the same collision layer
-   (so frames, doors and chalkboards can hang over wallpaper; partitions collide with furniture)
+   (so frames, doors and chalkboards can hang over wallpaper; partitions collide with furniture;
+   `rug`-tagged floor items lie over untagged floor patterns)
 4. surface_item needs exactly one is_surface furniture under every cell, the same
    one for all cells, and no other surface_item in those cells
 
@@ -74,6 +77,31 @@ def footprint_of(catalog: Catalog, row: ItemRow) -> list[Cell]:
     return footprint(row.x, row.y, width_of(it, row.span), it.h)
 
 
+def partition_face(catalog: Catalog, row: ItemRow) -> set[Cell]:
+    """Cells of a partition's visible wall face: its columns, `face_rows` rows up from the footprint bottom.
+    Empty for anything that is not a partition."""
+    it = catalog.items[row.item_id]
+    if not it.is_partition:
+        return set()
+    bottom = row.y + it.h - 1
+    return set(footprint(row.x, bottom - it.face_rows + 1, it.w, it.face_rows))
+
+
+def hanger_of(catalog: Catalog, others: list[ItemRow], cells: list[Cell]) -> ItemRow | None:
+    """The partition a wall decor with this footprint hangs on: every cell must lie on some partition's face;
+    the one under the first cell is returned (it becomes the parent)."""
+    first: ItemRow | None = None
+    covered: set[Cell] = set()
+    for o in others:
+        face = partition_face(catalog, o)
+        if not face:
+            continue
+        if first is None and cells[0] in face:
+            first = o
+        covered |= face
+    return first if first is not None and all(c in covered for c in cells) else None
+
+
 def validate_place(catalog: Catalog, others: list[ItemRow], item_id: str, x: int, y: int,
                    span: int | None = None, room_id: str | None = None, relaxed: bool = False) -> Placement:
     it: Item | None = catalog.get(item_id)
@@ -89,12 +117,16 @@ def validate_place(catalog: Catalog, others: list[ItemRow], item_id: str, x: int
     if not relaxed and any(not room.in_bounds(cx, cy) or (cx, cy) in blocked for cx, cy in cells):
         raise fail("out_of_bounds")
     # floor things cannot sit on water etc. (wall layers never touch floor tiles; surface items need a table)
-    if not relaxed and it.collision_layer in ("furniture", "floor") and any(not catalog.tile_walkable(room, cx, cy) for cx, cy in cells):
+    if not relaxed and it.collision_layer in ("furniture", "floor", "rug") and any(not catalog.tile_walkable(room, cx, cy) for cx, cy in cells):
         raise fail("out_of_bounds")
 
     want = "wall" if it.on_wall else "floor"
+    hanger: ItemRow | None = None  # the partition a wall decor hangs on when it is not on the wall rows
     if any(room.cell_type(cx, cy) != want for cx, cy in cells):
-        raise fail("bad_cell_type")
+        if it.can_hang and all(room.cell_type(cx, cy) == "floor" for cx, cy in cells):
+            hanger = hanger_of(catalog, others, cells)
+        if hanger is None:
+            raise fail("bad_cell_type")
 
     cell_set = set(cells)
 
@@ -104,6 +136,8 @@ def validate_place(catalog: Catalog, others: list[ItemRow], item_id: str, x: int
                 continue
             if cell_set & set(footprint_of(catalog, o)):
                 raise fail("collision")
+        if hanger is not None:
+            return Placement(z=Z_OF_LAYER["hung"], parent_uid=hanger.uid)
         return Placement(z=Z_OF_LAYER[it.collision_layer], parent_uid=None)
 
     # surface_item

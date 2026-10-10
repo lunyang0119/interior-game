@@ -75,7 +75,7 @@ def test_three_pulls_pay_the_pool_and_tell_everyone(client):
         assert ev["kind"] == "fish" and ev["item_id"] == body["id"] and ev["amount"] == body["value"]
         # no stage wants fish in this catalog → nothing to deliver, the money stays
         assert body["seq"] is not None and body["deliverable"] == []
-        r = client.post("/api/fish/deliver", json={"seq": body["seq"]}, headers=auth(lun))
+        r = client.post("/api/deliver", json={"seq": body["seq"]}, headers=auth(lun))
         assert r.status_code == 400 and r.json()["error"] == "nothing_to_deliver"
     assert client.get("/api/me", headers=auth(lun)).json()["balance"] == 800 + body["value"]
     # the session is spent

@@ -76,6 +76,12 @@ SHEETS = {
     "free_modern_pack": INTERIOR / "Free Modern Pack ( Dev Essentials ).png",
     "medieval_pack": INTERIOR / "Medieval Free Pack ( Dev Essentials ).png",
     "interior_no_shadow": INTERIOR / "Interior without swadows.png",
+    # the mine (room kind "mine"): Gold Rush tiles/props for the room itself, Cave Items for ore + pickaxe icons.
+    # They live under Map/ but are sliced into the interior atlas because rooms draw their tiles/seeds from it.
+    "mine_floor": MAP / "Mine" / "Premium_GoldRush_AssetPack" / "floor_TileSheet.png",
+    "mine_walls": MAP / "Mine" / "Premium_GoldRush_AssetPack" / "walls&doors_TileSheet.png",
+    "mine_props": MAP / "Mine" / "Premium_GoldRush_AssetPack" / "props_TileSheet.png",
+    "cave_items": MAP / "Mine" / "16x16 Cave Items" / "Cave_Items_Spritesheet.png",
 }
 
 # Overworld map sheets (`scan --map`, packed into gen/map.png by `build`). Keys must not contain
@@ -111,7 +117,10 @@ SET_ALIASES = {
     "topdown_furniture1": "topdown", "topdown_furniture2": "topdown", "topdown_small_items": "topdown",
     "axulart_all": "axulart", "axulart_basic": "axulart",
     "spritesheet_misc": "misc",
+    "mine_floor": "goldrush", "mine_walls": "goldrush", "mine_props": "goldrush",
 }
+# data/mine.json: the ore room, the daily node count and the ore kinds; `build` crops their icons to gen/mine/.
+MINE_FILE = REPO_ROOT / "data" / "mine.json"
 # The inn cat: assets/graphic/Map/Cats/<variant>.png (1024x544, 32px cells). `build` cuts one variant into
 # gen/cat/<variant>.png. Sheet layout: 6 sections of 4 cells left→right (sitting down, looking around, laying
 # down, walking, running, running 2.0); row 0 is the section title text (never a frame); below it every

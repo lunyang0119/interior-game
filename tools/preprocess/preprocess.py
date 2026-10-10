@@ -710,27 +710,58 @@ def copy_map_bgs() -> dict | None:
     return {"names": names}
 
 
-def copy_fish_icons() -> dict | None:
-    """data/fishing.json loot icons → gen/fish/<loot id>.png (DOM toast images)."""
-    src = C.REPO_ROOT / "data" / "fishing.json"
+def copy_loot_icons(src: Path, key: str, out_name: str, extra: dict[str, object] | None = None) -> dict | None:
+    """Loot icons of a data file → gen/<out_name>/<id>.png (DOM overlay images, ore sprites).
+
+    `src[key]` is a list of {id, icon}; `icon` is either an asset path (copied as is) or {file, x, y, w?, h?}
+    (a cell cropped out of a sheet, 16x16 by default). `extra` adds named icons the same way ({"pickaxe": icon}).
+    """
     if not src.exists():
         return None
-    loot = json.loads(src.read_text(encoding="utf-8")).get("loot", [])
-    out = C.OUT_DIR / "fish"
+    data = json.loads(src.read_text(encoding="utf-8"))
+    out = C.OUT_DIR / out_name
     out.mkdir(parents=True, exist_ok=True)
     ids: list[str] = []
-    for l in loot:
-        icon = l.get("icon")
+
+    def write(name: str, icon) -> None:
         if not icon:
-            continue
-        p = C.ASSETS / icon
-        if not p.exists():
-            print(f"WARNING: fishing icon missing for {l['id']}: {icon}")
-            continue
-        shutil.copyfile(p, out / f"{l['id']}.png")
-        ids.append(l["id"])
-    print(f"fish icons: {len(ids)} → gen/fish/")
+            return
+        if isinstance(icon, str):
+            p = C.ASSETS / icon
+            if not p.exists():
+                print(f"WARNING: {out_name} icon missing for {name}: {icon}")
+                return
+            shutil.copyfile(p, out / f"{name}.png")
+        else:
+            p = C.ASSETS / icon["file"]
+            if not p.exists():
+                print(f"WARNING: {out_name} icon missing for {name}: {icon['file']}")
+                return
+            x, y = int(icon["x"]), int(icon["y"])
+            w, h = int(icon.get("w", C.CELL)), int(icon.get("h", C.CELL))
+            with Image.open(p) as im:
+                im.convert("RGBA").crop((x, y, x + w, y + h)).save(out / f"{name}.png")
+        ids.append(name)
+
+    for entry in data.get(key, []):
+        write(entry["id"], entry.get("icon"))
+    for name, icon in (extra or {}).items():
+        write(name, icon)
+    print(f"{out_name} icons: {len(ids)} → gen/{out_name}/")
     return {"icons": ids}
+
+
+def copy_fish_icons() -> dict | None:
+    """data/fishing.json loot icons → gen/fish/<loot id>.png (catch overlay images)."""
+    return copy_loot_icons(C.REPO_ROOT / "data" / "fishing.json", "loot", "fish")
+
+
+def copy_mine_icons() -> dict | None:
+    """data/mine.json ore icons + the pickaxe → gen/mine/<id>.png (ore node sprites, 채광 button, overlay)."""
+    if not C.MINE_FILE.exists():
+        return None
+    pick = json.loads(C.MINE_FILE.read_text(encoding="utf-8")).get("pickaxe")
+    return copy_loot_icons(C.MINE_FILE, "ores", "mine", {"pickaxe": pick} if pick else None)
 
 
 def copy_dock() -> dict | None:
@@ -832,6 +863,9 @@ def cmd_build(args: argparse.Namespace) -> None:
     fish_entry = copy_fish_icons()
     if fish_entry:
         manifest["fish"] = fish_entry
+    mine_entry = copy_mine_icons()
+    if mine_entry:
+        manifest["mine"] = mine_entry
     cat_entry = build_cat()
     if cat_entry:
         manifest["cat"] = cat_entry

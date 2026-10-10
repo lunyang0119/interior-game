@@ -2005,13 +2005,6 @@
     "ch": 5,
     "set": "mi_conference_hall"
    },
-   "rug_cross_pattern_ti": {
-    "w": 80,
-    "h": 80,
-    "cw": 5,
-    "ch": 5,
-    "set": "tiles_and_items"
-   },
    "stair_corner_a_left": {
     "w": 64,
     "h": 80,
@@ -2095,27 +2088,6 @@
     "cw": 4,
     "ch": 5,
     "set": "pi_living"
-   },
-   "wardrobe_brown_a_open": {
-    "w": 64,
-    "h": 80,
-    "cw": 4,
-    "ch": 5,
-    "set": "pi_bedroom"
-   },
-   "wardrobe_brown_b_open": {
-    "w": 64,
-    "h": 80,
-    "cw": 4,
-    "ch": 5,
-    "set": "pi_bedroom"
-   },
-   "wardrobe_white_open": {
-    "w": 64,
-    "h": 80,
-    "cw": 4,
-    "ch": 5,
-    "set": "pi_bedroom"
    },
    "i1_counter_green": {
     "w": 48,
@@ -2333,6 +2305,27 @@
     "cw": 2,
     "ch": 4,
     "set": "pi_living"
+   },
+   "wardrobe_brown_a_open": {
+    "w": 64,
+    "h": 66,
+    "cw": 4,
+    "ch": 4,
+    "set": "pi_bedroom"
+   },
+   "wardrobe_brown_b_open": {
+    "w": 64,
+    "h": 66,
+    "cw": 4,
+    "ch": 4,
+    "set": "pi_bedroom"
+   },
+   "wardrobe_white_open": {
+    "w": 64,
+    "h": 66,
+    "cw": 4,
+    "ch": 4,
+    "set": "pi_bedroom"
    },
    "mordjail_008_kitchen_counter_row": {
     "w": 144,
@@ -2698,20 +2691,6 @@
     "ch": 4,
     "set": "pi_bedroom"
    },
-   "bed_blue_fp": {
-    "w": 32,
-    "h": 64,
-    "cw": 2,
-    "ch": 4,
-    "set": "freepixel"
-   },
-   "bed_green_fp": {
-    "w": 32,
-    "h": 64,
-    "cw": 2,
-    "ch": 4,
-    "set": "freepixel"
-   },
    "bed_pixel_black_single": {
     "w": 32,
     "h": 64,
@@ -2746,13 +2725,6 @@
     "cw": 2,
     "ch": 4,
     "set": "pi_bedroom"
-   },
-   "chair_set_ti": {
-    "w": 32,
-    "h": 64,
-    "cw": 2,
-    "ch": 4,
-    "set": "tiles_and_items"
    },
    "door_office_dark": {
     "w": 32,
@@ -3209,6 +3181,20 @@
     "ch": 3,
     "set": "floors_walls02"
    },
+   "door_86": {
+    "w": 31,
+    "h": 53,
+    "cw": 1,
+    "ch": 3,
+    "set": "doorswindowsstairs_back"
+   },
+   "door_85": {
+    "w": 30,
+    "h": 53,
+    "cw": 1,
+    "ch": 3,
+    "set": "doorswindowsstairs_back"
+   },
    "fmp_051": {
     "w": 64,
     "h": 52,
@@ -3230,6 +3216,13 @@
     "ch": 3,
     "set": "interior_no_shadow"
    },
+   "bed_blue_fp": {
+    "w": 32,
+    "h": 52,
+    "cw": 2,
+    "ch": 3,
+    "set": "freepixel"
+   },
    "door_wood_open_b": {
     "w": 32,
     "h": 52,
@@ -3243,6 +3236,13 @@
     "cw": 2,
     "ch": 3,
     "set": "pi_living"
+   },
+   "bed_green_fp": {
+    "w": 31,
+    "h": 52,
+    "cw": 1,
+    "ch": 3,
+    "set": "freepixel"
    },
    "nosh_050_bookshelf_narrow_brown": {
     "w": 25,
@@ -3320,6 +3320,13 @@
     "cw": 2,
     "ch": 3,
     "set": "pi_living"
+   },
+   "door_89": {
+    "w": 30,
+    "h": 51,
+    "cw": 1,
+    "ch": 3,
+    "set": "doorswindowsstairs_back"
    },
    "nosh_013_bed_green": {
     "w": 38,
@@ -3524,6 +3531,20 @@
     "ch": 3,
     "set": "furnipixel_free"
    },
+   "door_87": {
+    "w": 31,
+    "h": 49,
+    "cw": 1,
+    "ch": 3,
+    "set": "doorswindowsstairs_back"
+   },
+   "door_88": {
+    "w": 30,
+    "h": 49,
+    "cw": 1,
+    "ch": 3,
+    "set": "doorswindowsstairs_back"
+   },
    "mordkitchen_002_wall_panel_swatch": {
     "w": 256,
     "h": 48,
@@ -3657,28 +3678,7 @@
     "ch": 3,
     "set": "free_modern_pack"
    },
-   "fmp_042": {
-    "w": 64,
-    "h": 48,
-    "cw": 4,
-    "ch": 3,
-    "set": "free_modern_pack"
-   },
    "fmp_056": {
-    "w": 64,
-    "h": 48,
-    "cw": 4,
-    "ch": 3,
-    "set": "free_modern_pack"
-   },
-   "fmp_063": {
-    "w": 64,
-    "h": 48,
-    "cw": 4,
-    "ch": 3,
-    "set": "free_modern_pack"
-   },
-   "fmp_065": {
     "w": 64,
     "h": 48,
     "cw": 4,
@@ -6345,6 +6345,13 @@
     "ch": 3,
     "set": "mi_free"
    },
+   "door_90": {
+    "w": 30,
+    "h": 48,
+    "cw": 1,
+    "ch": 3,
+    "set": "doorswindowsstairs_back"
+   },
    "bookcase_narrow_r1": {
     "w": 16,
     "h": 48,
@@ -6548,6 +6555,13 @@
     "ch": 3,
     "set": "free_modern_pack"
    },
+   "fmp_042": {
+    "w": 16,
+    "h": 48,
+    "cw": 1,
+    "ch": 3,
+    "set": "free_modern_pack"
+   },
    "fmp_062": {
     "w": 16,
     "h": 48,
@@ -6555,7 +6569,63 @@
     "ch": 3,
     "set": "free_modern_pack"
    },
+   "fmp_063": {
+    "w": 16,
+    "h": 48,
+    "cw": 1,
+    "ch": 3,
+    "set": "free_modern_pack"
+   },
    "fmp_064": {
+    "w": 16,
+    "h": 48,
+    "cw": 1,
+    "ch": 3,
+    "set": "free_modern_pack"
+   },
+   "fmp_065": {
+    "w": 16,
+    "h": 48,
+    "cw": 1,
+    "ch": 3,
+    "set": "free_modern_pack"
+   },
+   "free_85": {
+    "w": 16,
+    "h": 48,
+    "cw": 1,
+    "ch": 3,
+    "set": "free_modern_pack"
+   },
+   "free_85_2": {
+    "w": 16,
+    "h": 48,
+    "cw": 1,
+    "ch": 3,
+    "set": "free_modern_pack"
+   },
+   "free_86": {
+    "w": 16,
+    "h": 48,
+    "cw": 1,
+    "ch": 3,
+    "set": "free_modern_pack"
+   },
+   "free_86_2": {
+    "w": 16,
+    "h": 48,
+    "cw": 1,
+    "ch": 3,
+    "set": "free_modern_pack"
+   },
+   "free_87": {
+    "w": 16,
+    "h": 48,
+    "cw": 1,
+    "ch": 3,
+    "set": "free_modern_pack"
+   },
+   "free_88": {
     "w": 16,
     "h": 48,
     "cw": 1,
@@ -7780,6 +7850,13 @@
     "ch": 2,
     "set": "interior_no_shadow"
    },
+   "8gym_85": {
+    "w": 28,
+    "h": 37,
+    "cw": 1,
+    "ch": 2,
+    "set": "8_gym_shadowless"
+   },
    "nosh_039_door_glass_brown": {
     "w": 23,
     "h": 37,
@@ -7814,6 +7891,13 @@
     "cw": 1,
     "ch": 2,
     "set": "free_modern_pack"
+   },
+   "8gym_90": {
+    "w": 15,
+    "h": 37,
+    "cw": 0,
+    "ch": 2,
+    "set": "8_gym_shadowless"
    },
    "nosh_137_sofa_large_green": {
     "w": 57,
@@ -7920,6 +8004,20 @@
     "ch": 2,
     "set": "medieval_pack"
    },
+   "8gym_87": {
+    "w": 21,
+    "h": 35,
+    "cw": 1,
+    "ch": 2,
+    "set": "8_gym_shadowless"
+   },
+   "8gym_88": {
+    "w": 20,
+    "h": 35,
+    "cw": 1,
+    "ch": 2,
+    "set": "8_gym_shadowless"
+   },
    "fmp_75": {
     "w": 47,
     "h": 34,
@@ -7969,6 +8067,20 @@
     "ch": 2,
     "set": "interior_no_shadow"
    },
+   "pixe_90": {
+    "w": 33,
+    "h": 34,
+    "cw": 2,
+    "ch": 2,
+    "set": "pixelinterior_wardrobes_br"
+   },
+   "pixe_88": {
+    "w": 32,
+    "h": 34,
+    "cw": 2,
+    "ch": 2,
+    "set": "pixelinterior_wardrobes_br"
+   },
    "mordernhospital_01_cabinet": {
     "w": 29,
     "h": 34,
@@ -7982,6 +8094,13 @@
     "cw": 1,
     "ch": 2,
     "set": "mi_hospital"
+   },
+   "pixe_85": {
+    "w": 25,
+    "h": 34,
+    "cw": 1,
+    "ch": 2,
+    "set": "pixelinterior_wardrobes_br"
    },
    "mordernhospital_10_japangi": {
     "w": 24,
@@ -8095,6 +8214,13 @@
     "ch": 2,
     "set": "interior_no_shadow"
    },
+   "pixe_89": {
+    "w": 33,
+    "h": 33,
+    "cw": 2,
+    "ch": 2,
+    "set": "pixelinterior_wardrobes_br"
+   },
    "nosh_144_armchair_orange": {
     "w": 29,
     "h": 33,
@@ -8136,6 +8262,20 @@
     "cw": 1,
     "ch": 2,
     "set": "interior_no_shadow"
+   },
+   "chair_set_ti": {
+    "w": 24,
+    "h": 33,
+    "cw": 1,
+    "ch": 2,
+    "set": "tiles_and_items"
+   },
+   "pixe_87": {
+    "w": 24,
+    "h": 33,
+    "cw": 1,
+    "ch": 2,
+    "set": "pixelinterior_wardrobes_br"
    },
    "mordupstairs_001_wallpaper_swatch_row": {
     "w": 240,
@@ -9600,34 +9740,6 @@
     "ch": 2,
     "set": "misc"
    },
-   "book_stack_dark_fp": {
-    "w": 32,
-    "h": 32,
-    "cw": 2,
-    "ch": 2,
-    "set": "freepixel"
-   },
-   "book_stack_fp": {
-    "w": 32,
-    "h": 32,
-    "cw": 2,
-    "ch": 2,
-    "set": "freepixel"
-   },
-   "book_stack_purple_fp": {
-    "w": 32,
-    "h": 32,
-    "cw": 2,
-    "ch": 2,
-    "set": "freepixel"
-   },
-   "book_stack_tan_fp": {
-    "w": 32,
-    "h": 32,
-    "cw": 2,
-    "ch": 2,
-    "set": "freepixel"
-   },
    "bookshelf_small_olive1": {
     "w": 32,
     "h": 32,
@@ -9837,13 +9949,6 @@
     "cw": 2,
     "ch": 2,
     "set": "furniture03"
-   },
-   "fire_extinguisher_sm": {
-    "w": 32,
-    "h": 32,
-    "cw": 2,
-    "ch": 2,
-    "set": "misc"
    },
    "floor_beige_dot": {
     "w": 32,
@@ -12442,20 +12547,6 @@
     "ch": 2,
     "set": "ppfurniture_pack_freev"
    },
-   "round_table_fp1": {
-    "w": 32,
-    "h": 32,
-    "cw": 2,
-    "ch": 2,
-    "set": "freepixel"
-   },
-   "round_table_fp2": {
-    "w": 32,
-    "h": 32,
-    "cw": 2,
-    "ch": 2,
-    "set": "freepixel"
-   },
    "round_table_olive1": {
     "w": 32,
     "h": 32,
@@ -12708,12 +12799,26 @@
     "ch": 2,
     "set": "mi_free"
    },
+   "tile_85": {
+    "w": 25,
+    "h": 32,
+    "cw": 1,
+    "ch": 2,
+    "set": "tiles_and_items"
+   },
    "fishing_01_rod": {
     "w": 24,
     "h": 32,
     "cw": 1,
     "ch": 2,
     "set": "9_fishing_shadowless"
+   },
+   "pixe_86": {
+    "w": 24,
+    "h": 32,
+    "cw": 1,
+    "ch": 2,
+    "set": "pixelinterior_wardrobes_br"
    },
    "mordcomdinium_01_door": {
     "w": 22,
@@ -16880,13 +16985,6 @@
     "ch": 2,
     "set": "mi_free"
    },
-   "plant_lamp_ti": {
-    "w": 16,
-    "h": 32,
-    "cw": 1,
-    "ch": 2,
-    "set": "tiles_and_items"
-   },
    "plant_pot": {
     "w": 16,
     "h": 32,
@@ -17083,20 +17181,6 @@
     "ch": 2,
     "set": "pi_bedroom"
    },
-   "small_stand_ti1": {
-    "w": 16,
-    "h": 32,
-    "cw": 1,
-    "ch": 2,
-    "set": "tiles_and_items"
-   },
-   "small_stand_ti2": {
-    "w": 16,
-    "h": 32,
-    "cw": 1,
-    "ch": 2,
-    "set": "tiles_and_items"
-   },
    "speaker_tower_black": {
     "w": 16,
     "h": 32,
@@ -17153,6 +17237,48 @@
     "ch": 1,
     "set": "free_modern_pack"
    },
+   "ward_85": {
+    "w": 25,
+    "h": 31,
+    "cw": 1,
+    "ch": 1,
+    "set": "wardrobe"
+   },
+   "door_92": {
+    "w": 49,
+    "h": 30,
+    "cw": 3,
+    "ch": 1,
+    "set": "doorswindowsstairs_back"
+   },
+   "door_96": {
+    "w": 49,
+    "h": 30,
+    "cw": 3,
+    "ch": 1,
+    "set": "doorswindowsstairs_back"
+   },
+   "door_94": {
+    "w": 48,
+    "h": 30,
+    "cw": 3,
+    "ch": 1,
+    "set": "doorswindowsstairs_back"
+   },
+   "door_95": {
+    "w": 48,
+    "h": 30,
+    "cw": 3,
+    "ch": 1,
+    "set": "doorswindowsstairs_back"
+   },
+   "door_93": {
+    "w": 47,
+    "h": 30,
+    "cw": 2,
+    "ch": 1,
+    "set": "doorswindowsstairs_back"
+   },
    "morderngrocery_04_stove_front": {
     "w": 32,
     "h": 30,
@@ -17180,6 +17306,13 @@
     "cw": 4,
     "ch": 1,
     "set": "mi_free"
+   },
+   "door_91": {
+    "w": 49,
+    "h": 29,
+    "cw": 3,
+    "ch": 1,
+    "set": "doorswindowsstairs_back"
    },
    "med_007": {
     "w": 32,
@@ -17313,6 +17446,13 @@
     "cw": 2,
     "ch": 1,
     "set": "interior_no_shadow"
+   },
+   "8gym_89": {
+    "w": 40,
+    "h": 27,
+    "cw": 2,
+    "ch": 1,
+    "set": "8_gym_shadowless"
    },
    "mordkit2_001e_window_glass_icon": {
     "w": 39,
@@ -17811,6 +17951,34 @@
     "ch": 1,
     "set": "interior_no_shadow"
    },
+   "axul_86": {
+    "w": 32,
+    "h": 24,
+    "cw": 2,
+    "ch": 1,
+    "set": "axulart"
+   },
+   "axul_87": {
+    "w": 32,
+    "h": 24,
+    "cw": 2,
+    "ch": 1,
+    "set": "axulart"
+   },
+   "axul_88": {
+    "w": 32,
+    "h": 24,
+    "cw": 2,
+    "ch": 1,
+    "set": "axulart"
+   },
+   "axul_89": {
+    "w": 32,
+    "h": 24,
+    "cw": 2,
+    "ch": 1,
+    "set": "axulart"
+   },
    "moritl_015_nightstand_small": {
     "w": 32,
     "h": 24,
@@ -17852,6 +18020,20 @@
     "cw": 1,
     "ch": 1,
     "set": "interior_no_shadow"
+   },
+   "pixe_87_2": {
+    "w": 17,
+    "h": 24,
+    "cw": 1,
+    "ch": 1,
+    "set": "pixelinterior_wardrobes_br"
+   },
+   "axul_85": {
+    "w": 16,
+    "h": 24,
+    "cw": 1,
+    "ch": 1,
+    "set": "axulart"
    },
    "morderngrocery_06_mirror": {
     "w": 16,
@@ -17902,54 +18084,19 @@
     "ch": 1,
     "set": "interior_no_shadow"
    },
+   "8gym_91": {
+    "w": 48,
+    "h": 23,
+    "cw": 3,
+    "ch": 1,
+    "set": "8_gym_shadowless"
+   },
    "morderngrocery_07_mirror": {
     "w": 32,
     "h": 23,
     "cw": 2,
     "ch": 1,
     "set": "mi_grocery_store"
-   },
-   "mordkit2_005_chair_white_back": {
-    "w": 32,
-    "h": 23,
-    "cw": 2,
-    "ch": 1,
-    "set": "kitchen"
-   },
-   "mordkit2_009_chair_slateblue_back": {
-    "w": 32,
-    "h": 23,
-    "cw": 2,
-    "ch": 1,
-    "set": "kitchen"
-   },
-   "mordkit2_013_chair_sage_back": {
-    "w": 32,
-    "h": 23,
-    "cw": 2,
-    "ch": 1,
-    "set": "kitchen"
-   },
-   "mordkit2_017_chair_pink_back": {
-    "w": 32,
-    "h": 23,
-    "cw": 2,
-    "ch": 1,
-    "set": "kitchen"
-   },
-   "mordkit2_021_chair_cyan_back": {
-    "w": 32,
-    "h": 23,
-    "cw": 2,
-    "ch": 1,
-    "set": "kitchen"
-   },
-   "mordkit2_025_chair_terracotta_back": {
-    "w": 32,
-    "h": 23,
-    "cw": 2,
-    "ch": 1,
-    "set": "kitchen"
    },
    "nosh_007_dresser_small_brown": {
     "w": 19,
@@ -17992,6 +18139,20 @@
     "cw": 1,
     "ch": 1,
     "set": "mi_free"
+   },
+   "pixe_86_2": {
+    "w": 16,
+    "h": 23,
+    "cw": 1,
+    "ch": 1,
+    "set": "pixelinterior_wardrobes_br"
+   },
+   "plant_lamp_ti": {
+    "w": 16,
+    "h": 23,
+    "cw": 1,
+    "ch": 1,
+    "set": "tiles_and_items"
    },
    "nosh_008_cabinet_door_brown": {
     "w": 15,
@@ -18069,6 +18230,20 @@
     "cw": 2,
     "ch": 1,
     "set": "interior_tiles_lite"
+   },
+   "pixe_91": {
+    "w": 25,
+    "h": 22,
+    "cw": 1,
+    "ch": 1,
+    "set": "pixelinterior_wardrobes_br"
+   },
+   "pixe_95": {
+    "w": 24,
+    "h": 22,
+    "cw": 1,
+    "ch": 1,
+    "set": "pixelinterior_wardrobes_br"
    },
    "mordkit2_008_chair_white_lounge": {
     "w": 22,
@@ -18153,6 +18328,13 @@
     "cw": 1,
     "ch": 1,
     "set": "mi_shooting_range"
+   },
+   "pixe_85_2": {
+    "w": 16,
+    "h": 22,
+    "cw": 1,
+    "ch": 1,
+    "set": "pixelinterior_wardrobes_br"
    },
    "moritl_023_lamp_small": {
     "w": 15,
@@ -18252,6 +18434,34 @@
     "ch": 1,
     "set": "mi_grocery_store"
    },
+   "pixe_93": {
+    "w": 26,
+    "h": 21,
+    "cw": 1,
+    "ch": 1,
+    "set": "pixelinterior_wardrobes_br"
+   },
+   "pixe_94": {
+    "w": 26,
+    "h": 21,
+    "cw": 1,
+    "ch": 1,
+    "set": "pixelinterior_wardrobes_br"
+   },
+   "pixe_92": {
+    "w": 25,
+    "h": 21,
+    "cw": 1,
+    "ch": 1,
+    "set": "pixelinterior_wardrobes_br"
+   },
+   "pixe_96": {
+    "w": 25,
+    "h": 21,
+    "cw": 1,
+    "ch": 1,
+    "set": "pixelinterior_wardrobes_br"
+   },
    "moritl_010_clock_wall": {
     "w": 21,
     "h": 21,
@@ -18350,6 +18560,13 @@
     "ch": 1,
     "set": "mi_livingroom"
    },
+   "small_stand_ti2": {
+    "w": 16,
+    "h": 20,
+    "cw": 1,
+    "ch": 1,
+    "set": "tiles_and_items"
+   },
    "mordernhospital_04_whiteboard": {
     "w": 29,
     "h": 19,
@@ -18364,12 +18581,26 @@
     "ch": 1,
     "set": "mi_basement"
    },
+   "small_stand_ti1": {
+    "w": 16,
+    "h": 19,
+    "cw": 1,
+    "ch": 1,
+    "set": "tiles_and_items"
+   },
    "wardrobe_fnp": {
     "w": 16,
     "h": 19,
     "cw": 1,
     "ch": 1,
     "set": "furnipixel_free"
+   },
+   "8gym_92": {
+    "w": 35,
+    "h": 18,
+    "cw": 2,
+    "ch": 1,
+    "set": "8_gym_shadowless"
    },
    "nosh_053_bench_brown": {
     "w": 33,
@@ -18392,12 +18623,26 @@
     "ch": 1,
     "set": "interior_no_shadow"
    },
+   "round_table_fp1": {
+    "w": 21,
+    "h": 18,
+    "cw": 1,
+    "ch": 1,
+    "set": "freepixel"
+   },
    "mordernhospital_05_table": {
     "w": 20,
     "h": 18,
     "cw": 1,
     "ch": 1,
     "set": "mi_hospital"
+   },
+   "round_table_fp2": {
+    "w": 20,
+    "h": 18,
+    "cw": 1,
+    "ch": 1,
+    "set": "freepixel"
    },
    "nosh_058_stool_plain": {
     "w": 17,
@@ -18412,6 +18657,13 @@
     "cw": 1,
     "ch": 1,
     "set": "interior_no_shadow"
+   },
+   "axul_90": {
+    "w": 16,
+    "h": 18,
+    "cw": 1,
+    "ch": 1,
+    "set": "axulart"
    },
    "morderngrocery_01_islandtable_front": {
     "w": 48,
@@ -19764,6 +20016,13 @@
     "ch": 1,
     "set": "mi_free"
    },
+   "8gym_93": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "8_gym_shadowless"
+   },
    "badge_shield_red": {
     "w": 16,
     "h": 16,
@@ -20290,34 +20549,6 @@
     "set": "free_modern_pack"
    },
    "fmp_055": {
-    "w": 16,
-    "h": 16,
-    "cw": 1,
-    "ch": 1,
-    "set": "free_modern_pack"
-   },
-   "fmp_087": {
-    "w": 16,
-    "h": 16,
-    "cw": 1,
-    "ch": 1,
-    "set": "free_modern_pack"
-   },
-   "fmp_088": {
-    "w": 16,
-    "h": 16,
-    "cw": 1,
-    "ch": 1,
-    "set": "free_modern_pack"
-   },
-   "fmp_089": {
-    "w": 16,
-    "h": 16,
-    "cw": 1,
-    "ch": 1,
-    "set": "free_modern_pack"
-   },
-   "fmp_090": {
     "w": 16,
     "h": 16,
     "cw": 1,
@@ -24304,6 +24535,13 @@
     "ch": 1,
     "set": "topdown"
    },
+   "fire_extinguisher_sm": {
+    "w": 11,
+    "h": 16,
+    "cw": 0,
+    "ch": 1,
+    "set": "misc"
+   },
    "med_beer": {
     "w": 15,
     "h": 14,
@@ -24352,6 +24590,13 @@
     "cw": 1,
     "ch": 0,
     "set": "interior_no_shadow"
+   },
+   "8gym_86": {
+    "w": 9,
+    "h": 12,
+    "cw": 0,
+    "ch": 0,
+    "set": "8_gym_shadowless"
    },
    "mordlivingroom_04_jangsik": {
     "w": 28,

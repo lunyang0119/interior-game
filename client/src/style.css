@@ -56,6 +56,14 @@ img, .framed { image-rendering: pixelated; }
 #btn-fish.holding { transform: scale(0.96); filter: brightness(1.2); }
 #btn-fish.bite { animation: fish-bite .35s ease-in-out infinite alternate; }
 @keyframes fish-bite { from { transform: scale(1); } to { transform: scale(1.08); filter: brightness(1.2); } }
+/* ⛏ the mine bar sits above the bottom bar; the pickaxe swings once per press */
+#minebar { bottom: calc(var(--safe-bottom) + 64px); flex-direction: column; align-items: center; gap: 6px; }
+#mine-status { color: var(--text); font-weight: 700; text-shadow: 0 1px 2px #000; min-height: 1.2em; }
+#btn-mine { display: inline-flex; align-items: center; gap: 8px; min-width: 180px; touch-action: manipulation; }
+#btn-mine:disabled { opacity: .55; filter: grayscale(1); transform: none; }
+#btn-mine img { width: 24px; height: 24px; image-rendering: pixelated; transform-origin: 25% 75%; }
+#btn-mine.swing img { animation: pick-swing .22s ease-out; }
+@keyframes pick-swing { 0% { transform: rotate(-35deg); } 60% { transform: rotate(8deg); } 100% { transform: rotate(0); } }
 #fish-catch { position: fixed; left: 50%; top: 40%; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; gap: 10px;
   background: var(--panel); padding: 12px 18px; border-radius: 12px; z-index: 30; box-shadow: 0 8px 30px rgba(0,0,0,.5); font-weight: 700; }
 .fish-catch-row { display: flex; align-items: center; gap: 10px; }

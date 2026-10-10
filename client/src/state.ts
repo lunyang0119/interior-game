@@ -1,4 +1,4 @@
-import type { ComfortView, RoomProgress } from "./api";
+import type { CatView, ComfortView, RoomProgress } from "./api";
 import { bus } from "./bus";
 import { DEFAULT_LOOK, type AvatarLook, type Catalog } from "./catalog";
 
@@ -25,7 +25,18 @@ export const state = {
   comfort: {} as Record<string, ComfortView>,
   /** Zone id the avatar stands in (null = none / the room has no zones). */
   zone: null as string | null,
+  /** The inn cat: affection 0–3 and the taps behind it (from /api/activity, the ws `cat` message or our own pets). */
+  cat: { affection: 0, taps: 0 } as CatView,
 };
+
+export const CAT_TAPS_PER_LEVEL = 100;
+export const CAT_MAX_AFFECTION = 3;
+
+export function applyCat(view: CatView | null | undefined): void {
+  if (!view) return; // an older server has no cat picture
+  state.cat = { affection: view.affection, taps: view.taps };
+  bus.emit("cat:changed");
+}
 
 /** The guest unit the avatar is in right now. */
 export function currentUnit(): string {

@@ -19,6 +19,7 @@ export const SFX = {
   reel: "reel", // looping while holding
   sell: "sell", // sold or refunded an item
   meow: "cat", // the inn cat was petted (assets/sfx/<any>/cat_*.mp3 → media/sfx/cat.mp3; missing = silent)
+  pick: "pick", // a 채광 press in the mine (assets/sfx/<any>/pick_*.mp3; missing = silent)
   ocean: "ocean", // dock ambience: its files play back to back under the BGM while at the dock (setAmbientScene)
 } as const;
 

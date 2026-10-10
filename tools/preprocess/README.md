@@ -73,6 +73,12 @@ Character strips: 24 frames = 6 per direction in order right, up, left, down. `r
 
 `wall` 레이어 스프라이트(중세 벽, 문 벽 등)에 `partition` 태그를 주면 **벽 줄이 아니라 바닥에** 놓인다: 가구와 같은 층에서 충돌하고, 아바타가 못 지나가고, 가구처럼 아래 기준으로 그려져 앞뒤 정렬이 맞는다. 문이 달린 벽에는 `partition, door`를 주면 통과할 수 있다. 측면 그림이라 세로 칸 수가 크게 잡혀 있으니 아이템 탭에서 **h를 1**로 줄여 두는 게 좋다(발자국은 맨 아랫줄, 그림은 위로 솟음). 열린 문짝처럼 그림이 벽 밑으로 몇 px 삐져나오는 조각(parts 슬라이스로 띠를 붙인 것)은 아이템의 **`offset_y`**(px)에 그 높이를 적으면 그림만 그만큼 내려 그려져 옆 벽과 바닥선이 맞는다. 발자국은 안 움직인다. 구역(객실)을 벽으로 나눌 때 쓰고, 시드로도 놓을 수 있다.
 
+**칸막이에 벽 장식 걸기.** `wall` 레이어 장식(액자, 창문, 시계…)은 벽 줄 말고도 partition의 **벽면** 위에 놓을 수 있다. 벽면 = partition 발자국의 열 × 발 위로 그림 높이만큼의 줄(manifest `ch`, h가 더 크면 h). 장식의 모든 칸이 어떤 partition의 벽면 안에 들어가면 되고(옆으로 이어 붙인 벽 조각 여러 개에 걸쳐도 됨), 첫 칸 아래 partition이 **parent**가 되어 그 벽은 장식이 걸려 있는 동안 못 옮기고 못 판다(테이블과 컵 관계와 같음). 그림은 그 partition의 발 줄 기준으로 바로 위에 정렬되니 앞에 선 아바타가 가린다. 벽지(`wallpaper`)는 못 건다. 세로로 선 측면 벽(`med_wall_vertical` 같은 1×1)에도 규칙상 걸리긴 하니 알아서 피하면 된다. 시드는 partition → 나머지 → 소품 순서로 심어져서 순서는 신경 안 써도 된다.
+
+## 바닥 무늬와 러그 `rug`
+
+`floor` 레이어는 둘로 나뉜다: **바닥 무늬**(태그 없음 — `floor_*`, 타일 견본, 다다미 등)와 **러그**(`rug` 태그 — 러그, 매트, 카펫, 쿠션·방석). 무늬는 무늬끼리, 러그는 러그끼리만 겹침을 막고, 러그는 무늬 위에 깔려 위에 그려진다(가구는 둘 다 위에 올라간다). 아이템 탭에서 `rug` 태그를 켜고 끄면 된다(처음 한 번은 id/이름에 rug·mat·carpet·cushion 등이 들어간 142개를 스크립트로 달아 두었다. 다다미는 무늬로 남김). 상점의 "바닥·러그" 탭에 둘이 같이 나온다.
+
 ## 가구 태그 `bed` · `dog` (손님용)
 
 아이템 탭 태그 입력에 `bed`를 넣은 가구가 방에 있어야 손님이 온다(침대 수 = 손님 상한, 시드 침대도 셈). `dog`는 매달 오는 "개를 좋아하는 손님"이 찾는 장식(강아지 인형·개집 등). 둘 다 `items.json`에 저장되고, 카탈로그는 기동 때 읽으니 바꾼 뒤 **서버 재시작 필요**.
@@ -115,7 +121,7 @@ python tools/preprocess/preprocess.py build                        # map_slices.
 - **아이템**: items.json 전체를 썸네일로 검색·태그·시트·레이어로 거르고(태그 필터에 `(태그 없음)` 있음), 여기서 바로 **태그를 단다**.
   카드 클릭=선택(Shift+클릭=범위, ☑ 보이는 것/☐ 해제, Esc), 왼쪽의 태그 칩을 누르면 선택한 아이템 전부에 그 태그를 켜고(이미 전부 켜져 있으면 끔) 숫자키 1~9가 n번째 칩. 카드의 태그 ×로 하나만 빼고, 칩에 없는 태그는 아래 입력칸으로 켜고 끈다.
   태그별 개수 줄(0개면 빨강)을 누르면 그 태그로 거른다. 카드의 ✎(또는 더블클릭) → 그 슬라이스로 이동해 오른쪽 폼에서 편집. 바꾼 건 **아이템 저장**을 눌러야 items.json에 들어가고, 게임 서버는 재시작해야 읽는다.
-  태그 목록과 설명은 `editor.py`의 `KNOWN_TAGS` 한 곳에 있다(`ruined` 팔 수만 있음 · `fixed` 못 건드림 · `stairs` 출구 · `bed` 손님 침대 · `dog` 개 손님 장식 · `note` 쪽지 소품 · `guest_note` 손님 쪽지용 스프라이트 · `board` 📋 게시판 · `partition`/`door` 칸막이). 그 밖의 `[a-z0-9_]` 태그도 저장은 된다.
+  태그 목록과 설명은 `editor.py`의 `KNOWN_TAGS` 한 곳에 있다(`ruined` 팔 수만 있음 · `fixed` 못 건드림 · `stairs` 출구 · `bed` 손님 침대 · `dog` 개 손님 장식 · `note` 쪽지 소품 · `guest_note` 손님 쪽지용 스프라이트 · `board` 📋 게시판 · `partition`/`door` 칸막이 · `rug` 바닥 무늬 위에 깔리는 러그). 그 밖의 `[a-z0-9_]` 태그도 저장은 된다.
   오른쪽 아이템 폼의 **쌍(pair)**: 부서진 가구 ↔ 멀쩡한 가구를 양방향으로 잇는다.
 - **낱개**: 정식 팩 `Theme_Sorter_Singles`의 낱개 PNG를 테마별 썸네일로 보고 클릭하면 `file` 슬라이스가 생긴다.
 - **캐릭터**: 전과 같음.
@@ -123,8 +129,8 @@ python tools/preprocess/preprocess.py build                        # map_slices.
 
 ## 방·맵 에디터 (`python tools/preprocess/preprocess.py editor` → 상단 "방·맵 에디터 →")
 
-**방** 탭: `data/rooms/<id>.json`. 방 추가/복제/삭제, 이름, cols/rows/wall_rows/zoom, 벽·바닥 타일(`tile_*` 슬라이스), 막힌 칸, 스폰.
-- **시드**: 팔레트에서 아이템을 고르고 "시드 놓기"로 클릭. **🎲 ruined 흩뿌리기**는 `ruined` 아이템(소품 제외)을 n개 무작위로 바닥(벽 장식은 벽) 칸에 놓는다 — 서로 겹쳐도 되지만 `partition` 시드와는 안 겹치고, 마음에 안 들면 "ruined 시드 비우기"로 지우고 다시 굴린다. 게임 시작 시 `$seed` 소유로 미리 놓이고 화면엔 "???"로 보인다. 시드는 방 밖으로 삐져나가거나 서로 겹쳐도 된다(원근·연출용). 단 가구는 바닥 칸(발 위치), 벽지·벽 장식은 벽 칸에 있어야 하고, 소품은 is_surface 가구 위여야 한다 — 어기면 빨간 칸으로 표시되고 게임에서 건너뛴다. `ruined` 태그면 팔 수 있고, `fixed`면 못 건드린다.
+**방** 탭: `data/rooms/<id>.json`. 방 추가/복제/삭제, 이름, **종류**(방 / 광산 — `kind: "mine"`이면 가구 배치가 막히고 `data/mine.json`이 가리키는 광석 방이 된다), cols/rows/wall_rows/zoom, 벽·바닥 타일(`tile_*` 슬라이스), 막힌 칸, 스폰.
+- **시드**: 팔레트에서 아이템을 고르고 "시드 놓기"로 클릭. **🎲 ruined 흩뿌리기**는 `ruined` 아이템(소품 제외)을 n개 무작위로 바닥(벽 장식은 벽) 칸에 놓는다 — 서로 겹쳐도 되지만 `partition` 시드와는 안 겹치고, 마음에 안 들면 "ruined 시드 비우기"로 지우고 다시 굴린다. 게임 시작 시 `$seed` 소유로 미리 놓이고 화면엔 "???"로 보인다. 시드는 방 밖으로 삐져나가거나 서로 겹쳐도 된다(원근·연출용). 단 가구는 바닥 칸(발 위치), 벽지·벽 장식은 벽 칸(벽 장식은 `partition` 시드의 벽면 위도 됨)에 있어야 하고, 소품은 is_surface 가구 위여야 한다 — 어기면 빨간 칸으로 표시되고 게임에서 건너뛴다. `ruined` 태그면 팔 수 있고, `fixed`면 못 건드린다.
 - **바닥 칠하기**: 팔레트가 `tile_floor_*` 타일로 바뀐다. 타일을 고르고 클릭/드래그로 칸마다 다른 바닥을 칠한다(우클릭 = 기본 바닥으로). 방 JSON에는 `floor: [[…]]`(rows×cols, `null` = `tiles.floor`)로 저장되고, 전부 비어 있으면 저장 시 필드가 빠진다. 게임은 이 칸의 타일로 **발소리**와 **통행 가능 여부**를 정한다(아래 "타일 메타" 참고).
 - **출구(기믹)**: "출구 그리기"로 사각형을 드래그 → 어느 방(`inn_2f` 등)이나 `map`으로 갈지, 도착 좌표. 아바타가 그 칸에 도착하면 이동. 계단 스프라이트는 같은 자리에 시드로 놓고 `stairs, fixed` 태그.
 - **복구 단계(`restore`)**: 방 JSON에 직접 적는다(에디터 UI는 아직 없음). 단계마다 `need`(조건)와 `reward`(보상)이 있고, 서버(`server/app/restore.py`)가 아이템·납품·공동 자금을 보고 판정해서 완료 단계 수만 `room_meta`의 `stage:<id>`에 저장한다. 단계는 되돌아가지 않는다(돈을 나중에 써도 안 잠김).
@@ -135,7 +141,7 @@ python tools/preprocess/preprocess.py build                        # map_slices.
      "reward": [{"type": "unlock", "room": "floor_2"}]}
   ]
   ```
-  need 타입: `ruined_zero`(이 방의 ruined 0개) · `placed`(플레이어가 놓은 아이템 수; `layer`/`tag`/`item_id` 중 하나로 거를 수 있음, `count`) · `deliver`(이 단계에 납품된 물고기 수, `id`로 종류 지정 가능, `count`) · `pool`(공동 자금 잔액 ≥ `amount`, 소비 안 함 — 납품하면 그 물고기 값은 풀에서 빠지니 같이 쓸 때 감안). `label`은 체크리스트 문구(없으면 기본 문구).
+  need 타입: `ruined_zero`(이 방의 ruined 0개) · `placed`(플레이어가 놓은 아이템 수; `layer`/`tag`/`item_id` 중 하나로 거를 수 있음, `count`) · `deliver`(이 단계에 납품된 수; `kind`가 `fish`(기본, 물고기) 또는 `mine`(광석), `id`로 종류 지정 가능, `count`) · `pool`(공동 자금 잔액 ≥ `amount`, 소비 안 함 — 납품하면 그 값은 풀에서 빠지니 같이 쓸 때 감안). `label`은 체크리스트 문구(없으면 기본 문구).
   reward: `unlock {room}` — 방 id, `"map"`, `"dock"`. 어떤 단계가 unlock으로 가리키는 장소는 그 단계가 끝날 때까지 **잠긴다**(배치·이동 거부, 들어가기 거부, 맵에 `icon_lock`). 아무도 가리키지 않는 장소는 늘 열려 있다. 여관(inn)·자기 방·같은 장소를 두 단계가 여는 것·순환은 서버가 시작할 때 거부한다.
 - 서버는 시작할 때 방마다 **한 번만** 시드를 놓는다 (`room_meta`의 `seeded:<id>`). 시드를 고친 뒤 다시 놓고 싶으면 VM에서 `sqlite3 server/interior.db "DELETE FROM room_meta WHERE k='seeded:inn'"` 후 재시작 (이미 놓인 물건은 그대로 두고 빈 자리에만 추가된다).
 - 저장하면 `inn`은 예전 서버가 읽던 `data/room.json`에도 복사된다 (`data/rooms/`가 있으면 서버는 그쪽을 쓴다).
@@ -152,6 +158,7 @@ python tools/preprocess/preprocess.py build                        # map_slices.
 
 **부두** 탭: `data/dock.json` → 빌드/저장 시 `client/public/gen/dock.json`. `assets/graphic/Map/Dock/N.png` 이미지 레이어와 슬라이스(맵·실내 아틀라스) 레이어를 겹쳐 놓는다.
 - 목록 위가 앞. ↑/↓로 순서, 체크로 표시/숨김, 캔버스 드래그로 픽셀 단위 이동(Shift=16px 스냅), 슬라이스는 scale.
+- **광산**: `data/mine.json` — `room`(광석 방 id, 그 방은 `kind: "mine"`), `per_day`(하루 노드 수 = UI에 보이는 상한), `hit_cooldown_ms`, `reach`(노드와 아바타 발 칸의 최대 거리, 체비쇼프), `pickaxe`와 `ores[].icon`은 `{file, x, y, w?, h?}`(시트에서 16×16 크롭) 또는 경로 문자열. `ores[]`: `id`·`name`·`hits`(눌러야 하는 횟수)·`value`·`weight`. 빌드가 `gen/mine/<id>.png`·`gen/mine/pickaxe.png`를 만든다. 방 자체는 보통 방처럼 에디터에서 만든다: Gold Rush 시트(`mine_floor`·`mine_walls`·`mine_props`, `config.py SHEETS`)와 Cave Items(`cave_items`)는 인테리어 아틀라스로 들어가니 `tile_mine_*` 타일을 잘라 벽·바닥에 쓰고, 통로 모양은 `walk: false` 바위 타일로 칠하며, 레일·광차 같은 소품은 `fixed` 태그 아이템 시드로 놓는다. 서버는 빈 바닥 칸(막힌 칸·`walk:false`·아이템 footprint·출구·스폰 제외)에만 노드를 놓는다. 맵에는 `room: "mine"` 장소를 찍어 입구를 만든다.
 - **낚시**: `data/fishing.json`에 물고기(id·이름·값·확률·아이콘 경로)와 입질 타이밍. 빌드가 아이콘을 `gen/fish/<id>.png`로 복사(결과 팝업용). 부두 탭의 "찌 위치"가 입질 표시(`icon_exclamation`)가 뜨는 자리(`dock.json`의 `fish:{x,y}`), 낚싯대는 `fish_rod` 슬라이스를 레이어로. 게임: 버튼 한 번 누르면 던지고, 미끼 건드림(작은 표시)은 무시, 진짜 입질(큰 표시·진동)에 버튼을 꾹 눌러 게이지를 채우면 잡힘. 값이 클수록 오래 눌러야 하고, 미끼 건드림에 누르면 도망간다.
 - 게임에서는 `DockScene`이 `gen/dock.json`을 읽어 같은 순서로 그린다(아바타 없음, 왼쪽 위 나가기·낚시 버튼). 맵에서 `room: "dock"` 장소의 문에 서면 들어가고, 나가기는 그 장소의 스폰으로 돌아온다. 주소 뒤 `#dock`으로도 바로 들어갈 수 있다.
 - VM에 올릴 것: `client/public/gen/dock.json`, `client/public/gen/dock/*.png`, 그리고 클라를 다시 빌드했으면 `server/static/`.

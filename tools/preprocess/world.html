@@ -67,6 +67,7 @@
     <div class="row"><button id="roomNew">새 방</button><button id="roomDup">복제</button><button id="roomDel" class="danger">삭제</button></div>
     <label><span>id</span><input type="text" id="rId" placeholder="inn_2f"></label>
     <label><span>이름</span><input type="text" id="rName"></label>
+    <label><span>종류</span><select id="rKind" title="room = 꾸미는 방 · mine = 광산(가구 배치 없음, 서버가 광석을 스폰 — data/mine.json의 room)"><option value="room">방</option><option value="mine">광산</option></select></label>
     <div class="row">
       <label><span>cols</span><input type="number" id="rCols" min="4" max="80"></label>
       <label><span>rows</span><input type="number" id="rRows" min="2" max="60"></label>
@@ -107,7 +108,8 @@
     </div>
     <div class="hint">구역은 손님을 따로 받는 객실이에요: 구역마다 안락도·침대·예약이 따로 계산되고, 가구는 왼쪽 위 칸이 들어 있는 구역 소속이에요. 구역이 하나도 없으면 방 전체가 한 단위. 구역끼리 겹치면 안 돼요.</div>
     <h3>시드 (처음부터 놓인 물건)</h3>
-    <div class="hint">놓인 물건은 <code>$seed</code> 소유라 게임에선 "???"로 보여요. ruined 태그면 팔 수 있고, fixed면 못 건드려요.</div>
+    <div class="hint">놓인 물건은 <code>$seed</code> 소유라 게임에선 "???"로 보여요. ruined 태그면 팔 수 있고, fixed면 못 건드려요.
+      벽 장식(<code>wall</code>)은 벽 줄 말고도 <code>partition</code> 시드의 벽면(발 위로 그림 높이만큼) 위에 걸 수 있어요. 바닥 무늬 위에 러그를 깔려면 러그에 <code>rug</code> 태그.</div>
     <div class="row" title="ruined 태그 아이템을 바닥(벽 장식은 벽) 칸에 무작위로 놓아요. 서로 겹쳐도 되지만 partition 시드와는 안 겹쳐요. 소품(surface_item)은 뺌.">
       <span class="dim">🎲 ruined 흩뿌리기</span>
       <input type="number" id="scatterN" min="1" max="200" value="8" style="width:56px">개
@@ -261,11 +263,30 @@
   // partition-tagged wall sprites stand on the floor (room dividers): floor rows, furniture-style anchor
   const onWall = (it) => WALL_LAYERS.has(it.layer) && !tagsOf(it).includes("partition");
   const seedW = (s, it) => (it.layer === "wallpaper" ? (s.span || it.w) : it.w);
+  const isPartition = (it) => WALL_LAYERS.has(it.layer) && tagsOf(it).includes("partition");
+  /** Cells of a partition seed's wall face: its columns, sprite-rows up from its feet (mirrors placement.partition_face). */
+  function partitionFace(s, it) {
+    const f = frameOf("interior", it.sprite), rows = Math.max(it.h, f ? Math.ceil(f.h / CELL) : 0), bottom = s.y + it.h - 1, out = [];
+    for (let cy = bottom - rows + 1; cy <= bottom; cy++) for (let cx = s.x; cx < s.x + it.w; cx++) out.push(cx + "," + cy);
+    return out;
+  }
+  /** The partition seed a wall decor at floor rows hangs on (every cell on some partition's face), or null. */
+  function hangerOf(s, it, rm) {
+    const faces = new Set(), parts = (rm.seed || []).filter((o) => o !== s).map((o) => ({ o, oi: itemById(o.item_id) })).filter(({ oi }) => oi && isPartition(oi));
+    let first = null;
+    for (const { o, oi } of parts) { const face = partitionFace(o, oi); if (!first && face.includes(s.x + "," + s.y)) first = o; for (const c of face) faces.add(c); }
+    for (let cy = s.y; cy < s.y + it.h; cy++) for (let cx = s.x; cx < s.x + seedW(s, it); cx++) if (!faces.has(cx + "," + cy)) return null;
+    return first;
+  }
   /** Why the game server would skip this seed (null = fine). Mirrors server/app/placement.py. */
   function seedProblem(s, rm) {
     const it = itemById(s.item_id); if (!it) return "items.json에 없는 아이템";
     const w = seedW(s, it), h = it.h;
-    if (onWall(it) ? s.y + h > rm.wall_rows : s.y < rm.wall_rows) return onWall(it) ? "벽 칸에만 놓을 수 있어요" : "바닥 칸에만 놓을 수 있어요 (발 위치 기준)";
+    if (onWall(it) ? s.y + h > rm.wall_rows : s.y < rm.wall_rows) {
+      // wall decor may hang on a partition's face instead of the wall rows
+      if (onWall(it) && it.layer === "wall" && s.y >= rm.wall_rows) return hangerOf(s, it, rm) ? null : "벽 칸이나 partition 벽면 위에만 걸 수 있어요";
+      return onWall(it) ? "벽 칸에만 놓을 수 있어요" : "바닥 칸에만 놓을 수 있어요 (발 위치 기준)";
+    }
     if (it.layer === "surface_item") {
       const under = (rm.seed || []).filter((o) => { const oi = itemById(o.item_id); return o !== s && oi && oi.layer === "furniture" && oi.is_surface && s.x >= o.x && s.x + w <= o.x + oi.w && s.y >= o.y && s.y + h <= o.y + oi.h; });
       if (under.length !== 1) return "테이블 같은 가구(is_surface) 위에만 놓을 수 있어요";
@@ -567,7 +588,7 @@
   function hitLayer(p) { let best = null; for (const l of dock.layers) { if (l.visible === false) continue; const b = layerBox(l); if (p.x >= b.x && p.x < b.x + b.w && p.y >= b.y && p.y < b.y + b.h) best = l; } return best; }
   function renderRoomSide() {
     const sel = $("roomSel"); sel.innerHTML = Object.keys(rooms).map((id) => `<option value="${id}"${id === roomId ? " selected" : ""}>${id} · ${rooms[id].name || ""}</option>`).join("");
-    $("rId").value = roomId; $("rName").value = room.name || ""; $("rCols").value = room.cols; $("rRows").value = room.rows; $("rWall").value = room.wall_rows; $("rZoom").value = room.zoom || 2;
+    $("rId").value = roomId; $("rName").value = room.name || ""; $("rCols").value = room.cols; $("rRows").value = room.rows; $("rWall").value = room.wall_rows; $("rZoom").value = room.zoom || 2; $("rKind").value = room.kind || "room";
     $("roomDel").disabled = roomId === "inn";
     const tiles = W.tile_keys;
     const opt = (cur) => tiles.map((k) => `<option${k === cur ? " selected" : ""}>${k}</option>`).join("");
@@ -667,6 +688,7 @@
     roomId = v; touch(); renderSide();
   };
   $("rName").onchange = () => { room.name = $("rName").value.trim(); touch(); renderSide(); };
+  $("rKind").onchange = () => { if ($("rKind").value === "room") delete room.kind; else room.kind = $("rKind").value; touch(); renderSide(); };
   for (const [id, f] of [["rCols", "cols"], ["rRows", "rows"], ["rWall", "wall_rows"], ["rZoom", "zoom"]]) $(id).onchange = () => {
     const v = parseInt($(id).value, 10); if (isNaN(v)) return;
     room[f] = v;
@@ -823,10 +845,17 @@
       if (key) drawKey("interior", key, x * cz, y * cz, cz, cz);
     }
     for (const [bx, by] of room.blocked) { g.fillStyle = "rgba(255,60,60,.35)"; g.fillRect(bx * cz, by * cz, cz, cz); }
-    // seeds sorted like the game: wall layers first (row -1), then by bottom row
-    const order = { wallpaper: 0, wall: 1, floor: 2, furniture: 3, surface_item: 4 };
+    // seeds sorted like the game: wall layers and floor first (row -1, rugs over floor patterns), then by bottom row;
+    // wall decor hung on a partition sorts with the partition's feet, just above it
+    const order = { wallpaper: 0, wall: 1, floor: 2, rug: 2.5, furniture: 3, hung: 3.5, surface_item: 4 };
     const seeds = room.seed.map((s) => ({ s, it: itemById(s.item_id) })).filter((o) => o.it);
-    seeds.sort((a, b) => (onWall(a.it) || a.it.layer === "floor" ? -1 : a.s.y + a.it.h) - (onWall(b.it) || b.it.layer === "floor" ? -1 : b.s.y + b.it.h) || order[a.it.layer] - order[b.it.layer]);
+    for (const o of seeds) {
+      const hanger = onWall(o.it) && o.s.y >= room.wall_rows ? hangerOf(o.s, o.it, room) : null;
+      const hit = hanger && itemById(hanger.item_id);
+      o.row = hit ? hanger.y + hit.h : onWall(o.it) || o.it.layer === "floor" ? -1 : o.s.y + o.it.h;
+      o.ord = hit ? order.hung : o.it.layer === "floor" && tagsOf(o.it).includes("rug") ? order.rug : order[o.it.layer];
+    }
+    seeds.sort((a, b) => a.row - b.row || a.ord - b.ord);
     for (const { s, it } of seeds) {
       const f = frameOf("interior", it.sprite);
       const w = (it.layer === "wallpaper" ? (s.span || it.w) : it.w);

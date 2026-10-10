@@ -1,5 +1,13 @@
 [
  {
+  "key": "ward_85",
+  "sheet": "Interior/Furniture Assets/Rooms/Bedroom/Bedroom PNG/Wardrobe.png",
+  "x": 11,
+  "y": 9,
+  "w": 25,
+  "h": 31
+ },
+ {
   "key": "ppfurn_001_wardrobe_narrow_brown",
   "sheet": "Interior/PPFurniture Pack-FreeV.png",
   "x": 128,
@@ -1334,6 +1342,126 @@
   "y": 32,
   "w": 32,
   "h": 32
+ },
+ {
+  "key": "pixe_91",
+  "sheet": "Interior/_16px/pixelinterior__wardrobes_BR.png",
+  "x": 103,
+  "y": 11,
+  "w": 25,
+  "h": 22
+ },
+ {
+  "key": "pixe_85",
+  "sheet": "Interior/_16px/pixelinterior__wardrobes_BR.png",
+  "x": 7,
+  "y": 15,
+  "w": 25,
+  "h": 34
+ },
+ {
+  "key": "pixe_88",
+  "sheet": "Interior/_16px/pixelinterior__wardrobes_BR.png",
+  "x": 39,
+  "y": 15,
+  "w": 32,
+  "h": 34
+ },
+ {
+  "key": "pixe_96",
+  "sheet": "Interior/_16px/pixelinterior__wardrobes_BR.png",
+  "x": 103,
+  "y": 36,
+  "w": 25,
+  "h": 21
+ },
+ {
+  "key": "pixe_86",
+  "sheet": "Interior/_16px/pixelinterior__wardrobes_BR.png",
+  "x": 8,
+  "y": 56,
+  "w": 24,
+  "h": 32
+ },
+ {
+  "key": "pixe_89",
+  "sheet": "Interior/_16px/pixelinterior__wardrobes_BR.png",
+  "x": 39,
+  "y": 56,
+  "w": 33,
+  "h": 33
+ },
+ {
+  "key": "pixe_95",
+  "sheet": "Interior/_16px/pixelinterior__wardrobes_BR.png",
+  "x": 104,
+  "y": 59,
+  "w": 24,
+  "h": 22
+ },
+ {
+  "key": "pixe_94",
+  "sheet": "Interior/_16px/pixelinterior__wardrobes_BR.png",
+  "x": 103,
+  "y": 84,
+  "w": 26,
+  "h": 21
+ },
+ {
+  "key": "pixe_87",
+  "sheet": "Interior/_16px/pixelinterior__wardrobes_BR.png",
+  "x": 7,
+  "y": 95,
+  "w": 24,
+  "h": 33
+ },
+ {
+  "key": "pixe_90",
+  "sheet": "Interior/_16px/pixelinterior__wardrobes_BR.png",
+  "x": 39,
+  "y": 96,
+  "w": 33,
+  "h": 34
+ },
+ {
+  "key": "pixe_92",
+  "sheet": "Interior/_16px/pixelinterior__wardrobes_BR.png",
+  "x": 104,
+  "y": 108,
+  "w": 25,
+  "h": 21
+ },
+ {
+  "key": "pixe_93",
+  "sheet": "Interior/_16px/pixelinterior__wardrobes_BR.png",
+  "x": 103,
+  "y": 132,
+  "w": 26,
+  "h": 21
+ },
+ {
+  "key": "pixe_87_2",
+  "sheet": "Interior/_16px/pixelinterior__wardrobes_BR.png",
+  "x": 7,
+  "y": 151,
+  "w": 17,
+  "h": 24
+ },
+ {
+  "key": "pixe_86_2",
+  "sheet": "Interior/_16px/pixelinterior__wardrobes_BR.png",
+  "x": 32,
+  "y": 151,
+  "w": 16,
+  "h": 23
+ },
+ {
+  "key": "pixe_85_2",
+  "sheet": "Interior/_16px/pixelinterior__wardrobes_BR.png",
+  "x": 56,
+  "y": 152,
+  "w": 16,
+  "h": 22
  },
  {
   "key": "mordernwall_01",
@@ -15152,6 +15280,78 @@
   "h": 16
  },
  {
+  "key": "8gym_85",
+  "sheet": "Interior/moderninteriors-win/1_Interiors/16x16/Theme_Sorter_Shadowless/8_Gym_Shadowless.png",
+  "x": 211,
+  "y": 20,
+  "w": 28,
+  "h": 37
+ },
+ {
+  "key": "8gym_90",
+  "sheet": "Interior/moderninteriors-win/1_Interiors/16x16/Theme_Sorter_Shadowless/8_Gym_Shadowless.png",
+  "x": 97,
+  "y": 53,
+  "w": 15,
+  "h": 37
+ },
+ {
+  "key": "8gym_86",
+  "sheet": "Interior/moderninteriors-win/1_Interiors/16x16/Theme_Sorter_Shadowless/8_Gym_Shadowless.png",
+  "x": 243,
+  "y": 61,
+  "w": 9,
+  "h": 12
+ },
+ {
+  "key": "8gym_87",
+  "sheet": "Interior/moderninteriors-win/1_Interiors/16x16/Theme_Sorter_Shadowless/8_Gym_Shadowless.png",
+  "x": 229,
+  "y": 140,
+  "w": 21,
+  "h": 35
+ },
+ {
+  "key": "8gym_88",
+  "sheet": "Interior/moderninteriors-win/1_Interiors/16x16/Theme_Sorter_Shadowless/8_Gym_Shadowless.png",
+  "x": 190,
+  "y": 142,
+  "w": 20,
+  "h": 35
+ },
+ {
+  "key": "8gym_91",
+  "sheet": "Interior/moderninteriors-win/1_Interiors/16x16/Theme_Sorter_Shadowless/8_Gym_Shadowless.png",
+  "x": 48,
+  "y": 167,
+  "w": 48,
+  "h": 23
+ },
+ {
+  "key": "8gym_89",
+  "sheet": "Interior/moderninteriors-win/1_Interiors/16x16/Theme_Sorter_Shadowless/8_Gym_Shadowless.png",
+  "x": 211,
+  "y": 195,
+  "w": 40,
+  "h": 27
+ },
+ {
+  "key": "8gym_92",
+  "sheet": "Interior/moderninteriors-win/1_Interiors/16x16/Theme_Sorter_Shadowless/8_Gym_Shadowless.png",
+  "x": 47,
+  "y": 227,
+  "w": 35,
+  "h": 18
+ },
+ {
+  "key": "8gym_93",
+  "sheet": "Interior/moderninteriors-win/1_Interiors/16x16/Theme_Sorter_Shadowless/8_Gym_Shadowless.png",
+  "x": 128,
+  "y": 432,
+  "w": 16,
+  "h": 16
+ },
+ {
   "key": "fishing_01_rod",
   "sheet": "Interior/moderninteriors-win/1_Interiors/16x16/Theme_Sorter_Shadowless/9_Fishing_Shadowless.png",
   "x": 112,
@@ -15176,12 +15376,216 @@
   "h": 32
  },
  {
+  "key": "door_87",
+  "sheet": "Interior/pixelinterior/doorswindowsstairs_back.png",
+  "x": 112,
+  "y": 15,
+  "w": 31,
+  "h": 49,
+  "transparent": [
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "key": "door_85",
+  "sheet": "Interior/pixelinterior/doorswindowsstairs_back.png",
+  "x": 161,
+  "y": 15,
+  "w": 30,
+  "h": 53,
+  "transparent": [
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "key": "door_91",
+  "sheet": "Interior/pixelinterior/doorswindowsstairs_back.png",
+  "x": 207,
+  "y": 17,
+  "w": 49,
+  "h": 29,
+  "transparent": [
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "key": "door_92",
+  "sheet": "Interior/pixelinterior/doorswindowsstairs_back.png",
+  "x": 207,
+  "y": 49,
+  "w": 49,
+  "h": 30,
+  "transparent": [
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "key": "door_88",
+  "sheet": "Interior/pixelinterior/doorswindowsstairs_back.png",
+  "x": 112,
+  "y": 95,
+  "w": 30,
+  "h": 49,
+  "transparent": [
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "key": "door_86",
+  "sheet": "Interior/pixelinterior/doorswindowsstairs_back.png",
+  "x": 160,
+  "y": 95,
+  "w": 31,
+  "h": 53,
+  "transparent": [
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "key": "door_93",
+  "sheet": "Interior/pixelinterior/doorswindowsstairs_back.png",
+  "x": 208,
+  "y": 97,
+  "w": 47,
+  "h": 30,
+  "transparent": [
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "key": "door_94",
+  "sheet": "Interior/pixelinterior/doorswindowsstairs_back.png",
+  "x": 208,
+  "y": 129,
+  "w": 48,
+  "h": 30,
+  "transparent": [
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "key": "door_90",
+  "sheet": "Interior/pixelinterior/doorswindowsstairs_back.png",
+  "x": 113,
+  "y": 176,
+  "w": 30,
+  "h": 48,
+  "transparent": [
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "key": "door_89",
+  "sheet": "Interior/pixelinterior/doorswindowsstairs_back.png",
+  "x": 161,
+  "y": 176,
+  "w": 30,
+  "h": 51,
+  "transparent": [
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "key": "door_95",
+  "sheet": "Interior/pixelinterior/doorswindowsstairs_back.png",
+  "x": 208,
+  "y": 177,
+  "w": 48,
+  "h": 30,
+  "transparent": [
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "key": "door_96",
+  "sheet": "Interior/pixelinterior/doorswindowsstairs_back.png",
+  "x": 207,
+  "y": 209,
+  "w": 49,
+  "h": 30,
+  "transparent": [
+   0,
+   0,
+   0
+  ]
+ },
+ {
   "key": "rug_green_axulart",
   "sheet": "axulart_all",
   "x": 144,
   "y": 112,
   "w": 48,
   "h": 48
+ },
+ {
+  "key": "axul_86",
+  "sheet": "axulart_basic",
+  "x": 80,
+  "y": 16,
+  "w": 32,
+  "h": 24
+ },
+ {
+  "key": "axul_85",
+  "sheet": "axulart_basic",
+  "x": 112,
+  "y": 16,
+  "w": 16,
+  "h": 24
+ },
+ {
+  "key": "axul_87",
+  "sheet": "axulart_basic",
+  "x": 128,
+  "y": 16,
+  "w": 32,
+  "h": 24
+ },
+ {
+  "key": "axul_88",
+  "sheet": "axulart_basic",
+  "x": 160,
+  "y": 16,
+  "w": 32,
+  "h": 24
+ },
+ {
+  "key": "axul_90",
+  "sheet": "axulart_basic",
+  "x": 64,
+  "y": 22,
+  "w": 16,
+  "h": 18
+ },
+ {
+  "key": "axul_89",
+  "sheet": "axulart_basic",
+  "x": 144,
+  "y": 56,
+  "w": 32,
+  "h": 24
  },
  {
   "key": "wallpaper_brick_tan",
@@ -15604,7 +16008,23 @@
   "sheet": "free_modern_pack",
   "x": 736,
   "y": 64,
-  "w": 64,
+  "w": 16,
+  "h": 48
+ },
+ {
+  "key": "free_86_2",
+  "sheet": "free_modern_pack",
+  "x": 752,
+  "y": 64,
+  "w": 16,
+  "h": 48
+ },
+ {
+  "key": "free_85_2",
+  "sheet": "free_modern_pack",
+  "x": 784,
+  "y": 64,
+  "w": 16,
   "h": 48
  },
  {
@@ -15772,7 +16192,23 @@
   "sheet": "free_modern_pack",
   "x": 624,
   "y": 128,
-  "w": 64,
+  "w": 16,
+  "h": 48
+ },
+ {
+  "key": "free_86",
+  "sheet": "free_modern_pack",
+  "x": 640,
+  "y": 128,
+  "w": 16,
+  "h": 48
+ },
+ {
+  "key": "free_85",
+  "sheet": "free_modern_pack",
+  "x": 672,
+  "y": 128,
+  "w": 16,
   "h": 48
  },
  {
@@ -15788,7 +16224,23 @@
   "sheet": "free_modern_pack",
   "x": 736,
   "y": 128,
-  "w": 64,
+  "w": 16,
+  "h": 48
+ },
+ {
+  "key": "free_87",
+  "sheet": "free_modern_pack",
+  "x": 752,
+  "y": 128,
+  "w": 16,
+  "h": 48
+ },
+ {
+  "key": "free_88",
+  "sheet": "free_modern_pack",
+  "x": 784,
+  "y": 128,
+  "w": 16,
   "h": 48
  },
  {
@@ -15936,60 +16388,12 @@
   "h": 32
  },
  {
-  "key": "fmp_087",
-  "sheet": "free_modern_pack",
-  "x": 384,
-  "y": 208,
-  "w": 16,
-  "h": 16
- },
- {
-  "key": "fmp_088",
-  "sheet": "free_modern_pack",
-  "x": 400,
-  "y": 208,
-  "w": 16,
-  "h": 16
- },
- {
-  "key": "fmp_089",
-  "sheet": "free_modern_pack",
-  "x": 416,
-  "y": 208,
-  "w": 16,
-  "h": 16
- },
- {
-  "key": "fmp_090",
-  "sheet": "free_modern_pack",
-  "x": 432,
-  "y": 208,
-  "w": 16,
-  "h": 16
- },
- {
   "key": "fmp_tile_06",
   "sheet": "free_modern_pack",
   "x": 800,
   "y": 224,
   "w": 16,
   "h": 16
- },
- {
-  "key": "bed_blue_fp",
-  "sheet": "freepixel",
-  "x": 16,
-  "y": 0,
-  "w": 32,
-  "h": 64
- },
- {
-  "key": "book_stack_fp",
-  "sheet": "freepixel",
-  "x": 128,
-  "y": 0,
-  "w": 32,
-  "h": 32
  },
  {
   "key": "plant_fp1",
@@ -16016,20 +16420,20 @@
   "h": 32
  },
  {
+  "key": "bed_blue_fp",
+  "sheet": "freepixel",
+  "x": 16,
+  "y": 7,
+  "w": 32,
+  "h": 52
+ },
+ {
   "key": "table_big_fp",
   "sheet": "freepixel",
   "x": 64,
   "y": 16,
   "w": 64,
   "h": 48
- },
- {
-  "key": "book_stack_purple_fp",
-  "sheet": "freepixel",
-  "x": 128,
-  "y": 32,
-  "w": 32,
-  "h": 32
  },
  {
   "key": "plant_fp2",
@@ -16045,38 +16449,6 @@
   "x": 192,
   "y": 32,
   "w": 64,
-  "h": 32
- },
- {
-  "key": "bed_green_fp",
-  "sheet": "freepixel",
-  "x": 16,
-  "y": 64,
-  "w": 32,
-  "h": 64
- },
- {
-  "key": "round_table_fp1",
-  "sheet": "freepixel",
-  "x": 64,
-  "y": 64,
-  "w": 32,
-  "h": 32
- },
- {
-  "key": "round_table_fp2",
-  "sheet": "freepixel",
-  "x": 96,
-  "y": 64,
-  "w": 32,
-  "h": 32
- },
- {
-  "key": "book_stack_tan_fp",
-  "sheet": "freepixel",
-  "x": 128,
-  "y": 64,
-  "w": 32,
   "h": 32
  },
  {
@@ -16096,6 +16468,30 @@
   "h": 32
  },
  {
+  "key": "bed_green_fp",
+  "sheet": "freepixel",
+  "x": 16,
+  "y": 71,
+  "w": 31,
+  "h": 52
+ },
+ {
+  "key": "round_table_fp1",
+  "sheet": "freepixel",
+  "x": 69,
+  "y": 72,
+  "w": 21,
+  "h": 18
+ },
+ {
+  "key": "round_table_fp2",
+  "sheet": "freepixel",
+  "x": 102,
+  "y": 73,
+  "w": 20,
+  "h": 18
+ },
+ {
   "key": "framed_pic_fp1",
   "sheet": "freepixel",
   "x": 64,
@@ -16107,14 +16503,6 @@
   "key": "framed_pic_fp2",
   "sheet": "freepixel",
   "x": 96,
-  "y": 96,
-  "w": 32,
-  "h": 32
- },
- {
-  "key": "book_stack_dark_fp",
-  "sheet": "freepixel",
-  "x": 128,
   "y": 96,
   "w": 32,
   "h": 32
@@ -20817,14 +21205,6 @@
   "h": 77
  },
  {
-  "key": "mordkit2_005_chair_white_back",
-  "sheet": "kitchen",
-  "x": 0,
-  "y": 409,
-  "w": 32,
-  "h": 23
- },
- {
   "key": "mordkit2_006_chair_white_side_a",
   "sheet": "kitchen",
   "x": 33,
@@ -20847,14 +21227,6 @@
   "y": 410,
   "w": 22,
   "h": 22
- },
- {
-  "key": "mordkit2_009_chair_slateblue_back",
-  "sheet": "kitchen",
-  "x": 0,
-  "y": 441,
-  "w": 32,
-  "h": 23
  },
  {
   "key": "mordkit2_010_chair_slateblue_side_a",
@@ -20881,14 +21253,6 @@
   "h": 22
  },
  {
-  "key": "mordkit2_013_chair_sage_back",
-  "sheet": "kitchen",
-  "x": 0,
-  "y": 473,
-  "w": 32,
-  "h": 23
- },
- {
   "key": "mordkit2_014_chair_sage_side_a",
   "sheet": "kitchen",
   "x": 33,
@@ -20911,14 +21275,6 @@
   "y": 474,
   "w": 22,
   "h": 22
- },
- {
-  "key": "mordkit2_017_chair_pink_back",
-  "sheet": "kitchen",
-  "x": 0,
-  "y": 505,
-  "w": 32,
-  "h": 23
  },
  {
   "key": "mordkit2_018_chair_pink_side_a",
@@ -20945,14 +21301,6 @@
   "h": 22
  },
  {
-  "key": "mordkit2_021_chair_cyan_back",
-  "sheet": "kitchen",
-  "x": 0,
-  "y": 537,
-  "w": 32,
-  "h": 23
- },
- {
   "key": "mordkit2_022_chair_cyan_side_a",
   "sheet": "kitchen",
   "x": 33,
@@ -20975,14 +21323,6 @@
   "y": 538,
   "w": 22,
   "h": 22
- },
- {
-  "key": "mordkit2_025_chair_terracotta_back",
-  "sheet": "kitchen",
-  "x": 0,
-  "y": 569,
-  "w": 32,
-  "h": 23
  },
  {
   "key": "mordkit2_026_chair_terracotta_side_a",
@@ -24086,7 +24426,7 @@
   "x": 80,
   "y": 32,
   "w": 64,
-  "h": 80
+  "h": 66
  },
  {
   "key": "nightstand_brown_c",
@@ -24134,7 +24474,7 @@
   "x": 80,
   "y": 112,
   "w": 64,
-  "h": 80
+  "h": 66
  },
  {
   "key": "nightstand_brown_e",
@@ -24214,7 +24554,7 @@
   "x": 80,
   "y": 192,
   "w": 64,
-  "h": 80
+  "h": 66
  },
  {
   "key": "nightstand_white_a",
@@ -24741,14 +25081,6 @@
   "h": 32
  },
  {
-  "key": "fire_extinguisher_sm",
-  "sheet": "spritesheet_misc",
-  "x": 128,
-  "y": 32,
-  "w": 32,
-  "h": 32
- },
- {
   "key": "chart_board_sm",
   "sheet": "spritesheet_misc",
   "x": 160,
@@ -24765,12 +25097,12 @@
   "h": 32
  },
  {
-  "key": "rug_cross_pattern_ti",
-  "sheet": "tiles_and_items",
-  "x": 16,
-  "y": 16,
-  "w": 80,
-  "h": 80
+  "key": "fire_extinguisher_sm",
+  "sheet": "spritesheet_misc",
+  "x": 139,
+  "y": 40,
+  "w": 11,
+  "h": 16
  },
  {
   "key": "rug_oval_small_ti1",
@@ -24801,8 +25133,8 @@
   "sheet": "tiles_and_items",
   "x": 16,
   "y": 96,
-  "w": 32,
-  "h": 64
+  "w": 24,
+  "h": 33
  },
  {
   "key": "table_long_tan_ti",
@@ -24845,14 +25177,6 @@
   "h": 16
  },
  {
-  "key": "plant_lamp_ti",
-  "sheet": "tiles_and_items",
-  "x": 48,
-  "y": 128,
-  "w": 16,
-  "h": 32
- },
- {
   "key": "small_shelf_striped_ti",
   "sheet": "tiles_and_items",
   "x": 64,
@@ -24869,20 +25193,36 @@
   "h": 32
  },
  {
-  "key": "small_stand_ti1",
+  "key": "tile_85",
   "sheet": "tiles_and_items",
-  "x": 144,
-  "y": 128,
-  "w": 16,
+  "x": 15,
+  "y": 129,
+  "w": 25,
   "h": 32
+ },
+ {
+  "key": "plant_lamp_ti",
+  "sheet": "tiles_and_items",
+  "x": 48,
+  "y": 137,
+  "w": 16,
+  "h": 23
  },
  {
   "key": "small_stand_ti2",
   "sheet": "tiles_and_items",
   "x": 160,
-  "y": 128,
+  "y": 140,
   "w": 16,
-  "h": 32
+  "h": 20
+ },
+ {
+  "key": "small_stand_ti1",
+  "sheet": "tiles_and_items",
+  "x": 144,
+  "y": 141,
+  "w": 16,
+  "h": 19
  },
  {
   "key": "round_lamp_ti",

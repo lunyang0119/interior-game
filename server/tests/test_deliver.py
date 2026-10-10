@@ -1,4 +1,4 @@
-"""Handing a catch in (POST /api/fish/deliver) instead of keeping the money."""
+"""Handing a catch in (POST /api/deliver) instead of keeping the money."""
 import importlib
 import json
 import sys
@@ -46,23 +46,23 @@ def test_deliver_flow(deliver_env):
             recv(ws, "money"), recv(ws, "fish")
 
             # somebody else's catch
-            r = client.post("/api/fish/deliver", json={"seq": body["seq"]}, headers=auth(kim))
+            r = client.post("/api/deliver", json={"seq": body["seq"]}, headers=auth(kim))
             assert r.status_code == 403 and r.json()["error"] == "not_your_catch"
             # the wrong room
-            r = client.post("/api/fish/deliver", json={"seq": body["seq"], "room": "inn"}, headers=auth(lun))
+            r = client.post("/api/deliver", json={"seq": body["seq"], "room": "inn"}, headers=auth(lun))
             assert r.status_code == 400 and r.json()["error"] == "nothing_to_deliver"
             # the real thing: the money goes back out of the pool, the stage counts it
-            r = client.post("/api/fish/deliver", json={"seq": body["seq"]}, headers=auth(lun))
+            r = client.post("/api/deliver", json={"seq": body["seq"]}, headers=auth(lun))
             assert r.status_code == 200, r.text
             assert r.json() == {"balance": 800, "room": "house_a", "have": 1, "want": 2, "completed": []}
             assert recv(ws, "money")["balance"] == 800
             ev = recv(ws, "event")["event"]
-            assert ev["kind"] == "deliver" and ev["room_id"] == "house_a" and ev["amount"] == -body["value"] and ev["data"] == {"stage": 0}
+            assert ev["kind"] == "deliver" and ev["room_id"] == "house_a" and ev["amount"] == -body["value"] and ev["data"] == {"stage": 0, "kind": "fish"}
             # only once
-            r = client.post("/api/fish/deliver", json={"seq": body["seq"]}, headers=auth(lun))
+            r = client.post("/api/deliver", json={"seq": body["seq"]}, headers=auth(lun))
             assert r.status_code == 400 and r.json()["error"] == "already_delivered"
             # unknown seq
-            assert client.post("/api/fish/deliver", json={"seq": 999}, headers=auth(lun)).json()["error"] == "not_found"
+            assert client.post("/api/deliver", json={"seq": 999}, headers=auth(lun)).json()["error"] == "not_found"
 
             # second catch: the window is over → expired, nothing counted
             body2 = _catch(client, lun)
@@ -72,13 +72,13 @@ def test_deliver_flow(deliver_env):
             conn = db.connect(config.DB_PATH)
             conn.execute("UPDATE ledger SET ts = ts - 300 WHERE seq = ?", (body2["seq"],))
             conn.close()
-            r = client.post("/api/fish/deliver", json={"seq": body2["seq"]}, headers=auth(lun))
+            r = client.post("/api/deliver", json={"seq": body2["seq"]}, headers=auth(lun))
             assert r.status_code == 400 and r.json()["error"] == "deliver_expired"
 
             # third catch completes the stage: the dock opens for everyone
             body3 = _catch(client, lun)
             recv(ws, "money"), recv(ws, "fish")
-            r = client.post("/api/fish/deliver", json={"seq": body3["seq"]}, headers=auth(lun))
+            r = client.post("/api/deliver", json={"seq": body3["seq"]}, headers=auth(lun))
             assert r.status_code == 200 and r.json()["have"] == 2 and r.json()["completed"] == [{"room": "house_a", "stage": "fish", "name": "낚시"}]
             recv(ws, "money")
             assert recv(ws, "event")["event"]["kind"] == "deliver"
@@ -89,6 +89,6 @@ def test_deliver_flow(deliver_env):
         # a catch after the stage is done has nowhere to go
         body4 = _catch(client, lun)
         assert body4["deliverable"] == []
-        assert client.post("/api/fish/deliver", json={"seq": body4["seq"]}, headers=auth(lun)).json()["error"] == "nothing_to_deliver"
+        assert client.post("/api/deliver", json={"seq": body4["seq"]}, headers=auth(lun)).json()["error"] == "nothing_to_deliver"
         # pool: 800 + 4 catches - 2 delivered
         assert client.get("/api/me", headers=auth(lun)).json()["balance"] == 800 + body2["value"] + body4["value"]

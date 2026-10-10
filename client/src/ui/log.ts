@@ -7,7 +7,7 @@
 import { api, ApiError, msgFor, type ActivityEvent, type ComfortView, type NeedProgress, type RoomProgress, type TodayTotals } from "../api";
 import { bus, toast } from "../bus";
 import { placeName, SEED_PLAYER, unitName } from "../catalog";
-import { applyComfort, applyProgress, catalog, currentUnit, state } from "../state";
+import { applyCat, applyComfort, applyProgress, CAT_MAX_AFFECTION, CAT_TAPS_PER_LEVEL, catalog, currentUnit, state } from "../state";
 import { socket } from "../ws";
 import { $, show, togglePanel } from "./hud";
 
@@ -15,6 +15,7 @@ const MAX_ROWS = 5;
 
 let rows: ActivityEvent[] = [];
 let loot = new Map<string, string>(); // loot id → name, from /api/fish
+let ores = new Map<string, string>(); // ore id → name, from /api/mine
 let today: TodayTotals = { earned: 0, fish: 0, fish_count: 0, furniture: 0, sold: 0, deliver: 0, guests: 0 };
 let comfortTimer: number | undefined; // debounce for refreshing the comfort picture after room changes
 let loaded = false;
@@ -34,6 +35,10 @@ function itemName(id: string | null): string {
 
 function fishName(id: string | null): string {
   return (id && loot.get(id)) || id || "물고기";
+}
+
+function oreName(id: string | null): string {
+  return (id && ores.get(id)) || id || "광석";
 }
 
 function money(n: number | null): string {
@@ -59,7 +64,8 @@ export function describe(e: ActivityEvent): string {
     case "remove": return `${who(e.player_id)}가 ${room ? room + "의 " : ""}${itemName(e.item_id)}을(를) 치웠어요${money(e.amount)}`;
     case "sell": return `${who(e.player_id)}가 ${room ? room + "의 " : ""}부서진 ${itemName(e.item_id)}을(를) 팔았어요${money(e.amount)}`;
     case "fish": return `${who(e.player_id)}가 ${fishName(e.item_id)}을(를) 낚았어요${money(e.amount)}`;
-    case "deliver": return `${who(e.player_id)}가 ${fishName(e.item_id)}을(를) ${room || "어딘가"}에 납품했어요`;
+    case "mine": return `${who(e.player_id)}가 ${oreName(e.item_id)}을(를) 캤어요${money(e.amount)}`;
+    case "deliver": return `${who(e.player_id)}가 ${(e.data?.kind === "mine" ? oreName : fishName)(e.item_id)}을(를) ${room || "어딘가"}에 납품했어요`;
     case "earn": return `${who(e.player_id)}가 ${e.amount ?? 0}💰를 벌어왔어요`;
     case "guest": {
       if (e.data?.skipped) return `${room}에는 손님이 아무도 안 왔어요`;
@@ -71,7 +77,9 @@ export function describe(e: ActivityEvent): string {
         ? `🐶 개를 좋아하는 손님이 ${e.data?.days ?? "?"}일 뒤 ${room}에 묵겠대요 — 개 장식이 있거나 안락도가 높으면 와요`
         : `${room}에 예약이 들어왔어요 — ${e.data?.days ?? "?"}일 안에 ${itemName(e.item_id)}을(를) 놓아 주세요`;
     case "missed": return `${room}의 예약 손님이 ${itemName(e.item_id)}이(가) 없어서 돌아갔어요. 내일은 손님이 안 와요`;
-    case "cat": return `${who(e.player_id)}가 고양이를 쓰다듬었어요`;
+    case "cat": return e.data?.affection != null
+      ? `고양이 호감도가 ${e.data.affection}로 올랐어요 (${who(e.player_id)}가 ${e.data.taps}번째로 쓰다듬었어요)`
+      : `${who(e.player_id)}가 고양이를 쓰다듬었어요`;
     case "stage": {
       const opened = (e.data?.unlocks ?? []).map((r) => placeName(cat, r));
       return `🎉 ${room} '${e.data?.name ?? e.data?.stage ?? ""}' 완료!${opened.length ? ` ${opened.join(", ")}이(가) 열렸어요` : ""}`;
@@ -106,6 +114,7 @@ function renderRows(): void {
 function renderSummary(): void {
   const signed = (n: number) => (n < 0 ? `−${-n}` : `+${n}`) + "💰";
   const parts = [`벌이 ${signed(today.earned)}`, `낚시 ${signed(today.fish)} (${today.fish_count}마리)`, `가구 ${signed(today.furniture)}`];
+  if (today.mine_count) parts.push(`채광 ${signed(today.mine ?? 0)} (${today.mine_count}개)`);
   if (today.sold) parts.push(`판매 ${signed(today.sold)}`);
   if (today.deliver) parts.push(`납품 ${signed(today.deliver)}`);
   if (today.guests) parts.push(`숙박료 ${signed(today.guests)}`);
@@ -152,6 +161,7 @@ function renderGuests(): void {
     if (c.mult > 1) parts.push(`세트 ×${c.mult}`);
     if (c.ruined) parts.push(`부서진 물건 −${c.ruined * 5}`);
     if (c.affection) parts.push(`🐱+${c.affection * 3}`);
+    if (c.affection && c.affection < CAT_MAX_AFFECTION) parts.push(`쓰다듬기 ${state.cat.taps}/${(c.affection + 1) * CAT_TAPS_PER_LEVEL}`);
     parts.push(`침대 ${c.beds}개`);
     card.appendChild(div("guest-sub", parts.join(" · ")));
     let night: string;
@@ -210,6 +220,7 @@ async function load(): Promise<void> {
   try {
     if (!loot.size) {
       try { loot = new Map((await api.fishInfo()).loot.map((l) => [l.id, l.name])); } catch { /* names fall back to ids */ }
+      try { ores = new Map((await api.mineInfo()).ores.map((o) => [o.id, o.name])); } catch { /* no mine yet / names fall back to ids */ }
     }
     const r = await api.activity();
     rows = r.events.slice(0, MAX_ROWS);
@@ -217,6 +228,7 @@ async function load(): Promise<void> {
     loaded = true;
     applyProgress(r.progress, r.locked);
     applyComfort(r.comfort);
+    applyCat(r.cat);
     renderRows();
     renderSummary();
     renderProgress();
@@ -262,6 +274,7 @@ export function initLog(): void {
     switch (m.event.kind) {
       case "earn": today.earned += amt; break;
       case "fish": today.fish += amt; today.fish_count += 1; break;
+      case "mine": today.mine = (today.mine ?? 0) + amt; today.mine_count = (today.mine_count ?? 0) + 1; break;
       case "place": case "remove": today.furniture += amt; break;
       case "sell": today.sold += amt; break;
       case "deliver": today.deliver += amt; break;
@@ -286,7 +299,10 @@ export function initLog(): void {
     if (!$("panel-log").classList.contains("hidden")) renderGuests();
   });
   socket.on("room", () => refreshComfort()); // a room's version moved: somebody placed/removed something
-  socket.on("cat", (m: { first_today: boolean }) => { if (m.first_today) refreshComfort(); }); // affection moved the inn's comfort
+  socket.on("cat", (m: { affection: number; taps: number; leveled: boolean }) => {
+    applyCat(m);
+    if (m.leveled) refreshComfort(); // affection moved the inn's comfort
+  });
   show("panel-log", false);
 }
 

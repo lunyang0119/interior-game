@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 import { api, ApiError, msgFor } from "../api";
 import { bus, toast } from "../bus";
-import { Z_SCALE, collisionLayer, onWall, priceOf, widthOf, type Catalog, type Room, type RoomItem } from "../catalog";
+import { Z_HUNG, Z_SCALE, canHang, collisionLayer, onWall, priceOf, widthOf, type Catalog, type Room, type RoomItem } from "../catalog";
 import { state } from "../state";
 import { depthOf, sortRowFor } from "./depth";
 import { anchorUnderPointer, CELL } from "./grid";
@@ -101,12 +101,17 @@ export class PlacementController {
     this.ok = check.ok;
     let y = (onWall(it) ? cy * CELL : (cy + it.h) * CELL) + (it.offset_y ?? 0);
     let sortRow = sortRowFor(collisionLayer(it), cy + it.h - 1);
+    let z = Z_SCALE[collisionLayer(it)];
     if (check.ok && check.parentUid != null) {
       const parent = this.items.get(check.parentUid);
       const pit = parent && this.cat.byId.get(parent.item_id);
-      if (parent && pit) { y -= pit.surface_offset_y; sortRow = parent.y + pit.h - 1; }
+      if (parent && pit) {
+        sortRow = parent.y + pit.h - 1;
+        if (canHang(it)) z = Z_HUNG; // hung on a partition
+        else y -= pit.surface_offset_y; // on a table
+      }
     }
-    this.ghost.setPosition(cx * CELL, y).setDepth(depthOf(sortRow, Z_SCALE[it.layer]) + 5).setTint(check.ok ? TINT_OK : TINT_BAD);
+    this.ghost.setPosition(cx * CELL, y).setDepth(depthOf(sortRow, z) + 5).setTint(check.ok ? TINT_OK : TINT_BAD);
     if (this.footprint) {
       const color = check.ok ? TINT_OK : TINT_BAD;
       const w = this.width();

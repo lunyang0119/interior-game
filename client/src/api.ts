@@ -36,6 +36,11 @@ const MESSAGES: Record<string, string> = {
   deliver_expired: "너무 늦었어요. 이 물고기는 이미 팔렸어요",
   already_delivered: "이미 납품한 물고기예요",
   not_your_catch: "내가 낚은 물고기만 납품할 수 있어요",
+  no_place: "여기엔 가구를 놓을 수 없어요",
+  no_mine: "아직 광산이 없어요",
+  node_gone: "이미 캐낸 광석이에요",
+  not_here: "광석 옆으로 가야 해요",
+  mine_cooldown: "너무 빨라요",
   network: "네트워크 오류네요",
 };
 
@@ -93,10 +98,19 @@ export interface FishFinishResponse {
   ok: boolean; pulls: number; escaped: boolean; id: string; name: string; value: number; balance: number;
   seq: number | null; deliverable: Deliverable[];
 }
+/** One ore node of the mine (server mine.py): where it stands and how many presses are left of `hits`. */
+export interface MineNode { seq: number; x: number; y: number; kind: string; hits_left: number; hits: number }
+export interface MineNodesResponse { day: number; nodes: MineNode[]; left: number; per_day: number; resets_at: number }
+export interface MineInfo { room: string; per_day: number; hit_cooldown_ms: number; reach: number; ores: { id: string; name: string; hits: number; value: number }[] }
+/** Answer to one 채광 press; the loot fields only when the node broke (`ledger_seq` = what /api/deliver takes). */
+export interface MineHitResponse {
+  seq: number; hits_left: number; done: boolean; left: number; balance: number;
+  id?: string; name?: string; value?: number; ledger_seq?: number | null; deliverable?: Deliverable[];
+}
 /** One row of the activity log (server events table). amount = change of the shared pool, + means it grew. */
 export interface ActivityEvent {
   seq: number; ts: number;
-  kind: "place" | "remove" | "sell" | "fish" | "deliver" | "stage" | "earn" | "guest" | "reserve" | "missed" | "cat" | string;
+  kind: "place" | "remove" | "sell" | "fish" | "mine" | "deliver" | "stage" | "earn" | "guest" | "reserve" | "missed" | "cat" | string;
   room_id: string | null; player_id: string | null; item_id: string | null; amount: number | null;
   data: {
     stage?: string; name?: string; index?: number; unlocks?: string[];
@@ -104,15 +118,22 @@ export interface ActivityEvent {
     guests?: number; per_guest?: number; score?: number; skipped?: boolean; reserved?: number; dog?: number | boolean;
     due_day?: number; days?: number; // reserve
     zone?: string | null; // guest/reserve/missed: the zone of the room (null = whole room)
+    affection?: number; taps?: number; // cat: the level reached and the total taps at that moment
+    kind?: "fish" | "mine"; // deliver: what was handed in
   } | null;
 }
 /** Signed pool changes since KST midnight (+ = the pool grew); `furniture` nets buys against refunds. */
 export interface TodayTotals {
   earned: number; fish: number; fish_count: number; furniture: number; sold: number; deliver: number; guests: number;
+  mine?: number; mine_count?: number; // ore value / nodes broken (older servers leave them out)
 }
+/** The inn cat: affection = min(3, taps / 100), taps from everyone together, never decays. */
+export interface CatView { affection: number; taps: number }
+
 export interface ActivityResponse {
   events: ActivityEvent[]; max: number; today: TodayTotals;
   progress: Record<string, RoomProgress>; locked: string[]; comfort: Record<string, ComfortView>;
+  cat?: CatView; // older servers leave it out
 }
 
 export const api = {
@@ -123,10 +144,15 @@ export const api = {
   fishStart: () => call<{ session: string; bites: { at_ms: number; window_ms: number; hold_ms: number }[] }>("POST", "/api/fish/start", {}),
   fishFinish: (session: string, holds: { start_ms: number; end_ms: number }[], escaped: boolean) =>
     call<FishFinishResponse>("POST", "/api/fish/finish", { session, holds, escaped }),
-  /** Pet the inn cat: the first pet of a KST day raises its affection (the inn's comfort); later ones just purr. */
-  catPet: () => call<{ affection: number; first_today: boolean }>("POST", "/api/cat/pet", {}),
-  fishDeliver: (seq: number, room?: string) =>
-    call<{ balance: number; room: string; have: number; want: number; completed: { room: string; stage: string; name: string }[] }>("POST", "/api/fish/deliver", { seq, room }),
+  /** Pet the inn cat `taps` times (quick taps are batched). Every 100 taps from everyone raise its affection by one, up to 3. */
+  catPet: (taps = 1) => call<CatView & { leveled: boolean }>("POST", "/api/cat/pet", { taps }),
+  /** Hand a fresh catch / broken ore (its ledger seq) in toward a room's restoration stage instead of keeping the money. */
+  deliver: (seq: number, room?: string) =>
+    call<{ balance: number; room: string; have: number; want: number; completed: { room: string; stage: string; name: string }[] }>("POST", "/api/deliver", { seq, room }),
+  mineInfo: () => call<MineInfo>("GET", "/api/mine"),
+  mineNodes: () => call<MineNodesResponse>("GET", "/api/mine/nodes"),
+  /** One press of 채광 on an ore node (the avatar must stand next to it). */
+  mineHit: (seq: number) => call<MineHitResponse>("POST", "/api/mine/hit", { seq }),
   register: (id: string) => call<{ id: string; token: string; existing: boolean; created: boolean; name: string; earned: number }>("POST", "/api/register", { id }),
   me: () => call<MeResponse>("GET", "/api/me"),
   sync: () => call<{ refreshed: boolean; balance: number; contributions: Contribution[] }>("POST", "/api/sync"),

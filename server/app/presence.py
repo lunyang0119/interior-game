@@ -94,10 +94,10 @@ class Hub:
             if isinstance(r, BaseException):
                 await self.leave(o)
 
-    def broadcast_threadsafe(self, msg: dict) -> None:
+    def broadcast_threadsafe(self, msg: dict, room: str | None = None) -> None:
         if self.loop is None or not self.online:
             return
-        asyncio.run_coroutine_threadsafe(self.broadcast(msg), self.loop)
+        asyncio.run_coroutine_threadsafe(self.broadcast(msg, room=room), self.loop)
 
     async def kick(self, player_id: str) -> None:
         o = self.online.get(player_id)

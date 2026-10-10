@@ -11,7 +11,7 @@
 import { api, ApiError, msgFor, type ComfortView, type NeedProgress, type RoomProgress } from "../api";
 import { bus, toast } from "../bus";
 import { placeName, unitName, type Stage } from "../catalog";
-import { applyComfort, applyProgress, catalog, state } from "../state";
+import { applyCat, applyComfort, applyProgress, CAT_MAX_AFFECTION, CAT_TAPS_PER_LEVEL, catalog, state } from "../state";
 import { $, show, togglePanel } from "./hud";
 import { itemThumb } from "./shop";
 
@@ -45,7 +45,17 @@ function renderSummary(): void {
   const beds = views.reduce((n, v) => n + v.beds, 0);
   const parts = [guests ? `오늘 밤 손님 ${guests}명 · 숙박료 ${pay}💰 예상` : beds ? "오늘 밤은 손님이 없어요" : "침대가 없어서 손님을 못 받아요"];
   parts.push(`객실 ${views.length}곳`);
+  parts.push(catLine());
   box.textContent = parts.join(" · ");
+}
+
+/** "🐱 호감도 1/3 · 쓰다듬기 137/300" — the cat loves the inn a little more every 100 taps, for good. */
+function catLine(): string {
+  const c = state.cat;
+  const goal = CAT_MAX_AFFECTION * CAT_TAPS_PER_LEVEL;
+  return c.affection >= CAT_MAX_AFFECTION
+    ? `🐱 호감도 ${c.affection}/${CAT_MAX_AFFECTION} (최고예요)`
+    : `🐱 호감도 ${c.affection}/${CAT_MAX_AFFECTION} · 쓰다듬기 ${Math.min(c.taps, goal)}/${goal}`;
 }
 
 function reservationCard(key: string, c: ComfortView): HTMLElement {
@@ -149,6 +159,7 @@ async function load(): Promise<void> {
     const r = await api.activity();
     applyProgress(r.progress, r.locked);
     applyComfort(r.comfort);
+    applyCat(r.cat);
     if (isOpen()) render();
   } catch (e) {
     toast(e instanceof ApiError ? msgFor(e.code) : String(e));
@@ -166,5 +177,6 @@ export function initBoard(): void {
   bus.on("board:open", open);
   bus.on("progress:changed", () => { if (isOpen()) renderQuests(); });
   bus.on("comfort:changed", () => { if (isOpen()) { renderSummary(); renderReservations(); } });
+  bus.on("cat:changed", () => { if (isOpen()) renderSummary(); });
   show("panel-board", false);
 }

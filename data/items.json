@@ -3964,7 +3964,7 @@
    "price": 34,
    "sprite": "wardrobe_brown_a_open",
    "w": 4,
-   "h": 2,
+   "h": 5,
    "layer": "furniture",
    "is_surface": false,
    "surface_offset_y": 0
@@ -4030,7 +4030,7 @@
    "price": 34,
    "sprite": "wardrobe_brown_b_open",
    "w": 4,
-   "h": 2,
+   "h": 5,
    "layer": "furniture",
    "is_surface": false,
    "surface_offset_y": 0
@@ -4140,7 +4140,7 @@
    "price": 34,
    "sprite": "wardrobe_white_open",
    "w": 4,
-   "h": 2,
+   "h": 5,
    "layer": "furniture",
    "is_surface": false,
    "surface_offset_y": 0
@@ -6389,17 +6389,6 @@
    ]
   },
   {
-   "id": "book_stack_fp",
-   "name": "책 더미",
-   "price": 10,
-   "sprite": "book_stack_fp",
-   "w": 2,
-   "h": 2,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
    "id": "plant_fp1",
    "name": "화분",
    "price": 10,
@@ -6442,17 +6431,6 @@
    "layer": "furniture",
    "is_surface": true,
    "surface_offset_y": 10
-  },
-  {
-   "id": "book_stack_purple_fp",
-   "name": "보라 책 더미",
-   "price": 10,
-   "sprite": "book_stack_purple_fp",
-   "w": 2,
-   "h": 2,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
   },
   {
    "id": "plant_fp2",
@@ -6513,17 +6491,6 @@
    "surface_offset_y": 10
   },
   {
-   "id": "book_stack_tan_fp",
-   "name": "탄색 책 더미",
-   "price": 10,
-   "sprite": "book_stack_tan_fp",
-   "w": 2,
-   "h": 2,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
    "id": "sofa_blue_fp",
    "name": "파란 소파",
    "price": 26,
@@ -6564,17 +6531,6 @@
    "w": 2,
    "h": 2,
    "layer": "wall",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
-   "id": "book_stack_dark_fp",
-   "name": "어두운 책 더미",
-   "price": 10,
-   "sprite": "book_stack_dark_fp",
-   "w": 2,
-   "h": 2,
-   "layer": "furniture",
    "is_surface": false,
    "surface_offset_y": 0
   },
@@ -6727,7 +6683,7 @@
    "price": 8,
    "sprite": "fire_extinguisher_sm",
    "w": 1,
-   "h": 2,
+   "h": 1,
    "layer": "furniture",
    "is_surface": false,
    "surface_offset_y": 0
@@ -6780,17 +6736,6 @@
    "surface_offset_y": 0
   },
   {
-   "id": "rug_cross_pattern_ti",
-   "name": "십자 패턴 러그",
-   "price": 22,
-   "sprite": "rug_cross_pattern_ti",
-   "w": 5,
-   "h": 5,
-   "layer": "floor",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
    "id": "rug_oval_small_ti1",
    "name": "작은 타원 러그 1",
    "price": 8,
@@ -6825,14 +6770,17 @@
   },
   {
    "id": "chair_set_ti",
-   "name": "장식 의자 세트",
+   "name": "녹색 침대",
    "price": 16,
    "sprite": "chair_set_ti",
    "w": 2,
-   "h": 2,
+   "h": 3,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "bed"
+   ]
   },
   {
    "id": "table_long_tan_ti",
@@ -7389,11 +7337,14 @@
    "name": "창문 벽 패널",
    "price": 8,
    "sprite": "fmp_042",
-   "w": 4,
+   "w": 1,
    "h": 3,
    "layer": "wallpaper",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "partition"
+   ]
   },
   {
    "id": "fmp_043",
@@ -7602,7 +7553,10 @@
    "h": 3,
    "layer": "wallpaper",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "partition"
+   ]
   },
   {
    "id": "fmp_063",
@@ -7613,7 +7567,10 @@
    "h": 3,
    "layer": "wallpaper",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "partition"
+   ]
   },
   {
    "id": "fmp_064",
@@ -7631,11 +7588,14 @@
    "name": "회색 벽 패널 수납장",
    "price": 8,
    "sprite": "fmp_065",
-   "w": 4,
+   "w": 1,
    "h": 3,
    "layer": "wallpaper",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "partition"
+   ]
   },
   {
    "id": "fmp_066",
@@ -7810,50 +7770,6 @@
    "w": 3,
    "h": 2,
    "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
-   "id": "fmp_087",
-   "name": "바닥재 087",
-   "price": 20,
-   "sprite": "fmp_087",
-   "w": 1,
-   "h": 1,
-   "layer": "floor",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
-   "id": "fmp_088",
-   "name": "바닥재 088",
-   "price": 20,
-   "sprite": "fmp_088",
-   "w": 1,
-   "h": 1,
-   "layer": "floor",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
-   "id": "fmp_089",
-   "name": "바닥재 089",
-   "price": 20,
-   "sprite": "fmp_089",
-   "w": 1,
-   "h": 1,
-   "layer": "floor",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
-   "id": "fmp_090",
-   "name": "바닥재 090",
-   "price": 20,
-   "sprite": "fmp_090",
-   "w": 1,
-   "h": 1,
-   "layer": "floor",
    "is_surface": false,
    "surface_offset_y": 0
   },
@@ -29570,17 +29486,6 @@
    "surface_offset_y": 0
   },
   {
-   "id": "mordkit2_005_chair_white_back",
-   "name": "mordkit2 005 chair white back",
-   "price": 50,
-   "sprite": "mordkit2_005_chair_white_back",
-   "w": 1,
-   "h": 1,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
    "id": "mordkit2_006_chair_white_side_a",
    "name": "mordkit2 006 chair white side a",
    "price": 50,
@@ -29607,17 +29512,6 @@
    "name": "mordkit2 008 chair white lounge",
    "price": 50,
    "sprite": "mordkit2_008_chair_white_lounge",
-   "w": 1,
-   "h": 1,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
-   "id": "mordkit2_009_chair_slateblue_back",
-   "name": "mordkit2 009 chair slateblue back",
-   "price": 50,
-   "sprite": "mordkit2_009_chair_slateblue_back",
    "w": 1,
    "h": 1,
    "layer": "furniture",
@@ -29658,17 +29552,6 @@
    "surface_offset_y": 0
   },
   {
-   "id": "mordkit2_013_chair_sage_back",
-   "name": "mordkit2 013 chair sage back",
-   "price": 50,
-   "sprite": "mordkit2_013_chair_sage_back",
-   "w": 1,
-   "h": 1,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
    "id": "mordkit2_014_chair_sage_side_a",
    "name": "mordkit2 014 chair sage side a",
    "price": 50,
@@ -29695,17 +29578,6 @@
    "name": "mordkit2 016 chair sage lounge",
    "price": 50,
    "sprite": "mordkit2_016_chair_sage_lounge",
-   "w": 1,
-   "h": 1,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
-   "id": "mordkit2_017_chair_pink_back",
-   "name": "mordkit2 017 chair pink back",
-   "price": 50,
-   "sprite": "mordkit2_017_chair_pink_back",
    "w": 1,
    "h": 1,
    "layer": "furniture",
@@ -29746,17 +29618,6 @@
    "surface_offset_y": 0
   },
   {
-   "id": "mordkit2_021_chair_cyan_back",
-   "name": "mordkit2 021 chair cyan back",
-   "price": 50,
-   "sprite": "mordkit2_021_chair_cyan_back",
-   "w": 1,
-   "h": 1,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
    "id": "mordkit2_022_chair_cyan_side_a",
    "name": "mordkit2 022 chair cyan side a",
    "price": 50,
@@ -29783,17 +29644,6 @@
    "name": "mordkit2 024 chair cyan lounge",
    "price": 50,
    "sprite": "mordkit2_024_chair_cyan_lounge",
-   "w": 1,
-   "h": 1,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
-   "id": "mordkit2_025_chair_terracotta_back",
-   "name": "mordkit2 025 chair terracotta back",
-   "price": 50,
-   "sprite": "mordkit2_025_chair_terracotta_back",
    "w": 1,
    "h": 1,
    "layer": "furniture",
@@ -34582,10 +34432,14 @@
    "price": 50,
    "sprite": "fmp_051",
    "w": 4,
-   "h": 4,
+   "h": 3,
    "layer": "wall",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "door"
+   ],
+   "offset_y": 3
   },
   {
    "id": "fmp_40",
@@ -34859,6 +34713,584 @@
    "price": 50,
    "sprite": "wa_sans",
    "w": 1,
+   "h": 2,
+   "layer": "furniture",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "door_87",
+   "name": "door 87",
+   "price": 50,
+   "sprite": "door_87",
+   "w": 2,
+   "h": 2,
+   "layer": "furniture",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "door_88",
+   "name": "door 88",
+   "price": 50,
+   "sprite": "door_88",
+   "w": 2,
+   "h": 2,
+   "layer": "furniture",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "door_90",
+   "name": "door 90",
+   "price": 50,
+   "sprite": "door_90",
+   "w": 2,
+   "h": 2,
+   "layer": "furniture",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "door_91",
+   "name": "door 91",
+   "price": 50,
+   "sprite": "door_91",
+   "w": 4,
+   "h": 2,
+   "layer": "wall",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "door_92",
+   "name": "door 92",
+   "price": 50,
+   "sprite": "door_92",
+   "w": 4,
+   "h": 2,
+   "layer": "wall",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "door_93",
+   "name": "door 93",
+   "price": 50,
+   "sprite": "door_93",
+   "w": 3,
+   "h": 2,
+   "layer": "wall",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "door_94",
+   "name": "door 94",
+   "price": 50,
+   "sprite": "door_94",
+   "w": 3,
+   "h": 2,
+   "layer": "wall",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "door_95",
+   "name": "door 95",
+   "price": 50,
+   "sprite": "door_95",
+   "w": 3,
+   "h": 2,
+   "layer": "wall",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "door_96",
+   "name": "door 96",
+   "price": 50,
+   "sprite": "door_96",
+   "w": 4,
+   "h": 2,
+   "layer": "wall",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "door_85",
+   "name": "door 85",
+   "price": 50,
+   "sprite": "door_85",
+   "w": 2,
+   "h": 3,
+   "layer": "furniture",
+   "is_surface": false,
+   "surface_offset_y": 8,
+   "offset_y": 3,
+   "tags": [
+    "door"
+   ]
+  },
+  {
+   "id": "door_89",
+   "name": "door 89",
+   "price": 50,
+   "sprite": "door_89",
+   "w": 2,
+   "h": 3,
+   "layer": "wall",
+   "is_surface": false,
+   "surface_offset_y": 0,
+   "tags": [
+    "door"
+   ],
+   "offset_y": 3
+  },
+  {
+   "id": "door_86",
+   "name": "door 86",
+   "price": 50,
+   "sprite": "door_86",
+   "w": 2,
+   "h": 3,
+   "layer": "furniture",
+   "is_surface": false,
+   "surface_offset_y": 0,
+   "tags": [
+    "door"
+   ],
+   "offset_y": 3
+  },
+  {
+   "id": "8gym_85",
+   "name": "8gym 85",
+   "price": 50,
+   "sprite": "8gym_85",
+   "w": 2,
+   "h": 2,
+   "layer": "furniture",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "8gym_90",
+   "name": "8gym 90",
+   "price": 50,
+   "sprite": "8gym_90",
+   "w": 1,
+   "h": 2,
+   "layer": "furniture",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "8gym_86",
+   "name": "8gym 86",
+   "price": 50,
+   "sprite": "8gym_86",
+   "w": 1,
+   "h": 1,
+   "layer": "furniture",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "8gym_87",
+   "name": "8gym 87",
+   "price": 50,
+   "sprite": "8gym_87",
+   "w": 2,
+   "h": 2,
+   "layer": "furniture",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "8gym_88",
+   "name": "8gym 88",
+   "price": 50,
+   "sprite": "8gym_88",
+   "w": 2,
+   "h": 2,
+   "layer": "furniture",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "8gym_91",
+   "name": "8gym 91",
+   "price": 50,
+   "sprite": "8gym_91",
+   "w": 3,
+   "h": 2,
+   "layer": "wall",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "8gym_89",
+   "name": "8gym 89",
+   "price": 50,
+   "sprite": "8gym_89",
+   "w": 3,
+   "h": 2,
+   "layer": "floor",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "8gym_92",
+   "name": "8gym 92",
+   "price": 50,
+   "sprite": "8gym_92",
+   "w": 3,
+   "h": 2,
+   "layer": "furniture",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "8gym_93",
+   "name": "8gym 93",
+   "price": 50,
+   "sprite": "8gym_93",
+   "w": 1,
+   "h": 1,
+   "layer": "floor",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "free_86",
+   "name": "free 86",
+   "price": 50,
+   "sprite": "free_86",
+   "w": 1,
+   "h": 2,
+   "layer": "wallpaper",
+   "is_surface": false,
+   "surface_offset_y": 0,
+   "tags": [
+    "partition"
+   ]
+  },
+  {
+   "id": "free_85",
+   "name": "free 85",
+   "price": 50,
+   "sprite": "free_85",
+   "w": 1,
+   "h": 2,
+   "layer": "wallpaper",
+   "is_surface": false,
+   "surface_offset_y": 0,
+   "tags": [
+    "partition"
+   ]
+  },
+  {
+   "id": "free_85_2",
+   "name": "free 85 2",
+   "price": 50,
+   "sprite": "free_85_2",
+   "w": 1,
+   "h": 3,
+   "layer": "wallpaper",
+   "is_surface": false,
+   "surface_offset_y": 0,
+   "tags": [
+    "partition"
+   ]
+  },
+  {
+   "id": "free_86_2",
+   "name": "free 86 2",
+   "price": 50,
+   "sprite": "free_86_2",
+   "w": 1,
+   "h": 3,
+   "layer": "wallpaper",
+   "is_surface": false,
+   "surface_offset_y": 0,
+   "tags": [
+    "partition"
+   ]
+  },
+  {
+   "id": "free_87",
+   "name": "free 87",
+   "price": 50,
+   "sprite": "free_87",
+   "w": 1,
+   "h": 3,
+   "layer": "wallpaper",
+   "is_surface": false,
+   "surface_offset_y": 0,
+   "tags": [
+    "partition"
+   ]
+  },
+  {
+   "id": "free_88",
+   "name": "free 88",
+   "price": 50,
+   "sprite": "free_88",
+   "w": 1,
+   "h": 3,
+   "layer": "wallpaper",
+   "is_surface": false,
+   "surface_offset_y": 0,
+   "tags": [
+    "partition"
+   ]
+  },
+  {
+   "id": "axul_90",
+   "name": "axul 90",
+   "price": 50,
+   "sprite": "axul_90",
+   "w": 1,
+   "h": 2,
+   "layer": "furniture",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "axul_86",
+   "name": "axul 86",
+   "price": 50,
+   "sprite": "axul_86",
+   "w": 2,
+   "h": 2,
+   "layer": "furniture",
+   "is_surface": false,
+   "surface_offset_y": 0,
+   "tags": [
+    "bed"
+   ]
+  },
+  {
+   "id": "axul_85",
+   "name": "axul 85",
+   "price": 50,
+   "sprite": "axul_85",
+   "w": 1,
+   "h": 2,
+   "layer": "furniture",
+   "is_surface": false,
+   "surface_offset_y": 0,
+   "tags": [
+    "bed"
+   ]
+  },
+  {
+   "id": "axul_87",
+   "name": "axul 87",
+   "price": 50,
+   "sprite": "axul_87",
+   "w": 2,
+   "h": 2,
+   "layer": "furniture",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "axul_88",
+   "name": "axul 88",
+   "price": 50,
+   "sprite": "axul_88",
+   "w": 2,
+   "h": 2,
+   "layer": "furniture",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "tile_85",
+   "name": "tile 85",
+   "price": 50,
+   "sprite": "tile_85",
+   "w": 2,
+   "h": 2,
+   "layer": "furniture",
+   "is_surface": false,
+   "surface_offset_y": 0,
+   "tags": [
+    "bed"
+   ]
+  },
+  {
+   "id": "pixe_85",
+   "name": "pixe 85",
+   "price": 50,
+   "sprite": "pixe_85",
+   "w": 2,
+   "h": 2,
+   "layer": "furniture",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "pixe_86",
+   "name": "pixe 86",
+   "price": 50,
+   "sprite": "pixe_86",
+   "w": 2,
+   "h": 2,
+   "layer": "furniture",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "pixe_87",
+   "name": "pixe 87",
+   "price": 50,
+   "sprite": "pixe_87",
+   "w": 2,
+   "h": 2,
+   "layer": "furniture",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "pixe_88",
+   "name": "pixe 88",
+   "price": 50,
+   "sprite": "pixe_88",
+   "w": 2,
+   "h": 2,
+   "layer": "furniture",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "pixe_89",
+   "name": "pixe 89",
+   "price": 50,
+   "sprite": "pixe_89",
+   "w": 3,
+   "h": 2,
+   "layer": "furniture",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "pixe_90",
+   "name": "pixe 90",
+   "price": 50,
+   "sprite": "pixe_90",
+   "w": 3,
+   "h": 2,
+   "layer": "furniture",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "pixe_92",
+   "name": "pixe 92",
+   "price": 50,
+   "sprite": "pixe_92",
+   "w": 2,
+   "h": 2,
+   "layer": "furniture",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "pixe_91",
+   "name": "pixe 91",
+   "price": 50,
+   "sprite": "pixe_91",
+   "w": 2,
+   "h": 2,
+   "layer": "furniture",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "pixe_93",
+   "name": "pixe 93",
+   "price": 50,
+   "sprite": "pixe_93",
+   "w": 2,
+   "h": 2,
+   "layer": "furniture",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "pixe_94",
+   "name": "pixe 94",
+   "price": 50,
+   "sprite": "pixe_94",
+   "w": 2,
+   "h": 2,
+   "layer": "furniture",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "pixe_95",
+   "name": "pixe 95",
+   "price": 50,
+   "sprite": "pixe_95",
+   "w": 2,
+   "h": 2,
+   "layer": "furniture",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "pixe_96",
+   "name": "pixe 96",
+   "price": 50,
+   "sprite": "pixe_96",
+   "w": 2,
+   "h": 2,
+   "layer": "furniture",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "pixe_85_2",
+   "name": "pixe 85 2",
+   "price": 50,
+   "sprite": "pixe_85_2",
+   "w": 1,
+   "h": 2,
+   "layer": "furniture",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "pixe_86_2",
+   "name": "pixe 86 2",
+   "price": 50,
+   "sprite": "pixe_86_2",
+   "w": 1,
+   "h": 2,
+   "layer": "furniture",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "pixe_87_2",
+   "name": "pixe 87 2",
+   "price": 50,
+   "sprite": "pixe_87_2",
+   "w": 2,
+   "h": 2,
+   "layer": "furniture",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "ward_85",
+   "name": "ward 85",
+   "price": 50,
+   "sprite": "ward_85",
+   "w": 2,
    "h": 2,
    "layer": "furniture",
    "is_surface": false,

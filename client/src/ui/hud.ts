@@ -50,10 +50,19 @@ export function initHud(): void {
 
   bus.on("money", ({ balance }) => { $("hud-balance-val").textContent = balance.toLocaleString(); });
   bus.on("online", ({ count }) => { $("hud-online-val").textContent = String(count); });
-  bus.on("room:changed", ({ name, id, ruined }) => {
+  // which bars show depends on the scene and, inside the Room scene, on the room's kind (the mine has no shop)
+  let scene: "room" | "map" | "dock" = "room";
+  let roomKind: "room" | "mine" = "room";
+  const applyBars = () => {
+    show("btn-shop", scene === "room" && roomKind === "room");
+    show("minebar", scene === "room" && roomKind === "mine");
+  };
+  bus.on("room:changed", ({ name, id, ruined, kind }) => {
     $("hud-room-val").textContent = name || id;
     $("hud-room-ruined").textContent = ruined > 0 ? ` · 🧹 ${ruined}` : "";
     show("hud-room", true);
+    roomKind = kind === "mine" ? "mine" : "room";
+    applyBars();
   });
   $("hud-room").addEventListener("click", () => bus.emit("log:open", { section: "progress" }));
   bus.on("toast", ({ text, ms }) => {
@@ -89,6 +98,9 @@ export function initHud(): void {
       else { closeAllPanels(); show("ctx", false); show("panel-enter", false); }
     } else if (e.key === "Enter" && placing && !($("place-confirm") as HTMLButtonElement).disabled) {
       bus.emit("place:confirm");
+    } else if (e.key === " " && !$("minebar").classList.contains("hidden") && !mineBtn.disabled) {
+      e.preventDefault();
+      swing();
     }
   });
   bus.on("scene:ready", () => show("loading", false));
@@ -103,7 +115,8 @@ export function initHud(): void {
   $("place-cancel").addEventListener("click", () => bus.emit("place:cancel"));
   // dock: hide the room-only bottom bar, show 나가기/낚시 at the top-left
   // which world scene is up decides the bars: shop only in rooms, 나가기/낚시 only on the dock
-  bus.on("scene:changed", ({ scene }) => {
+  bus.on("scene:changed", (m) => {
+    scene = m.scene;
     closeAllPanels();
     show("ctx", false); // a furniture menu left open belongs to the room we just left
     show("placebar", false);
@@ -111,10 +124,35 @@ export function initHud(): void {
     show("fishbar", scene === "dock");
     show("fish-catch", false);
     show("bottombar", scene !== "dock");
-    show("btn-shop", scene === "room");
     show("hud-room", scene !== "dock");
     show("panel-enter", false);
+    bus.emit("mine:target", null);
+    applyBars();
   });
+  // the mine: ⛏ 채광 presses on the target node (room/OreNodes.ts); the pickaxe swings on every press
+  const mineBtn = $("btn-mine") as HTMLButtonElement;
+  const pick = $("mine-pick") as HTMLImageElement;
+  pick.src = assetUrl("/gen/mine/pickaxe.png");
+  pick.onerror = () => { pick.classList.add("hidden"); };
+  let mineTarget: { seq: number; name: string; hits_left: number; hits: number } | null = null;
+  const renderMineBtn = () => {
+    mineBtn.disabled = !mineTarget;
+    $("btn-mine-label").textContent = mineTarget ? `채광 · ${mineTarget.name} (${mineTarget.hits_left}번 더)` : "광석을 눌러 골라요";
+  };
+  renderMineBtn();
+  bus.on("mine:target", (t) => { mineTarget = t; renderMineBtn(); });
+  bus.on("mine:left", ({ left, per_day }) => {
+    $("mine-status").textContent = left > 0 ? `오늘 남은 광석 ${left}/${per_day}` : "오늘은 다 캤어요 · 자정에 다시 생겨요";
+  });
+  const swing = () => {
+    if (mineBtn.disabled) return;
+    mineBtn.classList.remove("swing");
+    void mineBtn.offsetWidth; // restart the CSS animation
+    mineBtn.classList.add("swing");
+    bus.emit("mine:press");
+  };
+  mineBtn.addEventListener("click", swing);
+  mineBtn.addEventListener("contextmenu", (e) => e.preventDefault());
   bus.on("map:enter-ask", ({ name }) => {
     if (!name) { show("panel-enter", false); return; }
     $("enter-text").textContent = `${name}에 들어가시겠어요?`;
@@ -148,17 +186,19 @@ export function initHud(): void {
   bus.on("fish:meter", ({ meter }) => {
     $("fish-meter-fill").style.width = `${Math.round(meter * 100)}%`;
   });
-  // the catch overlay; my own catch may offer "납품하기" (hand it in toward a room's stage instead of keeping the money)
+  // the loot overlay (a catch at the dock, a broken ore node in the mine); my own may offer "납품하기"
+  // (hand it in toward a room's stage instead of keeping the money)
   let catchTimer: number | null = null;
   let deliverSeq: number | null = null;
   const deliverBtn = $("fish-deliver") as HTMLButtonElement;
-  bus.on("fish:catch", ({ ok, id, name, value, who, seq, deliverable }) => {
+  bus.on("loot:got", ({ ok, kind, id, name, value, who, seq, deliverable }) => {
     const img = $("fish-catch-img") as HTMLImageElement;
-    img.src = assetUrl(`/gen/fish/${id}.png`);
+    img.src = assetUrl(`/gen/${kind}/${id}.png`);
     img.style.visibility = ok ? "visible" : "hidden";
     const gain = value > 0 ? ` +${value}💰` : ""; // duds are worth nothing
+    const verb = kind === "mine" ? "캤어요" : "낚았어요";
     $("fish-catch-text").textContent = ok
-      ? (who && who !== state.id ? `${who}가 ${name}을(를) 낚았어요!${gain}` : `${name}을(를) 낚았어요!${gain}`)
+      ? (who && who !== state.id ? `${who}가 ${name}을(를) ${verb}!${gain}` : `${name}을(를) ${verb}!${gain}`)
       : `놓쳤어요… ${name}이(가) 도망쳤어요`;
     const want = ok && seq != null && deliverable && deliverable.length ? deliverable[0] : null;
     deliverSeq = want ? seq! : null;
@@ -173,7 +213,7 @@ export function initHud(): void {
     if (deliverSeq === null || deliverBtn.disabled) return;
     deliverBtn.disabled = true;
     try {
-      const r = await api.fishDeliver(deliverSeq);
+      const r = await api.deliver(deliverSeq);
       deliverSeq = null;
       state.balance = r.balance;
       bus.emit("money", { balance: r.balance });

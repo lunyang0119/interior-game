@@ -15,13 +15,20 @@ import { Z_AVATAR, type CatSpec, type Room } from "../catalog";
 import { depthOf } from "../room/depth";
 import { CELL } from "../room/grid";
 import { pathToward, type Cell, type WalkGrid } from "../room/walk";
-import { state } from "../state";
+import { applyCat, CAT_MAX_AFFECTION, state } from "../state";
 
 const SPEED = 28; // px per second (a stroll; avatars walk at 48)
 const IDLE_MIN_MS = 2500, IDLE_MAX_MS = 7000;
 const WANDER_RADIUS = 5; // cells
 const WALK_CHANCE = 0.55; // else pick another idle pose
 const PET_PAUSE_MS = 4000; // stays put after being petted
+/** What the cat says when tapped (one at random; the sound is a separate meow sfx). */
+const MEOWS = [
+  "야옹", "냐앙~", "골골골…", "냥", "미야옹~", "그르릉", "야옹? (꼬리를 살랑여요)", "(머리를 손에 비벼요)",
+  "야옹! (배를 보여줘요)", "…(눈을 가늘게 떠요)", "냐아 (하품해요)", "…zzz (잠깐 졸아요)",
+];
+const PET_BATCH_MS = 1200;  // quick taps are sent together: this long after the last tap …
+const PET_BATCH_MAX = 20;   // … or as soon as this many have piled up
 const Z_CAT = Z_AVATAR - 1; // under an avatar standing on the same row
 
 type Dir = "down" | "right" | "up" | "left";
@@ -73,7 +80,9 @@ export class InnCat {
   private target: { x: number; y: number } | null = null;
   private dir: Dir = "down";
   private nextAt = 0;
-  private petting = false;
+  private petting = false;   // a batch is on its way
+  private pending = 0;       // taps not sent yet
+  private flushAt: ReturnType<typeof setTimeout> | null = null;
   private alive = true;
 
   constructor(private scene: Phaser.Scene, private spec: CatSpec, private room: Room, private walkGrid: () => WalkGrid) {}
@@ -203,17 +212,34 @@ export class InnCat {
     this.dir = "down";
     this.idle("look");
     this.nextAt = this.scene.time.now + PET_PAUSE_MS;
-    if (this.petting || !state.token) return true; // without an account the cat still meows, but nothing is recorded
-    this.petting = true;
-    api.catPet()
-      .then((r) => toast(r.first_today ? "고양이가 골골거려요" : "야옹"))
-      .catch((e) => toast(e instanceof ApiError ? msgFor(e.code) : String(e)))
-      .finally(() => { this.petting = false; });
+    toast(MEOWS[Math.floor(Math.random() * MEOWS.length)]);
+    if (!state.token) return true; // without an account the cat still meows, but nothing is recorded
+    this.pending++;
+    if (this.flushAt) clearTimeout(this.flushAt);
+    if (this.pending >= PET_BATCH_MAX) this.flush();
+    else this.flushAt = setTimeout(() => this.flush(), PET_BATCH_MS);
     return true;
+  }
+
+  /** Send the taps piled up so far (one request at a time; what arrives meanwhile goes with the next one). */
+  private flush(): void {
+    if (this.flushAt) { clearTimeout(this.flushAt); this.flushAt = null; }
+    if (this.petting || !this.pending) return;
+    const n = this.pending;
+    this.pending = 0;
+    this.petting = true;
+    api.catPet(n)
+      .then((r) => {
+        applyCat(r);
+        if (r.leveled) toast(r.affection >= CAT_MAX_AFFECTION ? "고양이가 여관을 완전히 좋아하게 됐어요 (호감도 3/3)" : `고양이가 더 좋아하게 됐어요 (호감도 ${r.affection}/${CAT_MAX_AFFECTION})`);
+      })
+      .catch((e) => toast(e instanceof ApiError ? msgFor(e.code) : String(e)))
+      .finally(() => { this.petting = false; if (this.pending) this.flush(); });
   }
 
   destroy(): void {
     this.alive = false;
+    this.flush(); // taps still waiting go out now (the page lives on across scene changes)
     this.sprite?.destroy();
     this.sprite = null;
     this.target = null;

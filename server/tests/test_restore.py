@@ -48,14 +48,14 @@ def test_evaluate_each_need(catalog):
                       {"type": "placed", "tag": "note"}, {"type": "placed", "item_id": "cup"},
                       {"type": "deliver", "count": 3}, {"type": "deliver", "id": "chest"}, {"type": "pool", "amount": 500}])
     items = [_row(1, "junk", "$seed"), _row(2, "chair", "$seed"), _row(3, "chair"), _row(4, "memo"), _row(5, "cup")]
-    p = evaluate(catalog, st, 0, items, {ANY: 2, "anchovy": 2}, 450)
+    p = evaluate(catalog, st, 0, items, {"fish": {ANY: 2, "anchovy": 2}}, 450)
     got = [(n.type, n.have, n.want, n.done) for n in p.needs]
     # the seeded chair does not count; the memo is furniture too (2/2); the junk keeps ruined_zero open
     assert got == [("ruined_zero", 1, 0, False), ("placed", 2, 2, True), ("placed", 1, 1, True), ("placed", 1, 1, True),
                    ("deliver", 2, 3, False), ("deliver", 0, 1, False), ("pool", 450, 500, False)]
     assert not p.done
     p = evaluate(catalog, st, 0, [_row(3, "chair"), _row(4, "memo"), _row(5, "cup")],
-                 {ANY: 4, "anchovy": 3, "chest": 1}, 900)
+                 {"fish": {ANY: 4, "anchovy": 3, "chest": 1}}, 900)
     assert p.done and [n.have for n in p.needs] == [0, 2, 1, 1, 3, 1, 500]
     assert p.public()["needs"][0] == {"type": "ruined_zero", "label": "", "have": 0, "want": 0, "done": True}
 

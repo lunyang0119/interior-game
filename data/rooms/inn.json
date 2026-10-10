@@ -1384,6 +1384,10 @@
     {
      "type": "unlock",
      "room": "floor_2"
+    },
+    {
+     "type": "unlock",
+     "room": "mine"
     }
    ]
   }

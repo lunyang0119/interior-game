@@ -40,7 +40,9 @@ sudo systemctl restart interior
 
 여관 벽의 **📋 게시판**(`board` 태그 가구, `inn.json` 시드 `med_018`)을 탭하면 오늘 밤 손님·숙박료 예상, **예약**(요구 가구·남은 날·준비 여부 `reservation.ready`, "상점에서 찾기" 버튼으로 그 가구로 바로 이동), **의뢰**(모든 방의 복구 단계: 지난 단계 ✓, 현재 단계의 진행 막대, 다음 단계, 보상)가 한 화면에 나온다(`client/src/ui/board.ts`). `board` 태그를 다른 가구에 붙이면 그것도 게시판이 된다.
 
-여관에는 **고양이**가 한 마리 산다. 통행 가능한 칸을 혼자 돌아다니며 앉고 두리번거리고 눕는데(클라이언트만 움직임, 서버는 모름), 길을 막지는 않는다. 톡 치면 야옹 소리(`media/sfx/cat.mp3`, `assets/sfx/**/cat_*.mp3`가 있을 때만)가 나고 쓰다듬은 것으로 치는데, **하루(KST)에 처음 쓰다듬은 것만** 기록된다(`cat_pets` 테이블, `POST /api/cat/pet`, 📜 기록 `cat`, 모두에게 `{"type":"cat"}` 알림). **애정도 = 최근 3일 중 쓰다듬은 날 수(0~3)** 이고 여관(`inn`) 단위의 안락도에 `애정도 × 3`(`guests.json`의 `affection_bonus`)이 더해진다(🛏️ 카드에 `🐱+N`). 다른 방에는 영향이 없다. 고양이 그림은 `assets/graphic/Map/Cats/<변종>.png`에서 `build`가 `gen/cat/`으로 잘라 넣는다(변종은 `tools/preprocess/config.py`의 `CAT_VARIANT`).
+여관에는 **고양이**가 한 마리 산다. 통행 가능한 칸을 혼자 돌아다니며 앉고 두리번거리고 눕는데(클라이언트만 움직임, 서버는 모름), 길을 막지는 않는다. 톡 치면 야옹 소리(`media/sfx/cat.mp3`, `assets/sfx/**/cat_*.mp3`가 있을 때만)가 나고 쓰다듬은 횟수가 쌓인다(클라이언트가 연타를 묶어 `POST /api/cat/pet {taps}`, 한 요청에 최대 50, `cat_taps` 테이블, 모두에게 `{"type":"cat"}` 알림). **애정도 = 모두가 합쳐서 쓰다듬은 횟수 ÷ 100(최대 3), 영구 누적** — 300번이면 영원히 3이다. 한 단계 오를 때만 📜에 `cat` 행이 남고, 📋 게시판과 🛏️ 카드에 `쓰다듬기 n/300`이 보인다. 애정도는 여관(`inn`) 단위의 안락도에 `애정도 × 3`(`guests.json`의 `affection_bonus`)이 더해진다(🛏️ 카드에 `🐱+N`). 다른 방에는 영향이 없다. 고양이 그림은 `assets/graphic/Map/Cats/<변종>.png`에서 `build`가 `gen/cat/`으로 잘라 넣는다(변종은 `tools/preprocess/config.py`의 `CAT_VARIANT`).
+
+**광산**(`data/rooms/mine.json`, `kind: "mine"`인 보통 격자 방 — 여관 '낚시' 단계가 2층과 함께 연다)에는 서버가 **매일 KST 자정에 광석 노드를 `per_day`개**(`data/mine.json`, 기본 12) 빈 바닥 칸에 흩뿌린다(`ore_nodes` 테이블, `room_meta`의 `mine_day:mine`으로 하루 한 번). 모두가 같은 노드를 보고, 광석을 누르면 아바타가 옆까지 걸어간 뒤 아래 **⛏ 채광** 버튼(스페이스 키도 됨)이 켜진다. 종류마다 눌러야 하는 횟수가 다르고(구리 1 · 금 2 · 에메랄드 3 · 루비 5), 누를 때마다 곡괭이 아이콘이 기울었다 돌아오며 `media/sfx/pick.mp3`가 난다(`assets/sfx/**/pick_*.mp3`가 있을 때만). 여럿이 같은 광석을 쳐도 되고, **마지막으로 친 사람** 이름으로 풀에 입금되며 물고기처럼 120초 안에 납품할 수 있다(복구 need `{"type":"deliver","kind":"mine"}`). 상태 줄은 `오늘 남은 광석 n/12`, 다 캐면 `오늘은 다 캤어요 · 자정에 다시 생겨요`(남은 노드는 다음 날로 넘어가지 않는다). 광산에는 가구를 놓을 수 없고(`no_place`, 상점 버튼 숨김) 손님도 오지 않는다. 광석·곡괭이 아이콘은 `build`가 `data/mine.json`의 `icon {file,x,y}`를 잘라 `gen/mine/<id>.png`로 만든다.
 
 예약·개파 손님은 `guests.json`의 `special_after`(기본 `room2`)가 열린 뒤부터 온다. 로컬에서 손님을 미리 보려면 `server/.env`에 `DEV_TOOLS=1`을 넣고 서버를 켠 뒤 `POST /api/dev/settle`(`{"days":1,"chance":1}`; 토큰 헤더 필요)을 부르면 그만큼 날이 지난 것처럼 정산된다(`reset:true`로 처음부터, `dog:true`로 개파 손님 다시 추첨). VM에는 절대 켜지 말 것. 정산 상태는 `room_meta`의 `guest_day:<단위>`(마지막 정산일), `no_guests_day:<단위>`, `dog_month`와 `reservations` 테이블에 있다. 처음 켜진 날은 "오늘부터 센다"라 돈이 소급되지 않는다.
 
@@ -65,8 +67,9 @@ sudo systemctl start interior
 | PUT | `/api/avatar` | 아바타 레이어 인덱스 |
 | GET | `/api/catalog` | 아이템/방/캐릭터 메타 |
 | GET | `/api/rooms` | 방 목록: 버전, 남은 `ruined` 개수, 접속자 수, 복구 `progress`(단계 수·현재 단계의 need별 진행), `comfort`(안락도·침대 수·오늘 밤 예상 손님/숙박료·예약; 잠긴 방은 null), 최상위 `locked`(아직 못 들어가는 장소) |
-| GET | `/api/activity` | 📜 기록: 최근 이벤트 **5개만**(서버가 더는 안 줌), 오늘 요약(벌이·지출·낚시 수), 모든 방의 복구 진행, `comfort`(방별 안락도·손님 뷰) |
-| POST | `/api/fish/deliver` (`seq`, `room?`) | 방금 낚은 물고기(`/finish`의 `seq`)를 팔지 않고 어떤 방의 복구 단계에 **납품**. 120초 안에 1번만, 그 돈은 풀에서 다시 빠짐(`ledger.kind='deliver'`) |
+| GET | `/api/activity` | 📜 기록: 최근 이벤트 **5개만**(서버가 더는 안 줌), 오늘 요약(벌이·지출·낚시·채광 수), 모든 방의 복구 진행, `comfort`(방별 안락도·손님 뷰) |
+| POST | `/api/deliver` (`seq`, `room?`) | 방금 낚은 물고기(`/api/fish/finish`의 `seq`)나 방금 캔 광석(`/api/mine/hit`의 `ledger_seq`)을 팔지 않고 어떤 방의 복구 단계에 **납품**. 120초 안에 1번만, 그 돈은 풀에서 다시 빠짐(`ledger.kind='deliver'`) |
+| GET `/api/mine` · GET `/api/mine/nodes` · POST `/api/mine/hit` (`seq`) | 광산: 광석 종류표 / 오늘 남은 광석 노드 / 채광 한 번. 아바타가 노드 옆(`reach`칸)에 있어야 하고(`not_here`), 마지막 타격이 풀에 입금(`ledger.kind='mine'`) + 광산에 있는 사람에게 `{"type":"mine"}` 알림. 설정은 `data/mine.json` |
 | GET | `/api/room/{id}` (`/api/room` = inn) | 방 아이템 + `ruined` (ETag = 방 버전) |
 | PUT | `/api/room/item/{uid}/note` `{text}` | `note` 태그 아이템(메모지·칠판·게시판)에 글 남기기(200자, 빈 문자열이면 지움). 누구나 고쳐 쓸 수 있고 방 버전이 올라가 모두에게 갱신 |
 | POST | `/api/room/place` (`room_id`) · `/api/room/move` · DELETE `/api/room/item/{uid}` | 배치/이동/삭제 (서버가 규칙 검증). `ruined`/`fixed` 태그는 구매 불가(`not_for_sale`), `fixed`는 이동·삭제도 불가(`fixed_item`) |

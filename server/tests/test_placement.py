@@ -42,6 +42,45 @@ def test_partition_walls_stand_on_the_floor_like_furniture(catalog):
     assert err(lambda: validate_place(catalog, [], "divider", 3, 3, room_id="house_a")) == "out_of_bounds"  # pond tile at (4,3)
 
 
+def test_wall_decor_hangs_on_a_partition(catalog):
+    """`wall` decor may sit on floor cells covered by a partition's face (sprite rows up from its feet); the
+    partition becomes its parent and it gets the "hung" z. divider: footprint 2×1, picture 2 rows (manifest ch)."""
+    divider = [row(1, "divider", 1, 3)]  # feet on row 3 → face rows 2..3, cols 1..2
+    p = validate_place(catalog, divider, "frame", 1, 2)
+    assert p.z == 2 and p.parent_uid == 1
+    assert validate_place(catalog, divider, "frame", 2, 3).parent_uid == 1
+    assert err(lambda: validate_place(catalog, divider, "frame", 1, 1)) == "bad_cell_type"  # above the face
+    assert err(lambda: validate_place(catalog, divider, "frame", 3, 3)) == "bad_cell_type"  # next to it
+    assert err(lambda: validate_place(catalog, [], "frame", 1, 3)) == "bad_cell_type"  # nothing to hang on
+    assert err(lambda: validate_place(catalog, divider, "paper", 1, 3)) == "bad_cell_type"  # wallpaper never hangs
+    # frames collide with frames on the face, and the partition cannot go while something hangs on it
+    hung = divider + [row(2, "frame", 1, 2, z=2, parent=1)]
+    assert err(lambda: validate_place(catalog, hung, "frame", 1, 2)) == "collision"
+    assert has_children(1, hung)
+    # a wide banner may span two partitions side by side; the one under its first cell is the parent
+    two = [row(1, "divider", 1, 3), row(2, "divider", 3, 3)]
+    assert validate_place(catalog, two, "banner", 2, 3).parent_uid == 1
+    assert validate_place(catalog, two, "banner", 1, 2).parent_uid == 1
+    assert err(lambda: validate_place(catalog, two, "banner", 3, 3)) == "bad_cell_type"  # col 5 has no partition
+    # on the wall rows nothing changes
+    assert validate_place(catalog, divider, "frame", 1, 0).parent_uid is None
+    # seeds hang too (cell type is enforced even when relaxed)
+    assert validate_place(catalog, divider, "frame", 1, 2, relaxed=True).parent_uid == 1
+    assert err(lambda: validate_place(catalog, [], "frame", 1, 2, relaxed=True)) == "bad_cell_type"
+
+
+def test_rugs_lie_over_floor_patterns(catalog):
+    """`rug`-tagged floor items are their own collision group above untagged floor patterns."""
+    pattern = [row(1, "pattern", 2, 2, z=0)]
+    assert validate_place(catalog, pattern, "rug", 2, 2).z == 1  # rug over pattern
+    assert err(lambda: validate_place(catalog, pattern, "pattern", 3, 3)) == "collision"  # pattern vs pattern
+    rug = [row(2, "rug", 2, 2, z=1)]
+    assert validate_place(catalog, rug, "pattern", 2, 2).z == 0  # pattern under a rug
+    assert validate_place(catalog, rug, "chair", 2, 2).z == 1  # furniture on a rug
+    assert err(lambda: validate_place(catalog, [], "rug", 3, 2, room_id="house_a")) == "out_of_bounds"  # pond at (4,3)
+    assert err(lambda: validate_place(catalog, [], "pattern", 3, 2, room_id="house_a")) == "out_of_bounds"
+
+
 def test_wallpaper_under_wall_decor(catalog):
     assert err(lambda: validate_place(catalog, [], "paper", 1, 3)) == "bad_cell_type"  # floor row
     paper = [row(1, "paper", 1, 0, z=0)]
@@ -54,8 +93,8 @@ def test_furniture_collision_but_rug_ok(catalog):
     others = [row(1, "table", 2, 2)]
     assert err(lambda: validate_place(catalog, others, "chair", 3, 2)) == "collision"
     assert validate_place(catalog, others, "chair", 4, 2).z == 1
-    assert validate_place(catalog, others, "rug", 2, 2).z == 0  # floor under furniture is fine
-    rugs = [row(2, "rug", 2, 2, z=0)]
+    assert validate_place(catalog, others, "rug", 2, 2).z == 1  # floor under furniture is fine
+    rugs = [row(2, "rug", 2, 2, z=1)]
     assert err(lambda: validate_place(catalog, rugs, "rug", 3, 3)) == "collision"
 
 

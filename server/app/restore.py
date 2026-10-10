@@ -24,7 +24,10 @@ if TYPE_CHECKING:  # catalog imports this module, so only type-check against it
     from .placement import ItemRow
 
 NeedType = Literal["ruined_zero", "placed", "deliver", "pool"]
-# key of the deliveries dict that counts every delivery regardless of loot id
+# what can be handed in: a dock catch (ledger 'fish') or a broken ore node (ledger 'mine')
+DeliverKind = Literal["fish", "mine"]
+DELIVER_KINDS: tuple[str, ...] = ("fish", "mine")
+# key of a kind's deliveries dict that counts every delivery regardless of loot id
 ANY = "*"
 TAG_RUINED = "ruined"  # mirrors catalog.TAG_RUINED (no runtime import)
 
@@ -35,8 +38,8 @@ class Need(BaseModel):
     layer: str | None = None  # placed: filter by item layer
     tag: str | None = None  # placed: filter by item tag
     item_id: str | None = None  # placed: one exact item
-    kind: Literal["fish"] = "fish"  # deliver
-    id: str | None = None  # deliver: one loot id (None = any)
+    kind: DeliverKind = "fish"  # deliver: what is handed in (fish catches / mined ore)
+    id: str | None = None  # deliver: one loot / ore id (None = any of that kind)
     amount: int | None = Field(default=None, ge=1)  # pool
     label: str = ""  # optional text for the checklist
 
@@ -103,9 +106,10 @@ def _placed_matches(cat: Catalog, need: Need, row: ItemRow) -> bool:
     return True
 
 
-def evaluate(cat: Catalog, stage: Stage, index: int, items: list[ItemRow], deliveries: dict[str, int],
+def evaluate(cat: Catalog, stage: Stage, index: int, items: list[ItemRow], deliveries: dict[str, dict[str, int]],
              balance: int) -> StageProgress:
-    """Progress of one stage. `deliveries` counts rows for this room+stage keyed by loot id, plus ANY for the total."""
+    """Progress of one stage. `deliveries` counts rows for this room+stage per kind ("fish"/"mine"), each keyed
+    by loot id plus ANY for that kind's total: {"fish": {"anchovy": 2, ANY: 2}, "mine": {ANY: 0}}."""
     out: list[NeedProgress] = []
     for n in stage.need:
         if n.type == "ruined_zero":
@@ -115,7 +119,7 @@ def evaluate(cat: Catalog, stage: Stage, index: int, items: list[ItemRow], deliv
             have = sum(1 for r in items if _placed_matches(cat, n, r))
             out.append(NeedProgress("placed", n.label, min(have, n.count), n.count, have >= n.count))
         elif n.type == "deliver":
-            have = deliveries.get(n.id if n.id is not None else ANY, 0)
+            have = deliveries.get(n.kind, {}).get(n.id if n.id is not None else ANY, 0)
             out.append(NeedProgress("deliver", n.label, min(have, n.count), n.count, have >= n.count))
         else:  # pool
             want = n.amount or 0

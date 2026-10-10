@@ -15,7 +15,7 @@ import sqlite3
 import zlib
 
 from . import config
-from .catalog import Catalog, Room
+from .catalog import Catalog, Room, Seed
 from .db import bump_room_version, now
 from .errors import ApiError
 from .placement import ItemRow, price_of, validate_place
@@ -78,8 +78,12 @@ def seed_room(conn: sqlite3.Connection, catalog: Catalog, room: Room) -> int:
     ).fetchall()
     present = [ItemRow(**dict(r)) for r in rows]
     inserted = 0
-    # parents first (tables before cups), otherwise a seeded cup has nothing to sit on
-    order = sorted(room.seed, key=lambda s: catalog.items[s.item_id].layer == "surface_item")
+    # parents first: partitions, then everything else, then surface items — otherwise a seeded cup has nothing
+    # to sit on and a frame has no partition to hang on
+    def rank(s: Seed) -> int:
+        it = catalog.items[s.item_id]
+        return 0 if it.is_partition else 2 if it.layer == "surface_item" else 1
+    order = sorted(room.seed, key=rank)
     for sd in order:
         try:
             p = validate_place(catalog, present, sd.item_id, sd.x, sd.y, sd.span, room_id=room.id, relaxed=True)

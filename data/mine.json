@@ -1,0 +1,61 @@
+{
+ "room": "mine",
+ "per_day": 12,
+ "hit_cooldown_ms": 350,
+ "reach": 1,
+ "pickaxe": {
+  "file": "Map/Mine/16x16 Cave Items/Cave_Items_Spritesheet.png",
+  "x": 0,
+  "y": 48
+ },
+ "ores": [
+  {
+   "id": "copper",
+   "name": "구리 광석",
+   "hits": 1,
+   "value": 8,
+   "weight": 50,
+   "icon": {
+    "file": "Map/Mine/16x16 Cave Items/Cave_Items_Spritesheet.png",
+    "x": 16,
+    "y": 0
+   }
+  },
+  {
+   "id": "gold",
+   "name": "금 광석",
+   "hits": 2,
+   "value": 24,
+   "weight": 30,
+   "icon": {
+    "file": "Map/Mine/16x16 Cave Items/Cave_Items_Spritesheet.png",
+    "x": 32,
+    "y": 0
+   }
+  },
+  {
+   "id": "emerald",
+   "name": "에메랄드 원석",
+   "hits": 3,
+   "value": 50,
+   "weight": 15,
+   "icon": {
+    "file": "Map/Mine/16x16 Cave Items/Cave_Items_Spritesheet.png",
+    "x": 80,
+    "y": 0
+   }
+  },
+  {
+   "id": "ruby",
+   "name": "루비 원석",
+   "hits": 5,
+   "value": 120,
+   "weight": 5,
+   "icon": {
+    "file": "Map/Mine/16x16 Cave Items/Cave_Items_Spritesheet.png",
+    "x": 64,
+    "y": 0
+   }
+  }
+ ]
+}

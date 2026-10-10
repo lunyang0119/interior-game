@@ -7,13 +7,14 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from . import catalog as catalog_mod
-from . import comfort, config, fishing, guests, progress, sheet
+from . import comfort, config, fishing, guests, mine, progress, sheet
 from .db import connect, ensure_room_meta, migrate, now, transaction
 from .errors import ApiError
 from .presence import hub
 from .reconcile import reconcile_items
 from .seed import seed_room
-from .routers import activity, auth, cat, fish, me, room, ws
+from .routers import activity, auth, cat, deliver, fish, me, room, ws
+from .routers import mine as mine_router
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s %(message)s")
 log = logging.getLogger("main")
@@ -64,13 +65,34 @@ def settle_guests(app: FastAPI) -> None:
         conn.close()
 
 
-async def _guest_loop(app: FastAPI) -> None:
+def spawn_mine(app: FastAPI) -> None:
+    """Put today's ore nodes down once per KST day (idempotent): on boot and every minute."""
+    if app.state.mine is None:
+        return
+    conn = connect()
+    try:
+        with transaction(conn):
+            n = mine.spawn_day(conn, app.state.catalog, app.state.mine.cfg)
+        if n:
+            log.info("mine: %d ore node(s) spawned for today", n)
+            hub.broadcast_threadsafe({"type": "mine_reset", "left": n, "per_day": app.state.mine.cfg.per_day},
+                                     room=app.state.mine.cfg.room)
+    finally:
+        conn.close()
+
+
+async def _tick_loop(app: FastAPI) -> None:
+    """Minute tick: guest settlement + the daily ore spawn (each idempotent per day)."""
     while True:
         await asyncio.sleep(GUEST_TICK_S)
         try:
             await asyncio.to_thread(settle_guests, app)
         except Exception as e:  # noqa: BLE001
             log.warning("guest settlement failed: %s", e)
+        try:
+            await asyncio.to_thread(spawn_mine, app)
+        except Exception as e:  # noqa: BLE001
+            log.warning("mine spawn failed: %s", e)
 
 
 @asynccontextmanager
@@ -95,15 +117,22 @@ async def lifespan(app: FastAPI):
     app.state.sheet.catalog = app.state.catalog
     app.state.sheet.on_snapshot = lambda c, ev: progress.advance_rooms(c, app.state.catalog, ev)
     app.state.fishing = fishing.Fishing(cfg=fishing.load_config())
-    loot_ids = {lt.id for lt in app.state.fishing.cfg.loot}
+    mine_cfg = mine.load_config()
+    app.state.mine = mine.Mine(cfg=mine_cfg) if mine_cfg else None
+    if mine_cfg:
+        mine_room = app.state.catalog.room_of(mine_cfg.room)
+        if mine_room is None or mine_room.kind != mine.ROOM_KIND:
+            raise ValueError(f"mine.json: room '{mine_cfg.room}' is not a room with kind \"mine\"")
+    loot_ids = {"fish": {lt.id for lt in app.state.fishing.cfg.loot}, "mine": {o.id for o in mine_cfg.ores} if mine_cfg else set()}
     for rm in app.state.catalog.rooms.values():
         for st in rm.restore:
             for n in st.need:
-                if n.type == "deliver" and n.id is not None and n.id not in loot_ids:
-                    raise ValueError(f"room {rm.id}: stage '{st.id}' needs unknown loot '{n.id}' (data/fishing.json)")
+                if n.type == "deliver" and n.id is not None and n.id not in loot_ids[n.kind]:
+                    raise ValueError(f"room {rm.id}: stage '{st.id}' needs unknown {n.kind} loot '{n.id}' (data/{'fishing' if n.kind == 'fish' else 'mine'}.json)")
+    spawn_mine(app)
     hub.bind_loop()
     prune_task = asyncio.create_task(_prune_loop())
-    guest_task = asyncio.create_task(_guest_loop(app))
+    guest_task = asyncio.create_task(_tick_loop(app))
     yield
     prune_task.cancel()
     guest_task.cancel()
@@ -120,6 +149,8 @@ def create_app() -> FastAPI:
     app.include_router(me.router)
     app.include_router(room.router)
     app.include_router(fish.router)
+    app.include_router(deliver.router)
+    app.include_router(mine_router.router)
     app.include_router(activity.router)
     app.include_router(cat.router)
     app.include_router(ws.router)

@@ -53,8 +53,8 @@ def rooms(request: Request, conn: sqlite3.Connection = Depends(get_db)):
     for room in cat.rooms.values():
         rows = load_items(conn, room.id)
         # comfort: {unit key: view} for the room's guest units (the room itself, or each of its zones); null when locked
-        views = None if room.id in locks else guests.room_view(conn, cat, room, request.app.state.guests)
-        out.append({"id": room.id, "name": room.name, "version": room_version(conn, room.id),
+        views = None if room.id in locks or room.kind != "room" else guests.room_view(conn, cat, room, request.app.state.guests)
+        out.append({"id": room.id, "name": room.name, "kind": room.kind, "version": room_version(conn, room.id),
                     "ruined": ruined_count(cat, rows), "online": hub.count(room.id), "progress": prog.get(room.id),
                     "comfort": views})
     return {"rooms": out, "locked": sorted(progress.locked(conn, cat))}
@@ -93,7 +93,8 @@ def place(body: PlaceIn, request: Request, me: Player = Depends(current_player),
     events: list[dict] = []
     try:
         with transaction(conn):
-            _room_or_404(cat, body.room_id)
+            if _room_or_404(cat, body.room_id).kind != "room":
+                raise ApiError(403, "no_place")  # the mine is walked and mined, not decorated
             if body.room_id in progress.locked(conn, cat):
                 raise ApiError(403, "room_locked")
             it = cat.get(body.item_id)
@@ -144,6 +145,8 @@ def move(body: MoveIn, request: Request, me: Player = Depends(current_player),
                 raise ApiError(400, "fixed_item")
             if target.room_id in progress.locked(conn, cat):
                 raise ApiError(403, "room_locked")
+            if (cat.room_of(target.room_id) or cat.room).kind != "room":
+                raise ApiError(403, "no_place")
             items = load_items(conn, target.room_id)
             others = [i for i in items if i.uid != body.uid]
             if has_children(body.uid, others):

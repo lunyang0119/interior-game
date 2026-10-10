@@ -14,7 +14,7 @@ from .catalog import Catalog, Room
 from .db import now
 from .items import load_items
 from .presence import hub
-from .restore import ANY, Stage, StageProgress, evaluate, locked_rooms
+from .restore import ANY, DELIVER_KINDS, Stage, StageProgress, evaluate, locked_rooms
 from .sheet import SheetService
 
 log = logging.getLogger("progress")
@@ -33,11 +33,15 @@ def stages_done(conn: sqlite3.Connection, cat: Catalog) -> dict[str, int]:
     return {r.id: _meta(conn, f"stage:{r.id}") for r in cat.rooms.values() if r.restore}
 
 
-def deliveries_by_room(conn: sqlite3.Connection, room_id: str, stage_idx: int) -> dict[str, int]:
-    rows = conn.execute("SELECT item_id, COUNT(*) AS n FROM deliveries WHERE room_id = ? AND stage_idx = ? GROUP BY item_id",
+def deliveries_by_room(conn: sqlite3.Connection, room_id: str, stage_idx: int) -> dict[str, dict[str, int]]:
+    """{kind: {loot id: n, ANY: total}} for one room + stage (every DELIVER_KIND is present, maybe empty)."""
+    rows = conn.execute("SELECT kind, item_id, COUNT(*) AS n FROM deliveries WHERE room_id = ? AND stage_idx = ? GROUP BY kind, item_id",
                         (room_id, stage_idx)).fetchall()
-    out = {r["item_id"]: int(r["n"]) for r in rows}
-    out[ANY] = sum(out.values())
+    out: dict[str, dict[str, int]] = {k: {} for k in DELIVER_KINDS}
+    for r in rows:
+        out.setdefault(r["kind"], {})[r["item_id"]] = int(r["n"])
+    for d in out.values():
+        d[ANY] = sum(d.values())
     return out
 
 
@@ -79,8 +83,8 @@ def progress_message(conn: sqlite3.Connection, cat: Catalog) -> dict:
     return {"type": "progress", "rooms": all_progress(conn, cat), "locked": sorted(locked(conn, cat))}
 
 
-def open_deliver_needs(conn: sqlite3.Connection, cat: Catalog, loot_id: str) -> list[dict]:
-    """Rooms whose current stage still wants this loot: [{room, name, stage_idx, have, want}]."""
+def open_deliver_needs(conn: sqlite3.Connection, cat: Catalog, kind: str, loot_id: str) -> list[dict]:
+    """Rooms whose current stage still wants this loot (`kind` = "fish" / "mine"): [{room, name, stage_idx, have, want}]."""
     out = []
     balance = SheetService.balance(conn)
     for room in cat.rooms.values():
@@ -88,7 +92,7 @@ def open_deliver_needs(conn: sqlite3.Connection, cat: Catalog, loot_id: str) -> 
         if cur is None:
             continue
         for need, prog in zip(cur.stage.need, cur.needs):
-            if need.type == "deliver" and not prog.done and (need.id is None or need.id == loot_id):
+            if need.type == "deliver" and need.kind == kind and not prog.done and (need.id is None or need.id == loot_id):
                 out.append({"room": room.id, "name": room.name, "stage_idx": cur.index, "have": prog.have, "want": prog.want})
                 break
     return out

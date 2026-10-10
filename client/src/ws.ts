@@ -16,7 +16,10 @@ export type WsMsg =
   | { type: "progress"; rooms: Record<string, RoomProgress>; locked: string[] } // a restoration stage completed somewhere
   | { type: "event"; event: ActivityEvent } // one new activity-log row
   | { type: "error"; code: string; room?: string } // e.g. enter into a locked room
-  | { type: "cat"; player: string; affection: number; first_today: boolean } // somebody petted the inn cat
+  | { type: "cat"; player: string; affection: number; taps: number; leveled: boolean } // somebody petted the inn cat
+  // somebody hit an ore node (sent to the mine room only); `loot` when it broke
+  | { type: "mine"; seq: number; x: number; y: number; kind: string; hits_left: number; by: string; done: boolean; left: number; loot?: { id: string; name: string; value: number } }
+  | { type: "mine_reset"; left: number; per_day: number } // a new day's nodes appeared (mine room only)
   | { type: "pong" };
 
 type Handler = (msg: any) => void;

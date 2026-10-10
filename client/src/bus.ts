@@ -17,7 +17,7 @@ export interface Events {
   "place:span": { delta: number };
   "place:state": { active: boolean; label: string; ok: boolean; mode: "place" | "move" | null; busy?: boolean; span?: number | null; spanMax?: number };
   "room:refresh": void;
-  "room:changed": { id: string; name: string; ruined: number }; // the Room scene shows another room / junk count moved
+  "room:changed": { id: string; name: string; ruined: number; kind?: "room" | "mine" }; // the Room scene shows another room / junk count moved
   "room:exit": { from: string; to: string; spawn: { x: number; y: number } }; // avatar stepped on an exit
   "scene:changed": { scene: "room" | "map" | "dock" };
   "scene:ready": void; // the new scene has its data and is drawn → hide the loading overlay
@@ -32,14 +32,18 @@ export interface Events {
   "fish:release": void;
   "fish:state": { status: string; mode: "idle" | "wait" | "bite" | "hold" };
   "fish:meter": { meter: number }; // 0..1 of the current bite's hold
-  // seq + deliverable only for my own catch: the overlay then offers "납품하기" (ui/hud.ts)
-  "fish:catch": { ok: boolean; id: string; name: string; value: number; who: string; seq?: number | null; deliverable?: Deliverable[] };
+  // a catch (dock) or a broken ore node (mine). seq + deliverable only for my own: the overlay then offers "납품하기" (ui/hud.ts)
+  "loot:got": { ok: boolean; kind: "fish" | "mine"; id: string; name: string; value: number; who: string; seq?: number | null; deliverable?: Deliverable[] };
+  "mine:target": { seq: number; name: string; hits_left: number; hits: number } | null; // the ore node picked for 채광 (null = none / walked away)
+  "mine:left": { left: number; per_day: number; resets_at: number }; // today's remaining nodes (the mine bar's status line)
+  "mine:press": void; // the ⛏ 채광 button
   "item:menu": { item: RoomItem; screenX: number; screenY: number };
   "item:remove": { uid: number };
   "item:walk": { uid: number }; // context menu "여기로 가기": walk the avatar up to that item
   "item:note": { item: RoomItem }; // context menu "쪽지 읽기/쓰기": open the note panel
   "progress:changed": { completed: { room: string; from: number; to: number }[] }; // state.progress / state.locked replaced
   "comfort:changed": void; // state.comfort replaced
+  "cat:changed": void; // state.cat (the inn cat's affection / taps) replaced
   "zone:changed": { zone: string | null }; // the avatar walked into another guest zone (or out of all of them)
   "log:open": { section?: "progress" | "guests" }; // open the 📜 panel (optionally scrolled to the restoration checklist)
   "board:open": void; // tapped a `board` item: open the 📋 quest / reservation board

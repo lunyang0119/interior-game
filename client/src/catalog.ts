@@ -11,15 +11,37 @@ export const TAG_BOARD = "board"; // tapping it opens the 📋 board: restoratio
 export const TAG_PARTITION = "partition";
 /** A partition avatars may walk through. */
 export const TAG_DOOR = "door";
+/** A floor-layer item lying on top of floor patterns (untagged floor items): its own collision group, drawn above them. */
+export const TAG_RUG = "rug";
+
+/** Collision groups: the layers plus `rug` (rug-tagged floor items). Mirrors Item.collision_layer on the server. */
+export type CollisionLayer = Layer | "rug";
 
 /** Lives on the wall rows (mirrors Item.on_wall on the server). */
 export function onWall(it: Item | undefined): boolean {
   return (it?.layer === "wall" || it?.layer === "wallpaper") && !hasTag(it, TAG_PARTITION);
 }
 
-/** Items only collide within this group; partitions share the floor with furniture. */
-export function collisionLayer(it: Item): Layer {
-  return hasTag(it, TAG_PARTITION) ? "furniture" : it.layer;
+/** Items only collide within this group; partitions share the floor with furniture, rugs lie over floor patterns. */
+export function collisionLayer(it: Item): CollisionLayer {
+  if (hasTag(it, TAG_PARTITION)) return "furniture";
+  if (it.layer === "floor" && hasTag(it, TAG_RUG)) return "rug";
+  return it.layer;
+}
+
+/** A wall-layer sprite standing on the floor (mirrors Item.is_partition). */
+export function isPartition(it: Item | undefined): boolean {
+  return (it?.layer === "wall" || it?.layer === "wallpaper") && hasTag(it, TAG_PARTITION);
+}
+
+/** Wall decor that may hang on a partition's face as well as on the wall rows (mirrors Item.can_hang). */
+export function canHang(it: Item | undefined): boolean {
+  return it?.layer === "wall" && !hasTag(it, TAG_PARTITION);
+}
+
+/** Rows of a partition's visible face, counted up from the bottom of its footprint (mirrors Item.face_rows). */
+export function faceRows(it: Item): number {
+  return Math.max(it.h, it.sprite_rows ?? 0);
 }
 /** Owner id of items pre-placed by the server (never a real player). */
 export const SEED_PLAYER = "$seed";
@@ -43,6 +65,7 @@ export interface Item {
   tags?: string[];
   pair?: string | null;
   set?: string | null; // furniture set from the slice source (build → manifest), for the comfort set bonus
+  sprite_rows?: number | null; // rows the sprite is tall (manifest `ch`); a partition's face wall decor can hang on
 }
 
 /** Cells that lead somewhere else; `to` is a room id or "map", `spawn` is the arrival cell there. */
@@ -51,6 +74,8 @@ export interface Exit { x: number; y: number; w: number; h: number; to: string; 
 export interface Room {
   id: string;
   name: string;
+  /** "room" = decorated (shop, guests); "mine" = the ore room: walked and mined, no furniture (room/OreNodes.ts). */
+  kind?: "room" | "mine";
   cols: number;
   rows: number;
   wall_rows: number;
@@ -220,8 +245,10 @@ export function drawList(look: AvatarLook, chars: Chars): { layer: string; idx: 
   return out;
 }
 
-export const Z_SCALE: Record<Layer, number> = { wallpaper: 0, wall: 1, floor: 0, furniture: 10, surface_item: 20 };
+export const Z_SCALE: Record<CollisionLayer, number> = { wallpaper: 0, wall: 1, floor: 0, rug: 1, furniture: 10, surface_item: 20 };
 export const Z_AVATAR = 15;
+/** Wall decor hanging on a partition: sorted with the partition's bottom row, just above it and below avatars there. */
+export const Z_HUNG = Z_SCALE.furniture + 1;
 
 export function hasTag(it: Item | undefined, tag: string): boolean {
   return !!it?.tags?.includes(tag);

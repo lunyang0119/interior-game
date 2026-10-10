@@ -37,7 +37,12 @@
     <div id="fish-meter"><div id="fish-meter-fill"></div></div>
     <button id="btn-fish" class="big primary">🎣 낚시</button>
   </div>
-  <!-- catch result; `납품하기` appears only for my own catch while a room's stage still wants fish -->
+  <!-- mine controls (room kind "mine"): tap an ore node next to you, then press 채광 until it breaks -->
+  <div id="minebar" class="overlay hidden">
+    <div id="mine-status"></div>
+    <button id="btn-mine" class="big primary" disabled><img id="mine-pick" alt=""><span id="btn-mine-label">⛏ 채광</span></button>
+  </div>
+  <!-- loot result (a catch at the dock, a broken ore node in the mine); `납품하기` appears only for my own while a room's stage wants it -->
   <div id="fish-catch" class="hidden">
     <div class="fish-catch-row"><img id="fish-catch-img" alt=""><span id="fish-catch-text"></span></div>
     <button id="fish-deliver" class="primary hidden"></button>
