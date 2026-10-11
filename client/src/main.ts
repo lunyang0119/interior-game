@@ -161,7 +161,7 @@ async function boot(): Promise<void> {
   bus.on("account:switch", async ({ id }) => {
     await Promise.all([loadAccount(id || null), loadProgress()]);
     const cur = active();
-    if (cur === "Dock") goDock(); else if (cur === "Map") goMap(); else goRoom();
+    if (cur === "Dock") goDock(); else if (cur === "Map") goMap(); else goRoom(undefined, undefined, state.mineFloor);
   });
   // a socket (re)connect may have missed a `progress` broadcast
   socket.on("open", () => void loadProgress());
@@ -188,7 +188,11 @@ async function boot(): Promise<void> {
   // the server refused a presence enter (e.g. a stage was reset by hand): say so, the scene itself is harmless
   socket.on("error", (m: { code: string; room?: string }) => {
     if (m.code === "room_locked") toast(`${m.room ? placeName(state.catalog!, m.room) : "거기"}(은)는 아직 잠겨 있어요`);
-    if (m.code === "floor_locked") { toast("아직 못 내려간 층이에요"); goRoom(state.roomId, undefined, 1); }
+    if (m.code === "floor_locked") {
+      toast("아직 못 내려간 층이에요");
+      // only when we are still inside the mine (the refusal may arrive after walking out to the map)
+      if (active() === "Room" && state.catalog?.rooms.get(state.roomId)?.kind === "mine") goRoom(state.roomId, undefined, 1);
+    }
   });
 
   // dock: 나가기 goes back to the map (or the base room when there is no map yet); #dock deep-links in

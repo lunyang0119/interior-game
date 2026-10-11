@@ -439,6 +439,7 @@ class Mine:
     cfg: MineConfig
     last_hit: dict[str, float] = field(default_factory=dict)
     lock: threading.Lock = field(default_factory=threading.Lock)
+    last_day: int = 0  # KST day the minute tick last saw (main.spawn_mine broadcasts `mine_reset` when it changes)
 
     def check_cooldown(self, player_id: str) -> None:
         t = time.monotonic()

@@ -101,7 +101,14 @@ class Hub:
         )
         for o, r in zip(targets, results):
             if isinstance(r, BaseException):
+                # a stalled socket is dropped from presence AND closed, so the client reconnects (4002 is retried
+                # client-side); leaving it open would make a ghost: still sending moves, invisible to new joiners,
+                # every 채광 press refused with not_here
                 await self.leave(o)
+                try:
+                    await asyncio.wait_for(o.ws.close(code=4002, reason="stalled"), self.SEND_TIMEOUT)
+                except Exception:
+                    pass
 
     def broadcast_threadsafe(self, msg: dict, room: str | None = None) -> None:
         if self.loop is None or not self.online:

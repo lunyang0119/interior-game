@@ -14,7 +14,12 @@ export function show(id: string, on: boolean): void {
 }
 
 export function closeAllPanels(): void {
+  // the door prompt is a panel too: closing it any other way than its buttons counts as "no" (else the map scene
+  // keeps waiting for an answer and ignores every tap)
+  const ask = document.getElementById("panel-enter");
+  const askWasOpen = !!ask && !ask.classList.contains("hidden");
   document.querySelectorAll<HTMLElement>(".panel").forEach((p) => p.classList.add("hidden"));
+  if (askWasOpen) bus.emit("map:enter-answer", { yes: false });
 }
 
 export function togglePanel(id: string): void {
@@ -95,7 +100,7 @@ export function initHud(): void {
     if (el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.tagName === "SELECT")) return;
     if (e.key === "Escape") {
       if (placing) bus.emit("place:cancel");
-      else { closeAllPanels(); show("ctx", false); show("panel-enter", false); }
+      else { closeAllPanels(); show("ctx", false); }
     } else if (e.key === "Enter" && placing && !($("place-confirm") as HTMLButtonElement).disabled) {
       bus.emit("place:confirm");
     } else if (e.key === " " && !$("minebar").classList.contains("hidden") && !mineBtn.disabled) {
@@ -246,14 +251,15 @@ export function initHud(): void {
   });
   deliverBtn.addEventListener("click", async () => {
     if (deliverSeq === null || deliverBtn.disabled) return;
+    const sent = deliverSeq;
     deliverBtn.disabled = true;
     try {
-      const r = await api.deliver(deliverSeq);
-      deliverSeq = null;
+      const r = await api.deliver(sent);
       state.balance = r.balance;
       bus.emit("money", { balance: r.balance });
       bus.emit("toast", { text: `납품했어요 (${r.have}/${r.want})` });
-      show("fish-catch", false);
+      // a newer catch may have replaced the overlay while this one was in flight: leave that one deliverable
+      if (deliverSeq === sent) { deliverSeq = null; show("fish-catch", false); } else deliverBtn.disabled = false;
     } catch (e) {
       bus.emit("toast", { text: e instanceof ApiError ? msgFor(e.code) : String(e) });
       deliverBtn.disabled = false;

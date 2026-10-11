@@ -69,15 +69,20 @@ def spawn_mine(app: FastAPI) -> None:
     """Generate today's first mine floor once per KST day (idempotent): on boot and every minute. Deeper floors
     are generated the first time someone asks for them. A new day tells every client (`mine_reset`): whoever is
     in the mine reloads their floor."""
-    if app.state.mine is None:
+    m = app.state.mine
+    if m is None:
         return
     conn = connect()
     try:
         with transaction(conn):
-            fresh = mine.ensure_floor(conn, app.state.catalog, app.state.mine.cfg, 1)
-        if fresh:
+            mine.ensure_floor(conn, app.state.catalog, m.cfg, 1)
+        # the day is tracked in memory, not by who generated floor 1: a player's request after midnight may have
+        # generated it already (GET /api/mine/floor/1), and everyone on the other floors still needs the reset
+        today = mine.day_key(now())
+        if m.last_day and today != m.last_day:
             log.info("mine: a new day's floors begin")
             hub.broadcast_threadsafe({"type": "mine_reset"})
+        m.last_day = today
     finally:
         conn.close()
 

@@ -43,6 +43,8 @@ export class MineFloor {
   private lastReset = 0;
   /** cellKey of every rock and standing floor node: the walk grid treats them as solid. */
   readonly blocked = new Set<number>();
+  /** Called when the ladder opens (my hit or somebody's): the scene checks whether I already stand on it. */
+  onLadder: (() => void) | null = null;
 
   constructor(private scene: Phaser.Scene, readonly floor: number, private myCell: () => Cell | null,
               private onBalance: (balance: number) => void) {
@@ -76,7 +78,9 @@ export class MineFloor {
     this.rocks = [];
     const atlas = this.scene.textures.get(ATLAS);
     for (const [x, y, key] of list) {
-      const img = this.scene.add.image((x + 0.5) * CELL, (y + 1) * CELL, ATLAS, atlas.has(key) ? key : undefined).setOrigin(0.5, 1);
+      const img = atlas.has(key)
+        ? this.scene.add.image((x + 0.5) * CELL, (y + 1) * CELL, ATLAS, key).setOrigin(0.5, 1)
+        : this.scene.add.image((x + 0.5) * CELL, (y + 1) * CELL, "__MISSING").setOrigin(0.5, 1); // slice not in this atlas build
       img.setDepth(depthOf(y, Z_ORE));
       this.rocks.push(img);
     }
@@ -244,6 +248,7 @@ export class MineFloor {
   private uncover(l: { x: number; y: number }, mine: boolean): void {
     this.setLadder(l);
     toast(mine ? "아래로 내려가는 사다리가 나왔어요!" : "누군가 사다리를 찾았어요");
+    this.onLadder?.();
   }
 
   private emitLeft(left: number): void {

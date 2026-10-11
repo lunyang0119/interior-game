@@ -17,7 +17,7 @@ import { MineFloor } from "../room/MineFloor";
 import { PlacementController } from "../room/Placement";
 import { footprintOf } from "../room/rules";
 import { cellKey, pathToward, roomWalkGrid, type Cell, type WalkGrid } from "../room/walk";
-import { catalog, setZone, state } from "../state";
+import { catalog, isDebugAccount, setZone, state } from "../state";
 import { socket } from "../ws";
 import { CameraController } from "./CameraController";
 
@@ -58,6 +58,8 @@ export class RoomScene extends Phaser.Scene {
   private hoverFollow = false;
   private leaving = false;
   private ready = false;
+  /** Bumped by init(): async work (avatar textures) started for an earlier run of this scene must not touch this one. */
+  private gen = 0;
   /** Keyboard walking checks exits on every cell (there is no "arrival" while a key is held). */
   private keyWalking = false;
 
@@ -77,6 +79,7 @@ export class RoomScene extends Phaser.Scene {
     state.ruined = 0; // the snapshot fills it in
     this.leaving = false;
     this.ready = false;
+    this.gen++;
     this.inflight = null; // a request still running for the previous room must not be handed to this one
   }
 
@@ -95,6 +98,7 @@ export class RoomScene extends Phaser.Scene {
     }
     if (this.room.kind === "mine") {
       this.mine = new MineFloor(this, this.floor, () => this.me?.footCell() ?? null, (b) => this.setBalance(b));
+      this.mine.onLadder = () => this.checkLadder(); // a ladder opened under my feet counts right away
       void this.mine.load();
     }
     setZone(null); // until the avatar stands somewhere
@@ -193,8 +197,9 @@ export class RoomScene extends Phaser.Scene {
   }
 
   private async spawnMe(): Promise<void> {
+    const gen = this.gen;
     await ensureAvatarTextures(this, state.avatar, this.cat.chars);
-    if (!this.scene.isActive()) return;
+    if (!this.scene.isActive() || gen !== this.gen || this.me) return; // the scene restarted meanwhile: that run spawns its own
     const s = this.spawn;
     this.me = new Avatar(this, this.cat.chars, state.avatar, s.x, s.y, this.playerId ?? "");
     this.me.onStep = (x, y, dir, moving) => socket.sendMove(x, y, dir, moving);
@@ -326,6 +331,7 @@ export class RoomScene extends Phaser.Scene {
   /** Walk to a cell along furniture-free cells; an unreachable target walks as close as it can. */
   private walkTo(cx: number, cy: number): boolean {
     if (!this.me) return false;
+    this.pendingOre = null; // a new destination forgets the ore we were walking to (the ore tap sets it again after)
     const path = pathToward(this.walkGrid(), this.me.footCell(), { cx, cy });
     if (!path.length) return false;
     this.keyWalking = false;
@@ -386,7 +392,9 @@ export class RoomScene extends Phaser.Scene {
     // an exit drawn entirely on the wall rows (stairs going up) is entered from the floor cell right below it
     const exit = exitAt(this.room, cx, cy) ?? (cy === this.room.wall_rows ? exitAt(this.room, cx, cy - 1) : null);
     if (!exit) return;
-    if (this.cat.rooms.has(exit.to)) this.leaving = true; // main.ts restarts the scene; "map" only toasts for now
+    // main.ts restarts the scene — unless the target is still locked (then it only toasts, and we must stay walkable)
+    const locked = state.locked.has(exit.to) && !isDebugAccount();
+    if (this.cat.rooms.has(exit.to) && !locked) this.leaving = true;
     bus.emit("room:exit", { from: this.room.id, to: exit.to, spawn: exit.spawn });
   }
 
@@ -434,13 +442,17 @@ export class RoomScene extends Phaser.Scene {
     const node = this.mine?.nodeAt(cx, cy);
     if (node && this.mine) {
       if (this.mine.select(node.seq, true)) return;
-      this.pendingOre = node.seq;
       const to = this.mine.standCell(node);
-      if (!this.walkTo(to.cx, to.cy)) { this.pendingOre = null; toast("거긴 갈 수 없어요"); }
+      if (this.walkTo(to.cx, to.cy)) this.pendingOre = node.seq; else toast("거긴 갈 수 없어요");
       return;
     }
-    // the open ladder: walk onto it (checkLadder takes it from there)
-    if (this.mine?.ladderAt(cx, cy)) { if (!this.walkTo(cx, cy)) toast("거긴 갈 수 없어요"); return; }
+    // the open ladder: walk onto it (checkLadder takes it from there); already on it → go down now
+    if (this.mine?.ladderAt(cx, cy)) {
+      const me = this.me?.footCell();
+      if (me && me.cx === cx && me.cy === cy) this.checkLadder();
+      else if (!this.walkTo(cx, cy)) toast("거긴 갈 수 없어요");
+      return;
+    }
     // stairs: a tap walks through them (long press still opens the menu)
     const tapped = this.items.itemAt(cx, cy, TAP_MENU_LAYERS);
     const stairs = tapped ?? this.items.itemAt(cx, cy); // stairs may also be a wall-layer item
