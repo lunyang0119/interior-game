@@ -1977,13 +1977,6 @@
     "ch": 5,
     "set": "mi_free"
    },
-   "mordhalloween_035_dungeon_scene": {
-    "w": 112,
-    "h": 80,
-    "cw": 7,
-    "ch": 5,
-    "set": "mi_halloween"
-   },
    "mordxmas_042_throne_carpet_gifts_scene": {
     "w": 96,
     "h": 80,
@@ -5443,13 +5436,6 @@
     "set": "mi_halloween"
    },
    "mordhalloween_027_coffin_b": {
-    "w": 32,
-    "h": 48,
-    "cw": 2,
-    "ch": 3,
-    "set": "mi_halloween"
-   },
-   "mordhalloween_032_tombstone_cross_tall": {
     "w": 32,
     "h": 48,
     "cw": 2,
@@ -9166,27 +9152,6 @@
     "ch": 2,
     "set": "mi_halloween"
    },
-   "mordhalloween_022_dresser_teal": {
-    "w": 48,
-    "h": 32,
-    "cw": 3,
-    "ch": 2,
-    "set": "mi_halloween"
-   },
-   "mordhalloween_023_dresser_navy": {
-    "w": 48,
-    "h": 32,
-    "cw": 3,
-    "ch": 2,
-    "set": "mi_halloween"
-   },
-   "mordhalloween_024_dresser_maroon": {
-    "w": 48,
-    "h": 32,
-    "cw": 3,
-    "ch": 2,
-    "set": "mi_halloween"
-   },
    "mordhalloween_030_ivy_arch": {
     "w": 48,
     "h": 32,
@@ -11252,20 +11217,6 @@
     "ch": 2,
     "set": "mi_halloween"
    },
-   "mordhalloween_014_pumpkin_pair_b": {
-    "w": 32,
-    "h": 32,
-    "cw": 2,
-    "ch": 2,
-    "set": "mi_halloween"
-   },
-   "mordhalloween_019_pumpkin_pair_c": {
-    "w": 32,
-    "h": 32,
-    "cw": 2,
-    "ch": 2,
-    "set": "mi_halloween"
-   },
    "mordhalloween_028_bone_pile_a": {
     "w": 32,
     "h": 32,
@@ -11280,35 +11231,7 @@
     "ch": 2,
     "set": "mi_halloween"
    },
-   "mordhalloween_031_vine_fence": {
-    "w": 32,
-    "h": 32,
-    "cw": 2,
-    "ch": 2,
-    "set": "mi_halloween"
-   },
-   "mordhalloween_036_window_broken": {
-    "w": 32,
-    "h": 32,
-    "cw": 2,
-    "ch": 2,
-    "set": "mi_halloween"
-   },
    "mordhalloween_038_treat_basket": {
-    "w": 32,
-    "h": 32,
-    "cw": 2,
-    "ch": 2,
-    "set": "mi_halloween"
-   },
-   "mordhalloween_039_candy_jar": {
-    "w": 32,
-    "h": 32,
-    "cw": 2,
-    "ch": 2,
-    "set": "mi_halloween"
-   },
-   "mordhalloween_040_trickortreat_figure": {
     "w": 32,
     "h": 32,
     "cw": 2,
@@ -14976,62 +14899,6 @@
     "ch": 2,
     "set": "mi_halloween"
    },
-   "mordhalloween_010_pumpkin_lit_a": {
-    "w": 16,
-    "h": 32,
-    "cw": 1,
-    "ch": 2,
-    "set": "mi_halloween"
-   },
-   "mordhalloween_011_pumpkin_lit_b": {
-    "w": 16,
-    "h": 32,
-    "cw": 1,
-    "ch": 2,
-    "set": "mi_halloween"
-   },
-   "mordhalloween_012_pumpkin_lit_c": {
-    "w": 16,
-    "h": 32,
-    "cw": 1,
-    "ch": 2,
-    "set": "mi_halloween"
-   },
-   "mordhalloween_013_pumpkin_lit_d": {
-    "w": 16,
-    "h": 32,
-    "cw": 1,
-    "ch": 2,
-    "set": "mi_halloween"
-   },
-   "mordhalloween_015_pumpkin_carved_e": {
-    "w": 16,
-    "h": 32,
-    "cw": 1,
-    "ch": 2,
-    "set": "mi_halloween"
-   },
-   "mordhalloween_016_pumpkin_carved_f": {
-    "w": 16,
-    "h": 32,
-    "cw": 1,
-    "ch": 2,
-    "set": "mi_halloween"
-   },
-   "mordhalloween_017_pumpkin_carved_g": {
-    "w": 16,
-    "h": 32,
-    "cw": 1,
-    "ch": 2,
-    "set": "mi_halloween"
-   },
-   "mordhalloween_018_pumpkin_carved_h": {
-    "w": 16,
-    "h": 32,
-    "cw": 1,
-    "ch": 2,
-    "set": "mi_halloween"
-   },
    "mordhalloween_020_spider_standing": {
     "w": 16,
     "h": 32,
@@ -15236,27 +15103,6 @@
     "set": "mi_halloween"
    },
    "mordhalloween_114_cross_grave_c": {
-    "w": 16,
-    "h": 32,
-    "cw": 1,
-    "ch": 2,
-    "set": "mi_halloween"
-   },
-   "mordhalloween_115_cross_grave_d": {
-    "w": 16,
-    "h": 32,
-    "cw": 1,
-    "ch": 2,
-    "set": "mi_halloween"
-   },
-   "mordhalloween_116_cross_grave_e": {
-    "w": 16,
-    "h": 32,
-    "cw": 1,
-    "ch": 2,
-    "set": "mi_halloween"
-   },
-   "mordhalloween_117_cross_grave_f": {
     "w": 16,
     "h": 32,
     "cw": 1,
@@ -17398,6 +17244,13 @@
     "ch": 1,
     "set": "interior_tiles_lite"
    },
+   "mordhalloween_035_dungeon_scene": {
+    "w": 25,
+    "h": 28,
+    "cw": 1,
+    "ch": 1,
+    "set": "mi_halloween"
+   },
    "moritl_017_telephone_b": {
     "w": 15,
     "h": 28,
@@ -17979,6 +17832,20 @@
     "ch": 1,
     "set": "axulart"
    },
+   "mordhalloween_039_candy_jar": {
+    "w": 32,
+    "h": 24,
+    "cw": 2,
+    "ch": 1,
+    "set": "mi_halloween"
+   },
+   "mordhalloween_040_trickortreat_figure": {
+    "w": 32,
+    "h": 24,
+    "cw": 2,
+    "ch": 1,
+    "set": "mi_halloween"
+   },
    "moritl_015_nightstand_small": {
     "w": 32,
     "h": 24,
@@ -18231,6 +18098,13 @@
     "ch": 1,
     "set": "interior_tiles_lite"
    },
+   "mordhalloween_036_window_broken": {
+    "w": 25,
+    "h": 22,
+    "cw": 1,
+    "ch": 1,
+    "set": "mi_halloween"
+   },
    "pixe_91": {
     "w": 25,
     "h": 22,
@@ -18433,6 +18307,13 @@
     "cw": 2,
     "ch": 1,
     "set": "mi_grocery_store"
+   },
+   "mordhalloween_031_vine_fence": {
+    "w": 32,
+    "h": 21,
+    "cw": 2,
+    "ch": 1,
+    "set": "mi_halloween"
    },
    "pixe_93": {
     "w": 26,
@@ -18832,6 +18713,27 @@
     "cw": 3,
     "ch": 1,
     "set": "mi_shooting_range"
+   },
+   "mordhalloween_022_dresser_teal": {
+    "w": 48,
+    "h": 16,
+    "cw": 3,
+    "ch": 1,
+    "set": "mi_halloween"
+   },
+   "mordhalloween_023_dresser_navy": {
+    "w": 48,
+    "h": 16,
+    "cw": 3,
+    "ch": 1,
+    "set": "mi_halloween"
+   },
+   "mordhalloween_024_dresser_maroon": {
+    "w": 48,
+    "h": 16,
+    "cw": 3,
+    "ch": 1,
+    "set": "mi_halloween"
    },
    "mordhalloween_064_wolf_grey": {
     "w": 48,
@@ -20015,6 +19917,20 @@
     "cw": 1,
     "ch": 1,
     "set": "mi_free"
+   },
+   "11ha_85": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "mi_halloween"
+   },
+   "11ha_86": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "mi_halloween"
    },
    "8gym_93": {
     "w": 16,
@@ -21668,6 +21584,76 @@
     "ch": 1,
     "set": "mi_gym"
    },
+   "mordhalloween_010_pumpkin_lit_a": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "mi_halloween"
+   },
+   "mordhalloween_011_pumpkin_lit_b": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "mi_halloween"
+   },
+   "mordhalloween_012_pumpkin_lit_c": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "mi_halloween"
+   },
+   "mordhalloween_013_pumpkin_lit_d": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "mi_halloween"
+   },
+   "mordhalloween_014_pumpkin_pair_b": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "mi_halloween"
+   },
+   "mordhalloween_015_pumpkin_carved_e": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "mi_halloween"
+   },
+   "mordhalloween_016_pumpkin_carved_f": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "mi_halloween"
+   },
+   "mordhalloween_017_pumpkin_carved_g": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "mi_halloween"
+   },
+   "mordhalloween_018_pumpkin_carved_h": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "mi_halloween"
+   },
+   "mordhalloween_019_pumpkin_pair_c": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "mi_halloween"
+   },
    "mordhalloween_021_spider_small": {
     "w": 16,
     "h": 16,
@@ -21739,6 +21725,27 @@
     "set": "mi_halloween"
    },
    "mordhalloween_106_dice_small": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "mi_halloween"
+   },
+   "mordhalloween_115_cross_grave_d": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "mi_halloween"
+   },
+   "mordhalloween_116_cross_grave_e": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "mi_halloween"
+   },
+   "mordhalloween_117_cross_grave_f": {
     "w": 16,
     "h": 16,
     "cw": 1,
@@ -25602,6 +25609,15 @@
    "mackerel",
    "seabream",
    "chest"
+  ]
+ },
+ "mine": {
+  "icons": [
+   "copper",
+   "gold",
+   "emerald",
+   "ruby",
+   "pickaxe"
   ]
  },
  "cat": {

@@ -75,7 +75,11 @@
    "h": 4,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "plate_cookies",
@@ -163,7 +167,11 @@
    "h": 3,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "rug_blue_small",
@@ -174,7 +182,11 @@
    "h": 2,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "rug_red_tall",
@@ -185,7 +197,11 @@
    "h": 4,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "rug_green_small",
@@ -196,7 +212,11 @@
    "h": 2,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "shelf_small",
@@ -218,7 +238,11 @@
    "h": 2,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "painting_flowers",
@@ -251,7 +275,11 @@
    "h": 2,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "painting_forest",
@@ -339,7 +367,11 @@
    "h": 2,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "rug_olive",
@@ -350,7 +382,11 @@
    "h": 2,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "chair_wood",
@@ -407,6 +443,7 @@
    "is_surface": false,
    "surface_offset_y": 0,
    "tags": [
+    "board",
     "note"
    ]
   },
@@ -1837,7 +1874,11 @@
    "h": 2,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "blinds_navy",
@@ -3483,7 +3524,11 @@
    "h": 2,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "rug_rect_dotted_tan",
@@ -3494,7 +3539,11 @@
    "h": 2,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "rug_rect_dotted_cream_wide",
@@ -3505,7 +3554,11 @@
    "h": 2,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "rug_rect_dotted_cream_tall",
@@ -3516,7 +3569,11 @@
    "h": 2,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "rug_runner_plain_cream",
@@ -3527,7 +3584,11 @@
    "h": 2,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "rug_runner_striped_olive",
@@ -3538,7 +3599,11 @@
    "h": 2,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "rug_rect_plain_tan_wide",
@@ -3549,7 +3614,11 @@
    "h": 1,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "rug_round_cream_a",
@@ -3560,7 +3629,11 @@
    "h": 2,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "rug_rect_striped_olive_wide",
@@ -3571,7 +3644,11 @@
    "h": 1,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "rug_round_cream_b",
@@ -3582,7 +3659,11 @@
    "h": 2,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "rug_round_gray_a",
@@ -3593,7 +3674,11 @@
    "h": 2,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "rug_rect_striped_maroon",
@@ -3604,7 +3689,11 @@
    "h": 2,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "rug_rect_plain_maroon",
@@ -3615,7 +3704,11 @@
    "h": 2,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "rug_rect_dotted_maroon",
@@ -3626,7 +3719,11 @@
    "h": 2,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "rug_runner_dotted_maroon",
@@ -3637,7 +3734,11 @@
    "h": 2,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "soundbar_black",
@@ -3692,7 +3793,11 @@
    "h": 2,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "soundbar_silver",
@@ -4462,7 +4567,11 @@
    "h": 2,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "toilet_fa",
@@ -4732,7 +4841,11 @@
    "h": 3,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "wallpaper_olive_panel",
@@ -5249,7 +5362,11 @@
    "h": 2,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "armchair_green1",
@@ -5480,7 +5597,11 @@
    "h": 2,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "armchair_olive2",
@@ -6699,7 +6820,7 @@
    "is_surface": false,
    "surface_offset_y": 0,
    "tags": [
-    "note"
+    "board"
    ]
   },
   {
@@ -6744,7 +6865,11 @@
    "h": 1,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "rug_oval_small_ti2",
@@ -6755,7 +6880,11 @@
    "h": 1,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "rug_oval_small_ti3",
@@ -6766,7 +6895,11 @@
    "h": 1,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "chair_set_ti",
@@ -6813,7 +6946,11 @@
    "h": 2,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "small_stool_ti2",
@@ -8487,7 +8624,11 @@
    "h": 2,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "f03_rug_olive",
@@ -8498,7 +8639,11 @@
    "h": 2,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "f03_tall_book_stack",
@@ -8564,7 +8709,11 @@
    "h": 2,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "f03_table_01",
@@ -9186,7 +9335,11 @@
    "h": 2,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "f03_stool_02",
@@ -9376,7 +9529,11 @@
    "h": 1,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "f03_rug_neko_vert",
@@ -9387,7 +9544,11 @@
    "h": 2,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "f03_plants_yeop",
@@ -10406,6 +10567,7 @@
    "is_surface": false,
    "surface_offset_y": 0,
    "tags": [
+    "board",
     "note"
    ]
   },
@@ -10420,6 +10582,7 @@
    "is_surface": false,
    "surface_offset_y": 0,
    "tags": [
+    "board",
     "note"
    ]
   },
@@ -11311,7 +11474,11 @@
    "h": 2,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "mordbed_042_rug_checker_brown_a",
@@ -11322,7 +11489,11 @@
    "h": 2,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "mordbed_043_elephant_plush",
@@ -11521,7 +11692,11 @@
    "h": 2,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "mordbed_079_rug_olive_strip",
@@ -11532,7 +11707,11 @@
    "h": 2,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "mordbed_080_rug_orange_square",
@@ -11543,7 +11722,11 @@
    "h": 2,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "mordbed_081_rug_orange_strip",
@@ -11554,7 +11737,11 @@
    "h": 2,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "mordbed_082_rug_gray_square",
@@ -11565,7 +11752,11 @@
    "h": 2,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "mordbed_083_rug_gray_strip",
@@ -11576,7 +11767,11 @@
    "h": 2,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "mordbed_084_plush_gray_a",
@@ -11609,7 +11804,11 @@
    "h": 2,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "mordbed_087_rug_olive_round_strip",
@@ -11620,7 +11819,11 @@
    "h": 2,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "mordbed_088_rug_orange_round",
@@ -11631,7 +11834,11 @@
    "h": 2,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "mordbed_089_rug_orange_round_strip",
@@ -11642,7 +11849,11 @@
    "h": 2,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "mordbed_090_rug_gray_round",
@@ -11653,7 +11864,11 @@
    "h": 2,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "mordbed_091_rug_gray_round_strip",
@@ -11664,7 +11879,11 @@
    "h": 2,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "mordbed_092_plush_gray_c",
@@ -11840,7 +12059,11 @@
    "h": 2,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "mordbed_108_plush_blue_a",
@@ -12027,7 +12250,11 @@
    "h": 2,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "mordbed_125_mirror_floor_standing_a",
@@ -12137,7 +12364,11 @@
    "h": 1,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "mordbed_141_toy_car_green_a",
@@ -12192,7 +12423,11 @@
    "h": 2,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "mordbed_146_elephant_plush_small_a",
@@ -12280,7 +12515,11 @@
    "h": 2,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "mordbed_154_elephant_plush_small_b",
@@ -16181,7 +16420,10 @@
    "h": 2,
    "layer": "wall",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board"
+   ]
   },
   {
    "id": "mordclass_028_book_stack",
@@ -18029,7 +18271,11 @@
    "h": 1,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "mordconf_026_conference_table_round_large",
@@ -18446,17 +18692,6 @@
    "w": 2,
    "h": 2,
    "layer": "wall",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
-   "id": "mordhalloween_032_tombstone_cross_tall",
-   "name": "mordhalloween 032 tombstone cross tall",
-   "price": 50,
-   "sprite": "mordhalloween_032_tombstone_cross_tall",
-   "w": 2,
-   "h": 3,
-   "layer": "furniture",
    "is_surface": false,
    "surface_offset_y": 0
   },
@@ -19371,7 +19606,7 @@
    "price": 50,
    "sprite": "mordhalloween_115_cross_grave_d",
    "w": 1,
-   "h": 2,
+   "h": 1,
    "layer": "furniture",
    "is_surface": false,
    "surface_offset_y": 0
@@ -19382,7 +19617,7 @@
    "price": 50,
    "sprite": "mordhalloween_116_cross_grave_e",
    "w": 1,
-   "h": 2,
+   "h": 1,
    "layer": "furniture",
    "is_surface": false,
    "surface_offset_y": 0
@@ -19393,7 +19628,7 @@
    "price": 50,
    "sprite": "mordhalloween_117_cross_grave_f",
    "w": 1,
-   "h": 2,
+   "h": 1,
    "layer": "furniture",
    "is_surface": false,
    "surface_offset_y": 0
@@ -19418,7 +19653,11 @@
    "h": 2,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "mordhalloween_120_tombstone_round",
@@ -19473,7 +19712,11 @@
    "h": 2,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "mordhalloween_125_item_small_c",
@@ -24368,7 +24611,11 @@
    "h": 2,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "mordkitchen_101_cabinet_white_divided",
@@ -24390,7 +24637,11 @@
    "h": 2,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "mordkitchen_103_rug_striped_pink",
@@ -24401,7 +24652,11 @@
    "h": 2,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "mordkitchen_104_rug_swatch_pink",
@@ -24412,7 +24667,11 @@
    "h": 1,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "mordkitchen_105_mixer_stand_cord_b",
@@ -24456,7 +24715,11 @@
    "h": 1,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "mordkitchen_109_cash_register",
@@ -26491,7 +26754,11 @@
    "h": 2,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "mordbath_091_rug_stripe_rainbow_b",
@@ -26502,7 +26769,11 @@
    "h": 2,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "mordbath_092_floor_tile_swatch_checker_small_a",
@@ -27877,7 +28148,11 @@
    "h": 2,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "mordgen_029_painting_abstract_dark_a",
@@ -27943,7 +28218,11 @@
    "h": 2,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "mordgen_035_painting_abstract_dark_b",
@@ -28559,7 +28838,11 @@
    "h": 1,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "mordgen_092_rug_swatch_tan",
@@ -28570,7 +28853,11 @@
    "h": 1,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "mordgen_093_vanity_sink_mirror_tan",
@@ -28625,7 +28912,11 @@
    "h": 1,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "mordgen_098_rug_swatch_tan_c",
@@ -28636,7 +28927,11 @@
    "h": 1,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "mordicecream_001_freezer_chest_grey",
@@ -33901,7 +34196,11 @@
    "h": 1,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "nosh_175_rug_pink_oval_large",
@@ -33912,7 +34211,11 @@
    "h": 1,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "nosh_176_rug_green_rect_small",
@@ -33923,7 +34226,11 @@
    "h": 1,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "nosh_177_rug_green_oval_small",
@@ -33934,7 +34241,11 @@
    "h": 1,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "nosh_178_rug_blue_rect_small",
@@ -33945,7 +34256,11 @@
    "h": 1,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "nosh_179_rug_purple_oval_large",
@@ -33956,7 +34271,11 @@
    "h": 1,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "nosh_180_rug_orange_oval_large",
@@ -33967,7 +34286,11 @@
    "h": 1,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "nosh_181_rug_purple_oval_small",
@@ -33978,7 +34301,11 @@
    "h": 1,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "nosh_182_curtain_panel_red_large",
@@ -34099,7 +34426,11 @@
    "h": 1,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "nosh_193_rug_pink_oval_small",
@@ -34110,7 +34441,11 @@
    "h": 1,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "nosh_194_rug_blue_checker_small",
@@ -34121,7 +34456,11 @@
    "h": 1,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "nosh_195_rug_blue_stripe_small",
@@ -34132,7 +34471,11 @@
    "h": 1,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "nosh_196_rug_teal_rect_small",
@@ -34143,7 +34486,11 @@
    "h": 1,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "nosh_197_rug_orange_oval_small",
@@ -34154,7 +34501,11 @@
    "h": 1,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "nosh_198_curtain_panel_forest_large",
@@ -34275,7 +34626,11 @@
    "h": 1,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "nosh_209_rug_tan_rect_small",
@@ -34286,7 +34641,11 @@
    "h": 1,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "nosh_210_rug_tan_oval_small",
@@ -34297,7 +34656,11 @@
    "h": 1,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "nosh_211_rug_olive_room",
@@ -34308,7 +34671,11 @@
    "h": 3,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "nosh_212_curtain_full_tan_wide",
@@ -34385,7 +34752,11 @@
    "h": 3,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "nosh_219_rug_olive_plaid_room",
@@ -34396,7 +34767,11 @@
    "h": 3,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "nosh_220_rug_tan_plaid_room",
@@ -34407,7 +34782,11 @@
    "h": 3,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "board",
+    "rug"
+   ]
   },
   {
    "id": "med_053",
@@ -35292,6 +35671,28 @@
    "sprite": "ward_85",
    "w": 2,
    "h": 2,
+   "layer": "furniture",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "11ha_86",
+   "name": "11ha 86",
+   "price": 50,
+   "sprite": "11ha_86",
+   "w": 1,
+   "h": 1,
+   "layer": "furniture",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "11ha_85",
+   "name": "11ha 85",
+   "price": 50,
+   "sprite": "11ha_85",
+   "w": 1,
+   "h": 1,
    "layer": "furniture",
    "is_surface": false,
    "surface_offset_y": 0

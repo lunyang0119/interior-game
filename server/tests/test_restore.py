@@ -188,6 +188,23 @@ def test_progress_locks_and_stage_completion(restore_env):
         assert kinds[:2] == ["stage", "earn"]
 
 
+def test_debug_player_may_enter_locked_room(restore_env, monkeypatch):
+    """config.DEBUG_PLAYERS walk into locked places (debugging a room before its stage); placing there stays refused."""
+    from fastapi.testclient import TestClient
+    from app import config
+    from app.main import create_app
+    monkeypatch.setattr(config, "DEBUG_PLAYERS", ("dbg",))
+    with TestClient(create_app()) as client:
+        dbg = register(client, "dbg")
+        with client.websocket_connect("/ws") as ws:
+            ws.send_text(json.dumps({"type": "auth", "token": dbg}))
+            ws.receive_json()
+            ws.send_text(json.dumps({"type": "enter", "room": "house_b", "x": 1, "y": 1}))
+            assert recv(ws, "entered")["room"] == "house_b"
+        r = client.post("/api/room/place", json={"item_id": "chair", "x": 1, "y": 1, "room_id": "house_b"}, headers=auth(dbg))
+        assert r.status_code == 403 and r.json()["error"] == "room_locked"
+
+
 def test_already_met_stages_complete_at_startup(env):
     """A DB from before restoration existed: the inn is clean, so its stages complete on the first start."""
     _write_room(env, "inn", restore=[

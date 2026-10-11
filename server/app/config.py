@@ -55,6 +55,9 @@ GUEST_PLAYER = "$guest"
 SYSTEM_PLAYERS = (SEED_PLAYER, GUEST_PLAYER)
 # DEV_TOOLS=1 mounts /api/dev/* (simulate guest days etc.). Never set it on the VM.
 DEV_TOOLS = os.environ.get("DEV_TOOLS", "") in ("1", "true", "yes")
+# Accounts that may walk into locked places (ws `enter`) to debug rooms before their stage opens. Comma-separated;
+# mirrors DEBUG_IDS in client/src/main.ts. Placing/moving furniture there is still refused (room_locked).
+DEBUG_PLAYERS = tuple(p.strip() for p in os.environ.get("DEBUG_PLAYERS", "안나").split(",") if p.strip())
 # Presence rooms that are not grid rooms (no items, free coordinates).
 SCENE_ROOMS = ("map", "dock")
 

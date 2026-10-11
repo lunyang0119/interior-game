@@ -14,11 +14,28 @@ const TABS: { key: Layer | "all"; label: string }[] = [
 ];
 
 let tab: Layer | "all" = "all";
+/** Normalized search text (see `norm`); "" = no filter. */
+let query = "";
 let atlasImg: HTMLImageElement | null = null;
 let atlasFrames: Record<string, { frame: { x: number; y: number; w: number; h: number } }> = {};
-/** Built once per item; afterwards only class/visibility toggles (no canvas redraws on balance changes). */
-const cards = new Map<string, { item: Item; el: HTMLElement }>();
+/** Built once per item; afterwards only class/visibility toggles (no canvas redraws on balance changes).
+ *  `key` is the normalized name + id the search box matches against. */
+const cards = new Map<string, { item: Item; el: HTMLElement; key: string }>();
 const tabButtons = new Map<string, HTMLButtonElement>();
+
+/** Case- and whitespace-insensitive comparison key (Korean is kept as is). */
+function norm(s: string): string {
+  return s.toLowerCase().replace(/\s+/g, "");
+}
+
+function searchBox(): HTMLInputElement {
+  return $("shop-search") as HTMLInputElement;
+}
+
+function clearSearch(): void {
+  query = "";
+  searchBox().value = "";
+}
 
 async function loadAtlas(): Promise<void> {
   if (atlasImg) return;
@@ -61,22 +78,37 @@ function build(): void {
       bus.emit("place:begin", { itemId: item.id });
     });
     grid.appendChild(el);
-    cards.set(item.id, { item, el });
+    cards.set(item.id, { item, el, key: norm(`${item.name} ${item.id}`) });
   }
   const tabs = $("shop-tabs");
   tabs.innerHTML = "";
   for (const t of TABS) {
     const b = document.createElement("button");
     b.textContent = t.label;
-    b.addEventListener("click", () => { tab = t.key; applyTab(); });
+    b.addEventListener("click", () => { tab = t.key; applyFilter(); });
     tabs.appendChild(b);
     tabButtons.set(t.key, b);
   }
+  const box = searchBox();
+  // `input` also fires mid-IME-composition with the partial syllable, so Korean filters live
+  box.addEventListener("input", () => { query = norm(box.value); applyFilter(); });
+  box.addEventListener("keydown", (e) => {
+    if (e.isComposing) return;
+    if (e.key === "Escape") { e.preventDefault(); clearSearch(); applyFilter(); box.blur(); }
+    else if (e.key === "Enter") box.blur();
+  });
 }
 
-function applyTab(): void {
+/** Shows the cards matching both the layer tab and the search text; toggles the "no results" note. */
+function applyFilter(): void {
   for (const [key, b] of tabButtons) b.classList.toggle("on", key === tab);
-  for (const { item, el } of cards.values()) el.classList.toggle("hidden", tab !== "all" && item.layer !== tab);
+  let shown = 0;
+  for (const { item, el, key } of cards.values()) {
+    const hide = (tab !== "all" && item.layer !== tab) || (query !== "" && !key.includes(query));
+    el.classList.toggle("hidden", hide);
+    if (!hide) shown++;
+  }
+  $("shop-empty").classList.toggle("hidden", shown > 0);
 }
 
 function applyBalance(): void {
@@ -98,7 +130,8 @@ export function openShop(itemId?: string): void {
       const card = cards.get(itemId);
       if (!card) { toast("상점에 없는 물건이에요"); return; }
       tab = "all";
-      applyTab();
+      clearSearch();
+      applyFilter();
       applyBalance();
       closeAllPanels();
       show("panel-shop", true);
@@ -107,9 +140,11 @@ export function openShop(itemId?: string): void {
       window.setTimeout(() => card.el.classList.remove("hl"), 2500);
       return;
     }
-    applyTab();
+    applyFilter();
     applyBalance();
     togglePanel("panel-shop");
+    // desktop only: phones would pop the keyboard over the panel
+    if (!$("panel-shop").classList.contains("hidden") && window.matchMedia("(pointer: fine)").matches) searchBox().focus();
   });
 }
 

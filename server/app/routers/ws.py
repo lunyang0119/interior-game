@@ -112,7 +112,7 @@ async def ws_endpoint(ws: WebSocket):
                     y = min(max(float(msg.get("y", 0)), 0.0), my)
                 except (TypeError, ValueError):
                     continue
-                if await asyncio.to_thread(_is_locked, ws.app, room):
+                if pid not in config.DEBUG_PLAYERS and await asyncio.to_thread(_is_locked, ws.app, room):
                     await ws.send_text(json.dumps({"type": "error", "code": "room_locked", "room": room}))
                     continue
                 await hub.move_room(o, room, x, y)

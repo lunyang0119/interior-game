@@ -46,6 +46,8 @@ sudo systemctl restart interior
 
 예약·개파 손님은 `guests.json`의 `special_after`(기본 `room2`)가 열린 뒤부터 온다. 로컬에서 손님을 미리 보려면 `server/.env`에 `DEV_TOOLS=1`을 넣고 서버를 켠 뒤 `POST /api/dev/settle`(`{"days":1,"chance":1}`; 토큰 헤더 필요)을 부르면 그만큼 날이 지난 것처럼 정산된다(`reset:true`로 처음부터, `dog:true`로 개파 손님 다시 추첨). VM에는 절대 켜지 말 것. 정산 상태는 `room_meta`의 `guest_day:<단위>`(마지막 정산일), `no_guests_day:<단위>`, `dog_month`와 `reservations` 테이블에 있다. 처음 켜진 날은 "오늘부터 센다"라 돈이 소급되지 않는다.
 
+아직 안 열린 장소(복구 단계가 남은 방·광산)를 디버깅하려면 `DEBUG_PLAYERS`(env, 쉼표 구분, 기본 `안나`) 계정으로 들어가면 된다. 서버는 그 계정의 ws `enter`만 통과시키고 가구 배치는 여전히 거부하며, 클라이언트 `main.ts`의 `DEBUG_IDS`가 같은 목록을 미러링해 맵 잠금 토스트를 건너뛴다.
+
 **맵 바꿀 때 (VM에서)**
 ```bash
 sudo systemctl stop interior

@@ -6,8 +6,8 @@
  "rows": 12,
  "wall_rows": 3,
  "spawn": {
-  "x": 2,
-  "y": 5
+  "x": 1,
+  "y": 6
  },
  "blocked": [],
  "zoom": 3,
@@ -32,15 +32,22 @@
  "exits": [
   {
    "x": 0,
-   "y": 10,
+   "y": 7,
    "w": 2,
-   "h": 2,
+   "h": 5,
    "to": "map",
    "spawn": {
-    "x": 0,
-    "y": 0
+    "x": 6,
+    "y": 6
    }
   }
  ],
- "seed": []
+ "seed": [
+  {
+   "item_id": "fence_accent_b_right",
+   "x": 0,
+   "y": 10
+  }
+ ],
+ "zones": []
 }

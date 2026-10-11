@@ -192,6 +192,7 @@ input {
 .shop-item .p { font-size: var(--fs-small); color: var(--muted); }
 .shop-item.disabled { opacity: .4; }
 #shop-tabs button.on { background: var(--primary); filter: brightness(0.8); }
+#shop-search { flex: 1; width: 100%; }
 
 #ctx {
   position: fixed; z-index: 30; background: var(--panel); border-radius: 12px; padding: var(--pad-ctx); display: flex; flex-direction: column; gap: 6px;
