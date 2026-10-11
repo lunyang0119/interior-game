@@ -17,7 +17,7 @@ export interface Events {
   "place:span": { delta: number };
   "place:state": { active: boolean; label: string; ok: boolean; mode: "place" | "move" | null; busy?: boolean; span?: number | null; spanMax?: number };
   "room:refresh": void;
-  "room:changed": { id: string; name: string; ruined: number; kind?: "room" | "mine" }; // the Room scene shows another room / junk count moved
+  "room:changed": { id: string; name: string; ruined: number; kind?: "room" | "mine"; floor?: number }; // the Room scene shows another room / junk count moved (floor: mine floor)
   "room:exit": { from: string; to: string; spawn: { x: number; y: number } }; // avatar stepped on an exit
   "scene:changed": { scene: "room" | "map" | "dock" };
   "scene:ready": void; // the new scene has its data and is drawn → hide the loading overlay
@@ -35,8 +35,11 @@ export interface Events {
   // a catch (dock) or a broken ore node (mine). seq + deliverable only for my own: the overlay then offers "납품하기" (ui/hud.ts)
   "loot:got": { ok: boolean; kind: "fish" | "mine"; id: string; name: string; value: number; who: string; seq?: number | null; deliverable?: Deliverable[] };
   "mine:target": { seq: number; name: string; hits_left: number; hits: number } | null; // the ore node picked for 채광 (null = none / walked away)
-  "mine:left": { left: number; per_day: number; resets_at: number }; // today's remaining nodes (the mine bar's status line)
+  "mine:left": { left: number; per_floor: number; floor: number; resets_at: number }; // this floor's remaining nodes (the mine bar's status line)
   "mine:press": void; // the ⛏ 채광 button
+  "mine:descend": { floor: number }; // the avatar stepped on the open ladder: go to that floor (main.ts restarts the scene)
+  "mine:pick-floor": { floors: number; deepest: number }; // entering from the map with more than one floor reached: show the floor panel
+  "mine:go": { floor: number }; // the floor panel's answer
   "item:menu": { item: RoomItem; screenX: number; screenY: number };
   "item:remove": { uid: number };
   "item:walk": { uid: number }; // context menu "여기로 가기": walk the avatar up to that item

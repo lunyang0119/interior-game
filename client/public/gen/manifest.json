@@ -19876,6 +19876,13 @@
     "ch": 1,
     "set": "pi_bedroom"
    },
+   "tile_wall_mine_22": {
+    "w": 32,
+    "h": 16,
+    "cw": 2,
+    "ch": 1,
+    "set": "goldrush"
+   },
    "mordernhospital_03_whiteboard": {
     "w": 28,
     "h": 16,
@@ -20736,6 +20743,97 @@
     "cw": 1,
     "ch": 1,
     "set": "medieval_pack"
+   },
+   "mine_bronze": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "goldrush"
+   },
+   "mine_chest": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "goldrush"
+   },
+   "mine_coal": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "goldrush"
+   },
+   "mine_pickaxe_anim_1": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "goldrush"
+   },
+   "mine_pickaxe_anim_2": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "goldrush"
+   },
+   "mine_pickaxe_anim_3": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "goldrush"
+   },
+   "mine_silver": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "goldrush"
+   },
+   "mine_stone": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "goldrush"
+   },
+   "mine_wall_bronze": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "goldrush"
+   },
+   "mine_wall_coal": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "goldrush"
+   },
+   "mine_wall_gold": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "goldrush"
+   },
+   "mine_wall_silver": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "goldrush"
+   },
+   "mine_wall_stone": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "goldrush"
    },
    "mordart_031_palette_single": {
     "w": 16,
@@ -24415,6 +24513,132 @@
     "set": "mi_free",
     "step": "tile"
    },
+   "tile_floor_mine": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "goldrush"
+   },
+   "tile_floor_mine_10": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "goldrush"
+   },
+   "tile_floor_mine_11": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "goldrush"
+   },
+   "tile_floor_mine_12": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "goldrush"
+   },
+   "tile_floor_mine_13": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "goldrush"
+   },
+   "tile_floor_mine_14": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "goldrush"
+   },
+   "tile_floor_mine_15": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "goldrush"
+   },
+   "tile_floor_mine_16": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "goldrush"
+   },
+   "tile_floor_mine_17": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "goldrush"
+   },
+   "tile_floor_mine_18": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "goldrush"
+   },
+   "tile_floor_mine_2": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "goldrush"
+   },
+   "tile_floor_mine_3": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "goldrush"
+   },
+   "tile_floor_mine_4": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "goldrush"
+   },
+   "tile_floor_mine_5": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "goldrush"
+   },
+   "tile_floor_mine_6": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "goldrush"
+   },
+   "tile_floor_mine_7": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "goldrush"
+   },
+   "tile_floor_mine_8": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "goldrush"
+   },
+   "tile_floor_mine_9": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "goldrush"
+   },
    "tile_floor_wood": {
     "w": 16,
     "h": 16,
@@ -24457,6 +24681,216 @@
     "cw": 1,
     "ch": 1,
     "set": "mi_free"
+   },
+   "tile_wall_mine": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "goldrush"
+   },
+   "tile_wall_mine_10": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "goldrush"
+   },
+   "tile_wall_mine_11": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "goldrush"
+   },
+   "tile_wall_mine_12": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "goldrush"
+   },
+   "tile_wall_mine_13": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "goldrush"
+   },
+   "tile_wall_mine_14": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "goldrush"
+   },
+   "tile_wall_mine_15": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "goldrush"
+   },
+   "tile_wall_mine_16": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "goldrush"
+   },
+   "tile_wall_mine_17": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "goldrush"
+   },
+   "tile_wall_mine_18": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "goldrush"
+   },
+   "tile_wall_mine_19": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "goldrush"
+   },
+   "tile_wall_mine_2": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "goldrush"
+   },
+   "tile_wall_mine_20": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "goldrush"
+   },
+   "tile_wall_mine_21": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "goldrush"
+   },
+   "tile_wall_mine_23": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "goldrush"
+   },
+   "tile_wall_mine_24": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "goldrush"
+   },
+   "tile_wall_mine_25": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "goldrush"
+   },
+   "tile_wall_mine_26": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "goldrush"
+   },
+   "tile_wall_mine_27": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "goldrush"
+   },
+   "tile_wall_mine_28": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "goldrush"
+   },
+   "tile_wall_mine_29": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "goldrush"
+   },
+   "tile_wall_mine_3": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "goldrush"
+   },
+   "tile_wall_mine_30": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "goldrush"
+   },
+   "tile_wall_mine_31": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "goldrush"
+   },
+   "tile_wall_mine_4": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "goldrush"
+   },
+   "tile_wall_mine_5": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "goldrush"
+   },
+   "tile_wall_mine_6": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "goldrush"
+   },
+   "tile_wall_mine_7": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "goldrush"
+   },
+   "tile_wall_mine_8": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "goldrush"
+   },
+   "tile_wall_mine_9": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "goldrush"
    },
    "tile_wall_right_bottom": {
     "w": 16,
@@ -24802,6 +25236,51 @@
     "cw": 3,
     "ch": 3
    },
+   "door_mine": {
+    "w": 48,
+    "h": 48,
+    "cw": 3,
+    "ch": 3,
+    "step": "grass"
+   },
+   "door_mine_2": {
+    "w": 48,
+    "h": 48,
+    "cw": 3,
+    "ch": 3,
+    "step": "grass"
+   },
+   "door_mine_3": {
+    "w": 48,
+    "h": 48,
+    "cw": 3,
+    "ch": 3,
+    "step": "tile"
+   },
+   "door_mine_side": {
+    "w": 16,
+    "h": 48,
+    "cw": 1,
+    "ch": 3
+   },
+   "door_mine_side_2": {
+    "w": 16,
+    "h": 48,
+    "cw": 1,
+    "ch": 3
+   },
+   "door_mine_side_3": {
+    "w": 16,
+    "h": 48,
+    "cw": 1,
+    "ch": 3
+   },
+   "door_mine_side_4": {
+    "w": 16,
+    "h": 48,
+    "cw": 1,
+    "ch": 3
+   },
    "buddo_gd": {
     "w": 45,
     "h": 46,
@@ -24932,6 +25411,18 @@
     "w": 16,
     "h": 26,
     "cw": 1,
+    "ch": 1
+   },
+   "door_mine_side_5": {
+    "w": 48,
+    "h": 24,
+    "cw": 3,
+    "ch": 1
+   },
+   "door_mine_side_6": {
+    "w": 48,
+    "h": 24,
+    "cw": 3,
     "ch": 1
    },
    "icon_bridge": {
@@ -25544,6 +26035,60 @@
     "cw": 1,
     "ch": 1
    },
+   "tile_mine_map": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "tile_mine_map_2": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "tile_mine_map_3": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "tile_mine_map_4": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "tile_mine_map_5": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "tile_mine_map_6": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "tile_mine_map_7": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "tile_mine_map_8": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
+   "tile_mine_map_9": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1
+   },
    "tool_hammer": {
     "w": 16,
     "h": 16,
@@ -25585,6 +26130,12 @@
     "h": 11,
     "cw": 4,
     "ch": 0
+   },
+   "door_mine_side_7": {
+    "w": 48,
+    "h": 8,
+    "cw": 3,
+    "ch": 0
    }
   }
  },
@@ -25613,11 +26164,18 @@
  },
  "mine": {
   "icons": [
-   "copper",
-   "gold",
-   "emerald",
-   "ruby",
-   "pickaxe"
+   "stone",
+   "coal",
+   "bronze",
+   "silver",
+   "stone_wall",
+   "coal_wall",
+   "bronze_wall",
+   "silver_wall",
+   "gold_wall",
+   "pickaxe_1",
+   "pickaxe_2",
+   "pickaxe_3"
   ]
  },
  "cat": {

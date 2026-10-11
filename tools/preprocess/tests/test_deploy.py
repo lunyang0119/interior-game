@@ -51,3 +51,21 @@ def test_bundle_stale(tmp_path):
     import time; time.sleep(0.01)
     (root / "client" / "src" / "main.ts").write_text("x")
     assert D.bundle_stale(root)
+
+
+def test_changes_lists_only_what_moved(tmp_path):
+    """changes(): the plan the editor's 🚀 button sends — changed/new files to upload, gone files to delete."""
+    root = make_repo(tmp_path)
+    state = tmp_path / "state.json"
+    assert D.changes(root, state)["never"] is True
+    D.mark(root, state)
+    assert D.changes(root, state) == {"upload": [], "delete": [], "restart": False, "never": False}
+    (root / "client" / "public" / "gen" / "interiors.png").write_bytes(b"png2")
+    (root / "data" / "rooms" / "mine.json").write_text("{}")
+    (root / "data" / "rooms" / "inn.json").unlink()
+    ch = D.changes(root, state)
+    assert sorted(ch["upload"]) == ["client/public/gen/interiors.png", "data/rooms/mine.json"]
+    assert ch["delete"] == ["data/rooms/inn.json"] and ch["restart"] is True
+    (root / "data" / "rooms" / "inn.json").write_text("{}")
+    (root / "data" / "rooms" / "mine.json").unlink()
+    assert D.changes(root, state)["restart"] is False  # only the atlas moved

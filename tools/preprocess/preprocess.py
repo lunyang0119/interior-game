@@ -710,11 +710,14 @@ def copy_map_bgs() -> dict | None:
     return {"names": names}
 
 
-def copy_loot_icons(src: Path, key: str, out_name: str, extra: dict[str, object] | None = None) -> dict | None:
-    """Loot icons of a data file → gen/<out_name>/<id>.png (DOM overlay images, ore sprites).
+def copy_loot_icons(src: Path, key: str, out_name: str, extra: dict[str, object] | None = None,
+                    slices: list[dict] | None = None) -> dict | None:
+    """Loot icons of a data file → gen/<out_name>/<id>.png (DOM overlay images, HUD button frames).
 
-    `src[key]` is a list of {id, icon}; `icon` is either an asset path (copied as is) or {file, x, y, w?, h?}
-    (a cell cropped out of a sheet, 16x16 by default). `extra` adds named icons the same way ({"pickaxe": icon}).
+    `src[key]` is a list of {id, icon?, sprite?}; an icon is an asset path (copied as is), {file, x, y, w?, h?}
+    (a cell cropped out of a sheet, 16x16 by default) or the key of an interior slice (cropped like the atlas
+    does — `sprite` is that by definition, `icon` wins when both exist). `extra` adds named icons the same way
+    ({"pickaxe": icon}); a list value writes <name>_1.png, <name>_2.png, …
     """
     if not src.exists():
         return None
@@ -722,14 +725,27 @@ def copy_loot_icons(src: Path, key: str, out_name: str, extra: dict[str, object]
     out = C.OUT_DIR / out_name
     out.mkdir(parents=True, exist_ok=True)
     ids: list[str] = []
+    by_key = {sl["key"]: sl for sl in (load_slices() if slices is None else slices)}
+    sheets = SheetStore(C.all_sheets())
 
     def write(name: str, icon) -> None:
         if not icon:
             return
-        if isinstance(icon, str):
+        if isinstance(icon, list):
+            for i, one in enumerate(icon, 1):
+                write(f"{name}_{i}", one)
+            return
+        if isinstance(icon, str) and icon in by_key:
+            try:
+                im = slice_image(by_key[icon], sheets)
+            except SystemExit as e:
+                print(f"WARNING: {out_name} icon for {name}: {e}")
+                return
+            im.save(out / f"{name}.png")
+        elif isinstance(icon, str):
             p = C.ASSETS / icon
             if not p.exists():
-                print(f"WARNING: {out_name} icon missing for {name}: {icon}")
+                print(f"WARNING: {out_name} icon missing for {name}: {icon} (not a slice key or an asset path)")
                 return
             shutil.copyfile(p, out / f"{name}.png")
         else:
@@ -744,7 +760,7 @@ def copy_loot_icons(src: Path, key: str, out_name: str, extra: dict[str, object]
         ids.append(name)
 
     for entry in data.get(key, []):
-        write(entry["id"], entry.get("icon"))
+        write(entry["id"], entry.get("icon") or entry.get("sprite"))
     for name, icon in (extra or {}).items():
         write(name, icon)
     print(f"{out_name} icons: {len(ids)} → gen/{out_name}/")
@@ -757,7 +773,7 @@ def copy_fish_icons() -> dict | None:
 
 
 def copy_mine_icons() -> dict | None:
-    """data/mine.json ore icons + the pickaxe → gen/mine/<id>.png (ore node sprites, 채광 button, overlay)."""
+    """data/mine.json ore sprites + the pickaxe frames → gen/mine/<id>.png, pickaxe_<n>.png (overlay, 채광 button)."""
     if not C.MINE_FILE.exists():
         return None
     pick = json.loads(C.MINE_FILE.read_text(encoding="utf-8")).get("pickaxe")

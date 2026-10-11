@@ -32,6 +32,9 @@ TARGETS: list[tuple[str, str, bool, str]] = [
     ("data", "map.json", True, "오버월드"),
     ("data", "dock.json", True, "부두"),
     ("data", "fishing.json", True, "낚시"),
+    ("data", "mine.json", True, "광산"),
+    ("data", "guests.json", True, "손님"),
+    ("server", "pyproject.toml", True, "서버 패키지"),
     ("client/public/gen", "manifest.json", True, "슬라이스 목록 (서버가 시작할 때 읽음)"),
     ("client/public/gen", "*.png", False, "아틀라스"),
     ("client/public/gen", "interiors.json", False, "아틀라스 프레임"),
@@ -41,6 +44,8 @@ TARGETS: list[tuple[str, str, bool, str]] = [
     ("client/public/gen/dock", "*.png", False, "부두 배경"),
     ("client/public/gen/mapbg", "*.png", False, "맵 배경"),
     ("client/public/gen/fish", "*.png", False, "물고기 아이콘"),
+    ("client/public/gen/mine", "*.png", False, "광석 아이콘"),
+    ("client/public/gen/cat", "*.png", False, "고양이"),
     ("client/public/media", "theme.css", False, "UI 테마"),
     ("client/public/media", "*.json", False, "BGM/SFX 목록"),
     ("client/public/media/ui", "*.png", False, "UI 프레임"),
@@ -117,6 +122,20 @@ def bundle_stale(root: Path | None = None) -> bool:
         return False
     newest = max((p.stat().st_mtime for p in src.rglob("*") if p.is_file()), default=0)
     return newest > built.stat().st_mtime
+
+
+def changes(root: Path | None = None, path: Path | None = None) -> dict:
+    """The raw plan since mark(): {"upload": [rel, ...], "delete": [rel, ...], "restart": bool, "never": bool}.
+    What the editor's 🚀 button sends (only these files, nothing else)."""
+    files = scan(root)
+    state = load_state(path)
+    known: dict[str, str] = state.get("files", {})
+    never = state.get("marked_at") is None
+    upload = [rel for rel, f in files.items() if never or rel not in known or known[rel] != f["hash"]]
+    delete = [rel for rel in known if rel not in files]
+    restart = any(files[rel]["restart"] for rel in upload) or any(
+        rel.startswith(folder + "/") and r for rel in delete for folder, _, r, _ in TARGETS)
+    return {"upload": upload, "delete": delete, "restart": restart, "never": never}
 
 
 def status(root: Path | None = None, path: Path | None = None) -> dict:

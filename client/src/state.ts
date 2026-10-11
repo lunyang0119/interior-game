@@ -15,6 +15,8 @@ export const state = {
   online: 0,
   /** Grid room the Room scene shows (id from the catalog). */
   roomId: "inn",
+  /** Mine floor the Room scene shows (1 outside the mine). */
+  mineFloor: 1,
   roomVersion: -1,
   /** ruined-tagged items left in the current room. */
   ruined: 0,
@@ -39,6 +41,13 @@ export function applyCat(view: CatView | null | undefined): void {
 }
 
 /** The guest unit the avatar is in right now. */
+/** Accounts that may walk into locked places (debugging a room before its stage opens). The server's
+ *  config.DEBUG_PLAYERS is the same list; it still refuses to place anything there. */
+const DEBUG_IDS = new Set(["안나"]);
+export function isDebugAccount(): boolean {
+  return !!state.id && DEBUG_IDS.has(state.id);
+}
+
 export function currentUnit(): string {
   return state.zone ? `${state.roomId}:${state.zone}` : state.roomId;
 }

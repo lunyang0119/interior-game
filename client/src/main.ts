@@ -8,7 +8,7 @@ import { BootScene } from "./scenes/BootScene";
 import { DockScene } from "./scenes/DockScene";
 import { MapScene, type MapSceneData } from "./scenes/MapScene";
 import { RoomScene, type RoomSceneData } from "./scenes/RoomScene";
-import { applyComfort, applyProgress, state } from "./state";
+import { applyComfort, applyProgress, isDebugAccount, state } from "./state";
 import * as storage from "./storage";
 import { initAccounts } from "./ui/accounts";
 import { initAvatarEditor } from "./ui/avatarEditor";
@@ -21,9 +21,6 @@ import { initShop } from "./ui/shop";
 import { socket } from "./ws";
 import { refreshThemeLink } from "./assets";
 
-/** Accounts that may walk into locked places (debugging). The server still refuses to place anything there. */
-const DEBUG_IDS = new Set(["안나"]);
-
 /** Fetch the restoration picture (public endpoint; also refreshed by every ws `progress` message). */
 async function loadProgress(): Promise<void> {
   try {
@@ -35,7 +32,7 @@ async function loadProgress(): Promise<void> {
 
 /** True when `target` may not be entered yet; shows why (which room's stage opens it). */
 function blockedByLock(target: string): boolean {
-  if (!state.locked.has(target) || (state.id && DEBUG_IDS.has(state.id))) return false;
+  if (!state.locked.has(target) || isDebugAccount()) return false;
   const cat = state.catalog!;
   const u = unlockerOf(cat, target);
   toast(u ? `아직 들어갈 수 없어요 — ${placeName(cat, u.room.id)} '${u.stage.name}' 단계를 끝내면 열려요` : "아직 들어갈 수 없어요");
@@ -126,11 +123,12 @@ async function boot(): Promise<void> {
     input: { activePointers: 2 }, // two fingers: pan + pinch zoom
     scene: [BootScene, RoomScene, MapScene, DockScene],
   });
-  (window as unknown as { __game: Phaser.Game }).__game = game; // debugging / e2e hooks
+  (window as unknown as { __game: Phaser.Game; __bus: typeof bus }).__game = game; // debugging / e2e hooks
+  (window as unknown as { __bus: typeof bus }).__bus = bus;
 
   const active = (): SceneName => game.scene.isActive("Dock") ? "Dock" : game.scene.isActive("Map") ? "Map" : "Room";
-  const roomData = (room?: string, spawn?: { x: number; y: number }): RoomSceneData =>
-    ({ id: state.id, room: room ?? (state.catalog!.rooms.has(state.roomId) ? state.roomId : base.id), spawn });
+  const roomData = (room?: string, spawn?: { x: number; y: number }, floor?: number): RoomSceneData =>
+    ({ id: state.id, room: room ?? (state.catalog!.rooms.has(state.roomId) ? state.roomId : base.id), spawn, floor });
 
   /** Only one world scene runs at a time; the DOM bars follow via scene:changed. The loading overlay covers the
    *  switch until the scene says scene:ready (or a safety timer runs out). */
@@ -145,7 +143,16 @@ async function boot(): Promise<void> {
     game.scene.start(name, data);
     bus.emit("scene:changed", { scene: name.toLowerCase() as "room" | "map" | "dock" });
   };
-  const goRoom = (room?: string, spawn?: { x: number; y: number }) => goto("Room", roomData(room, spawn));
+  const goRoom = (room?: string, spawn?: { x: number; y: number }, floor?: number) => goto("Room", roomData(room, spawn, floor));
+  /** The mine's entrance: with more than one floor reached, ask which floor (ui/hud.ts #panel-floor) instead of
+   *  always starting at the top. */
+  const enterMine = async (room: string): Promise<void> => {
+    try {
+      const info = await api.mineInfo();
+      if (info.deepest > 1) { bus.emit("mine:pick-floor", { floors: info.floors, deepest: info.deepest }); return; }
+    } catch { /* no mine config / offline: floor 1 */ }
+    goRoom(room, undefined, 1);
+  };
   const goMap = (from?: string) => { if (hasMap) goto("Map", { from }); else { toast("바깥은 아직 준비 중이에요"); } };
   const goDock = () => goto("Dock");
 
@@ -172,11 +179,16 @@ async function boot(): Promise<void> {
     if (blockedByLock(room)) return;
     if (room === DOCK_ROOM) { goDock(); return; }
     if (!state.catalog?.rooms.has(room)) { toast("아직 갈 수 없는 곳이에요"); return; }
+    if (state.catalog.rooms.get(room)?.kind === "mine") { void enterMine(room); return; }
     goRoom(room);
   });
+  // the mine: the floor panel's answer, and stepping on an open ladder
+  bus.on("mine:go", ({ floor }) => { const mine = [...state.catalog!.rooms.values()].find((r) => r.kind === "mine"); if (mine) goRoom(mine.id, undefined, floor); });
+  bus.on("mine:descend", ({ floor }) => { toast(`${floor}층으로 내려가요`); goRoom(state.roomId, undefined, floor); });
   // the server refused a presence enter (e.g. a stage was reset by hand): say so, the scene itself is harmless
   socket.on("error", (m: { code: string; room?: string }) => {
     if (m.code === "room_locked") toast(`${m.room ? placeName(state.catalog!, m.room) : "거기"}(은)는 아직 잠겨 있어요`);
+    if (m.code === "floor_locked") { toast("아직 못 내려간 층이에요"); goRoom(state.roomId, undefined, 1); }
   });
 
   // dock: 나가기 goes back to the map (or the base room when there is no map yet); #dock deep-links in

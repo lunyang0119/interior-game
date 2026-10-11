@@ -26,11 +26,23 @@ nano /opt/interior/server/.env     # SHEET_URL, DUCKDNS_TOKEN 채우기 (IP_SALT
 ```
 Oracle 콘솔에서 VCN → Security List → Ingress에 TCP 80, 443 추가 (스크립트가 VM 안 iptables는 열어줌).
 
-**배포할 때마다 (VM에서)**
+**배포할 때마다 (PC에서, Git Bash)**
 ```bash
-sudo systemctl restart interior
+./deploy/sync.sh ubuntu@crystalroom.duckdns.org            # 클라 빌드 → 서버 코드·마이그레이션·data·gen·static을 tar|ssh로 한 번에 → 재시작
+./deploy/sync.sh ubuntu@crystalroom.duckdns.org --media    # BGM·효과음·폰트(client/public/media, 130MB)도 바뀌었을 때
+./deploy/sync.sh ubuntu@crystalroom.duckdns.org --no-build --no-restart
 ```
-수정된 파일 전송 후, 재시작. **`media/`(BGM·효과음)나 `gen/`만 바꿨을 때도 재시작**해야 한다 — 브라우저가 `/media/*`·`/gen/*`를 하루 캐시하는데, 재시작해야 캐시를 깨는 버전(`asset_version`: 아틀라스·테마·`bgm.json`·`sfx.json` 해시)이 바뀐다. 안 하면 옛 목록으로 없는 곡을 찾다가 BGM이 조용해질 수 있다.
+SFTP로 파일을 하나씩 올리는 대신 쓰는 스크립트다(git은 안 쓴다). VM의 `server/.env`·`interior.db`·venv는 건드리지 않는다. 마지막에 `Active: active (running)`과 `Application startup complete`가 보이면 성공. `~/.bashrc`에 `export VM=ubuntu@crystalroom.duckdns.org`를 적어 두면 주소를 생략할 수 있다. 손으로 올렸을 때는 VM에서 `sudo systemctl restart interior`.
+
+ssh 설정(한 번만, 2026-10-11에 해 둠): Oracle이 만들어 준 개인키(`ssh-key-2025-03-21.key`, Bitvise도 같은 키)를 `~/.ssh/oracle_vm.key`로 복사하고 `~/.ssh/config`에
+```
+Host crystalroom.duckdns.org 158.179.169.136
+  User ubuntu
+  IdentityFile ~/.ssh/oracle_vm.key
+```
+를 넣었다. 새 PC에서는 이걸 다시 하면 된다. `Permission denied (publickey)`가 나오면 키가 없는 것이고, `Host key verification failed`가 나오면 먼저 `ssh ubuntu@crystalroom.duckdns.org`로 한 번 접속해 `yes`를 쳐서 호스트 키를 저장한다(스크립트는 stdin을 tar에 쓰므로 그 질문에 답할 수 없다).
+
+**`media/`(BGM·효과음)나 `gen/`만 바꿨을 때도 재시작**해야 한다 — 브라우저가 `/media/*`·`/gen/*`를 하루 캐시하는데, 재시작해야 캐시를 깨는 버전(`asset_version`: 아틀라스·테마·`bgm.json`·`sfx.json` 해시)이 바뀐다. 안 하면 옛 목록으로 없는 곡을 찾다가 BGM이 조용해질 수 있다.
 
 ## 손님 · 숙박료
 
@@ -42,11 +54,11 @@ sudo systemctl restart interior
 
 여관에는 **고양이**가 한 마리 산다. 통행 가능한 칸을 혼자 돌아다니며 앉고 두리번거리고 눕는데(클라이언트만 움직임, 서버는 모름), 길을 막지는 않는다. 톡 치면 야옹 소리(`media/sfx/cat.mp3`, `assets/sfx/**/cat_*.mp3`가 있을 때만)가 나고 쓰다듬은 횟수가 쌓인다(클라이언트가 연타를 묶어 `POST /api/cat/pet {taps}`, 한 요청에 최대 50, `cat_taps` 테이블, 모두에게 `{"type":"cat"}` 알림). **애정도 = 모두가 합쳐서 쓰다듬은 횟수 ÷ 100(최대 3), 영구 누적** — 300번이면 영원히 3이다. 한 단계 오를 때만 📜에 `cat` 행이 남고, 📋 게시판과 🛏️ 카드에 `쓰다듬기 n/300`이 보인다. 애정도는 여관(`inn`) 단위의 안락도에 `애정도 × 3`(`guests.json`의 `affection_bonus`)이 더해진다(🛏️ 카드에 `🐱+N`). 다른 방에는 영향이 없다. 고양이 그림은 `assets/graphic/Map/Cats/<변종>.png`에서 `build`가 `gen/cat/`으로 잘라 넣는다(변종은 `tools/preprocess/config.py`의 `CAT_VARIANT`).
 
-**광산**(`data/rooms/mine.json`, `kind: "mine"`인 보통 격자 방 — 여관 '낚시' 단계가 2층과 함께 연다)에는 서버가 **매일 KST 자정에 광석 노드를 `per_day`개**(`data/mine.json`, 기본 12) 빈 바닥 칸에 흩뿌린다(`ore_nodes` 테이블, `room_meta`의 `mine_day:mine`으로 하루 한 번). 모두가 같은 노드를 보고, 광석을 누르면 아바타가 옆까지 걸어간 뒤 아래 **⛏ 채광** 버튼(스페이스 키도 됨)이 켜진다. 종류마다 눌러야 하는 횟수가 다르고(구리 1 · 금 2 · 에메랄드 3 · 루비 5), 누를 때마다 곡괭이 아이콘이 기울었다 돌아오며 `media/sfx/pick.mp3`가 난다(`assets/sfx/**/pick_*.mp3`가 있을 때만). 여럿이 같은 광석을 쳐도 되고, **마지막으로 친 사람** 이름으로 풀에 입금되며 물고기처럼 120초 안에 납품할 수 있다(복구 need `{"type":"deliver","kind":"mine"}`). 상태 줄은 `오늘 남은 광석 n/12`, 다 캐면 `오늘은 다 캤어요 · 자정에 다시 생겨요`(남은 노드는 다음 날로 넘어가지 않는다). 광산에는 가구를 놓을 수 없고(`no_place`, 상점 버튼 숨김) 손님도 오지 않는다. 광석·곡괭이 아이콘은 `build`가 `data/mine.json`의 `icon {file,x,y}`를 잘라 `gen/mine/<id>.png`로 만든다.
+**광산**(`data/rooms/mine.json`, `kind: "mine"`인 보통 격자 방 — 여관 '낚시' 단계가 2층과 함께 연다)은 스타듀밸리식 **지하 20층**이다(`data/mine.json` `floors`). 층마다 **매일 KST 자정에 새 레이아웃**이 생긴다(처음 요청될 때 생성, `mine_floors`·`ore_nodes` 테이블): 바위 덩어리(`rocks`의 파티션 슬라이스, `rock_density`; 스폰에서 못 가는 구석은 바위로 메워져 항상 이어진 동굴), 광석 노드 `nodes_per_floor`개(바닥 광석은 바닥 칸, `wall: true` 광석은 뒷벽 맨 아랫줄에 박혀 있고 그 아래 칸에서 캔다), 그리고 **사다리를 숨긴 돌** 하나. 5층 단위 `tiers`가 층별 광석 가중치를 정한다(초안: 1–5층 돌·석탄·청동, 6–10 은 등장, 11–15 금, 16–20 은·금 위주). 모두가 같은 층을 보고(프레즌스 룸은 `mine#층`), 광석을 누르면 아바타가 옆까지 걸어간 뒤 아래 **⛏ 채광** 버튼(스페이스 키도 됨)이 켜진다. 종류마다 눌러야 하는 횟수가 다르고, 누를 때마다 곡괭이 아이콘이 3컷 애니로 휘둘러지며 `media/sfx/pick.mp3`가 난다(`assets/sfx/**/pick_*.mp3`가 있을 때만). 돌(가치 0)을 깨면 그 자리에 **사다리**가 나올 수 있고(층마다 하나는 보장, 나머지 돌은 `ladder_chance`), 밟으면 다음 층으로 내려간다. 한 번 열린 층은 `room_meta mine_deepest:mine`에 영구 기록되어 맵 입구에서 **몇 층으로 갈지 고를 수 있다**(2층 이상 열렸을 때 패널). 여럿이 같은 광석을 쳐도 되고, **마지막으로 친 사람** 이름으로 풀에 입금되며 물고기처럼 120초 안에 납품할 수 있다(복구 need `{"type":"deliver","kind":"mine"}`). 상태 줄은 `n층 · 남은 광석 k/10`, 다 캐면 `n층은 다 캤어요 · 자정에 다시 생겨요`(남은 노드는 다음 날로 넘어가지 않는다). 광산에는 가구를 놓을 수 없고(`no_place`, 상점 버튼 숨김) 손님도 오지 않는다. 광석 그림은 인테리어 아틀라스 슬라이스(`ores[].sprite`)를 그대로 쓰고, `build`가 같은 슬라이스를 `gen/mine/<id>.png`(납품 오버레이)와 `gen/mine/pickaxe_1..3.png`로도 잘라 둔다. 사다리 슬라이스(`ladder` 키)가 아틀라스에 없으면 클라이언트가 어두운 구멍을 그린다.
 
 예약·개파 손님은 `guests.json`의 `special_after`(기본 `room2`)가 열린 뒤부터 온다. 로컬에서 손님을 미리 보려면 `server/.env`에 `DEV_TOOLS=1`을 넣고 서버를 켠 뒤 `POST /api/dev/settle`(`{"days":1,"chance":1}`; 토큰 헤더 필요)을 부르면 그만큼 날이 지난 것처럼 정산된다(`reset:true`로 처음부터, `dog:true`로 개파 손님 다시 추첨). VM에는 절대 켜지 말 것. 정산 상태는 `room_meta`의 `guest_day:<단위>`(마지막 정산일), `no_guests_day:<단위>`, `dog_month`와 `reservations` 테이블에 있다. 처음 켜진 날은 "오늘부터 센다"라 돈이 소급되지 않는다.
 
-아직 안 열린 장소(복구 단계가 남은 방·광산)를 디버깅하려면 `DEBUG_PLAYERS`(env, 쉼표 구분, 기본 `안나`) 계정으로 들어가면 된다. 서버는 그 계정의 ws `enter`만 통과시키고 가구 배치는 여전히 거부하며, 클라이언트 `main.ts`의 `DEBUG_IDS`가 같은 목록을 미러링해 맵 잠금 토스트를 건너뛴다.
+아직 안 열린 장소(복구 단계가 남은 방·광산)를 디버깅하려면 `DEBUG_PLAYERS`(env, 쉼표 구분, 기본 `안나`) 계정으로 들어가면 된다. 서버는 그 계정의 ws `enter`만 통과시키고 가구 배치는 여전히 거부하며, 클라이언트 `state.ts`의 `isDebugAccount()`가 같은 목록을 미러링해 맵 문·입장 잠금을 건너뛴다.
 
 **맵 바꿀 때 (VM에서)**
 ```bash
@@ -71,7 +83,7 @@ sudo systemctl start interior
 | GET | `/api/rooms` | 방 목록: 버전, 남은 `ruined` 개수, 접속자 수, 복구 `progress`(단계 수·현재 단계의 need별 진행), `comfort`(안락도·침대 수·오늘 밤 예상 손님/숙박료·예약; 잠긴 방은 null), 최상위 `locked`(아직 못 들어가는 장소) |
 | GET | `/api/activity` | 📜 기록: 최근 이벤트 **5개만**(서버가 더는 안 줌), 오늘 요약(벌이·지출·낚시·채광 수), 모든 방의 복구 진행, `comfort`(방별 안락도·손님 뷰) |
 | POST | `/api/deliver` (`seq`, `room?`) | 방금 낚은 물고기(`/api/fish/finish`의 `seq`)나 방금 캔 광석(`/api/mine/hit`의 `ledger_seq`)을 팔지 않고 어떤 방의 복구 단계에 **납품**. 120초 안에 1번만, 그 돈은 풀에서 다시 빠짐(`ledger.kind='deliver'`) |
-| GET `/api/mine` · GET `/api/mine/nodes` · POST `/api/mine/hit` (`seq`) | 광산: 광석 종류표 / 오늘 남은 광석 노드 / 채광 한 번. 아바타가 노드 옆(`reach`칸)에 있어야 하고(`not_here`), 마지막 타격이 풀에 입금(`ledger.kind='mine'`) + 광산에 있는 사람에게 `{"type":"mine"}` 알림. 설정은 `data/mine.json` |
+| GET `/api/mine` · GET `/api/mine/floor/{n}` · POST `/api/mine/hit` (`seq`) | 광산: 광석 종류표 + 열린 최대 층(`deepest`) / n층의 오늘 레이아웃(바위·노드·사다리; 아직 안 열린 층은 403 `floor_locked`) / 채광 한 번. 아바타가 그 층(`mine#n`)에서 노드 옆(`reach`칸)에 있어야 하고(`not_here`), 마지막 타격이 풀에 입금(`ledger.kind='mine'`) + 같은 층 사람에게 `{"type":"mine"}` 알림, 돌이 사다리를 숨기고 있었으면 `ladder`. 설정은 `data/mine.json` |
 | GET | `/api/room/{id}` (`/api/room` = inn) | 방 아이템 + `ruined` (ETag = 방 버전) |
 | PUT | `/api/room/item/{uid}/note` `{text}` | `note` 태그 아이템(메모지·칠판·게시판)에 글 남기기(200자, 빈 문자열이면 지움). 누구나 고쳐 쓸 수 있고 방 버전이 올라가 모두에게 갱신 |
 | POST | `/api/room/place` (`room_id`) · `/api/room/move` · DELETE `/api/room/item/{uid}` | 배치/이동/삭제 (서버가 규칙 검증). `ruined`/`fixed` 태그는 구매 불가(`not_for_sale`), `fixed`는 이동·삭제도 불가(`fixed_item`) |

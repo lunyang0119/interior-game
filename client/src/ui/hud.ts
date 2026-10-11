@@ -57,8 +57,8 @@ export function initHud(): void {
     show("btn-shop", scene === "room" && roomKind === "room");
     show("minebar", scene === "room" && roomKind === "mine");
   };
-  bus.on("room:changed", ({ name, id, ruined, kind }) => {
-    $("hud-room-val").textContent = name || id;
+  bus.on("room:changed", ({ name, id, ruined, kind, floor }) => {
+    $("hud-room-val").textContent = (name || id) + (kind === "mine" && floor ? ` ${floor}층` : "");
     $("hud-room-ruined").textContent = ruined > 0 ? ` · 🧹 ${ruined}` : "";
     show("hud-room", true);
     roomKind = kind === "mine" ? "mine" : "room";
@@ -129,11 +129,32 @@ export function initHud(): void {
     bus.emit("mine:target", null);
     applyBars();
   });
-  // the mine: ⛏ 채광 presses on the target node (room/OreNodes.ts); the pickaxe swings on every press
+  // the mine: ⛏ 채광 presses on the target node (room/MineFloor.ts); the pickaxe plays its frames on every press
+  // (gen/mine/pickaxe_1..3.png from data/mine.json; with only pickaxe.png the single icon tilts instead)
   const mineBtn = $("btn-mine") as HTMLButtonElement;
   const pick = $("mine-pick") as HTMLImageElement;
-  pick.src = assetUrl("/gen/mine/pickaxe.png");
+  const pickFrames: string[] = [];
+  const probe = (n: number) => {
+    const url = assetUrl(`/gen/mine/pickaxe_${n}.png`);
+    const im = new Image();
+    im.onload = () => { pickFrames.push(url); if (n === 1) pick.src = url; probe(n + 1); };
+    im.onerror = () => { if (n === 1) { pick.src = assetUrl("/gen/mine/pickaxe.png"); pick.classList.add("single"); } };
+    im.src = url;
+  };
+  probe(1);
   pick.onerror = () => { pick.classList.add("hidden"); };
+  let pickTimer: number | null = null;
+  const playPick = () => {
+    if (pickFrames.length < 2) return;
+    if (pickTimer !== null) clearInterval(pickTimer);
+    let i = 1;
+    pick.src = pickFrames[i];
+    pickTimer = window.setInterval(() => {
+      i += 1;
+      if (i >= pickFrames.length) { pick.src = pickFrames[0]; clearInterval(pickTimer!); pickTimer = null; return; }
+      pick.src = pickFrames[i];
+    }, 70);
+  };
   let mineTarget: { seq: number; name: string; hits_left: number; hits: number } | null = null;
   const renderMineBtn = () => {
     mineBtn.disabled = !mineTarget;
@@ -141,16 +162,30 @@ export function initHud(): void {
   };
   renderMineBtn();
   bus.on("mine:target", (t) => { mineTarget = t; renderMineBtn(); });
-  bus.on("mine:left", ({ left, per_day }) => {
-    $("mine-status").textContent = left > 0 ? `오늘 남은 광석 ${left}/${per_day}` : "오늘은 다 캤어요 · 자정에 다시 생겨요";
+  bus.on("mine:left", ({ left, per_floor, floor }) => {
+    $("mine-status").textContent = left > 0 ? `${floor}층 · 남은 광석 ${left}/${per_floor}` : `${floor}층은 다 캤어요 · 자정에 다시 생겨요`;
   });
   const swing = () => {
     if (mineBtn.disabled) return;
     mineBtn.classList.remove("swing");
     void mineBtn.offsetWidth; // restart the CSS animation
     mineBtn.classList.add("swing");
+    playPick();
     bus.emit("mine:press");
   };
+  // the mine's entrance: pick a floor among the ones somebody already reached
+  bus.on("mine:pick-floor", ({ deepest }) => {
+    const list = $("floor-list");
+    list.innerHTML = "";
+    for (let f = 1; f <= deepest; f++) {
+      const b = document.createElement("button");
+      b.textContent = `${f}층`;
+      b.classList.toggle("deepest", f === deepest);
+      b.addEventListener("click", () => { show("panel-floor", false); bus.emit("mine:go", { floor: f }); });
+      list.appendChild(b);
+    }
+    show("panel-floor", true);
+  });
   mineBtn.addEventListener("click", swing);
   mineBtn.addEventListener("contextmenu", (e) => e.preventDefault());
   bus.on("map:enter-ask", ({ name }) => {

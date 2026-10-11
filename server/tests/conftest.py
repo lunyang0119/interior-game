@@ -134,10 +134,11 @@ def auth(token: str) -> dict:
     return {"Authorization": f"Bearer {token}"}
 
 
-def recv(ws, kind: str, skip: tuple[str, ...] = ("event", "progress")) -> dict:
-    """Next frame of the given type; log/progress frames (sent on every change) are skipped unless asked for."""
+def recv(ws, kind: str | tuple[str, ...], skip: tuple[str, ...] = ("event", "progress")) -> dict:
+    """Next frame of the given type(s); log/progress frames (sent on every change) are skipped unless asked for."""
+    kinds = (kind,) if isinstance(kind, str) else kind
     while True:
         m = ws.receive_json()
-        if m["type"] == kind:
+        if m["type"] in kinds:
             return m
         assert m["type"] in skip, f"expected {kind}, got {m}"

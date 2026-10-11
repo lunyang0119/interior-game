@@ -17,7 +17,10 @@ import argparse
 import importlib
 import io
 import json
+import os
 import re
+import shutil
+import subprocess
 import sys
 import threading
 import traceback
@@ -590,6 +593,137 @@ def run_build() -> str:
     return out.getvalue()
 
 
+def _git_bash() -> str | None:
+    """Git for Windows' bash (deploy/sync.sh needs tar+ssh from the same toolbox); plain `bash` elsewhere.
+    On Windows `shutil.which("bash")` may find WSL's launcher, which cannot see the repo's tools, so Git's copy wins."""
+    for cand in (r"C:\Program Files\Git\bin\bash.exe", r"C:\Program Files\Git\usr\bin\bash.exe"):
+        if os.name == "nt" and Path(cand).exists():
+            return cand
+    return shutil.which("bash")
+
+
+class DeployJob:
+    """One 🚀 run, in a thread: build the bundle if client/src is newer, then send ONLY the files deploy.changes()
+    lists (tar | ssh), delete on the VM what was deleted here, restart when a restart-file was among them, mark.
+    Every step appends to `lines`, which the editor polls (GET /api/deploy/log?from=N) so the user sees progress
+    instead of a frozen button."""
+
+    def __init__(self, vm: str):
+        self.vm = vm
+        self.lines: list[str] = []
+        self.done = False
+        self.ok = False
+        self.thread = threading.Thread(target=self._run, daemon=True)
+
+    def log(self, line: str) -> None:
+        self.lines.append(re.sub(r"\x1b\[[0-9;]*[A-Za-z]", "", line.rstrip()))
+
+    def _stream(self, args: list[str], cwd: Path, stdin_bytes: bytes | None = None) -> int:
+        """Run a command, echoing its output line by line; returns the exit code."""
+        proc = subprocess.Popen(args, cwd=str(cwd), stdin=subprocess.PIPE if stdin_bytes is not None else subprocess.DEVNULL,
+                                stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, encoding="utf-8", errors="replace")
+        if stdin_bytes is not None:
+            def feed():
+                try:
+                    proc.stdin.write(stdin_bytes)  # type: ignore[union-attr]
+                    proc.stdin.close()  # type: ignore[union-attr]
+                except (BrokenPipeError, OSError):
+                    pass
+            threading.Thread(target=feed, daemon=True).start()
+        assert proc.stdout is not None
+        for line in proc.stdout:
+            if line.strip():
+                self.log("  " + line)
+        return proc.wait()
+
+    def _ssh(self) -> list[str]:
+        return [shutil.which("ssh") or "ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=15", self.vm]
+
+    def _run(self) -> None:
+        import tarfile
+        root = C.REPO_ROOT
+        try:
+            if D.bundle_stale(root):
+                self.log("▶ npm run build (client/src가 번들보다 새로움)")
+                npm = shutil.which("npm")
+                if not npm:
+                    self.log("✖ npm을 못 찾았어요")
+                    return
+                if self._stream([npm, "run", "build"], root / "client") != 0:
+                    self.log("✖ 빌드 실패")
+                    return
+            ch = D.changes(root)
+            if ch["never"]:
+                self.log("✖ 기준이 없어요: 먼저 '지금 상태를 기준으로 삼기'를 누르거나 ./deploy/sync.sh로 한 번 전부 올려요")
+                return
+            if not ch["upload"] and not ch["delete"]:
+                self.log("올릴 게 없어요")
+                self.ok = True
+                return
+            if ch["upload"]:
+                buf = io.BytesIO()
+                with tarfile.open(fileobj=buf, mode="w:gz") as tar:
+                    for rel in ch["upload"]:
+                        tar.add(root / rel, arcname=rel)
+                data = buf.getvalue()
+                self.log(f"▶ 전송: 파일 {len(ch['upload'])}개, {len(data) / 1024:.0f} KB → {self.vm}:{D.VM_ROOT}")
+                for rel in ch["upload"]:
+                    self.log("    " + rel)
+                code = self._stream(self._ssh() + [f"tar xzf - -C {D.VM_ROOT} --no-same-owner && echo '  풀었어요'"], root, data)
+                if code != 0:
+                    self.log(f"✖ 전송 실패 (ssh exit {code}) — 터미널에서 ssh {self.vm} 가 되는지 확인해요")
+                    return
+            if ch["delete"]:
+                import shlex
+                self.log(f"▶ VM에서 삭제: {len(ch['delete'])}개")
+                for rel in ch["delete"]:
+                    self.log("    " + rel)
+                cmd = "cd " + D.VM_ROOT + " && rm -f " + " ".join(shlex.quote(r) for r in ch["delete"])
+                if self._stream(self._ssh() + [cmd], root) != 0:
+                    self.log("✖ 삭제 실패")
+                    return
+            if ch["restart"]:
+                self.log("▶ sudo systemctl restart interior")
+                code = self._stream(self._ssh() + ["sudo systemctl restart interior && sleep 1 && systemctl --no-pager --lines=4 status interior"], root)
+                if code != 0:
+                    self.log(f"✖ 재시작 실패 (exit {code}) — ssh {self.vm} 'journalctl -u interior -n 30' 로 로그를 봐요")
+                    return
+            else:
+                self.log("재시작 불필요 (브라우저 새로고침이면 충분)")
+            D.mark(root)
+            self.ok = True
+            self.log("✔ 끝")
+        except Exception:
+            self.log("✖ " + traceback.format_exc())
+        finally:
+            self.done = True
+
+
+_deploy_job: DeployJob | None = None
+_deploy_lock = threading.Lock()
+
+
+def start_deploy(vm: str) -> dict:
+    """Kick off a DeployJob unless one is running. {ok, error?}"""
+    global _deploy_job
+    vm = (vm or os.environ.get("VM") or "").strip()
+    if not vm or not re.fullmatch(r"[\w.-]+@[\w.-]+", vm):
+        return {"ok": False, "error": "VM 주소가 비었거나 이상해요 (예: ubuntu@crystalroom.duckdns.org)"}
+    with _deploy_lock:
+        if _deploy_job is not None and not _deploy_job.done:
+            return {"ok": False, "error": "이미 올리는 중이에요"}
+        _deploy_job = DeployJob(vm)
+        _deploy_job.thread.start()
+    return {"ok": True}
+
+
+def deploy_log(since: int) -> dict:
+    j = _deploy_job
+    if j is None:
+        return {"lines": [], "next": 0, "done": True, "ok": False, "idle": True}
+    return {"lines": j.lines[since:], "next": len(j.lines), "done": j.done, "ok": j.ok}
+
+
 class Handler(BaseHTTPRequestHandler):
     def log_message(self, fmt, *args):  # only log writes; GETs are noisy
         if self.command != "GET":
@@ -628,6 +762,8 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_bytes(WORLD_FILE.read_bytes(), "text/html; charset=utf-8")
             elif u.path == "/api/deploy":
                 self.send_json(D.status())
+            elif u.path == "/api/deploy/log":
+                self.send_json(deploy_log(int(q.get("from", ["0"])[0])))
             elif u.path == "/api/state":
                 room = load_room()
                 self.send_json({
@@ -824,8 +960,24 @@ class Handler(BaseHTTPRequestHandler):
                 C.all_sheets(refresh=True)
                 name = next((n_ for n_, p_ in C.all_sheets().items() if p_.resolve() == out.resolve()), out.name)
                 self.send_json({"ok": True, "sheet": name, "method": used})
+            elif u.path == "/api/sizes":
+                # {specs: [slice, ...]} → {sizes: {key: [w, h]}} rendered pixel size of each slice (scale/parts/file
+                # resolved exactly like the preview), for 아이템 일괄 만들기; unreadable slices are left out
+                body = self.read_json() or {}
+                sizes: dict[str, list[int]] = {}
+                for spec in body.get("specs") or []:
+                    try:
+                        im = crop_of(spec)
+                        sizes[spec["key"]] = [im.width, im.height]
+                    except (Exception, SystemExit):  # slice_image exits on a missing sheet; the client reports it
+                        pass
+                self.send_json({"ok": True, "sizes": sizes})
             elif u.path == "/api/deploy/mark":
                 self.send_json({"ok": True, "marked_at": D.mark()["marked_at"]})
+            elif u.path == "/api/deploy/run":
+                # {vm} → starts the incremental deploy (DeployJob); progress via GET /api/deploy/log?from=N
+                body = self.read_json() or {}
+                self.send_json(start_deploy(body.get("vm", "")))
             elif u.path == "/api/char-upload":
                 # raw PNG body; ?layer=hair&name=Hairstyle_30_01.png → assets/custom/Hairstyles/
                 layer, name = q.get("layer", [""])[0], q.get("name", [""])[0]

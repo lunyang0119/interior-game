@@ -121,11 +121,18 @@
   <input type="text" id="search" placeholder="키 검색…" style="width:100%">
   <div class="row small" style="margin:4px 0">
     <button id="chkAll" title="목록에 보이는 것 전부">☑ 전체</button><button id="chkAuto" title="목록의 auto_ 만">☑ auto</button><button id="chkNone">☐ 해제</button>
-    <button id="batchRename" class="primary" title="체크한 auto_ 슬라이스의 key를 [폴더_]시트4글자_원래이름 으로">이름 일괄 변경</button>
+    <button id="batchRename" class="primary" title="체크한 슬라이스의 key를 바꿈. 아래 칸이 비어 있으면 auto_/new_ 만 [폴더_]시트4글자_원래이름 으로, 적혀 있으면 체크한 전부를 그 이름(_2, _3… 또는 {n})으로">이름 일괄 변경</button>
+    <button id="batchCreate" title="체크한 슬라이스 중 아이템이 없는 것(⚠)에 상점 항목을 만듦 (auto_/new_/tile_/맵 슬라이스는 건너뜀)">아이템 일괄 만들기</button>
+  </div>
+  <div class="row small" style="margin:0 0 4px; gap:6px">
+    <span class="dim">새 이름:</span><input type="text" id="batchName" placeholder="비우면 자동 · 예: sofa_blue 또는 chair_{n}" style="flex:1" title="체크한 순서대로 sofa_blue, sofa_blue_2, sofa_blue_3… / {n}=1,2,3… {nn}=01,02… {orig}=원래 key">
   </div>
   <div class="row small" style="margin:0 0 4px; gap:6px; flex-wrap:wrap" title="체크한 슬라이스의 아이템에 태그를 켜거나 끔">
     <span class="dim">태그 일괄:</span><span id="batchTagBoxes"></span>
     <button id="batchTagOn">켜기</button><button id="batchTagOff">끄기</button>
+  </div>
+  <div class="row small" style="margin:0 0 4px; gap:6px" title="체크한 슬라이스의 아이템 레이어를 한 번에 바꿈 (가구가 아니면 is_surface는 꺼짐)">
+    <span class="dim">레이어 일괄:</span><select id="batchLayerSel"></select><button id="batchLayerSet">바꾸기</button>
   </div>
   <div class="hint">초록=이름 있음 · 회색=auto_ · 파랑=tile_ · 분홍=맵 슬라이스 · ⚠ 아이템 없음 · ● 저장 안 됨</div>
   <ul id="list"></ul>
@@ -147,6 +154,9 @@
     <div class="row small">
       <input type="text" id="itemTagNew" placeholder="다른 태그 (영문 소문자/숫자/_)" style="width:150px">
       <button id="itemTagAdd">켜기</button><button id="itemTagDel">끄기</button>
+    </div>
+    <div class="row small" title="선택한 아이템의 레이어를 한 번에 바꿈 (가구가 아니면 is_surface는 꺼짐)">
+      <span class="dim">레이어</span><select id="itemLayerSet"></select><button id="itemLayerApply">바꾸기</button>
     </div>
     <div class="hint">카드 클릭=선택 토글 · Shift+클릭=범위 · ✎=슬라이스로 이동 · 카드의 태그 ×=그 태그 빼기.<br>바꾼 건 아래 <b>아이템 저장</b>을 눌러야 items.json에 들어가고, 서버는 재시작해야 읽어요.<br>썸네일은 마지막 <b>빌드</b> 결과(gen/interiors.png)라 새 슬라이스는 빌드 후에 보여요.</div>
   </div>
@@ -441,6 +451,20 @@
     targets.forEach(cardMeta); renderTagCounts(); renderPicked(); renderList(); renderItem();
     log(`태그 ${tag} ${on ? "켜기" : "끄기"}: ${targets.length}개 중 ${n}건 변경 — 아이템 저장으로 반영`);
   }
+  /** Set `layer` on the given items (same rule as the single form: non-furniture loses is_surface). */
+  function applyLayer(targets, layer) {
+    if (!targets.length) { alert("먼저 카드를 골라주세요"); return; }
+    if (!S.layers.includes(layer)) { alert("모르는 레이어: " + layer); return; }
+    let n = 0, surf = 0;
+    for (const it of targets) {
+      if (it.layer === layer) continue;
+      it.layer = layer; n++;
+      if (layer !== "furniture" && it.is_surface) { it.is_surface = false; surf++; }
+    }
+    if (n) dirtyItems = true;
+    targets.forEach(cardMeta); renderPicked(); renderList(); renderItem();
+    log(`레이어 → ${layer}: ${targets.length}개 중 ${n}건 변경${surf ? ` (is_surface 꺼짐 ${surf}개)` : ""} — 아이템 저장으로 반영`);
+  }
   function pickCard(it, e) {
     if (e.shiftKey && lastPick && gridOrder.includes(lastPick)) {
       const a = gridOrder.indexOf(lastPick), b = gridOrder.indexOf(it);
@@ -481,6 +505,7 @@
   for (const id of ["itemSearch", "itemTagSel", "itemSheetSel", "itemLayerSel", "itemNoPair"]) $(id).addEventListener("input", renderItemsGrid);
   $("itemPickAll").onclick = () => { gridOrder.forEach((it) => picked.add(it)); gridOrder.forEach(cardMeta); renderPicked(); };
   $("itemPickNone").onclick = () => { picked.clear(); gridOrder.forEach(cardMeta); renderPicked(); };
+  $("itemLayerApply").onclick = () => applyLayer([...picked], $("itemLayerSet").value);
   $("itemTagAdd").onclick = () => applyTag([...picked], $("itemTagNew").value, true);
   $("itemTagDel").onclick = () => applyTag([...picked], $("itemTagNew").value, false);
   window.addEventListener("keydown", (e) => {
@@ -531,6 +556,7 @@
     $("iLayer").innerHTML = S.layers.map((l) => `<option>${l}</option>`).join("");
     $("batchTagBoxes").innerHTML = knownTags().map((t) => `<label title="${tagDesc(t)}"><input type="checkbox" class="batchTag" data-tag="${t}"> ${t}</label>`).join("");
     $("itemLayerSel").innerHTML = `<option value="">(전부)</option>` + S.layers.map((l) => `<option>${l}</option>`).join("");
+    for (const id of ["itemLayerSet", "batchLayerSel"]) $(id).innerHTML = S.layers.map((l) => `<option>${l}</option>`).join("");
     $("rSpan").max = S.room.cols || 20;
     $("singlesTheme").innerHTML = (S.singles || []).map((t) => `<option value="${t.name}">${t.name} (${t.count})</option>`).join("");
     fillSheetSelect();
@@ -845,7 +871,10 @@
   // ---- multi-select + batch rename: auto_<sheet>_NNN → [folder_]<sheet 4 chars>_<original>
   const checked = new Set();
   const visible = () => allSlices().filter((s) => sheetOf(s) === sheet && (!$("search").value.trim() || s.key.toLowerCase().includes($("search").value.trim().toLowerCase())));
-  const updateBatchBtn = () => { $("batchRename").textContent = checked.size ? `이름 일괄 변경 (${checked.size})` : "이름 일괄 변경"; };
+  const updateBatchBtn = () => {
+    $("batchRename").textContent = checked.size ? `이름 일괄 변경 (${checked.size})` : "이름 일괄 변경";
+    $("batchCreate").textContent = checked.size ? `아이템 일괄 만들기 (${checked.size})` : "아이템 일괄 만들기";
+  };
   const safeKey = (t) => t.toLowerCase().replace(/[^a-z0-9_]+/g, "_").replace(/^_+|_+$/g, "");
   /** Proposed key for a slice, or null when it is not an auto_/new_ slice. */
   function autoName(s) {
@@ -863,31 +892,79 @@
   }
   function renameSlice(s, k) {
     const it = itemOf(s);
-    if (it) { it.sprite = k; if (it.id === s.key) it.id = k; dirtyItems = true; }
+    if (it) {
+      it.sprite = k;
+      if (it.id === s.key) { items.forEach((o) => { if (o.pair === it.id) o.pair = k; }); it.id = k; } // keep pairs pointing at it
+      dirtyItems = true;
+    }
     unsaved.delete(s.key); s.key = k; unsaved.add(k); dirtySlices = true;
   }
   $("chkAll").onclick = () => { for (const s of visible()) checked.add(s); renderList(); updateBatchBtn(); };
   $("chkAuto").onclick = () => { for (const s of visible()) if (/^(auto|new)_/.test(s.key)) checked.add(s); renderList(); updateBatchBtn(); };
   $("chkNone").onclick = () => { checked.clear(); renderList(); updateBatchBtn(); };
+  /** Checked slices in list order (the order 새 이름 numbering follows). */
+  const checkedInOrder = () => allSlices().filter((s) => checked.has(s));
+  /** Manual pattern → key for the i-th (1-based) slice: {n}/{nn}/{orig} placeholders, else the bare pattern
+   *  (collisions get _2, _3… from the caller). */
+  function patternName(pattern, s, i) {
+    const orig = s.key.replace(/^(auto|new)_/, "");
+    return safeKey(pattern.replace(/\{nn\}/g, String(i).padStart(2, "0")).replace(/\{n\}/g, String(i)).replace(/\{orig\}/g, orig));
+  }
   $("batchRename").onclick = () => {
-    const targets = [...checked].filter((s) => allSlices().includes(s));
+    const targets = checkedInOrder();
     if (!targets.length) { alert("먼저 목록에서 체크하세요 (☑ auto 버튼이면 auto_ 전부)"); return; }
+    const pattern = $("batchName").value.trim();
+    if (pattern && !/^[a-z0-9_{}]+$/i.test(pattern)) { alert("새 이름은 영문/숫자/_ 와 {n} {nn} {orig} 만 돼요"); return; }
+    if (pattern && /sheet/i.test(pattern)) { alert("key에 'sheet'라는 단어는 못 써요 (서버 테스트가 카탈로그에서 그 단어를 금지해요)"); return; }
     const taken = new Set(allSlices().map((s) => s.key));
     const plan = [], skipped = [];
-    for (const s of targets) {
-      const base = autoName(s);
-      if (!base) { skipped.push(s.key); continue; }
+    targets.forEach((s, idx) => {
+      // 자동: only auto_/new_ keys get the sheet-derived name; 수동: every checked slice gets the pattern
+      const base = pattern ? patternName(pattern, s, idx + 1) : autoName(s);
+      if (!base) { skipped.push(s.key); return; }
+      if (base === s.key) return; // already named that
       let k = base, n = 2;
+      taken.delete(s.key);
       while (taken.has(k) || /sheet/i.test(k)) k = `${base}_${n++}`;
-      taken.delete(s.key); taken.add(k);
-      plan.push([s, k]);
-    }
-    if (!plan.length) { alert("체크한 것 중 auto_/new_ 슬라이스가 없어요 (이미 이름 있는 건 건드리지 않아요)"); return; }
+      taken.add(k);
+      if (k !== s.key) plan.push([s, k]);
+    });
+    if (!plan.length) { alert(pattern ? "바뀌는 이름이 없어요" : "체크한 것 중 auto_/new_ 슬라이스가 없어요 (자동은 이름 있는 건 건드리지 않아요 — 바꾸려면 새 이름 칸에 적어요)"); return; }
     const lines = plan.slice(0, 15).map(([s, k]) => `${s.key} → ${k}`).join("\n") + (plan.length > 15 ? `\n… 외 ${plan.length - 15}개` : "");
     if (!confirm(`${plan.length}개 이름을 바꿀까요?${skipped.length ? ` (이름 있는 ${skipped.length}개는 건너뜀)` : ""}\n\n${lines}`)) return;
     for (const [s, k] of plan) renameSlice(s, k);
-    checked.clear(); renderList(); renderPanel(); draw(); updateBatchBtn();
+    checked.clear(); $("batchName").value = ""; renderList(); renderPanel(); draw(); updateBatchBtn();
     log(`이름 ${plan.length}개 변경 — 저장 버튼으로 slices.json/items.json에 반영`);
+  };
+  /** Shop item with the editor defaults for a slice rendered pw×ph pixels (same rule as 아이템 만들기 / scaffold). */
+  function newItem(key, pw, ph) {
+    const cw = Math.max(1, Math.ceil(pw / S.cell)), ch = Math.max(1, Math.ceil(ph / S.cell));
+    return { id: key, name: key.replace(/_/g, " "), price: 50, sprite: key, w: cw, h: ch > 1 ? Math.min(ch, 2) : 1,
+             layer: "furniture", is_surface: false, surface_offset_y: 0 };
+  }
+  $("batchCreate").onclick = async () => {
+    const targets = checkedInOrder();
+    if (!targets.length) { alert("먼저 목록에서 체크하세요"); return; }
+    const ids = new Set(items.map((it) => it.id));
+    const todo = targets.filter((s) => !itemOf(s) && !isMapSlice(s) && !/^(auto|new|tile)_/.test(s.key) && !ids.has(s.key));
+    if (!todo.length) { alert("체크한 것 중 아이템을 만들 슬라이스가 없어요 (이미 있거나 auto_/new_/tile_/맵)"); return; }
+    const lines = todo.slice(0, 15).map((s) => s.key).join("\n") + (todo.length > 15 ? `\n… 외 ${todo.length - 15}개` : "");
+    if (!confirm(`${todo.length}개 아이템을 만들까요? (가구 · 50 · 칸수는 이미지 크기, 세로는 최대 2)\n\n${lines}`)) return;
+    let sizes;
+    try {
+      const r = await fetch("/api/sizes", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ specs: todo }) });
+      if (r.status === 404) { alert("에디터 서버가 /api/sizes를 몰라요 — 옛 editor.py가 떠 있어요. 터미널에서 에디터를 껐다 다시 켜고 새로고침하세요"); return; }
+      sizes = (await r.json()).sizes || {};
+    } catch (e) { alert("크기를 못 읽었어요: " + e.message); return; }
+    const missing = [];
+    for (const s of todo) {
+      const sz = sizes[s.key];
+      if (!sz) { missing.push(s.key); continue; }
+      items.push(newItem(s.key, sz[0], sz[1]));
+    }
+    if (todo.length > missing.length) dirtyItems = true;
+    checked.clear(); renderList(); renderPanel(); refreshPreview(); updateBatchBtn();
+    log(`아이템 ${todo.length - missing.length}개 생성 — 아이템 저장으로 items.json에 반영${missing.length ? ` · 원본을 못 읽어 건너뜀: ${missing.join(", ")}` : ""}`);
   };
 
   $("sKey").addEventListener("change", () => {
@@ -979,9 +1056,7 @@
   $("itemCreate").onclick = () => {
     if (sel.key.startsWith("auto_") || sel.key.startsWith("new_")) { alert("auto_/new_ 이름은 아틀라스에 안 들어가요. 먼저 key를 진짜 이름으로 바꿔주세요"); return; }
     const img = $("prevImg");
-    const cw = Math.max(1, Math.ceil(img.naturalWidth / S.cell)), ch = Math.max(1, Math.ceil(img.naturalHeight / S.cell));
-    items.push({ id: sel.key, name: sel.key.replace(/_/g, " "), price: 50, sprite: sel.key, w: cw, h: ch > 1 ? Math.min(ch, 2) : 1,
-                 layer: "furniture", is_surface: false, surface_offset_y: 0 });
+    items.push(newItem(sel.key, img.naturalWidth, img.naturalHeight));
     dirtyItems = true; renderList(); renderItem(); refreshPreview();
   };
   $("iAuto").onclick = () => {
@@ -1030,6 +1105,11 @@
   }
   $("batchTagOn").onclick = () => batchTags(true);
   $("batchTagOff").onclick = () => batchTags(false);
+  $("batchLayerSet").onclick = () => {
+    const targets = [...checked].map(itemOf).filter(Boolean);
+    if (!targets.length) { alert("목록에서 아이템이 있는 슬라이스를 체크하세요 (⚠ 표시는 아이템이 없는 것)"); return; }
+    applyLayer(targets, $("batchLayerSel").value);
+  };
   $("iPair").addEventListener("change", () => {
     const it = itemOf(sel), v = $("iPair").value.trim();
     const old = it.pair && itemById(it.pair);
@@ -1133,7 +1213,7 @@
       sum.innerHTML = `<b>VM 업로드 기록 없음</b> — 지금 VM에 올라간 상태와 같다면 <button id="deployMark">지금 상태를 기준으로 삼기</button>`;
       body.innerHTML = "";
     } else {
-      sum.innerHTML = `<b>VM에 올릴 파일 ${d.count}개</b>${d.restart ? " · <b>재시작 필요</b>" : d.count ? " · 재시작 불필요" : ""}${d.bundle_stale ? " · <b>npm run build 필요</b>" : ""}<button id="deployMark" title="파일을 전부 올린 뒤 누르면 목록이 비워져요">올렸음 ✔</button>`;
+      sum.innerHTML = `<b>VM에 올릴 파일 ${d.count}개</b>${d.restart ? " · <b>재시작 필요</b>" : d.count ? " · 재시작 불필요" : ""}${d.bundle_stale ? " · <b>npm run build 필요</b>" : ""}<button id="deployRun" title="바뀐 파일만 tar|ssh로 보내고, 필요하면 빌드·재시작까지 (진행 상황은 아래 로그)">🚀 VM에 올리기</button><button id="deployMark" title="손으로 올린 뒤 누르면 목록이 비워져요">올렸음 ✔</button>`;
       let h = "";
       if (d.bundle_stale) h += `<div class="warn">client/src가 마지막 빌드보다 새로워요: client/ 에서 <code>npm run build</code> 먼저 (그 결과 server/static/ 이 목록에 잡혀요)</div>`;
       for (const g of d.groups) {
@@ -1143,6 +1223,31 @@
       if (d.restart) h += `<div class="cmd">sudo systemctl restart interior</div>`;
       body.innerHTML = h;
     }
+    const run = document.getElementById("deployRun");
+    if (run) run.onclick = async (e) => {
+      e.preventDefault();
+      const vm = prompt("VM 주소 (user@host)", localStorage.getItem("deployVm") || "ubuntu@crystalroom.duckdns.org");
+      if (!vm) return;
+      localStorage.setItem("deployVm", vm);
+      run.disabled = true; run.textContent = "⏳ 올리는 중…";
+      log(`▶ ${vm} 에 바뀐 파일만 올려요`);
+      try {
+        const st = await (await fetch("/api/deploy/run", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ vm }) })).json();
+        if (!st.ok) { log("✖ " + st.error); }
+        else {
+          let from = 0;
+          while (true) {
+            const j = await (await fetch(`/api/deploy/log?from=${from}`)).json();
+            for (const l of j.lines) log(l);
+            from = j.next;
+            if (j.done) break;
+            await new Promise((r) => setTimeout(r, 600));
+          }
+        }
+      } catch (err) { log("✖ " + err); }
+      run.disabled = false; run.textContent = "🚀 VM에 올리기";
+      last = ""; poll();
+    };
     document.getElementById("deployMark").onclick = async (e) => {
       e.preventDefault();
       if (!d.never && !confirm(`목록의 파일 ${d.count}개를 전부 VM에 올렸나요?${d.restart ? " (재시작까지 했나요?)" : ""}`)) return;

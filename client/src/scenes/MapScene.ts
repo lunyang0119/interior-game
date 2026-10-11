@@ -11,7 +11,7 @@ import { dirDelta, WalkKeys } from "../input/Keyboard";
 import { depthOf, TILE_DEPTH } from "../room/depth";
 import { CELL, worldToCell } from "../room/grid";
 import { cellKey, mapTileAt, mapWalkGrid, pathToward, type WalkGrid } from "../room/walk";
-import { applyProgress, catalog, setZone, state } from "../state";
+import { applyProgress, catalog, isDebugAccount, setZone, state } from "../state";
 import { socket } from "../ws";
 import { CameraController } from "./CameraController";
 import { period } from "../audio/bgm";
@@ -437,7 +437,7 @@ export class MapScene extends Phaser.Scene {
     const { cx, cy } = this.me.footCell();
     const place = this.doors.get(cellKey(cx, cy));
     if (!place) { this.lockedDoor = null; return; }
-    if (state.locked.has(place.room)) {
+    if (state.locked.has(place.room) && !isDebugAccount()) {
       // a shut place: say why once per visit to the door instead of asking "들어가시겠어요?"
       if (this.lockedDoor !== place) {
         this.lockedDoor = place;

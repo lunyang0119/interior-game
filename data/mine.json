@@ -1,61 +1,41 @@
 {
  "room": "mine",
- "per_day": 12,
+ "floors": 20,
+ "nodes_per_floor": 10,
  "hit_cooldown_ms": 350,
  "reach": 1,
- "pickaxe": {
-  "file": "Map/Mine/16x16 Cave Items/Cave_Items_Spritesheet.png",
-  "x": 0,
-  "y": 48
- },
+ "rock_density": 0.12,
+ "rocks": [
+  "tile_wall_mine_2",
+  "tile_wall_mine_4",
+  "tile_wall_mine_5",
+  "tile_wall_mine_9",
+  "tile_wall_mine_10",
+  "tile_wall_mine_12",
+  "tile_wall_mine_14"
+ ],
+ "ladder": "mine_ladder",
+ "ladder_chance": 0.25,
+ "pickaxe": [
+  "mine_pickaxe_anim_1",
+  "mine_pickaxe_anim_2",
+  "mine_pickaxe_anim_3"
+ ],
  "ores": [
-  {
-   "id": "copper",
-   "name": "구리 광석",
-   "hits": 1,
-   "value": 8,
-   "weight": 50,
-   "icon": {
-    "file": "Map/Mine/16x16 Cave Items/Cave_Items_Spritesheet.png",
-    "x": 16,
-    "y": 0
-   }
-  },
-  {
-   "id": "gold",
-   "name": "금 광석",
-   "hits": 2,
-   "value": 24,
-   "weight": 30,
-   "icon": {
-    "file": "Map/Mine/16x16 Cave Items/Cave_Items_Spritesheet.png",
-    "x": 32,
-    "y": 0
-   }
-  },
-  {
-   "id": "emerald",
-   "name": "에메랄드 원석",
-   "hits": 3,
-   "value": 50,
-   "weight": 15,
-   "icon": {
-    "file": "Map/Mine/16x16 Cave Items/Cave_Items_Spritesheet.png",
-    "x": 80,
-    "y": 0
-   }
-  },
-  {
-   "id": "ruby",
-   "name": "루비 원석",
-   "hits": 5,
-   "value": 120,
-   "weight": 5,
-   "icon": {
-    "file": "Map/Mine/16x16 Cave Items/Cave_Items_Spritesheet.png",
-    "x": 64,
-    "y": 0
-   }
-  }
+  {"id": "stone", "name": "돌", "hits": 2, "value": 0, "sprite": "mine_stone"},
+  {"id": "coal", "name": "석탄", "hits": 1, "value": 6, "sprite": "mine_coal"},
+  {"id": "bronze", "name": "청동 광석", "hits": 2, "value": 15, "sprite": "mine_bronze"},
+  {"id": "silver", "name": "은 광석", "hits": 3, "value": 40, "sprite": "mine_silver"},
+  {"id": "stone_wall", "name": "돌", "hits": 2, "value": 0, "sprite": "mine_wall_stone", "wall": true},
+  {"id": "coal_wall", "name": "석탄", "hits": 1, "value": 6, "sprite": "mine_wall_coal", "wall": true},
+  {"id": "bronze_wall", "name": "청동 광석", "hits": 2, "value": 15, "sprite": "mine_wall_bronze", "wall": true},
+  {"id": "silver_wall", "name": "은 광석", "hits": 3, "value": 40, "sprite": "mine_wall_silver", "wall": true},
+  {"id": "gold_wall", "name": "금 광석", "hits": 4, "value": 90, "sprite": "mine_wall_gold", "wall": true}
+ ],
+ "tiers": [
+  {"floors": [1, 5], "weights": {"stone": 35, "coal": 30, "bronze": 12, "stone_wall": 10, "coal_wall": 10, "bronze_wall": 3}},
+  {"floors": [6, 10], "weights": {"stone": 30, "coal": 20, "bronze": 20, "silver": 6, "stone_wall": 8, "bronze_wall": 10, "silver_wall": 4, "gold_wall": 2}},
+  {"floors": [11, 15], "weights": {"stone": 25, "bronze": 20, "silver": 22, "stone_wall": 8, "silver_wall": 15, "gold_wall": 10}},
+  {"floors": [16, 20], "weights": {"stone": 20, "silver": 30, "stone_wall": 8, "silver_wall": 20, "gold_wall": 22}}
  ]
 }

@@ -1,6 +1,7 @@
 """Online players + WebSocket hub (memory only, one worker).
 
-Every online player is in exactly one presence room: a grid room id, "map" or "dock". Presence messages
+Every online player is in exactly one presence room: a grid room id, "map", "dock", or a mine floor
+"<room>#<floor>" (see split_room; mine.py). Presence messages
 (join/leave/move) only go to that room; global ones (room versions, money) go to everyone.
 
 REST handlers run in a threadpool, so they hand messages to the event loop with
@@ -17,6 +18,14 @@ from dataclasses import dataclass, field
 from fastapi import WebSocket
 
 log = logging.getLogger("presence")
+
+
+def split_room(room: str) -> tuple[str, int | None]:
+    """"mine#3" → ("mine", 3); any other presence room → (room, None)."""
+    base, sep, floor = room.rpartition("#")
+    if sep and floor.isdigit() and base:
+        return base, int(floor)
+    return room, None
 
 
 @dataclass

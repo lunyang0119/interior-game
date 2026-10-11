@@ -21917,6 +21917,502 @@
   "h": 32
  },
  {
+  "key": "tile_floor_mine",
+  "sheet": "mine_floor",
+  "x": 144,
+  "y": 48,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "tile_floor_mine_2",
+  "sheet": "mine_floor",
+  "x": 160,
+  "y": 48,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "tile_floor_mine_3",
+  "sheet": "mine_floor",
+  "x": 176,
+  "y": 48,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "tile_floor_mine_4",
+  "sheet": "mine_floor",
+  "x": 144,
+  "y": 64,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "tile_floor_mine_5",
+  "sheet": "mine_floor",
+  "x": 160,
+  "y": 64,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "tile_floor_mine_6",
+  "sheet": "mine_floor",
+  "x": 176,
+  "y": 64,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "tile_floor_mine_7",
+  "sheet": "mine_floor",
+  "x": 144,
+  "y": 80,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "tile_floor_mine_8",
+  "sheet": "mine_floor",
+  "x": 160,
+  "y": 80,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "tile_floor_mine_9",
+  "sheet": "mine_floor",
+  "x": 176,
+  "y": 80,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "tile_floor_mine_10",
+  "sheet": "mine_floor",
+  "x": 144,
+  "y": 208,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "tile_floor_mine_11",
+  "sheet": "mine_floor",
+  "x": 160,
+  "y": 208,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "tile_floor_mine_12",
+  "sheet": "mine_floor",
+  "x": 176,
+  "y": 208,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "tile_floor_mine_13",
+  "sheet": "mine_floor",
+  "x": 144,
+  "y": 224,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "tile_floor_mine_14",
+  "sheet": "mine_floor",
+  "x": 160,
+  "y": 224,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "tile_floor_mine_15",
+  "sheet": "mine_floor",
+  "x": 176,
+  "y": 224,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "tile_floor_mine_16",
+  "sheet": "mine_floor",
+  "x": 144,
+  "y": 240,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "tile_floor_mine_17",
+  "sheet": "mine_floor",
+  "x": 160,
+  "y": 240,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "tile_floor_mine_18",
+  "sheet": "mine_floor",
+  "x": 176,
+  "y": 240,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "mine_stone",
+  "sheet": "mine_props",
+  "x": 16,
+  "y": 48,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "mine_bronze",
+  "sheet": "mine_props",
+  "x": 48,
+  "y": 48,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "mine_silver",
+  "sheet": "mine_props",
+  "x": 64,
+  "y": 48,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "mine_chest",
+  "sheet": "mine_props",
+  "x": 192,
+  "y": 48,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "mine_coal",
+  "sheet": "mine_props",
+  "x": 32,
+  "y": 64,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "mine_wall_stone",
+  "sheet": "mine_props",
+  "x": 16,
+  "y": 112,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "mine_wall_coal",
+  "sheet": "mine_props",
+  "x": 32,
+  "y": 112,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "mine_wall_bronze",
+  "sheet": "mine_props",
+  "x": 48,
+  "y": 112,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "mine_wall_silver",
+  "sheet": "mine_props",
+  "x": 64,
+  "y": 112,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "mine_wall_gold",
+  "sheet": "mine_props",
+  "x": 80,
+  "y": 112,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "mine_pickaxe_anim_1",
+  "sheet": "mine_props",
+  "x": 336,
+  "y": 128,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "mine_pickaxe_anim_2",
+  "sheet": "mine_props",
+  "x": 352,
+  "y": 128,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "mine_pickaxe_anim_3",
+  "sheet": "mine_props",
+  "x": 368,
+  "y": 128,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "tile_wall_mine",
+  "sheet": "mine_walls",
+  "x": 32,
+  "y": 32,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "tile_wall_mine_2",
+  "sheet": "mine_walls",
+  "x": 48,
+  "y": 32,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "tile_wall_mine_3",
+  "sheet": "mine_walls",
+  "x": 64,
+  "y": 32,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "tile_wall_mine_4",
+  "sheet": "mine_walls",
+  "x": 128,
+  "y": 32,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "tile_wall_mine_5",
+  "sheet": "mine_walls",
+  "x": 144,
+  "y": 32,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "tile_wall_mine_6",
+  "sheet": "mine_walls",
+  "x": 32,
+  "y": 48,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "tile_wall_mine_7",
+  "sheet": "mine_walls",
+  "x": 48,
+  "y": 48,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "tile_wall_mine_8",
+  "sheet": "mine_walls",
+  "x": 64,
+  "y": 48,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "tile_wall_mine_9",
+  "sheet": "mine_walls",
+  "x": 128,
+  "y": 48,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "tile_wall_mine_10",
+  "sheet": "mine_walls",
+  "x": 144,
+  "y": 48,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "tile_wall_mine_11",
+  "sheet": "mine_walls",
+  "x": 32,
+  "y": 64,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "tile_wall_mine_12",
+  "sheet": "mine_walls",
+  "x": 48,
+  "y": 64,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "tile_wall_mine_13",
+  "sheet": "mine_walls",
+  "x": 64,
+  "y": 64,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "tile_wall_mine_14",
+  "sheet": "mine_walls",
+  "x": 128,
+  "y": 64,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "tile_wall_mine_15",
+  "sheet": "mine_walls",
+  "x": 144,
+  "y": 64,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "tile_wall_mine_16",
+  "sheet": "mine_walls",
+  "x": 32,
+  "y": 80,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "tile_wall_mine_17",
+  "sheet": "mine_walls",
+  "x": 48,
+  "y": 80,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "tile_wall_mine_18",
+  "sheet": "mine_walls",
+  "x": 64,
+  "y": 80,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "tile_wall_mine_19",
+  "sheet": "mine_walls",
+  "x": 32,
+  "y": 160,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "tile_wall_mine_20",
+  "sheet": "mine_walls",
+  "x": 48,
+  "y": 160,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "tile_wall_mine_21",
+  "sheet": "mine_walls",
+  "x": 64,
+  "y": 160,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "tile_wall_mine_22",
+  "sheet": "mine_walls",
+  "x": 272,
+  "y": 160,
+  "w": 32,
+  "h": 16
+ },
+ {
+  "key": "tile_wall_mine_23",
+  "sheet": "mine_walls",
+  "x": 32,
+  "y": 176,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "tile_wall_mine_24",
+  "sheet": "mine_walls",
+  "x": 48,
+  "y": 176,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "tile_wall_mine_25",
+  "sheet": "mine_walls",
+  "x": 64,
+  "y": 176,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "tile_wall_mine_26",
+  "sheet": "mine_walls",
+  "x": 32,
+  "y": 192,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "tile_wall_mine_27",
+  "sheet": "mine_walls",
+  "x": 48,
+  "y": 192,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "tile_wall_mine_28",
+  "sheet": "mine_walls",
+  "x": 64,
+  "y": 192,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "tile_wall_mine_29",
+  "sheet": "mine_walls",
+  "x": 32,
+  "y": 208,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "tile_wall_mine_30",
+  "sheet": "mine_walls",
+  "x": 48,
+  "y": 208,
+  "w": 16,
+  "h": 16
+ },
+ {
+  "key": "tile_wall_mine_31",
+  "sheet": "mine_walls",
+  "x": 64,
+  "y": 208,
+  "w": 16,
+  "h": 16
+ },
+ {
   "key": "painting_mountain",
   "sheet": "paintings",
   "x": 16,

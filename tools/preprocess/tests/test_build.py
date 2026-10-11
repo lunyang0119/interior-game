@@ -134,3 +134,35 @@ def test_build_cat_cuts_only_real_frames_and_skips_the_title_row(tmp_path: Path)
     assert strip.size == (total * cell, cell)
     assert strip.getpixel((5, 5)) == (200, 100, 0, 255)   # first frame = sit_down frame 0
     assert P.build_cat("nope", out, tmp_path / "nope.png") is None
+
+
+def test_loot_icons_from_slice_keys_paths_and_frame_lists(tmp_path: Path, monkeypatch):
+    """copy_loot_icons: an ore's `sprite` (an interior slice key) is cropped like the atlas, an asset path is copied,
+    a {file,x,y} cell is cropped from the sheet, and a list writes <name>_1.png, <name>_2.png."""
+    sheet = tmp_path / "props.png"
+    im = Image.new("RGBA", (32, 16), (0, 0, 0, 0))
+    im.paste(Image.new("RGBA", (16, 16), (200, 50, 50, 255)), (0, 0))
+    im.paste(Image.new("RGBA", (16, 16), (50, 200, 50, 255)), (16, 0))
+    im.save(sheet)
+    assets = tmp_path / "assets"
+    (assets / "Map").mkdir(parents=True)
+    Image.new("RGBA", (8, 8), (0, 0, 200, 255)).save(assets / "Map" / "hole.png")
+    data = tmp_path / "mine.json"
+    data.write_text(json.dumps({"ores": [{"id": "stone", "sprite": "mine_stone"}, {"id": "coal", "sprite": "mine_coal", "icon": "Map/hole.png"},
+                                         {"id": "gone", "sprite": "not_a_slice"}],
+                                "pickaxe": ["pick_a", "pick_b"]}), encoding="utf-8")
+    slices = [{"key": "mine_stone", "sheet": "props", "x": 0, "y": 0, "w": 16, "h": 16},
+              {"key": "mine_coal", "sheet": "props", "x": 16, "y": 0, "w": 16, "h": 16},
+              {"key": "pick_a", "sheet": "props", "x": 0, "y": 0, "w": 8, "h": 8},
+              {"key": "pick_b", "sheet": "props", "x": 16, "y": 0, "w": 8, "h": 8}]
+    monkeypatch.setattr(P.C, "OUT_DIR", tmp_path / "gen")
+    monkeypatch.setattr(P.C, "ASSETS", assets)
+    monkeypatch.setattr(P.C, "all_sheets", lambda: {"props": sheet})
+    out = P.copy_loot_icons(data, "ores", "mine", {"pickaxe": ["pick_a", "pick_b"], "ladder": {"file": "Map/hole.png", "x": 0, "y": 0, "w": 8, "h": 8}},
+                            slices=slices)
+    assert out == {"icons": ["stone", "coal", "pickaxe_1", "pickaxe_2", "ladder"]}  # `gone` is skipped with a warning
+    gen = tmp_path / "gen" / "mine"
+    assert Image.open(gen / "stone.png").getpixel((0, 0)) == (200, 50, 50, 255)
+    assert Image.open(gen / "coal.png").size == (8, 8)  # the explicit icon path wins over the sprite
+    assert Image.open(gen / "pickaxe_2.png").getpixel((0, 0)) == (50, 200, 50, 255)
+    assert Image.open(gen / "ladder.png").size == (8, 8) and not (gen / "gone.png").exists()

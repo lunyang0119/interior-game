@@ -32,6 +32,12 @@ In the editor, tick slices in the list (☑ 전체 / ☑ auto = everything visib
 **이름 일괄 변경**: each `auto_`/`new_` key becomes `[<folder>_]<sheet><original>`, e.g. `auto_interiors_017` → `inte_017`,
 a Map sheet `.../Grass.png` → `map_gras_003` (folder omitted when it is `Interior`; sheet = first 4 letters of the file
 name; collisions get `_2`, `_3`…). Items using the slice follow the rename. Named slices are left alone.
+Type something into **새 이름** first and the rename is manual instead: *every* ticked slice (named ones too) becomes
+that key in list order — `sofa_blue` → `sofa_blue`, `sofa_blue_2`, `sofa_blue_3`…, or use `{n}` / `{nn}` / `{orig}`
+(`chair_{nn}` → `chair_01`, `chair_02`…; `{orig}` = the key without `auto_`/`new_`). A `confirm()` shows the first 15.
+**아이템 일괄 만들기** creates shop items for the ticked slices that have none (⚠): the same defaults as the single
+아이템 만들기 button (furniture, 50, footprint from the rendered size with h capped at 2); `auto_`/`new_`/`tile_` and map
+slices are skipped. Then edit names/prices in the right panel or the items tab and press **아이템 저장**.
 Character strips: 24 frames = 6 per direction in order right, up, left, down. `run` then `idle` are concatenated (48 frames).
 
 ## 정식 팩 낱개 가구 (Theme_Sorter_Singles)
@@ -109,6 +115,7 @@ python tools/preprocess/preprocess.py build                        # map_slices.
 - `client/src`가 마지막 `npm run build`보다 새로우면 **npm run build 필요**가 뜬다. 빌드하면 `server/static/`이 목록에 들어온다.
 - 처음엔 기록이 없어서 "지금 상태를 기준으로 삼기" 버튼만 보인다. VM과 같은 상태일 때 한 번 눌러두면 그 뒤부터 차이만 보인다.
 - 파일을 다 올리고(재시작까지 하고) `올렸음 ✔`을 누르면 목록이 비워진다. 4초마다 다시 검사하므로 저장/빌드 직후에 바로 반영된다.
+- **🚀 VM에 올리기** 버튼은 **목록에 있는 파일만** 보낸다(`POST /api/deploy/run` → `deploy.changes()`): VM 주소(`user@host`, 브라우저에 기억됨)를 물은 뒤, `client/src`가 번들보다 새로우면 `npm run build`부터 하고, 바뀐/새 파일을 tar로 묶어 `ssh`로 `/opt/interior`에 풀고, 여기서 지운 파일은 VM에서도 지우고, 재시작 대상이 끼어 있을 때만 `sudo systemctl restart interior`를 한다. 단계마다 하단 로그 창에 줄이 붙으니(`GET /api/deploy/log`) 멈췄는지 가는지 보인다. 성공하면 `올렸음 ✔`을 누른 것과 같이 목록이 비워진다. ssh 키 설정(README의 배포 절)이 되어 있어야 하고, 기준(`올렸음`)이 한 번도 없으면 거부한다 — 그땐 `./deploy/sync.sh`로 전부 올린 뒤 기준을 잡는다.
 
 ## 에디터 탭 정리
 
@@ -119,7 +126,7 @@ python tools/preprocess/preprocess.py build                        # map_slices.
   `assets/graphic/<Interior|Map>/_16px/<경로를 __로 이은 이름>.png` 사본을 만들고 그 시트를 16px 격자로 자른다. 방식 `auto`는 그림이 2배 확대된 픽셀아트면
   `nearest`(픽셀 그대로 되돌림), 아니면 `box`(평균 축소)를 고른다. 원본이 바뀌면 다시 만들어야 하고, 사본도 `assets/`라 gitignore.
 - **아이템**: items.json 전체를 썸네일로 검색·태그·시트·레이어로 거르고(태그 필터에 `(태그 없음)` 있음), 여기서 바로 **태그를 단다**.
-  카드 클릭=선택(Shift+클릭=범위, ☑ 보이는 것/☐ 해제, Esc), 왼쪽의 태그 칩을 누르면 선택한 아이템 전부에 그 태그를 켜고(이미 전부 켜져 있으면 끔) 숫자키 1~9가 n번째 칩. 카드의 태그 ×로 하나만 빼고, 칩에 없는 태그는 아래 입력칸으로 켜고 끈다.
+  카드 클릭=선택(Shift+클릭=범위, ☑ 보이는 것/☐ 해제, Esc), 왼쪽의 태그 칩을 누르면 선택한 아이템 전부에 그 태그를 켜고(이미 전부 켜져 있으면 끔) 숫자키 1~9가 n번째 칩. 카드의 태그 ×로 하나만 빼고, 칩에 없는 태그는 아래 입력칸으로 켜고 끈다. 그 아래 **레이어** 선택+바꾸기는 선택한 아이템 전부의 layer를 한 번에 바꾼다(가구가 아니면 is_surface는 꺼짐; 슬라이스 탭의 "레이어 일괄"은 체크한 슬라이스의 아이템에 같은 일을 한다).
   태그별 개수 줄(0개면 빨강)을 누르면 그 태그로 거른다. 카드의 ✎(또는 더블클릭) → 그 슬라이스로 이동해 오른쪽 폼에서 편집. 바꾼 건 **아이템 저장**을 눌러야 items.json에 들어가고, 게임 서버는 재시작해야 읽는다.
   태그 목록과 설명은 `editor.py`의 `KNOWN_TAGS` 한 곳에 있다(`ruined` 팔 수만 있음 · `fixed` 못 건드림 · `stairs` 출구 · `bed` 손님 침대 · `dog` 개 손님 장식 · `note` 쪽지 소품 · `guest_note` 손님 쪽지용 스프라이트 · `board` 📋 게시판 · `partition`/`door` 칸막이 · `rug` 바닥 무늬 위에 깔리는 러그). 그 밖의 `[a-z0-9_]` 태그도 저장은 된다.
   오른쪽 아이템 폼의 **쌍(pair)**: 부서진 가구 ↔ 멀쩡한 가구를 양방향으로 잇는다.
@@ -158,7 +165,7 @@ python tools/preprocess/preprocess.py build                        # map_slices.
 
 **부두** 탭: `data/dock.json` → 빌드/저장 시 `client/public/gen/dock.json`. `assets/graphic/Map/Dock/N.png` 이미지 레이어와 슬라이스(맵·실내 아틀라스) 레이어를 겹쳐 놓는다.
 - 목록 위가 앞. ↑/↓로 순서, 체크로 표시/숨김, 캔버스 드래그로 픽셀 단위 이동(Shift=16px 스냅), 슬라이스는 scale.
-- **광산**: `data/mine.json` — `room`(광석 방 id, 그 방은 `kind: "mine"`), `per_day`(하루 노드 수 = UI에 보이는 상한), `hit_cooldown_ms`, `reach`(노드와 아바타 발 칸의 최대 거리, 체비쇼프), `pickaxe`와 `ores[].icon`은 `{file, x, y, w?, h?}`(시트에서 16×16 크롭) 또는 경로 문자열. `ores[]`: `id`·`name`·`hits`(눌러야 하는 횟수)·`value`·`weight`. 빌드가 `gen/mine/<id>.png`·`gen/mine/pickaxe.png`를 만든다. 방 자체는 보통 방처럼 에디터에서 만든다: Gold Rush 시트(`mine_floor`·`mine_walls`·`mine_props`, `config.py SHEETS`)와 Cave Items(`cave_items`)는 인테리어 아틀라스로 들어가니 `tile_mine_*` 타일을 잘라 벽·바닥에 쓰고, 통로 모양은 `walk: false` 바위 타일로 칠하며, 레일·광차 같은 소품은 `fixed` 태그 아이템 시드로 놓는다. 서버는 빈 바닥 칸(막힌 칸·`walk:false`·아이템 footprint·출구·스폰 제외)에만 노드를 놓는다. 맵에는 `room: "mine"` 장소를 찍어 입구를 만든다.
+- **광산**: `data/mine.json` — `room`(광석 방 id, 그 방은 `kind: "mine"`), `floors`(최대 층, 기본 20), `nodes_per_floor`(층당 노드 수 = UI 상한), `hit_cooldown_ms`, `reach`(노드와 아바타 발 칸의 최대 거리, 체비쇼프), `rock_density`(빈 바닥 칸 중 바위로 바뀌는 비율)와 `rocks`(바위로 뿌릴 `partition` 태그 벽 타일 슬라이스 키들), `ladder`(열린 사다리 칸에 그릴 슬라이스 키; 없으면 클라가 구멍을 그림), `ladder_chance`(사다리를 숨긴 돌 외의 돌이 사다리를 내놓을 확률), `pickaxe`(채광 버튼 애니 프레임 슬라이스 키 목록 → `gen/mine/pickaxe_1..n.png`). `ores[]`: `id`·`name`·`hits`(눌러야 하는 횟수)·`value`(0이면 "돌": 돈 없이 사다리 후보)·`sprite`(인테리어 슬라이스 키, 방에 그 그림이 그려지고 `gen/mine/<id>.png`로도 잘림)·`wall`(true면 뒷벽 맨 아랫줄에 박히는 광석). `tiers[]`: `floors: [lo, hi]`(1..floors를 빈틈없이 덮어야 함)와 `weights: {ore id: 가중치}`(각 tier에 value 0 광석이 하나는 있어야 함). 방 자체는 보통 방처럼 에디터에서 만든다: Gold Rush 시트(`mine_floor`·`mine_walls`·`mine_props`, `config.py SHEETS`)와 Cave Items(`cave_items`)는 인테리어 아틀라스로 들어가니 `tile_mine_*` 타일을 잘라 벽·바닥에 쓰고, 레일·광차 같은 소품은 `fixed` 태그 아이템 시드로 놓는다. 서버는 층마다 빈 바닥 칸(막힌 칸·`walk:false`·아이템 footprint·출구·스폰 제외)에 바위와 노드를 뿌리고, 스폰에서 못 가는 구석은 바위로 메운다. 맵에는 `room: "mine"` 장소를 찍어 입구를 만든다.
 - **낚시**: `data/fishing.json`에 물고기(id·이름·값·확률·아이콘 경로)와 입질 타이밍. 빌드가 아이콘을 `gen/fish/<id>.png`로 복사(결과 팝업용). 부두 탭의 "찌 위치"가 입질 표시(`icon_exclamation`)가 뜨는 자리(`dock.json`의 `fish:{x,y}`), 낚싯대는 `fish_rod` 슬라이스를 레이어로. 게임: 버튼 한 번 누르면 던지고, 미끼 건드림(작은 표시)은 무시, 진짜 입질(큰 표시·진동)에 버튼을 꾹 눌러 게이지를 채우면 잡힘. 값이 클수록 오래 눌러야 하고, 미끼 건드림에 누르면 도망간다.
 - 게임에서는 `DockScene`이 `gen/dock.json`을 읽어 같은 순서로 그린다(아바타 없음, 왼쪽 위 나가기·낚시 버튼). 맵에서 `room: "dock"` 장소의 문에 서면 들어가고, 나가기는 그 장소의 스폰으로 돌아온다. 주소 뒤 `#dock`으로도 바로 들어갈 수 있다.
 - VM에 올릴 것: `client/public/gen/dock.json`, `client/public/gen/dock/*.png`, 그리고 클라를 다시 빌드했으면 `server/static/`.

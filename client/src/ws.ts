@@ -17,9 +17,10 @@ export type WsMsg =
   | { type: "event"; event: ActivityEvent } // one new activity-log row
   | { type: "error"; code: string; room?: string } // e.g. enter into a locked room
   | { type: "cat"; player: string; affection: number; taps: number; leveled: boolean } // somebody petted the inn cat
-  // somebody hit an ore node (sent to the mine room only); `loot` when it broke
-  | { type: "mine"; seq: number; x: number; y: number; kind: string; hits_left: number; by: string; done: boolean; left: number; loot?: { id: string; name: string; value: number } }
-  | { type: "mine_reset"; left: number; per_day: number } // a new day's nodes appeared (mine room only)
+  // somebody hit an ore node (sent to that mine floor only); `loot` when it broke, `ladder` when it uncovered the way down
+  | { type: "mine"; seq: number; floor: number; x: number; y: number; kind: string; hits_left: number; by: string; done: boolean; left: number;
+      loot?: { id: string; name: string; value: number }; ladder?: { x: number; y: number } }
+  | { type: "mine_reset" } // a new day: whoever is in the mine reloads their floor
   | { type: "pong" };
 
 type Handler = (msg: any) => void;
@@ -77,7 +78,7 @@ export class GameSocket {
     this.send({ type: "move", x: +x.toFixed(2), y: +y.toFixed(2), dir, moving });
   }
 
-  /** Presence room change (grid room id, "map" or "dock"); the server answers with "entered". */
+  /** Presence room change (grid room id, "map", "dock" or a mine floor "mine#3"); the server answers with "entered". */
   sendEnter(room: string, x = 0, y = 0): void {
     this.send({ type: "enter", room, x: +x.toFixed(2), y: +y.toFixed(2) });
   }

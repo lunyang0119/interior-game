@@ -74,7 +74,7 @@ export interface Exit { x: number; y: number; w: number; h: number; to: string; 
 export interface Room {
   id: string;
   name: string;
-  /** "room" = decorated (shop, guests); "mine" = the ore room: walked and mined, no furniture (room/OreNodes.ts). */
+  /** "room" = decorated (shop, guests); "mine" = the ore room: walked and mined, no furniture (room/MineFloor.ts). */
   kind?: "room" | "mine";
   cols: number;
   rows: number;

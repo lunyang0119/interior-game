@@ -3,9 +3,10 @@
 Protocol (plan §4):
   C→S {"type":"auth","token"}            first message, within 5s
   S→C {"type":"hello","you","room","online":[...],"room_version"}   online = players in your room
-  C→S {"type":"enter","room","x","y"}    walk through an exit (room id, "map" or "dock")
-  S→C {"type":"entered","room","online","room_version"}            to the sender only
+  C→S {"type":"enter","room","x","y"}    walk through an exit (room id, "map", "dock", or a mine floor "mine#3"; bare "mine" = floor 1)
+  S→C {"type":"entered","room","online","room_version"}            to the sender only (room as normalised, e.g. "mine#1")
   S→C {"type":"error","code":"room_locked","room"}                 enter refused: that place's restoration stage is not done
+  S→C {"type":"error","code":"floor_locked","room"}                enter refused: nobody has opened that mine floor yet (mine.can_enter)
   C→S {"type":"move","x","y","dir","moving"}
   S→C {"type":"move","id",...}           to everyone else in the same room
   S→C {"type":"join"|"leave"}            same room only
@@ -24,7 +25,7 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from .. import config, progress
 from ..auth import lookup_token
 from ..db import connect, room_version
-from ..presence import Online, hub
+from ..presence import Online, hub, split_room
 from .me import load_avatar
 
 router = APIRouter()
@@ -54,6 +55,31 @@ def _is_locked(app, room: str) -> bool:
         return room in progress.locked(conn, app.state.catalog)
     finally:
         conn.close()
+
+
+def _floor_ok(app, floor: int) -> bool:
+    """A mine floor may be entered when it was reached before or the ladder above it is open (then it counts as reached)."""
+    from .. import mine
+    from ..db import transaction
+    m = app.state.mine
+    conn = connect()
+    try:
+        with transaction(conn):
+            if not mine.can_enter(conn, m.cfg, floor):
+                return False
+            mine.open_floor(conn, m.cfg, floor)
+            return True
+    finally:
+        conn.close()
+
+
+def _mine_floor(app, base: str, floor: int | None) -> int | None:
+    """Normalise a mine presence room: the mine without a floor is floor 1; a floor on any other room is refused."""
+    m = app.state.mine
+    is_mine = m is not None and base == m.cfg.room
+    if floor is None:
+        return 1 if is_mine else None
+    return floor if is_mine and 1 <= floor <= m.cfg.floors else -1
 
 
 @router.websocket("/ws")
@@ -104,19 +130,30 @@ async def ws_endpoint(ws: WebSocket):
                 await ws.send_text('{"type":"pong"}')
             elif t == "enter":
                 room = msg.get("room")
-                if not isinstance(room, str) or (room not in cat.rooms and room not in config.SCENE_ROOMS):
+                if not isinstance(room, str):
                     continue
-                mx, my = _bounds(ws.app, room)
+                base, floor = split_room(room)
+                if base not in cat.rooms and base not in config.SCENE_ROOMS:
+                    continue
+                floor = _mine_floor(ws.app, base, floor)
+                if floor == -1:
+                    continue
+                if floor is not None:
+                    room = f"{base}#{floor}"
+                mx, my = _bounds(ws.app, base)
                 try:
                     x = min(max(float(msg.get("x", 0)), 0.0), mx)
                     y = min(max(float(msg.get("y", 0)), 0.0), my)
                 except (TypeError, ValueError):
                     continue
-                if pid not in config.DEBUG_PLAYERS and await asyncio.to_thread(_is_locked, ws.app, room):
-                    await ws.send_text(json.dumps({"type": "error", "code": "room_locked", "room": room}))
+                if pid not in config.DEBUG_PLAYERS and await asyncio.to_thread(_is_locked, ws.app, base):
+                    await ws.send_text(json.dumps({"type": "error", "code": "room_locked", "room": base}))
+                    continue
+                if floor is not None and not await asyncio.to_thread(_floor_ok, ws.app, floor):
+                    await ws.send_text(json.dumps({"type": "error", "code": "floor_locked", "room": room}))
                     continue
                 await hub.move_room(o, room, x, y)
-                ver = await asyncio.to_thread(_version, room) if room in cat.rooms else 0
+                ver = await asyncio.to_thread(_version, base) if base in cat.rooms else 0
                 await ws.send_text(json.dumps({"type": "entered", "room": room,
                                                "online": hub.snapshot(room=room, exclude=pid), "room_version": ver}))
             elif t == "move":
@@ -126,7 +163,7 @@ async def ws_endpoint(ws: WebSocket):
                 moves_in_window += 1
                 if moves_in_window > MAX_MOVES_PER_SEC:
                     continue
-                mx, my = _bounds(ws.app, o.room)
+                mx, my = _bounds(ws.app, split_room(o.room)[0])
                 try:
                     o.x = min(max(float(msg["x"]), 0.0), mx)
                     o.y = min(max(float(msg["y"]), 0.0), my)

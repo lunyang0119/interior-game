@@ -66,17 +66,18 @@ def settle_guests(app: FastAPI) -> None:
 
 
 def spawn_mine(app: FastAPI) -> None:
-    """Put today's ore nodes down once per KST day (idempotent): on boot and every minute."""
+    """Generate today's first mine floor once per KST day (idempotent): on boot and every minute. Deeper floors
+    are generated the first time someone asks for them. A new day tells every client (`mine_reset`): whoever is
+    in the mine reloads their floor."""
     if app.state.mine is None:
         return
     conn = connect()
     try:
         with transaction(conn):
-            n = mine.spawn_day(conn, app.state.catalog, app.state.mine.cfg)
-        if n:
-            log.info("mine: %d ore node(s) spawned for today", n)
-            hub.broadcast_threadsafe({"type": "mine_reset", "left": n, "per_day": app.state.mine.cfg.per_day},
-                                     room=app.state.mine.cfg.room)
+            fresh = mine.ensure_floor(conn, app.state.catalog, app.state.mine.cfg, 1)
+        if fresh:
+            log.info("mine: a new day's floors begin")
+            hub.broadcast_threadsafe({"type": "mine_reset"})
     finally:
         conn.close()
 

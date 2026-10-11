@@ -38,6 +38,7 @@ const MESSAGES: Record<string, string> = {
   not_your_catch: "내가 낚은 물고기만 납품할 수 있어요",
   no_place: "여기엔 가구를 놓을 수 없어요",
   no_mine: "아직 광산이 없어요",
+  floor_locked: "아직 못 내려간 층이에요",
   node_gone: "이미 캐낸 광석이에요",
   not_here: "광석 옆으로 가야 해요",
   mine_cooldown: "너무 빨라요",
@@ -98,13 +99,23 @@ export interface FishFinishResponse {
   ok: boolean; pulls: number; escaped: boolean; id: string; name: string; value: number; balance: number;
   seq: number | null; deliverable: Deliverable[];
 }
-/** One ore node of the mine (server mine.py): where it stands and how many presses are left of `hits`. */
-export interface MineNode { seq: number; x: number; y: number; kind: string; hits_left: number; hits: number }
-export interface MineNodesResponse { day: number; nodes: MineNode[]; left: number; per_day: number; resets_at: number }
-export interface MineInfo { room: string; per_day: number; hit_cooldown_ms: number; reach: number; ores: { id: string; name: string; hits: number; value: number }[] }
-/** Answer to one 채광 press; the loot fields only when the node broke (`ledger_seq` = what /api/deliver takes). */
+/** One ore node of a mine floor (server mine.py): where it stands (`wall` ores sit in the back wall's bottom row and
+ *  are mined from the floor cell below) and how many presses are left of `hits`. */
+export interface MineNode { seq: number; x: number; y: number; kind: string; hits_left: number; hits: number; wall: boolean }
+/** Today's layout of one floor: rocks (atlas keys that block walking), nodes, the ladder down once it is open. */
+export interface MineFloorResponse {
+  day: number; floor: number; floors: number; deepest: number; rocks: [number, number, string][]; ladder: { x: number; y: number } | null;
+  nodes: MineNode[]; left: number; per_floor: number; resets_at: number;
+}
+export interface MineOre { id: string; name: string; hits: number; value: number; sprite: string | null; wall: boolean }
+export interface MineInfo {
+  room: string; floors: number; nodes_per_floor: number; hit_cooldown_ms: number; reach: number; ladder: string | null;
+  ores: MineOre[]; deepest: number;
+}
+/** Answer to one 채광 press; the loot fields only when the node broke (`ledger_seq` = what /api/deliver takes),
+ *  `ladder` when that press uncovered the way down. */
 export interface MineHitResponse {
-  seq: number; hits_left: number; done: boolean; left: number; balance: number;
+  seq: number; floor: number; hits_left: number; done: boolean; left: number; balance: number; ladder?: { x: number; y: number };
   id?: string; name?: string; value?: number; ledger_seq?: number | null; deliverable?: Deliverable[];
 }
 /** One row of the activity log (server events table). amount = change of the shared pool, + means it grew. */
@@ -150,7 +161,7 @@ export const api = {
   deliver: (seq: number, room?: string) =>
     call<{ balance: number; room: string; have: number; want: number; completed: { room: string; stage: string; name: string }[] }>("POST", "/api/deliver", { seq, room }),
   mineInfo: () => call<MineInfo>("GET", "/api/mine"),
-  mineNodes: () => call<MineNodesResponse>("GET", "/api/mine/nodes"),
+  mineFloor: (floor: number) => call<MineFloorResponse>("GET", `/api/mine/floor/${floor}`),
   /** One press of 채광 on an ore node (the avatar must stand next to it). */
   mineHit: (seq: number) => call<MineHitResponse>("POST", "/api/mine/hit", { seq }),
   register: (id: string) => call<{ id: string; token: string; existing: boolean; created: boolean; name: string; earned: number }>("POST", "/api/register", { id }),
