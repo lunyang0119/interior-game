@@ -1,0 +1,6 @@
+/* Train minigame additions on top of the shared style.css (same tokens, same panel/chip/button classes). */
+#previewbar { top: calc(var(--safe-top) + 48px); flex-wrap: wrap; justify-content: flex-start; }
+#preview-maps { display: flex; flex-wrap: wrap; gap: 6px; }
+#preview-maps button.active { outline: 2px solid var(--primary); }
+#hud-title { font-weight: 700; }
+a.chip { text-decoration: none; color: var(--text); }

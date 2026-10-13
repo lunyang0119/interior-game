@@ -81,6 +81,15 @@ def mgr(client):
     return client.app.state.train
 
 
+def wait_for(cond, timeout=2.0):
+    """The webhook runs as a background task on the server loop: give it a moment."""
+    import time
+    end = time.time() + timeout
+    while not cond() and time.time() < end:
+        time.sleep(0.02)
+    assert cond()
+
+
 @pytest.fixture()
 def stack():
     with ExitStack() as st:
@@ -418,7 +427,8 @@ def test_capture_broadcast_webhook_and_new_game(client, stack):
     assert_hunter_safe(rr)
     cap = recv(h2, "captured", skip=("state", "round_open"))
     assert cap["by"] == "h1" and cap["line"] == "**수수께끼의 인영을 h1가 잡았다!**\n**Conflict Resolved.**"
-    assert lines == [cap["line"]]  # COMBAT_MODE_ON went out before this test swapped the hook; capture line only once
+    wait_for(lambda: lines == [cap["line"]])  # COMBAT_MODE_ON went out before this test swapped the hook
+    wait_for(lambda: g.policy.webhook_sent is True)
     s = state(client, tok["h2"])
     assert s["status"] == "CAPTURED" and s["view"]["capture_room"] == g.engine.fugitive.room
     assert client.post("/api/train/order", json={"type": "stay"}, headers=auth(tok["h2"])).status_code == 409
@@ -426,6 +436,25 @@ def test_capture_broadcast_webhook_and_new_game(client, stack):
     r = client.post("/api/train/game", json={"hunter_count": 2}, headers=auth(tok["adm"]))
     assert r.json()["status"] == "LOBBY"
     assert recv(h2, "state", skip=("ended",))["state"]["status"] == "LOBBY"
+
+
+def test_failed_webhook_does_not_mark_sent(client):
+    tok = setup(client, overrides={"capture_mode": "search"})
+    m = mgr(client)
+
+    async def broken_hook(_line):
+        raise RuntimeError("discord down")
+
+    m.webhook = broken_hook
+    g = m.game
+    g.engine.fugitive.room = g.engine.hunters["h1"].room
+    client.post("/api/train/order", json={"type": "search"}, headers=auth(tok["h1"]))
+    client.post("/api/train/order", json={"type": "stay"}, headers=auth(tok["h2"]))
+    r = client.post("/api/train/fugitive/order", json={}, headers=auth(tok["adm"]))
+    assert r.status_code == 200 and g.status == "CAPTURED"
+    import time
+    time.sleep(0.2)
+    assert g.policy.webhook_sent is False  # a restart will try the capture line again
 
 
 def test_start_posts_combat_mode_line(client, stack):
@@ -445,7 +474,7 @@ def test_start_posts_combat_mode_line(client, stack):
     recv(ws, "hello")
     client.post("/api/train/start", headers=auth(adm))
     assert recv(ws, "started", skip=("state",))["line"] == "Activating Combat Mode"
-    assert lines == ["Activating Combat Mode"]
+    wait_for(lambda: lines == ["Activating Combat Mode"])
 
 
 def test_end_game_and_config(client):

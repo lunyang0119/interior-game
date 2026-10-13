@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="theme-color" content="#1b1b24" />
+  <title>열차 추적</title>
+  <link rel="icon" href="data:," />
+  <link rel="stylesheet" href="/src/style.css" />
+  <link rel="stylesheet" href="/src/train/style.css" />
+  <link rel="stylesheet" href="/media/theme.css" />
+</head>
+<body>
+  <div id="game"></div>
+
+  <!-- top HUD -->
+  <div id="hud" class="overlay">
+    <a id="btn-home" class="chip" href="/" title="방으로 돌아가기">🏠</a>
+    <div id="hud-id" class="chip">👤 <span id="hud-id-val">…</span></div>
+    <div id="hud-title" class="chip">🚃 <span id="hud-title-val">열차 추적</span></div>
+    <div id="hud-conn" class="chip hidden">🔌 연결 끊김 · 다시 연결 중…</div>
+  </div>
+
+  <!-- admin map preview: pick any built-in map; renders from room data only -->
+  <div id="previewbar" class="overlay hidden">
+    <span class="chip">미리보기</span>
+    <div id="preview-maps" class="row small"></div>
+    <label class="chip small"><input id="preview-grid" type="checkbox" /> 칸 번호</label>
+  </div>
+
+  <!-- fugitive/admin unlock: the secret binds this account as fugitive + admin on the server -->
+  <div id="panel-claim" class="panel hidden">
+    <div class="panel-head"><span>관제 권한</span><button class="close" data-close="panel-claim">✕</button></div>
+    <div class="small" style="color:var(--muted)">관제(도주자) 비밀문구를 입력하면 이 계정이 관제가 돼요. 미리보기는 관제만 볼 수 있어요.</div>
+    <div class="row">
+      <input id="claim-secret" type="password" placeholder="비밀문구" autocomplete="off" autocapitalize="off" />
+      <button id="btn-claim" class="primary">확인</button>
+    </div>
+  </div>
+
+  <div id="toast" class="hidden"></div>
+  <div id="loading">불러오는 중…</div>
+
+  <script type="module" src="/src/train/main.ts"></script>
+</body>
+</html>

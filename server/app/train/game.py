@@ -99,18 +99,25 @@ class TrainGame:
         return cls(row_id=row_id, status=status, policy=pol, engine=eng)
 
 
-Webhook = Callable[[str], Awaitable[None]]
+Webhook = Callable[[str], Awaitable[Any]]
+WEBHOOK_TIMEOUT_S = 4.0
 
 
-async def post_webhook(line: str) -> None:
+async def post_webhook(line: str) -> bool:
+    """Discord webhook: one line. Short timeout, never raises. False when nothing was delivered."""
     url = app_config.TRAIN_WEBHOOK_URL
     if not url:
-        return
+        return False
     try:
-        async with httpx.AsyncClient(timeout=5.0) as client:
-            await client.post(url, json={"content": line})
+        async with httpx.AsyncClient(timeout=WEBHOOK_TIMEOUT_S) as client:
+            r = await client.post(url, json={"content": line})
+            if r.status_code >= 300:
+                log.warning("train webhook: HTTP %s", r.status_code)
+                return False
+            return True
     except Exception as e:  # noqa: BLE001
         log.warning("train webhook failed: %s", e)
+        return False
 
 
 class Manager:
@@ -145,6 +152,8 @@ class Manager:
                     self._arm()
         elif g is not None:
             log.info("train: restored game %d (%s)", g.row_id, g.status)
+            if g.status == CAPTURED and not g.policy.webhook_sent and g.engine is not None:
+                self._fire_webhook(self._capture_line(g.engine), mark=True)  # the capture line never went out
 
     async def stop(self) -> None:
         self._cancel_timer()
@@ -202,6 +211,30 @@ class Manager:
         return views.FUGITIVE
 
     # -- persistence / push -----------------------------------------------------
+
+    # -- webhook (never on the resolve path: a background task after the snapshot is committed) -------------
+
+    @staticmethod
+    def _capture_line(st: E.GameState) -> str:
+        name = st.hunters[st.captured_by].name
+        return CAPTURE_LINE.format(name=name, particle=get_korean_particle(name, "이", "가"))
+
+    def _fire_webhook(self, line: str, mark: bool) -> None:
+        asyncio.create_task(self._webhook_task(line, mark))
+
+    async def _webhook_task(self, line: str, mark: bool) -> None:
+        try:
+            ok = await self.webhook(line)
+        except Exception as e:  # noqa: BLE001
+            log.warning("train webhook raised: %s", e)
+            ok = False
+        if ok is False or not mark:
+            return
+        async with self.lock:
+            g = self.game
+            if g is not None and g.status == CAPTURED and not g.policy.webhook_sent:
+                g.policy.webhook_sent = True
+                await self._save()
 
     async def _save(self) -> None:
         g = self.game
@@ -278,7 +311,7 @@ class Manager:
             await self._push({"type": "started", "line": COMBAT_MODE_ON})
             await self._push_state()
             await self._push_round_open(g)
-        await self.webhook(COMBAT_MODE_ON)
+        self._fire_webhook(COMBAT_MODE_ON, mark=False)
         return out
 
     # -- rounds ----------------------------------------------------------------
@@ -374,13 +407,10 @@ class Manager:
 
         if st.status == CAPTURED:
             await hub.send_each(build)
-            name = st.hunters[st.captured_by].name
-            line = CAPTURE_LINE.format(name=name, particle=get_korean_particle(name, "이", "가"))
+            line = self._capture_line(st)
             await self._push({"type": "captured", "by": st.captured_by, "how": st.capture_how, "room": st.fugitive.room, "line": line})
             if not g.policy.webhook_sent:
-                g.policy.webhook_sent = True
-                await self._save()
-                await self.webhook(line)
+                self._fire_webhook(line, mark=True)  # webhook_sent is set only once the POST succeeded
             return
         await self._open_round(g, push=False)   # the states inside round_resolved already carry the new deadline
         await hub.send_each(build)
