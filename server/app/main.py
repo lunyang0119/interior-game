@@ -15,6 +15,9 @@ from .reconcile import reconcile_items
 from .seed import seed_room
 from .routers import activity, auth, cat, deliver, fish, me, room, ws
 from .routers import mine as mine_router
+from .train import game as train_game
+from .train import router as train_router
+from .train import ws as train_ws
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s %(message)s")
 log = logging.getLogger("main")
@@ -137,11 +140,15 @@ async def lifespan(app: FastAPI):
                     raise ValueError(f"room {rm.id}: stage '{st.id}' needs unknown {n.kind} loot '{n.id}' (data/{'fishing' if n.kind == 'fish' else 'mine'}.json)")
     spawn_mine(app)
     hub.bind_loop()
+    # train minigame: restore the stored game and re-arm its round timer from the stored deadline
+    app.state.train = train_game.Manager()
+    await app.state.train.start()
     prune_task = asyncio.create_task(_prune_loop())
     guest_task = asyncio.create_task(_tick_loop(app))
     yield
     prune_task.cancel()
     guest_task.cancel()
+    await app.state.train.stop()
 
 
 def create_app() -> FastAPI:
@@ -160,6 +167,8 @@ def create_app() -> FastAPI:
     app.include_router(activity.router)
     app.include_router(cat.router)
     app.include_router(ws.router)
+    app.include_router(train_router.router)
+    app.include_router(train_ws.router)
     if config.DEV_TOOLS:  # imported lazily so a VM without routers/dev.py still boots
         from .routers import dev
 

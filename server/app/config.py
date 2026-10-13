@@ -61,6 +61,13 @@ DEBUG_PLAYERS = tuple(p.strip() for p in os.environ.get("DEBUG_PLAYERS", "안나
 # Presence rooms that are not grid rooms (no items, free coordinates).
 SCENE_ROOMS = ("map", "dock")
 
+# Train (fugitive) minigame, server/app/train. The secret binds the caller of POST /api/train/claim as fugitive/admin;
+# empty = claiming disabled. The webhook (Discord) gets exactly two lines per game: COMBAT_MODE_ON and CAPTURE_LINE.
+TRAIN_ADMIN_SECRET = os.environ.get("TRAIN_ADMIN_SECRET", "")
+TRAIN_WEBHOOK_URL = os.environ.get("TRAIN_WEBHOOK_URL", "")
+# Optional overrides of the engine DEFAULTS (key → value, coerced like the bot's Fugitive_Config sheet).
+TRAIN_CONFIG_PATH = _env_path("TRAIN_CONFIG_PATH", DATA_DIR / "train_config.json")
+
 # Rate limits: (requests, per_seconds)
 RATE_PLAYER = (120, 60)
 RATE_REGISTER_IP = (5, 60)

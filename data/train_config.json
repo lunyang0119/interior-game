@@ -1,0 +1,6 @@
+{
+  "_comment": "열차 추적(/train/) 엔진 튠값 오버라이드. 키는 server/app/train/config.py DEFAULTS 와 같다. 비어 있으면 기본값·scaling_web.json 만 쓴다. 관리자 패널의 런타임 값이 이 파일보다 우선한다.",
+  "round_timer_sec": 3600,
+  "fugitive_grace_sec": 1800,
+  "vote_skip_after_sec": 600
+}

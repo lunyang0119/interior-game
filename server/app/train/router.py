@@ -1,0 +1,195 @@
+"""REST /api/train/*. Async handlers: the Manager owns the game on the event loop; roles are re-checked per call."""
+
+from __future__ import annotations
+
+from typing import Any, Literal
+
+from fastapi import APIRouter, Depends, Request
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel, Field
+
+from ..auth import Player, current_player, ip_hash, log_access
+from ..db import connect
+from ..errors import ApiError
+from ..ratelimit import limiter
+from .game import Manager, RuleApiError
+
+router = APIRouter(prefix="/api/train")
+
+ROOM = Field(min_length=1, max_length=8, pattern=r"^[A-Za-z0-9_\-]+$")
+
+
+class ClaimIn(BaseModel):
+    secret: str = Field(min_length=1, max_length=200)
+
+
+class CreateIn(BaseModel):
+    hunter_count: int = Field(ge=2, le=6, default=4)
+    map_id: str | None = Field(default=None, max_length=32)
+    overrides: dict[str, Any] = Field(default_factory=dict)
+
+
+class HunterOrderIn(BaseModel):
+    type: Literal["move", "search", "scan", "stay"]
+    target: str | None = Field(default=None, max_length=8)
+
+
+class FugitiveOrderIn(BaseModel):
+    move: str | None = Field(default=None, max_length=8)
+    hack: Literal["doorlock", "distract", "blackout", "hide", "overload"] | None = None
+    target: str | None = Field(default=None, max_length=17)
+
+
+class VoteIn(BaseModel):
+    target: str = Field(min_length=1, max_length=32)
+
+
+class ConfigIn(BaseModel):
+    set: dict[str, Any] = Field(default_factory=dict)
+    map_id: str | None = Field(default=None, max_length=32)
+
+
+class ExtendIn(BaseModel):
+    sec: float = Field(gt=0, le=7 * 86400)
+
+
+def _mgr(request: Request) -> Manager:
+    return request.app.state.train
+
+
+def _rate(me: Player) -> None:
+    if not limiter.allow(f"train:{me.id}", 60, 60):
+        raise ApiError(429, "rate_limited")
+
+
+async def _run(coro):
+    """RuleApiError carries the engine's own message for the player; everything else is {"error": code}."""
+    try:
+        return await coro
+    except RuleApiError as e:
+        return JSONResponse(status_code=400, content={"error": e.code, "message": e.message})
+
+
+@router.get("/state")
+async def state(request: Request, me: Player = Depends(current_player)):
+    _, payload = await _mgr(request).state_for(me.id)
+    return payload
+
+
+@router.post("/claim")
+async def claim(body: ClaimIn, request: Request, me: Player = Depends(current_player)):
+    if not limiter.allow(f"train_claim:{ip_hash(request)}", 5, 60):
+        raise ApiError(429, "rate_limited")
+    mgr = _mgr(request)
+    try:
+        role = await mgr.claim(me.id, body.secret)
+    except ApiError:
+        conn = connect()
+        try:
+            log_access(conn, request, "train_claim", me.id, False)
+        finally:
+            conn.close()
+        raise
+    return {"role": role}
+
+
+@router.post("/game")
+async def create(body: CreateIn, request: Request, me: Player = Depends(current_player)):
+    return await _run(_mgr(request).create(me.id, body.hunter_count, body.map_id, body.overrides))
+
+
+@router.post("/join")
+async def join(request: Request, me: Player = Depends(current_player)):
+    return await _mgr(request).join(me.id, True)
+
+
+@router.post("/leave")
+async def leave(request: Request, me: Player = Depends(current_player)):
+    return await _mgr(request).join(me.id, False)
+
+
+@router.post("/start")
+async def start(request: Request, me: Player = Depends(current_player)):
+    return await _run(_mgr(request).start_game(me.id))
+
+
+@router.post("/order")
+async def order(body: HunterOrderIn, request: Request, me: Player = Depends(current_player)):
+    _rate(me)
+    return await _run(_mgr(request).hunter_order(me.id, body.type, body.target))
+
+
+@router.delete("/order")
+async def cancel_order(request: Request, me: Player = Depends(current_player)):
+    _rate(me)
+    return await _mgr(request).cancel_hunter_order(me.id)
+
+
+@router.post("/fugitive/order")
+async def fugitive_order(body: FugitiveOrderIn, request: Request, me: Player = Depends(current_player)):
+    _rate(me)
+    return await _run(_mgr(request).fugitive_order(me.id, body.move, body.hack, body.target))
+
+
+@router.delete("/fugitive/order")
+async def cancel_fugitive_order(request: Request, me: Player = Depends(current_player)):
+    return await _mgr(request).cancel_fugitive_order(me.id)
+
+
+@router.post("/fugitive/ping")
+async def ping(request: Request, me: Player = Depends(current_player)):
+    _rate(me)
+    return await _run(_mgr(request).ping(me.id))
+
+
+@router.post("/vote")
+async def vote(body: VoteIn, request: Request, me: Player = Depends(current_player)):
+    _rate(me)
+    return await _mgr(request).vote(me.id, body.target)
+
+
+@router.get("/config")
+async def get_config(request: Request, me: Player = Depends(current_player)):
+    return await _mgr(request).get_config(me.id)
+
+
+@router.put("/config")
+async def set_config(body: ConfigIn, request: Request, me: Player = Depends(current_player)):
+    return await _run(_mgr(request).set_config(me.id, body.set, body.map_id))
+
+
+@router.post("/pause")
+async def pause(request: Request, me: Player = Depends(current_player)):
+    return await _mgr(request).pause(me.id)
+
+
+@router.post("/resume")
+async def resume(request: Request, me: Player = Depends(current_player)):
+    return await _mgr(request).resume(me.id)
+
+
+@router.post("/extend")
+async def extend(body: ExtendIn, request: Request, me: Player = Depends(current_player)):
+    return await _mgr(request).extend(me.id, body.sec)
+
+
+@router.post("/round/end")
+async def end_round(request: Request, me: Player = Depends(current_player)):
+    return await _mgr(request).end_round(me.id)
+
+
+@router.post("/game/end")
+async def end_game(request: Request, me: Player = Depends(current_player)):
+    return await _mgr(request).end_game(me.id)
+
+
+@router.get("/maps")
+async def maps(request: Request, me: Player = Depends(current_player)):
+    _mgr(request)._require_admin(me.id)
+    return {"maps": Manager.maps()}
+
+
+@router.get("/maps/{map_id}")
+async def map_detail(map_id: str, request: Request, me: Player = Depends(current_player)):
+    _mgr(request)._require_admin(me.id)
+    return Manager.map_detail(map_id)

@@ -96,6 +96,8 @@ def env(tmp_path, monkeypatch):
     monkeypatch.setenv("STATIC_DIR", str(tmp_path / "nostatic"))
     monkeypatch.setenv("SHEET_URL", "")
     monkeypatch.setenv("FAKE_SHEET_PATH", str(data / "fake_sheet.json"))
+    monkeypatch.setenv("TRAIN_ADMIN_SECRET", "train-secret")
+    monkeypatch.setenv("TRAIN_WEBHOOK_URL", "")
 
     # config reads env at import time → reload it and everything that captured its values
     import importlib

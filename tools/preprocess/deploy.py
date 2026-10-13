@@ -34,6 +34,8 @@ TARGETS: list[tuple[str, str, bool, str]] = [
     ("data", "fishing.json", True, "낚시"),
     ("data", "mine.json", True, "광산"),
     ("data", "guests.json", True, "손님"),
+    ("data", "train_config.json", True, "열차 추적 설정 오버라이드"),
+    ("server/app/train", "*.json", True, "열차 추적 인원별 스케일링"),
     ("server", "pyproject.toml", True, "서버 패키지"),
     ("client/public/gen", "manifest.json", True, "슬라이스 목록 (서버가 시작할 때 읽음)"),
     ("client/public/gen", "*.png", False, "아틀라스"),
@@ -53,6 +55,7 @@ TARGETS: list[tuple[str, str, bool, str]] = [
     ("client/public/media/bgm", "**/*.mp3", False, "BGM"),
     ("client/public/media/sfx", "**/*.mp3", False, "효과음"),
     ("server/static", "index.html", False, "클라이언트 페이지 (npm run build)"),
+    ("server/static/train", "index.html", False, "열차 추적 페이지 (npm run build)"),
     ("server/static/assets", "*", False, "클라이언트 번들 (npm run build)"),
 ]
 
