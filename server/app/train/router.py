@@ -128,6 +128,26 @@ async def set_fugitive_ai(body: FugitiveAiIn, request: Request, me: Player = Dep
     return await _mgr(request).set_fugitive_ai(me.id, body.on)
 
 
+class RevealIn(BaseModel):
+    on: bool = True
+
+
+@router.post("/reveal")
+async def set_reveal(body: RevealIn, request: Request, me: Player = Depends(current_player)):
+    return await _mgr(request).set_reveal(me.id, body.on)
+
+
+@router.get("/help")
+async def help_text(request: Request, me: Player = Depends(current_player)):
+    """The bot's TUTORIAL/HELP (strings.py) with the live scan budget filled in; the client reflows Discord bits."""
+    from . import settings
+    from . import strings as S
+    mgr = _mgr(request)
+    budget = (mgr.game.config() if mgr.game is not None else settings.build(4)[0]).get("scan_budget", 1)
+    return {"tutorial": S.TUTORIAL.format(scan_budget=budget), "help": S.HELP.format(scan_budget=budget),
+            "devices": S.DEVICE_KO, "hacks": S.HACK_KO, "hack_devices": S.HACK_DEVICE, "signals": S.SIGNAL_KO}
+
+
 @router.delete("/bots")
 async def remove_bots(request: Request, me: Player = Depends(current_player)):
     return await _mgr(request).remove_bots(me.id)

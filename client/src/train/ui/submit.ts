@@ -22,10 +22,25 @@ export function initSubmit(): void {
     if (!isHunter() || !p || p.status !== "ROUND_OPEN" || !room || !p.you || !p.you.room || p.you.dazed || tstate.phase === "playback") return;
     if (room === p.you.room) { pick("search"); return; }
     const here = p.view?.map_rows.find((r) => r.room === p.you!.room);
-    if (here && here.neighbors.split(",").includes(room)) pick("move", room);
-    else toast("바로 갈 수 없는 구역이에요", 1500);
+    if (here && here.neighbors.split(",").includes(room)) {
+      pick("move", room);
+      // last round's locks are information only: a lock lasts the round it was cast, hunters learn it at resolution
+      const edge = [p.you.room, room].sort().join("-");
+      if ((p.view?.locks ?? []).includes(edge)) toast("⛔ 지난 라운드에 잠겨 있던 문이에요. 이번에도 잠길지는 정산 때 알 수 있어요", 3000);
+    } else toast("바로 갈 수 없는 구역이에요 (옆 구역만)", 1500);
   });
   tbus.on("state:changed", render);
+  // a new round opens → unfold the bar if I still have to act (G3)
+  let lastRound = -1;
+  tbus.on("state:changed", () => {
+    const p = tstate.payload;
+    const r = p?.round_no ?? -1;
+    if (p?.status === "ROUND_OPEN" && r !== lastRound) {
+      lastRound = r;
+      if (isHunter() && p.you && !p.you.order && !p.you.dazed) $("orderbar").classList.remove("folded");
+    }
+  });
+  tbus.on("orderbar:unfold", () => $("orderbar").classList.remove("folded"));
   render();
 }
 

@@ -17,7 +17,7 @@ SECRET = "train-secret"
 FORBIDDEN_KEYS = {"fugitive", "fugitive_path", "position_history", "hidden_events", "seed", "ram", "traced_at",
                   "hidden_until", "hacks", "hacks_disabled", "log", "log_entry", "admin_id", "hunters_full",
                   "fugitive_order", "fugitive_room_before", "fugitive_room_after", "lockable_edges", "reachable",
-                  "bot_reasons"}
+                  "bot_reasons", "route"}
 
 
 def keys_of(obj, acc=None):
@@ -229,6 +229,8 @@ def test_spectator_sees_public_view_only_and_cannot_act(client):
     assert_hunter_safe(s)
     assert client.post("/api/train/order", json={"type": "stay"}, headers=auth(spec)).json()["error"] == "not_hunter"
     assert client.post("/api/train/fugitive/ping", headers=auth(spec)).json()["error"] == "not_admin"
+    assert client.post("/api/train/reveal", json={"on": True}, headers=auth(tok["adm"])).json()["error"] == "not_captured"
+    assert "route" not in state(client, tok["h1"])
     assert client.get("/api/train/maps", headers=auth(spec)).json()["maps"][0]["id"] == "car2077_9"  # maps are public
     d = client.get("/api/train/maps/car2077_12", headers=auth(tok["adm"])).json()
     assert len(d["rooms"]) == 12 and {"id", "col", "row", "device", "neighbors"} <= set(d["rooms"][0])
@@ -436,11 +438,26 @@ def test_capture_broadcast_webhook_and_new_game(client, stack):
     wait_for(lambda: g.policy.webhook_sent is True)
     s = state(client, tok["h2"])
     assert s["status"] == "CAPTURED" and s["view"]["capture_room"] == g.engine.fugitive.room
+    # the route reveal: off by default (nothing in hunter payloads), admin-only, and only while CAPTURED
+    assert_hunter_safe(s)
+    assert client.post("/api/train/reveal", json={"on": True}, headers=auth(tok["h2"])).json()["error"] == "not_admin"
+    r = client.post("/api/train/reveal", json={"on": True}, headers=auth(tok["adm"]))
+    assert r.status_code == 200
+    s = state(client, tok["h2"])
+    assert [x["round"] for x in s["route"]] == [1] and s["route"][0]["path"][-1] == g.engine.fugitive.room
+    assert "fugitive_path" not in json.dumps(s["report"])   # the per-report secret stays stripped; only `route` opens
+    r = client.post("/api/train/reveal", json={"on": False}, headers=auth(tok["adm"]))
+    assert "route" not in state(client, tok["h2"])
+    assert client.get("/api/train/help", headers=auth(tok["h2"])).json()["tutorial"].count("/이동") == 1
     assert client.post("/api/train/order", json={"type": "stay"}, headers=auth(tok["h2"])).status_code == 409
     # a new lobby may be opened over a captured game; it ends the old row
     r = client.post("/api/train/game", json={"hunter_count": 2}, headers=auth(tok["adm"]))
     assert r.json()["status"] == "LOBBY"
-    assert recv(h2, "state", skip=("ended",))["state"]["status"] == "LOBBY"
+    for _ in range(6):   # the reveal toggles above pushed CAPTURED states first
+        st = recv(h2, "state", skip=("ended",))["state"]
+        if st["status"] == "LOBBY":
+            break
+    assert st["status"] == "LOBBY"
 
 
 def test_failed_webhook_does_not_mark_sent(client):
@@ -551,8 +568,8 @@ def test_ai_fugitive_mode(client):
     assert r.status_code == 200 and r.json()["role"] == "fugitive" and r.json()["admin"] is True
     mgr(client).bot_player = B.GeminiPlayer(client=FakeGemini('{"order": "stay", "reason": "봇 대기"}'))
     r = client.post("/api/train/fugitive-ai", json={"on": True}, headers=auth(adm))
-    assert r.json()["fugitive_ai"] is True and r.json()["role"] == "spectator" and r.json()["admin"] is True
-    # the admin keeps the controls but is no longer the fugitive: they may ride as a hunter and see nothing secret
+    assert r.json()["fugitive_ai"] is True and r.json()["role"] == "fugitive" and r.json()["admin"] is True   # watches as the fugitive
+    # the admin keeps the controls; once they ride as a hunter they see nothing secret
     assert client.post("/api/train/join", headers=auth(adm)).json()["role"] == "hunter"
     assert client.post("/api/train/join", headers=auth(h1)).status_code == 200
     assert client.post("/api/train/start", headers=auth(adm)).status_code == 200

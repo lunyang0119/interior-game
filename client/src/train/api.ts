@@ -106,6 +106,8 @@ export interface TrainState {
   fugitive_ai?: boolean;
   /** every AI's reasoning, present once the game is CAPTURED (fugitive entries have uid "fugitive") */
   ai_log?: BotReason[];
+  /** the fugitive's route per round; only while CAPTURED and the admin's "경로 공개" is on */
+  route?: { round: number; path: string[] }[];
   // fugitive / admin only
   bot_reasons?: BotReason[];
   fugitive?: FugitiveState | null;
@@ -123,6 +125,11 @@ export interface BotReason {
   hack_target?: string | null;
 }
 
+export interface HelpText {
+  tutorial: string; help: string; devices: Record<string, string>; hacks: Record<string, string>;
+  hack_devices: Record<string, string | null>; signals: Record<string, string>;
+}
+
 export interface ConfigResponse { config: Record<string, unknown>; overrides: Record<string, unknown>; map_id: string; defaults: Record<string, unknown> }
 
 export function mapRooms(rows: MapRow[]): MapRoom[] {
@@ -136,6 +143,8 @@ export const api = {
   map: (id: string) => call<MapDetail>("GET", `/api/train/maps/${encodeURIComponent(id)}`),
   create: (hunter_count: number, map_id?: string, fugitive_ai = false) => call<TrainState>("POST", "/api/train/game", { hunter_count, map_id, fugitive_ai }),
   setFugitiveAi: (on: boolean) => call<TrainState>("POST", "/api/train/fugitive-ai", { on }),
+  reveal: (on: boolean) => call<TrainState>("POST", "/api/train/reveal", { on }),
+  help: () => call<HelpText>("GET", "/api/train/help"),
   join: () => call<TrainState>("POST", "/api/train/join", {}),
   leave: () => call<TrainState>("POST", "/api/train/leave", {}),
   start: () => call<TrainState>("POST", "/api/train/start", {}),

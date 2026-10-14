@@ -92,17 +92,18 @@ export class Fx {
     });
   }
 
-  /** A short speech bubble above a world point. */
+  /** A short status line UNDER a world point (an avatar's feet): the name label sits above the head, so result
+   *  text ("잠겨 있다", "이상 없음") goes below and never overlaps it. */
   bubble(x: number, y: number, s: string, ms = 1600): void {
-    const t = this.scene.add.text(x, y - 36, s, { fontFamily: '"Label", sans-serif', fontSize: "9px", color: "#111", backgroundColor: "#f7f7fb", padding: { x: 4, y: 2 }, resolution: 3 })
-      .setOrigin(0.5, 1).setDepth(BUBBLE_DEPTH);
-    this.scene.tweens.add({ targets: t, y: y - 44, alpha: { from: 1, to: 0 }, delay: ms - 400, duration: 400, onComplete: () => t.destroy() });
+    const t = this.scene.add.text(x, y + 6, s, { fontFamily: '"Label", sans-serif', fontSize: "9px", color: "#111", backgroundColor: "#f7f7fb", padding: { x: 4, y: 2 }, resolution: 3 })
+      .setOrigin(0.5, 0).setDepth(BUBBLE_DEPTH);
+    this.scene.tweens.add({ targets: t, y: y + 14, alpha: { from: 1, to: 0 }, delay: ms - 400, duration: 400, onComplete: () => t.destroy() });
   }
 
   /** A floating line in a room (e.g. the decoy's "soft noise"). */
   roomBubble(room: string, s: string, ms = 1600): void {
     const c = this.roomCenter(room);
-    if (c) this.bubble(c.x, c.y, s, ms);
+    if (c) this.bubble(c.x, c.y + CELL * 1.2, s, ms);   // bottom half of the room, under the avatars' names
   }
 
   /** Outline rooms (selectable targets) and doors; `[]` clears. */
@@ -122,7 +123,37 @@ export class Fx {
     }
   }
 
+  private route: Phaser.GameObjects.GameObject[] = [];
+
+  /** Post-game reveal: the fugitive's route as numbered stops + arrows, and the capture point. `[]` clears. */
+  drawRoute(stops: { round: number; room: string }[], capture: string | null): void {
+    for (const o of this.route) o.destroy();
+    this.route = [];
+    if (!stops.length) return;
+    const g = this.scene.add.graphics().setDepth(FX_DEPTH - 2);
+    this.route.push(g);
+    g.lineStyle(3, 0xff5ab0, 0.85);
+    let prev: { x: number; y: number } | null = null;
+    const seen = new Map<string, number>();
+    for (const s of stops) {
+      const c = this.roomCenter(s.room);
+      if (!c) continue;
+      const n = (seen.get(s.room) ?? 0);
+      seen.set(s.room, n + 1);
+      const pt = { x: c.x + n * 10, y: c.y + n * 6 };
+      if (prev && (prev.x !== pt.x || prev.y !== pt.y)) { g.lineBetween(prev.x, prev.y, pt.x, pt.y); g.fillStyle(0xff5ab0, 0.9); g.fillCircle(pt.x, pt.y, 3); }
+      const t = this.text(pt.x, pt.y - 6, `R${s.round}`, 11, "#ff8ccf");
+      this.route.push(t);
+      prev = pt;
+    }
+    if (capture) {
+      const c = this.roomCenter(capture);
+      if (c) this.route.push(this.text(c.x, c.y - CELL * 1.6, "★ 체포", 14, "#ffd54a"));
+    }
+  }
+
   destroy(): void {
+    for (const o of this.route) o.destroy();
     this.scene.scale.off(Phaser.Scale.Events.RESIZE, this.resizeDark, this);
     for (const o of this.objects) o.destroy();
     this.highlight.destroy();

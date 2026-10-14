@@ -3,8 +3,18 @@
 import { tbus } from "../bus";
 import { reportLines } from "../report";
 import { isBot, isFugitive, label, tstate } from "../state";
-import { ORDER_KO } from "../strings";
+import { HACK_KO, ORDER_KO } from "../strings";
+import type { BotReason } from "../api";
 import { $, el } from "./dom";
+
+/** "R3 🕶 도주자-AI: 이동 → B2 + hide — 이유" / "R3 🤖 제미나이-1: 수색 — 이유" */
+export function reasonLine(r: BotReason): string {
+  const who = r.uid === "fugitive" ? "🕶 도주자-AI" : `🤖 ${label(r.uid)}`;
+  const order = r.uid === "fugitive"
+    ? `${r.target ? `이동 → ${r.target}` : "대기"}${r.order && r.order !== "stay" ? ` + ${HACK_KO[r.order] ?? r.order}${r.hack_target ? ` ${r.hack_target}` : ""}` : ""}`
+    : `${ORDER_KO[r.order as keyof typeof ORDER_KO] ?? r.order}${r.target ? ` → ${r.target}` : ""}`;
+  return `R${r.round} ${who}: ${order}${r.accepted ? "" : ` (규칙 위반: ${r.note})`} — ${r.reason}`;
+}
 
 export function initReport(): void {
   tbus.on("state:changed", render);
@@ -32,23 +42,12 @@ function render(): void {
     if (h.color) row.style.borderLeft = `4px solid ${h.color}`;
     crew.appendChild(row);
   }
-  if (isFugitive() && !p.fugitive?.pinged && p.status === "ROUND_OPEN") crew.appendChild(el("div", "small muted", "승무원 명령 내용은 핑을 써야 보여요"));
+  if (isFugitive() && !p.fugitive_ai && !p.fugitive?.pinged && p.status === "ROUND_OPEN") crew.appendChild(el("div", "small muted", "승무원 명령 내용은 핑을 써야 보여요"));
   if (isFugitive() && p.position_history) crew.appendChild(el("div", "small muted", `이동 기록: ${p.position_history.join(" → ")}`));
-  const reasons = (p.bot_reasons ?? []).filter((r) => r.round === (p.round_no ?? p.view?.round_no) || r.round === (p.report?.round ?? -1));
-  if (p.status === "CAPTURED" && p.ai_log?.length) {
-    crew.appendChild(el("div", "panel-sub", "AI의 판단 기록"));
-    for (const r of p.ai_log) {
-      const who = r.uid === "fugitive" ? "🕶 도주자-AI" : `🤖 ${label(r.uid)}`;
-      const order = r.uid === "fugitive"
-        ? `${r.target ? `이동 → ${r.target}` : "대기"}${r.order && r.order !== "stay" ? ` + ${r.order}${r.hack_target ? ` ${r.hack_target}` : ""}` : ""}`
-        : `${ORDER_KO[r.order as keyof typeof ORDER_KO] ?? r.order}${r.target ? ` → ${r.target}` : ""}`;
-      crew.appendChild(el("div", "small", `R${r.round} ${who}: ${order}${r.accepted ? "" : ` (규칙 위반: ${r.note})`} — ${r.reason}`));
-    }
-  } else if (isFugitive() && reasons.length) {
-    crew.appendChild(el("div", "panel-sub", "AI 승무원의 판단"));
-    for (const r of reasons) {
-      const order = `${ORDER_KO[r.order as keyof typeof ORDER_KO] ?? r.order}${r.target ? ` → ${r.target}` : ""}`;
-      crew.appendChild(el("div", "small", `R${r.round} 🤖 ${label(r.uid)}: ${order}${r.accepted ? "" : ` (규칙 위반이라 대기 처리: ${r.note})`} — ${r.reason}`));
-    }
+  // AI reasoning: the fugitive view (admin) sees it live, everyone sees the whole log once the chase is over
+  const log = p.status === "CAPTURED" ? p.ai_log : isFugitive() ? p.bot_reasons : undefined;
+  if (log?.length) {
+    crew.appendChild(el("div", "panel-sub", "AI의 판단"));
+    for (const r of [...log].reverse()) crew.appendChild(el("div", "small", reasonLine(r)));
   }
 }

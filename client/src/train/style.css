@@ -44,3 +44,27 @@ button, .chip { display: inline-flex; align-items: center; justify-content: cent
 #hud .chip, #hud button { font-size: 13px; }
 #hud-status { font-weight: 700; }
 #btn-vote-val:empty { display: none; }
+
+/* --- QoL pass --- */
+#hud-order { max-width: 100%; }
+#hud-order button.small { min-height: 22px; padding: 2px 8px; font-size: 11px; margin-left: 6px; }
+#hud-sub-val { max-width: 44vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#roundlog { bottom: auto; top: calc(var(--safe-top) + 150px); max-height: 34vh; }
+#roundlog .log-body { overflow-y: auto; max-height: 26vh; font-size: 12px; line-height: 1.45; padding: 2px 4px; }
+.log-round { padding: 4px 0; border-top: 1px dashed rgba(55, 214, 230, 0.25); }
+.log-round:first-child { border-top: 0; }
+.log-round.playing .log-head { color: var(--primary); }
+.log-head { font-weight: 700; }
+.help-row { display: flex; gap: 8px; align-items: baseline; margin: 3px 0; }
+.help-row b { flex: 0 0 72px; color: var(--primary); }
+.admin-danger { margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255, 107, 107, 0.35); }
+.vote-row .small.muted { margin-left: 6px; }
+.fug-why { display: block; font-size: 10px; color: var(--muted); margin-top: 2px; }
+#fug-projection { font-size: 12px; color: var(--primary); text-align: center; min-height: 14px; }
+.thinking { color: var(--muted); font-style: italic; }
+button.armed { outline: 2px solid var(--danger); }
+@media (max-width: 899px) { #roundlog { top: calc(var(--safe-top) + 190px); } }
+
+/* foldable top toolbar: only the fold button (and the connection warning) stay */
+#hud.folded > *:not(.fold):not(#hud-conn) { display: none !important; }
+#hud .fold { margin-left: auto; }

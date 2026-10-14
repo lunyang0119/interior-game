@@ -19,19 +19,23 @@
   <div id="hud" class="overlay">
     <a id="btn-home" class="chip" href="/" title="방으로 돌아가기"><i class="ic ic-home"></i><span>홈</span></a>
     <div id="hud-id" class="chip"><i class="ic ic-gamepad"></i><span id="hud-id-val">…</span></div>
-    <div id="hud-status" class="chip">대기</div>
+    <div id="hud-status" class="chip" title="추적 상태">대기</div>
+    <div id="hud-order" class="chip hidden" title="이번 라운드에 제출한 내 행동"><i class="ic ic-play"></i><span id="hud-order-val"></span><button id="btn-order-change" class="small">바꾸기</button></div>
     <span id="hud-game" class="hud-group hidden">
-      <div class="chip" title="라운드"><i class="ic ic-signal"></i><span id="hud-round-val">–</span></div>
-      <div class="chip" title="제출 마감까지"><i class="ic ic-clock"></i><span id="hud-clock-val">–</span></div>
-      <div id="hud-trace" class="chip" title="추적률"><i class="ic ic-target"></i><span id="hud-trace-val">–</span></div>
-      <div class="chip" title="제출 현황"><i class="ic ic-menu"></i><span id="hud-sub-val">–</span></div>
+      <div class="chip" title="라운드 번호"><i class="ic ic-signal"></i><span id="hud-round-val">–</span></div>
+      <div class="chip" title="제출 마감까지 남은 시간. 전원이 제출하면 바로 정산돼요"><i class="ic ic-clock"></i><span id="hud-clock-val">–</span></div>
+      <div id="hud-trace" class="chip" title="추적률: 라운드마다 오르고 퀵핵을 쓰면 더 올라요. T1 = ◎ 표식 2라운드 지연, T2 = 1라운드, T3 = 실시간"><i class="ic ic-target"></i><span id="hud-trace-val">–</span></div>
+      <button id="hud-sub" class="chip" title="제출 현황 — 미제출 승무원 이름. 누르면 건너뛰기 투표 패널"><i class="ic ic-menu"></i><span id="hud-sub-val">–</span></button>
     </span>
     <button id="btn-lobby" class="chip" title="탑승"><i class="ic ic-exit"></i><span>탑승</span></button>
     <button id="btn-report" class="chip" title="판독 보고"><i class="ic ic-chat"></i><span>보고</span></button>
     <button id="btn-vote" class="chip hidden" title="건너뛰기 투표"><i class="ic ic-trophy"></i><span id="btn-vote-val"></span></button>
     <button id="btn-admin" class="chip hidden" title="관제"><i class="ic ic-gear"></i><span>관제</span></button>
     <button id="btn-home-cam" class="chip" title="내 위치로"><i class="ic ic-expand"></i><span>내 위치</span></button>
+    <button id="btn-help" class="chip" title="규칙·조작·표식 설명"><i class="ic ic-help"></i><span>도움말</span></button>
+    <button id="btn-bgm" class="chip" title="음악 켜기/끄기"><i class="ic ic-speaker"></i><span id="btn-bgm-val">소리</span></button>
     <div id="hud-conn" class="chip hidden"><i class="ic ic-alert"></i><span>연결 끊김 · 다시 연결 중…</span></div>
+    <button id="btn-hud-fold" class="chip fold" data-fold="hud" title="툴바 접기/펴기"><i class="ic ic-tri_up"></i><span>접기</span></button>
   </div>
 
   <!-- admin map preview: pick any built-in map; renders from room data only -->
@@ -39,6 +43,15 @@
     <span class="chip">미리보기</span>
     <div id="preview-maps" class="row small"></div>
     <label class="chip small"><input id="preview-grid" type="checkbox" /> 칸 번호</label>
+  </div>
+
+  <!-- round result log (every round this session saw) + playback controls -->
+  <div id="roundlog" class="overlay bar hidden">
+    <div class="bar-head"><div class="bar-status">판독 기록</div>
+      <button id="btn-log-skip" class="chip hidden" title="재생을 건너뛰고 결과만 보기"><i class="ic ic-play_small"></i><span>건너뛰기</span></button>
+      <button id="btn-log-replay" class="chip hidden" title="마지막 라운드 재생을 다시 보기"><i class="ic ic-play_back"></i><span>다시 보기</span></button>
+      <button class="chip fold" data-fold="roundlog" title="접기/펴기"><i class="ic ic-tri_down"></i><span>접기</span></button></div>
+    <div id="roundlog-body" class="bar-body log-body"></div>
   </div>
 
   <!-- hunter: this round's order -->
@@ -60,6 +73,7 @@
   <div id="fugbar" class="overlay bar hidden">
     <div class="bar-head"><div id="fug-status" class="bar-status"></div><button class="chip fold" data-fold="fugbar" title="접기/펴기"><i class="ic ic-tri_down"></i><span>접기</span></button></div>
     <div class="row small bar-body"><span id="fug-ram" class="chip"></span><span id="fug-trace" class="chip"></span></div>
+    <div id="fug-projection" class="bar-body"></div>
     <div id="fug-pick" class="bar-body">
       <div id="fug-hacks" class="row small"></div>
       <div class="row small"><button id="btn-fug-ping" class="chip"><i class="ic ic-signal"></i><span id="btn-fug-ping-val">핑</span></button><button id="btn-fug-clear" class="chip"><i class="ic ic-close"></i><span>선택 지우기</span></button></div>
@@ -99,6 +113,11 @@
     <div id="report-crew"></div>
   </div>
 
+  <div id="panel-help" class="panel hidden">
+    <div class="panel-head"><span><i class="ic ic-help"></i><span>규칙과 조작</span></span><button class="close" data-close="panel-help">✕</button></div>
+    <div id="help-body"></div>
+  </div>
+
   <div id="panel-vote" class="panel hidden">
     <div class="panel-head"><span><i class="ic ic-trophy"></i><span>건너뛰기 투표</span></span><button class="close" data-close="panel-vote">✕</button></div>
     <div id="vote-info" class="small muted"></div>
@@ -108,8 +127,10 @@
   <div id="panel-admin" class="panel hidden">
     <div class="panel-head"><span><i class="ic ic-gear"></i><span>관제</span></span><button class="close" data-close="panel-admin">✕</button></div>
     <div id="admin-flow" class="row"></div>
-    <div class="panel-sub">튠값 <button id="btn-admin-reload" class="chip small">새로 읽기</button></div>
-    <div id="admin-config"></div>
+    <div id="admin-presets" class="row"></div>
+    <div id="admin-danger" class="row admin-danger"></div>
+    <div class="panel-sub"><button id="btn-admin-tune" class="chip small"><i class="ic ic-sliders"></i><span>튠값 펼치기</span></button> <button id="btn-admin-reload" class="chip small hidden">새로 읽기</button></div>
+    <div id="admin-config" class="hidden"></div>
     <div class="small muted" style="margin-top:8px">맵 미리보기: <a href="/train/?preview=car2077_12">/train/?preview=&lt;map_id&gt;</a></div>
   </div>
 

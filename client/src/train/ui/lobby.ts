@@ -6,6 +6,7 @@ import { isAdmin, isBot, label, me, tstate } from "../state";
 import { $, button, el, openPanel, show } from "./dom";
 
 let maps: MapSummary[] = [];
+let countdown: number | null = null;
 
 export function initLobby(): void {
   tbus.on("state:changed", render);
@@ -78,9 +79,19 @@ function render(): void {
     }));
   }
   if (isAdmin()) {
-    actions.appendChild(button("출발 (라운드 1 시작)", async () => {
-      try { await api.start(); } catch (e) { toast(msgFor(e)); }
-    }, "primary"));
+    const go = button("출발 (라운드 1 시작)", () => {
+      // 3-second countdown so a crew member still reading can shout; tapping again cancels
+      if (countdown !== null) { window.clearInterval(countdown); countdown = null; go.textContent = "출발 (라운드 1 시작)"; toast("출발을 취소했어요"); return; }
+      let n = 3;
+      go.textContent = `출발 ${n}… (취소)`;
+      countdown = window.setInterval(async () => {
+        n--;
+        if (n > 0) { go.textContent = `출발 ${n}… (취소)`; return; }
+        window.clearInterval(countdown!); countdown = null;
+        try { await api.start(); } catch (e) { toast(msgFor(e)); go.textContent = "출발 (라운드 1 시작)"; }
+      }, 1000);
+    }, "primary");
+    actions.appendChild(go);
     actions.appendChild(button("추적 취소", async () => {
       if (!confirm("이 추적을 닫을까요?")) return;
       try { await api.endGame(); } catch (e) { toast(msgFor(e)); }

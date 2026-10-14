@@ -92,6 +92,7 @@ export class TrainScene extends Phaser.Scene {
       this.offs.push(tbus.on("playback:start", ({ report }) => void this.play(report)));
       this.offs.push(tbus.on("camera:home", () => this.home()));
       this.offs.push(tbus.on("pick:changed", () => this.showPicks()));
+      this.offs.push(tbus.on("throttle", ({ on }) => { if (on) this.tweens.pauseAll(); else this.tweens.resumeAll(); }));
       void this.sync().then(() => this.home());
     }
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
@@ -134,6 +135,11 @@ export class TrainScene extends Phaser.Scene {
     this.fx.setMarkers(view.markers);
     this.fx.setLocks(view.locks);
     this.fx.setSteam(view.steam);
+    // post-game route reveal (server sends `route` only while CAPTURED and the admin switched it on)
+    const route = p.status === "CAPTURED" && p.route ? p.route : [];
+    const stops: { round: number; room: string }[] = [];
+    for (const r of route) for (const room of r.path) if (!stops.length || stops[stops.length - 1].room !== room) stops.push({ round: r.round, room });
+    this.fx.drawRoute(stops, stops.length ? view.capture_room : null);
     if (p.fugitive) {
       this.fugitive.setTrace(p.fugitive.tier, p.fugitive.frozen);
       await this.fugitive.show(p.fugitive.room);
@@ -177,7 +183,7 @@ export class TrainScene extends Phaser.Scene {
       for (const h of report.playback.hunters) rooms[h.id] = h.from;
       await this.hunters.sync(ids, tstate.payload?.avatars ?? {}, rooms, true);
       await playRound({ scene: this, layout: this.layout, hunters: this.hunters, fugitive: this.fugitive, fx: this.fx,
-        fugitiveView: isFugitive(), toast: (s) => tbus.emit("toast", { text: s, ms: 2600 }) }, report);
+        fugitiveView: isFugitive(), toast: (s) => tbus.emit("toast", { text: s, ms: 2600 }), skipped: () => tstate.skipping }, report);
     } finally {
       this.busy = false;
     }

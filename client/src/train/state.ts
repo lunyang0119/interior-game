@@ -22,6 +22,14 @@ export const tstate = {
   playing: null as Report | null,
   /** the fugitive's true room as the fugitive view knows it (or the capture room for everyone) */
   revealedRoom: null as string | null,
+  /** every report this session has seen, by round (the round log) */
+  history: [] as Report[],
+  /** "건너뛰기": the running and queued playbacks finish instantly */
+  skipping: false,
+  /** AI hunters currently asking Gemini (ws bot_thinking → submitted) */
+  thinking: new Set<string>(),
+  /** a result arrived while the tab was hidden / not yet played (tab-title badge) */
+  unseenResult: false,
 };
 
 export function me(): string | null {
@@ -34,7 +42,7 @@ export function isBot(id: string): boolean {
 }
 
 export function label(id: string): string {
-  return isBot(id) ? `제미나이-${id.slice(4)}` : id;
+  return id === "fugitive" ? "도주자-AI" : isBot(id) ? `제미나이-${id.slice(4)}` : id;
 }
 
 /** The account holding the controls (pause, config, AI crew…). In fugitive-AI games this is not the fugitive. */

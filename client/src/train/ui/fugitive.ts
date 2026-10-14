@@ -15,7 +15,7 @@ export function initFugitiveBar(): void {
   $("btn-fug-clear").onclick = () => { tstate.fpick = { move: null, hack: null, target: null }; changed(); };
   tbus.on("room:tap", ({ room, door }) => {
     const p = tstate.payload;
-    if (!isFugitive() || !p || p.status !== "ROUND_OPEN" || !p.fugitive || tstate.phase === "playback") return;
+    if (!isFugitive() || !p || p.fugitive_ai || p.status !== "ROUND_OPEN" || !p.fugitive || tstate.phase === "playback") return;
     const f = tstate.fpick;
     if (f.hack === "doorlock" && door) {
       if ((p.lockable_edges ?? []).includes(door)) { f.target = door; changed(); } else toast("여기서는 잠글 수 없는 문이에요", 1500);
@@ -65,7 +65,7 @@ async function ping(): Promise<void> {
 
 function render(): void {
   const p = tstate.payload;
-  const on = isFugitive() && !!p && p.status === "ROUND_OPEN" && !!p.fugitive && tstate.phase !== "playback";
+  const on = isFugitive() && !!p && !p.fugitive_ai && p.status === "ROUND_OPEN" && !!p.fugitive && tstate.phase !== "playback";
   show("fugbar", on);
   if (!on || !p?.fugitive) return;
   const f = p.fugitive;
@@ -86,7 +86,7 @@ function render(): void {
   for (const hk of HACKS) {
     const info = p.hacks?.[hk];
     const b = el("button", "chip" + (tstate.fpick.hack === hk ? " active" : ""), `${HACK_KO[hk]} ${info ? `(${info.cost})` : ""}`);
-    if (info && !info.ok) { b.classList.add("off"); b.title = info.why; }
+    if (info && !info.ok) { b.classList.add("off"); b.title = info.why; b.appendChild(el("span", "fug-why", shortWhy(info.why))); }
     b.onclick = () => {
       if (info && !info.ok) { toast(info.why, 4000); return; }
       tstate.fpick.hack = tstate.fpick.hack === hk ? null : hk;
@@ -97,7 +97,38 @@ function render(): void {
   }
   const pingInfo = p.hacks?.ping;
   const pingBtn = $<HTMLButtonElement>("btn-fug-ping");
-  $("btn-fug-ping-val").textContent = `핑 (${pingInfo?.cost ?? "?"})`;
+  $("btn-fug-ping-val").textContent = `핑 (${pingInfo?.cost ?? "?"})${pingInfo && !pingInfo.ok && !f.pinged ? ` · ${shortWhy(pingInfo.why)}` : ""}`;
   pingBtn.disabled = f.pinged || !(pingInfo?.ok ?? false);
   pingBtn.title = f.pinged ? "이번 라운드에 이미 핑을 썼어요" : (pingInfo?.why ?? "");
+  $("fug-projection").textContent = projection(p, tstate.fpick.hack, f.pinged);
+}
+
+/** The engine's reason, shortened for a button: "RAM 부족 (1/3)" → "RAM 부족 (3 필요)", device rule → "이 방엔 X 없음". */
+function shortWhy(why: string): string {
+  const ram = why.match(/RAM 부족 \((\d+)\/(\d+)\)/);
+  if (ram) return `RAM 부족 (${ram[2]} 필요)`;
+  const dev = why.match(/(커튼|커피포트|조명|스피커) 장치가 있는 구역에서만/);
+  if (dev) return `이 방엔 ${dev[1]} 없음`;
+  if (/봉인/.test(why)) return "핵 봉인됨";
+  if (/비활성/.test(why)) return "꺼져 있음";
+  return why;
+}
+
+/** "추적률 48 → 63 · 다음 라운드 티어 2 (표식 1라운드 지연)" for the selected hack (and this round's ping). */
+function projection(p: NonNullable<typeof tstate.payload>, hack: Hack | null, pinged: boolean): string {
+  const f = p.fugitive;
+  const c = p.config ?? {};
+  if (!f) return "";
+  const passive = Number(c.trace_passive ?? 0);
+  const t = [Number(c.trace_t1 ?? 40), Number(c.trace_t2 ?? 70), Number(c.trace_t3 ?? 100)];
+  const add = (hack ? Number(p.hacks?.[hack]?.trace ?? 0) : 0) + (pinged ? 0 : 0);
+  if (!hack && !pinged) return "";
+  const next = Math.min(100, f.trace + add + passive);
+  const tier = next >= t[2] ? 3 : next >= t[1] ? 2 : next >= t[0] ? 1 : 0;
+  const lag = ["표식 없음", "표식 2라운드 지연", "표식 1라운드 지연", "표식 실시간"][tier];
+  const parts = [];
+  if (hack) parts.push(`${HACK_KO[hack]} +${Number(p.hacks?.[hack]?.trace ?? 0)}`);
+  if (pinged) parts.push("핑 반영됨");
+  parts.push(`기본 +${passive}`);
+  return `추적률 ${f.trace} → ${next} (${parts.join(", ")}) · 다음 라운드 티어 ${tier} (${lag})`;
 }

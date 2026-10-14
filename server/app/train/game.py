@@ -65,6 +65,7 @@ class Policy:
     votes: dict[str, list[str]] = field(default_factory=dict)
     webhook_sent: bool = False
     fugitive_ai: bool = False      # Gemini plays the fugitive; the admin keeps the controls and may ride as a hunter
+    reveal_path: bool = False      # after CAPTURED: hunters/spectators may see the fugitive's whole route
 
 
 @dataclass
@@ -190,8 +191,12 @@ class Manager:
 
     def role_of(self, pid: str | None) -> str:
         g = self.game
-        if pid is not None and pid == self.admin_id and not (g is not None and g.policy.fugitive_ai):
-            return views.FUGITIVE
+        if pid is not None and pid == self.admin_id:
+            # AI fugitive: the admin watches through the fugitive view unless they ride as a hunter themselves
+            riding = g is not None and g.policy.fugitive_ai and (
+                pid in g.engine.hunters if g.engine is not None else pid in g.policy.lobby)
+            if not riding:
+                return views.FUGITIVE
         if pid is not None and g is not None:
             if g.engine is not None and pid in g.engine.hunters:
                 return views.HUNTER
@@ -370,6 +375,18 @@ class Manager:
         await self._push_state()
         return self._payload(pid)
 
+    async def set_reveal(self, pid: str, on: bool) -> dict[str, Any]:
+        """Post-game only: show everyone the fugitive's route (views adds `route` while CAPTURED and on)."""
+        self._require_admin(pid)
+        async with self.lock:
+            g = self._require_game()
+            if g.status != CAPTURED:
+                raise ApiError(409, "not_captured")
+            g.policy.reveal_path = on
+            await self._save()
+        await self._push_state()
+        return self._payload(pid)
+
     async def remove_bots(self, pid: str) -> dict[str, Any]:
         self._require_admin(pid)
         async with self.lock:
@@ -397,6 +414,7 @@ class Manager:
         """Mirror of the bot's _run_fugitive_turn: Gemini decides outside the lock; a rule-breaking answer keeps the
         move and drops the hack, or waits."""
         st = g.engine
+        await self._push_to_fugitive({"type": "bot_thinking", "id": B.FUGITIVE_UID, "round": round_no})
         try:
             d = await B.decide_fugitive(self.bot_player, st)
         except Exception:  # noqa: BLE001
@@ -417,6 +435,7 @@ class Manager:
                     E.submit_fugitive_order(st, None, None, None, now=self.now())
                     note += " → 대기"
             B.record_fugitive_reason(st, d, accepted, note)
+            await self._push_to_fugitive({"type": "bot_reason", "reason": st.bot_reasons[-1]})
             await self._save()
             await self._maybe_early_resolve(g)
 

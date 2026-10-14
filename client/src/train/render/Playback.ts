@@ -21,9 +21,12 @@ export interface PlaybackCtx {
   /** this client is the fugitive: also walk the silhouette along fugitive_path */
   fugitiveView: boolean;
   toast: (s: string) => void;
+  /** 건너뛰기 pressed: skip the waits and walks, just land everything where the round ends */
+  skipped: () => boolean;
 }
 
-function wait(scene: Phaser.Scene, ms: number): Promise<void> {
+function wait(scene: Phaser.Scene, ms: number, ctx?: PlaybackCtx): Promise<void> {
+  if (ctx?.skipped()) return Promise.resolve();
   return new Promise((resolve) => scene.time.delayedCall(ms, () => resolve()));
 }
 
@@ -39,15 +42,16 @@ export async function playRound(ctx: PlaybackCtx, rep: Report): Promise<void> {
   fx.setLocks(rep.locks);
   fx.setSteam(rep.steam);
   if (rep.signature && rep.signature !== "ping") ctx.toast(`⚠ ${DEVICE_KO[rep.signature] ?? rep.signature} 계열 장치에서 비정상 접근 감지`);
-  if (rep.blackout) await fx.blackout();
-  else await wait(scene, 300);
+  if (rep.blackout && !ctx.skipped()) await fx.blackout();
+  else await wait(scene, 300, ctx);
 
   const path = rep.playback.fugitive_path;
-  const fugitiveWalk = ctx.fugitiveView && path && path.length ? fugitive.walkRooms(path) : Promise.resolve();
+  const fugitiveWalk = ctx.fugitiveView && path && path.length && !ctx.skipped() ? fugitive.walkRooms(path) : Promise.resolve();
 
   // 2. hunters move (all at once; a locked door = walk up, bump, come back)
   await Promise.all(pb.map(async (h) => {
     if (h.action !== "move") return;
+    if (ctx.skipped()) { hunters.placeAll({ [h.id]: h.blocked_edge ? h.from : h.to }); return; }
     if (h.blocked_edge) {
       const door = layout.doorByEdge.get(h.blocked_edge);
       if (door) await hunters.bump(h.id, h.from, door);
@@ -58,7 +62,13 @@ export async function playRound(ctx: PlaybackCtx, rep: Report): Promise<void> {
     await hunters.walk(h.id, h.to);
   }));
   await fugitiveWalk;
-  await wait(scene, 250);
+  if (ctx.skipped()) {   // a skip pressed mid-walk: land everyone where the round ends
+    const to: Record<string, string> = {};
+    for (const h of pb) to[h.id] = h.blocked_edge ? h.from : h.to;
+    hunters.placeAll(to);
+    if (ctx.fugitiveView && path?.length) await fugitive.show(path[path.length - 1]);
+  }
+  await wait(scene, 250, ctx);
 
   // 3. results
   const scanDevice = new Map<string, string>();
@@ -71,7 +81,7 @@ export async function playRound(ctx: PlaybackCtx, rep: Report): Promise<void> {
 
   // 4. what the tracker shows after the round
   const glimpses = [...new Set(rep.events.filter((e) => e.type === "glimpse").map((e) => e.room!))];
-  for (const r of glimpses) await fugitive.glimpse(r);
+  for (const r of glimpses) if (!ctx.skipped()) await fugitive.glimpse(r);
   if (!rep.blackout) fx.setMarkers(rep.markers);
   for (const ev of rep.events) if (ev.type === "contact_miss" && ev.room) fx.roomBubble(ev.room, "💥 접촉!");
   if (rep.frozen) ctx.toast("‼ 침입자 신호가 한 지점에 고정되었다");
@@ -83,12 +93,12 @@ export async function playRound(ctx: PlaybackCtx, rep: Report): Promise<void> {
     const capRoom = ctx.fugitiveView && path?.length ? path[path.length - 1] : room;
     if (capRoom) {
       await fugitive.show(capRoom);
-      await wait(scene, 600);
+      await wait(scene, 600, ctx);
       await fugitive.reveal();
       const p = hunters.position(rep.captured_by);
       if (p) fx.bubble(p.x, p.y, "체포!", 3000);
-      await wait(scene, 1200);
+      await wait(scene, 1200, ctx);
     }
   }
-  await wait(scene, 400);
+  await wait(scene, 400, ctx);
 }

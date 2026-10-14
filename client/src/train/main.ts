@@ -12,13 +12,17 @@ import { tbus } from "./bus";
 import { TrainBoot } from "./scenes/TrainBoot";
 import { TrainScene, type TrainSceneData } from "./scenes/TrainScene";
 import { label, lastPlayed, markPlayed, tstate, type Phase } from "./state";
-import { ORDER_KO, S } from "./strings";
+import { S } from "./strings";
 import { initAdmin } from "./ui/admin";
 import { $, closePanels, initFolds, show } from "./ui/dom";
 import { initFugitiveBar } from "./ui/fugitive";
 import { initHud } from "./ui/hud";
 import { initLobby } from "./ui/lobby";
-import { initReport } from "./ui/report";
+import { initReport, reasonLine } from "./ui/report";
+import { initHelp } from "./ui/help";
+import { initRoundLog, remember } from "./ui/roundlog";
+import { initTrainBgm, isMuted, setTrace, stop as stopBgm, toggleMute } from "./bgm";
+import { initCues, roundCue } from "./cues";
 import { initSubmit } from "./ui/submit";
 import { initVote } from "./ui/vote";
 import { tsocket } from "./ws";
@@ -154,6 +158,9 @@ function applyState(p: TrainState): void {
     tstate.pingOrders = null;
   }
   if (tstate.phase !== "playback") tstate.phase = phaseFor(p);
+  if (p.report) remember(p.report);
+  if (prev?.game_id !== p.game_id) { tstate.history.length = 0; tstate.thinking.clear(); tbus.emit("history:changed", {}); }
+  if (p.view && p.status !== "LOBBY" && p.status !== "IDLE") setTrace(p.report?.trace ?? p.view.trace ?? 0); else stopBgm();
   const rooms: MapRoom[] | null = p.view ? mapRooms(p.view.map_rows) : null;
   const key = p.view ? `${p.game_id}:${p.view.map_id}` : "";
   if (rooms && key !== sceneMap) startGame({ rooms }, key);
@@ -164,13 +171,37 @@ function applyState(p: TrainState): void {
 }
 
 let playQueue: Promise<void> = Promise.resolve();
+const pendingPlays: { report: Report; gameId: number | null }[] = [];   // ordered by round (G8)
+let draining = false;
 
-/** Play a round's report (one at a time), then return to the live phase. */
+/** Queue a round's report; rounds play in order, one at a time; "건너뛰기" drains the rest instantly. */
 function play(report: Report, gameId: number | null): Promise<void> {
-  playQueue = playQueue.then(() => new Promise<void>((resolve) => {
+  remember(report);
+  if (pendingPlays.some((x) => x.report.round === report.round && x.gameId === gameId)) return playQueue;
+  pendingPlays.push({ report, gameId });
+  pendingPlays.sort((a, b) => a.report.round - b.report.round);
+  if (!draining) {
+    draining = true;
+    playQueue = (async () => {
+      while (pendingPlays.length) {
+        const next = pendingPlays.shift()!;
+        await playOne(next.report, next.gameId);
+      }
+      tstate.skipping = false;
+      draining = false;
+      throttle();
+    })();
+  }
+  return playQueue;
+}
+
+function playOne(report: Report, gameId: number | null): Promise<void> {
+  return new Promise<void>((resolve) => {
     tstate.phase = "playback";
     tstate.playing = report;
+    tstate.unseenResult = false;
     closePanels();
+    throttle();
     tbus.emit("state:changed", {});
     const off = tbus.on("playback:done", ({ report: r }) => {
       if (r !== report) return;
@@ -190,9 +221,30 @@ function play(report: Report, gameId: number | null): Promise<void> {
     const kick = () => tbus.emit("playback:start", { report });
     if (game && game.scene.isActive("Train")) kick();
     else { const offReady = tbus.on("scene:ready", () => { offReady(); kick(); }); }
-  }));
-  return playQueue;
+  });
 }
+
+// ---------------------------------------------------------------------------
+// battery: low FPS + paused tweens while nothing plays; the loop sleeps while the tab is hidden (E12).
+// The WebSocket and the HUD's setInterval timers are DOM-side and keep running.
+// ---------------------------------------------------------------------------
+const IDLE_FPS = 10;
+let throttled = false;
+function throttle(): void {
+  if (!game) return;
+  const want = tstate.phase !== "playback";
+  if (want === throttled) return;
+  throttled = want;
+  const loop = game.loop as unknown as { fpsLimit: number; hasFpsLimit: boolean; _limitRate: number };
+  loop.fpsLimit = want ? IDLE_FPS : 0;
+  loop.hasFpsLimit = want;
+  loop._limitRate = want ? 1000 / IDLE_FPS : 0;
+  tbus.emit("throttle", { on: want });
+}
+document.addEventListener("visibilitychange", () => {
+  if (!game) return;
+  if (document.hidden) game.loop.sleep(); else game.loop.wake(true);
+});
 
 /** hello/state after a (re)connect: replay a round this browser has not seen to its end. */
 function maybeReplay(p: TrainState): void {
@@ -212,13 +264,16 @@ function wireSocket(): void {
     const p = tstate.payload;
     if (!p) return;
     p.status = "ROUND_OPEN"; p.deadline_ts = m.deadline_ts; p.grace_until = null; p.paused_remaining = null; p.vote_after_ts = m.vote_after_ts; p.votes = {};
+    tstate.thinking.clear();
     applyState(p);
+    if ((p.role === "hunter" && p.you && !p.you.dazed) || (p.role === "fugitive" && !p.fugitive_ai)) roundCue();
   });
   tsocket.on("submitted", (m: { id: string; submitted: boolean; order?: OrderMsg }) => {
     const p = tstate.payload;
     if (!p?.view) return;
     const h = p.view.hunters.find((x) => x.name === m.id);
     if (h) h.submitted = m.submitted;
+    if (m.submitted) tstate.thinking.delete(m.id);
     if (p.orders && m.order !== undefined) p.orders[m.id] = m.order;
     if (p.you && p.you.id === m.id) p.you.order = m.order ?? (m.submitted ? p.you.order : null);
     if (p.votes && m.submitted) delete p.votes[m.id];
@@ -254,20 +309,26 @@ function wireSocket(): void {
   });
   tsocket.on("round_resolved", (m: { report: Report; state: TrainState }) => {
     applyState(m.state);
+    if (document.hidden) tstate.unseenResult = true;
     void play(m.report, m.state.game_id);
   });
+  tbus.on("playback:skip", () => { tstate.skipping = true; });
+  tbus.on("playback:replay", ({ report }) => { if (tstate.phase !== "playback") void play(report, tstate.payload?.game_id ?? null); });
   tsocket.on("captured", (m: { room: string }) => {
     const p = tstate.payload;
     if (p) { p.status = "CAPTURED"; if (p.view) p.view.capture_room = m.room; }
     // the capture line itself is shown when the playback finishes (play())
   });
   tsocket.on("started", (m: { line: string }) => banner(m.line, 3500));
-  tsocket.on("bot_thinking", (m: { id: string; round: number }) => toast(`🤖 ${label(m.id)} — R${m.round} 판단 중…`, 2500));
+  tsocket.on("bot_thinking", (m: { id: string; round: number }) => {
+    tstate.thinking.add(m.id);
+    tbus.emit("state:changed", {});
+    toast(`${m.id === "fugitive" ? "🕶" : "🤖"} ${label(m.id)} — R${m.round} 판단 중…`, 2500);
+  });
   tsocket.on("bot_reason", (m: { reason: BotReason }) => {
     const p = tstate.payload;
     if (p) { p.bot_reasons = [...(p.bot_reasons ?? []), m.reason].slice(-24); tbus.emit("state:changed", {}); }
-    const order = `${ORDER_KO[m.reason.order as keyof typeof ORDER_KO] ?? m.reason.order}${m.reason.target ? ` → ${m.reason.target}` : ""}`;
-    toast(`🤖 ${label(m.reason.uid)} → ${order}: ${m.reason.reason}`, 6000);
+    toast(reasonLine(m.reason), 7000);
   });
   tsocket.on("paused", (m: { paused_remaining: number }) => {
     const p = tstate.payload;
@@ -317,6 +378,13 @@ async function boot(): Promise<void> {
   initVote();
   initReport();
   initAdmin();
+  initRoundLog();
+  initHelp();
+  initCues();
+  void initTrainBgm();
+  const bgmBtn = () => { $("btn-bgm-val").textContent = isMuted() ? "소리 꺼짐" : "소리"; };
+  $("btn-bgm").onclick = () => { toggleMute(); bgmBtn(); };
+  bgmBtn();
   // the claim panel is reachable from the account chip for the admin-to-be
   $("hud-id").onclick = () => { show("panel-claim"); $<HTMLInputElement>("claim-secret").focus(); };
   $("btn-claim").onclick = async () => {

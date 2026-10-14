@@ -19,6 +19,15 @@ export interface TrainEvents {
   /** fugitive picked a door for 문 잠금 / a room for 교란 (scene → UI highlight) */
   "pick:changed": Record<string, never>;
   toast: { text: string; ms?: number };
+  /** round log: the history array changed */
+  "history:changed": Record<string, never>;
+  /** 건너뛰기: finish the running playback (and the queued ones) instantly */
+  "playback:skip": Record<string, never>;
+  /** 다시 보기: play this report again */
+  "playback:replay": { report: Report };
+  "orderbar:unfold": Record<string, never>;
+  /** battery: low-FPS idle mode on/off (scene pauses/resumes its tweens) */
+  throttle: { on: boolean };
 }
 
 type Handler<K extends keyof TrainEvents> = (payload: TrainEvents[K]) => void;

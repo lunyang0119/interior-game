@@ -81,6 +81,9 @@ def _base(game: "TrainGame", role: str, pid: str | None) -> dict[str, Any]:
     if pid is not None and pid in st.hunters:
         h = st.hunters[pid]
         out["you"] = {"id": pid, "room": h.room, "order": order_dict(h.order), "dazed": h.dazed_until >= st.round_no}
+    # the fugitive's route is public only once the chase is over AND the admin switched the reveal on
+    if game.status == "CAPTURED" and p.reveal_path:
+        out["route"] = [{"round": e["round"], "path": list(e.get("fugitive_path") or [])} for e in st.log]
     return out
 
 
@@ -116,7 +119,7 @@ def fugitive_payload(game: "TrainGame", pid: str) -> dict[str, Any]:
     speed = int(st.config.get("fugitive_speed", 1))
     out["reachable"] = sorted(r for r in gmap.rooms if 0 < gmap.distance(f.room, r) <= speed)
     out["lockable_edges"] = E.lockable_edges(st)
-    out["bot_reasons"] = list(st.bot_reasons[-24:])
+    out["bot_reasons"] = list(st.bot_reasons[-60:])
     out["hunters_full"] = {
         uid: {"name": h.name, "room": h.room, "submitted": h.order is not None, "dazed_until": h.dazed_until,
               "order": order_dict(h.order) if pinged else None}

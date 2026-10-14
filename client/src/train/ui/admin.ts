@@ -1,17 +1,21 @@
-/** 🛠 admin panel (fugitive only): flow controls + the tunables bound to GET/PUT /api/train/config. */
+/** 🛠 admin panel: flow controls on top (pause/resume/extend/resolve-now), presets, then the dangerous buttons set
+ *  apart with an inline two-step confirm, and the tunables folded away. Bound to GET/PUT /api/train/config. */
 
 import { api, msgFor, type ConfigResponse } from "../api";
 import { tbus, toast } from "../bus";
 import { isAdmin, tstate } from "../state";
-import { $, button, el } from "./dom";
+import { $, button, el, show } from "./dom";
 
 let cfg: ConfigResponse | null = null;
+let tuneOpen = false;
 
 /** One-click playtest timings (runtime overrides only; data/train_config.json keeps the real defaults). */
 const TEST_PRESET: Record<string, unknown> = { round_timer_sec: 120, vote_skip_after_sec: 30, fugitive_grace_sec: 30 };
 
 export function initAdmin(): void {
   $("btn-admin-reload").onclick = () => void load();
+  $("btn-admin-tune").onclick = () => { tuneOpen = !tuneOpen; show("admin-config", tuneOpen); show("btn-admin-reload", tuneOpen);
+    $("btn-admin-tune").querySelector("span")!.textContent = tuneOpen ? "튠값 접기" : "튠값 펼치기"; if (tuneOpen && !cfg) void load(); };
   tbus.on("state:changed", render);
   render();
 }
@@ -25,20 +29,48 @@ function act(label: string, fn: () => Promise<unknown>, cls = ""): HTMLButtonEle
   return button(label, async () => { try { await fn(); } catch (e) { toast(msgFor(e), 4000); } }, cls);
 }
 
+/** Dangerous action: first tap arms the button ("정말 종료 (3초)"), a second tap within 3 s fires; otherwise it reverts. */
+function armed(label: string, confirmLabel: string, fn: () => Promise<unknown>): HTMLButtonElement {
+  let timer: number | null = null;
+  const b = button(label, async () => {
+    if (timer === null) {
+      b.textContent = confirmLabel;
+      b.classList.add("armed");
+      timer = window.setTimeout(() => { timer = null; b.textContent = label; b.classList.remove("armed"); }, 3000);
+      return;
+    }
+    window.clearTimeout(timer); timer = null;
+    b.textContent = label; b.classList.remove("armed");
+    try { await fn(); } catch (e) { toast(msgFor(e), 4000); }
+  }, "danger");
+  return b;
+}
+
 function render(): void {
   const p = tstate.payload;
   const flow = $("admin-flow");
-  flow.innerHTML = "";
+  const presets = $("admin-presets");
+  const danger = $("admin-danger");
+  flow.innerHTML = ""; presets.innerHTML = ""; danger.innerHTML = "";
   if (!isAdmin() || !p) return;
   const st = p.status;
-  if (st === "ROUND_OPEN") {
-    flow.append(act("⏸ 일시정지", api.pause), act("+10분", () => api.extend(600)), act("+1시간", () => api.extend(3600)),
-      act("라운드 지금 정산", () => confirm("미제출자는 대기로 처리돼요. 지금 정산할까요?") ? api.endRound() : Promise.resolve(), "danger"));
-  } else if (st === "PAUSED") {
-    flow.append(act("▶ 재개", api.resume), act("+10분", () => api.extend(600)), act("+1시간", () => api.extend(3600)));
+  if (st === "ROUND_OPEN") flow.append(act("⏸ 일시정지", api.pause), act("+10분", () => api.extend(600)), act("+1시간", () => api.extend(3600)));
+  else if (st === "PAUSED") flow.append(act("▶ 재개", api.resume), act("+10분", () => api.extend(600)), act("+1시간", () => api.extend(3600)));
+  if (st === "CAPTURED") {
+    const on = !!p.route;
+    flow.append(act(on ? "경로 공개 끄기" : "경로 공개 (모두에게)", () => api.reveal(!on), on ? "" : "primary"));
+    flow.appendChild(el("div", "small muted", on ? "승무원·관전자 화면에 도주자의 라운드별 경로와 체포 지점이 그려져요" : "체포 후에만 켤 수 있어요. 켜면 도주자의 전체 경로가 모두에게 보여요"));
   }
-  if (st !== "IDLE") flow.append(act("추적 종료", () => confirm("이 추적을 끝낼까요?") ? api.endGame() : Promise.resolve(), "danger"));
-  if (!cfg && st !== "IDLE") void load(); else renderConfig();
+  if (st !== "IDLE" && st !== "CAPTURED") {
+    presets.append(
+      act("테스트 프리셋 (2분·투표 30초·유예 30초)", async () => { cfg = await api.setConfig(TEST_PRESET); toast("테스트 프리셋을 적용했어요. 다음 라운드부터 2분 타이머예요"); renderConfig(); }),
+      act("기본값으로", async () => { cfg = await api.resetConfig(); toast("이 판의 덮어쓴 값을 모두 지웠어요"); renderConfig(); }),
+    );
+  }
+  if (st === "ROUND_OPEN" || st === "PAUSED") danger.appendChild(armed("라운드 지금 정산", "정말 정산 (3초)", api.endRound));
+  if (st !== "IDLE") danger.appendChild(armed("추적 종료", "정말 종료 (3초)", api.endGame));
+  show("admin-danger", danger.children.length > 0);
+  if (tuneOpen) { if (!cfg && st !== "IDLE") void load(); else renderConfig(); }
 }
 
 function renderConfig(): void {
@@ -58,26 +90,11 @@ function renderConfig(): void {
     row.append(lab, inp);
     box.appendChild(row);
   }
-  const apply = act("적용", async () => {
+  box.appendChild(act("적용", async () => {
     if (!Object.keys(pending).length) { toast("바뀐 값이 없어요"); return; }
     cfg = await api.setConfig(pending);
     toast("설정을 반영했어요");
     renderConfig();
-  }, "primary");
-  const presets = el("div", "row");
-  presets.append(
-    act("테스트 프리셋 (2분·투표 30초·유예 30초)", async () => {
-      cfg = await api.setConfig(TEST_PRESET);
-      toast("테스트 프리셋을 적용했어요. 다음 라운드부터 2분 타이머예요");
-      renderConfig();
-    }),
-    act("기본값으로", async () => {
-      cfg = await api.resetConfig();
-      toast("이 판의 덮어쓴 값을 모두 지웠어요");
-      renderConfig();
-    }),
-  );
-  box.appendChild(apply);
-  box.appendChild(presets);
+  }, "primary"));
   box.appendChild(el("div", "small muted", `맵 ${cfg.map_id} · 굵은 키 = 이 판에서 덮어쓴 값. 라운드 타이머·유예·투표 개방은 서버 정책, 나머지는 엔진 값이에요.`));
 }

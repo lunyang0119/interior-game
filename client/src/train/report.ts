@@ -56,6 +56,17 @@ export function reportLines(rep: Report, name: (uid: string) => string): string[
   return out;
 }
 
+/** "47분 남음" style relative time, ticking client-side from server timestamps (no absolute clock anywhere). */
+export function fmtRemain(sec: number): string {
+  const s = Math.max(0, Math.floor(sec));
+  if (s < 60) return `${s}초 남음`;
+  const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), r = s % 60;
+  if (h >= 24) return `${Math.floor(h / 24)}일 ${h % 24}시간 남음`;
+  if (h > 0) return `${h}시간 ${m}분 남음`;
+  if (s < 120) return `${m}분 ${r}초 남음`;
+  return `${m}분 남음`;
+}
+
 export function fmtCountdown(sec: number): string {
   const s = Math.max(0, Math.floor(sec));
   const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), r = s % 60;
