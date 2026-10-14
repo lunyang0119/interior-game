@@ -1,9 +1,24 @@
 /** Typed event bus of the train page (own instance; the room game's bus.ts is untouched). */
 
+import type { Report } from "./api";
+
 export interface TrainEvents {
   "scene:ready": { rooms: number };
-  "room:tap": { room: string | null };
+  /** a room (or nothing) was tapped in the car; `door` when a door sprite was hit (edge key) */
+  "room:tap": { room: string | null; door: string | null };
   "preview:grid": { on: boolean };
+  /** the payload changed: every UI piece re-renders from tstate */
+  "state:changed": Record<string, never>;
+  /** scene: redraw hunters/fugitive/markers from the payload (after a state change, not during playback) */
+  "scene:sync": Record<string, never>;
+  /** scene: play this round's report; emits playback:done afterwards */
+  "playback:start": { report: Report };
+  "playback:done": { report: Report };
+  /** HUD: centre the camera on my avatar (or the fugitive's) */
+  "camera:home": Record<string, never>;
+  /** fugitive picked a door for 문 잠금 / a room for 교란 (scene → UI highlight) */
+  "pick:changed": Record<string, never>;
+  toast: { text: string; ms?: number };
 }
 
 type Handler<K extends keyof TrainEvents> = (payload: TrainEvents[K]) => void;
@@ -24,3 +39,7 @@ class Bus {
 }
 
 export const tbus = new Bus();
+
+export function toast(text: string, ms?: number): void {
+  tbus.emit("toast", { text, ms });
+}

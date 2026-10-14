@@ -47,6 +47,7 @@ def hunter_orders(st: E.GameState) -> dict[str, dict[str, Any] | None]:
 def _base(game: "TrainGame", role: str, pid: str | None) -> dict[str, Any]:
     p = game.policy
     out: dict[str, Any] = {
+        "game_id": game.row_id,
         "status": game.status,
         "role": role,
         "hunter_count": p.hunter_count,
@@ -58,7 +59,9 @@ def _base(game: "TrainGame", role: str, pid: str | None) -> dict[str, Any]:
         "vote_after_ts": game.vote_after_ts(),
         "votes": {k: list(v) for k, v in p.votes.items()},
         "need": game.votes_needed(),
-        "you": None,
+        # always identifies the caller; room/order only once they are a hunter in a running game
+        "you": {"id": pid, "room": None, "order": None, "dazed": False} if pid is not None else None,
+        "avatars": {pid: look for pid, look in game.avatars.items() if pid in p.lobby or (st_h := game.engine) and pid in st_h.hunters},
     }
     st = game.engine
     if st is None:

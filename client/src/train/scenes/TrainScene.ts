@@ -1,23 +1,37 @@
 import Phaser from "phaser";
 import { Gestures } from "../../input/Gestures";
+import { CELL } from "../../room/grid";
+import { cellKey } from "../../room/walk";
 import { CameraController } from "../../scenes/CameraController";
-import type { MapDetail } from "../api";
+import { state } from "../../state";
+import type { MapRoom, Report } from "../api";
 import { tbus } from "../bus";
 import { CarMap } from "../render/CarMap";
-import { buildLayout, roomAt } from "../render/layout";
-import { CELL } from "../../room/grid";
+import { FugitiveSprite } from "../render/Fugitive";
+import { Fx } from "../render/Fx";
+import { Hunters } from "../render/Hunters";
+import { buildLayout, roomAt, type Layout } from "../render/layout";
+import { playRound } from "../render/Playback";
+import { isFugitive, me, tstate } from "../state";
 
 export interface TrainSceneData {
-  map: MapDetail;
+  rooms: MapRoom[];
   preview?: boolean;
 }
 
-/** The train car. In preview mode it only shows the data-driven layout of one map (admin check of the art). */
+/** The train car. Preview: just the data-driven layout. Game: hunters, the fugitive silhouette, markers and the
+ *  round playback, all driven from tstate.payload (what the server sent to this role). */
 export class TrainScene extends Phaser.Scene {
   private carMap!: CarMap;
+  private layout!: Layout;
   private camCtl!: CameraController;
   private gestures!: Gestures;
+  private hunters: Hunters | null = null;
+  private fugitive: FugitiveSprite | null = null;
+  private fx: Fx | null = null;
   private data_!: TrainSceneData;
+  private offs: (() => void)[] = [];
+  private busy = false;
 
   constructor() {
     super("Train");
@@ -28,32 +42,161 @@ export class TrainScene extends Phaser.Scene {
   }
 
   create(): void {
-    const layout = buildLayout(this.data_.map.rooms);
+    const layout = this.layout = buildLayout(this.data_.rooms);
     this.carMap = new CarMap(this, layout);
     this.cameras.main.setBackgroundColor("#14141c");
     this.camCtl = new CameraController(this, { worldW: this.carMap.widthPx, worldH: this.carMap.heightPx, minZoom: 1, maxZoom: 4, targetRows: layout.rows });
+
+    // one-finger drag pans. Gestures only pans with a mouse drag or two fingers (the room scenes follow the
+    // avatar instead); `claim` adds the pan as a side effect and never takes the event over, so Gestures still
+    // cancels the tap by its own slop and releases the pointer normally.
+    const drag = { id: -1, x: 0, y: 0, moved: false };
+    const DRAG_SLOP = 14;
     this.gestures = new Gestures(this, {
+      claim: (p, phase) => {
+        const fingers = this.input.manager.pointers.filter((q) => q.isDown).length;
+        if (phase === "down") {
+          drag.id = p.wasTouch && fingers === 1 ? p.id : -1;
+          drag.x = p.x; drag.y = p.y; drag.moved = false;
+        } else if (phase === "move" && drag.id === p.id) {
+          if (fingers !== 1) drag.id = -1;
+          else if (drag.moved || Phaser.Math.Distance.Between(p.x, p.y, drag.x, drag.y) > DRAG_SLOP) {
+            drag.moved = true;
+            this.camCtl.panBy(p.x - drag.x, p.y - drag.y);
+            drag.x = p.x; drag.y = p.y;
+          }
+        } else if (phase !== "move") {
+          drag.id = -1;
+        }
+        return false;
+      },
       tap: (p) => {
         const w = this.camCtl.screenToWorld(p.x, p.y);
-        const b = roomAt(layout, Math.floor(w.x / CELL), Math.floor(w.y / CELL));
-        tbus.emit("room:tap", { room: b?.id ?? null });
+        const cx = Math.floor(w.x / CELL), cy = Math.floor(w.y / CELL);
+        const door = this.doorAtCell(cx, cy);
+        const b = roomAt(layout, cx, cy);
+        tbus.emit("room:tap", { room: b?.id ?? null, door });
       },
       pan: (dx, dy) => this.camCtl.panBy(dx, dy),
       pinch: (ratio, mid) => this.camCtl.pinch(ratio, mid),
       pinchEnd: () => this.camCtl.pinchEnd(),
       wheel: (dy, p) => this.camCtl.wheel(dy, { x: p.x, y: p.y }),
     });
-    const offGrid = tbus.on("preview:grid", ({ on }) => this.carMap.showGrid(on));
+
+    this.offs.push(tbus.on("preview:grid", ({ on }) => this.carMap.showGrid(on)));
+    if (!this.data_.preview && state.catalog) {
+      this.hunters = new Hunters(this, state.catalog.chars, layout);
+      this.fugitive = new FugitiveSprite(this, state.catalog.chars, layout);
+      this.fx = new Fx(this, layout, (edge) => this.doorPoint(edge));
+      this.offs.push(tbus.on("scene:sync", () => void this.sync()));
+      this.offs.push(tbus.on("playback:start", ({ report }) => void this.play(report)));
+      this.offs.push(tbus.on("camera:home", () => this.home()));
+      this.offs.push(tbus.on("pick:changed", () => this.showPicks()));
+      void this.sync().then(() => this.home());
+    }
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
-      offGrid();
+      this.offs.forEach((f) => f());
+      this.offs = [];
       this.gestures.destroy();
       this.camCtl.destroy();
+      this.fx?.destroy();
+      this.hunters?.destroy();
+      this.fugitive?.destroy();
       this.carMap.destroy();
     });
     tbus.emit("scene:ready", { rooms: layout.rooms.size });
   }
 
-  update(): void {
+  private doorAtCell(cx: number, cy: number): string | null {
+    const k = cellKey(cx, cy);
+    for (const d of this.layout.doors) if (d.cells.some((c) => cellKey(c.cx, c.cy) === k)) return d.edge;
+    return null;
+  }
+
+  /** World point of a door (centre of its gap), for markers and highlights. */
+  doorPoint(edge: string): { x: number; y: number } | null {
+    const d = this.layout.doorByEdge.get(edge);
+    if (!d) return null;
+    const xs = d.cells.map((c) => c.cx), ys = d.cells.map((c) => c.cy);
+    return { x: ((Math.min(...xs) + Math.max(...xs) + 1) / 2) * CELL, y: (Math.max(...ys) + 1) * CELL };
+  }
+
+  /** Redraw everyone from the payload (not while a playback is running). */
+  private async sync(): Promise<void> {
+    const p = tstate.payload;
+    if (!p || !this.hunters || !this.fugitive || !this.fx || this.busy) return;
+    const view = p.view;
+    if (!view) { this.hunters.destroy(); return; }
+    const ids = view.hunters.map((h) => h.name);
+    const rooms: Record<string, string> = {};
+    for (const h of view.hunters) rooms[h.name] = h.room;
+    await this.hunters.sync(ids, p.avatars ?? {}, rooms);
+    this.fx.setMarkers(view.markers);
+    this.fx.setLocks(view.locks);
+    this.fx.setSteam(view.steam);
+    if (p.fugitive) {
+      this.fugitive.setTrace(p.fugitive.tier, p.fugitive.frozen);
+      await this.fugitive.show(p.fugitive.room);
+    } else if (view.capture_room) {
+      await this.fugitive.show(view.capture_room);
+      await this.fugitive.reveal();
+    } else {
+      this.fugitive.hide();
+    }
+    this.showPicks();
+  }
+
+  /** Selectable rooms/doors for the current pick (hunter: neighbours; fugitive: reachable, lockable doors). */
+  private showPicks(): void {
+    const p = tstate.payload;
+    if (!p || !this.fx || this.busy) return;
+    if (p.status !== "ROUND_OPEN") { this.fx.highlightRooms([]); return; }
+    if (isFugitive() && p.fugitive) {
+      const sel = tstate.fpick;
+      const rooms = sel.hack === "distract" ? [...this.layout.rooms.keys()] : (p.reachable ?? []);
+      const selected = sel.hack === "distract" ? sel.target : sel.move;
+      const doors = sel.hack === "doorlock" ? (p.lockable_edges ?? []).map((e) => this.doorPoint(e)).filter((x): x is { x: number; y: number } => !!x) : [];
+      this.fx.highlightRooms(rooms, sel.hack === "distract" ? 0xc792ea : 0x4f8cff, doors, selected);
+      return;
+    }
+    const you = p.you;
+    if (!you || !you.room || you.dazed) { this.fx.highlightRooms([]); return; }
+    const here = this.data_.rooms.find((r) => r.id === you.room);
+    const sel = tstate.pick?.type === "move" ? tstate.pick.target : null;
+    this.fx.highlightRooms(here ? [...here.neighbors, here.id] : [], 0x4f8cff, [], sel);
+  }
+
+  private async play(report: Report): Promise<void> {
+    if (!this.hunters || !this.fugitive || !this.fx) return;
+    this.busy = true;
+    this.fx.highlightRooms([]);
+    try {
+      // make sure every hunter of the report exists before animating
+      const ids = report.order.length ? report.order : Object.keys(report.hunters);
+      const rooms: Record<string, string> = {};
+      for (const h of report.playback.hunters) rooms[h.id] = h.from;
+      await this.hunters.sync(ids, tstate.payload?.avatars ?? {}, rooms, true);
+      await playRound({ scene: this, layout: this.layout, hunters: this.hunters, fugitive: this.fugitive, fx: this.fx,
+        fugitiveView: isFugitive(), toast: (s) => tbus.emit("toast", { text: s, ms: 2600 }) }, report);
+    } finally {
+      this.busy = false;
+    }
+    tbus.emit("playback:done", { report });
+    void this.sync();
+  }
+
+  /** Centre the camera on my avatar (fugitive: the silhouette). */
+  private home(): void {
+    const p = tstate.payload;
+    let pt: { x: number; y: number } | null = null;
+    if (p?.fugitive && this.fx) pt = this.fx.roomCenter(p.fugitive.room);
+    else if (me() && this.hunters) pt = this.hunters.position(me()!);
+    if (pt) { this.camCtl.follow(pt); this.camCtl.update(); this.camCtl.follow(null); }
+  }
+
+  update(time: number, delta: number): void {
     this.camCtl.update();
+    this.hunters?.update(time, delta);
+    this.fugitive?.update(time, delta);
   }
 }

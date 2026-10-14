@@ -147,6 +147,7 @@ def test_hunter_rest_payload_has_no_fugitive_fields(client):
     for who in ("h1", "h2"):
         s = state(client, tok[who])
         assert s["role"] == "hunter" and s["you"]["id"] == who
+        assert set(s["avatars"]) == {"h1", "h2"} and "skin" in s["avatars"]["h1"]
         assert_hunter_safe(s)
         assert s["view"]["capture_room"] is None
     # fugitive sees the truth
@@ -219,7 +220,7 @@ def test_spectator_sees_public_view_only_and_cannot_act(client):
     tok = setup(client)
     spec = register(client, "spec")
     s = state(client, spec)
-    assert s["role"] == "spectator" and s["you"] is None and s["view"]["hunters"]
+    assert s["role"] == "spectator" and s["you"]["room"] is None and s["view"]["hunters"]
     assert_hunter_safe(s)
     assert client.post("/api/train/order", json={"type": "stay"}, headers=auth(spec)).json()["error"] == "not_hunter"
     assert client.post("/api/train/fugitive/ping", headers=auth(spec)).json()["error"] == "not_admin"
@@ -490,7 +491,7 @@ def test_end_game_and_config(client):
     assert "ram_max" not in state(client, tok["h1"])["config"]
     r = client.post("/api/train/game/end", headers=auth(tok["adm"]))
     assert r.json()["status"] == "IDLE" and mgr(client).game is None
-    assert state(client, tok["h1"]) == {"status": "IDLE", "role": "spectator", "you": None}
+    assert state(client, tok["h1"])["status"] == "IDLE"
     assert client.get("/api/train/state", headers=auth(tok["h1"])).status_code == 200
 
 

@@ -70,6 +70,7 @@ class TrainGame:
     status: str
     policy: Policy
     engine: E.GameState | None = None
+    avatars: dict[str, dict[str, Any]] = field(default_factory=dict)   # shared with the Manager (not persisted)
 
     def config(self) -> dict[str, Any]:
         if self.engine is not None:
@@ -128,6 +129,7 @@ class Manager:
         self._timer: asyncio.Task | None = None
         self.webhook: Webhook = post_webhook
         self.now: Callable[[], float] = time.time
+        self.avatars: dict[str, dict[str, Any]] = {}   # hunter id → avatar look (public; the client draws them)
 
     # -- lifecycle -------------------------------------------------------------
 
@@ -138,11 +140,14 @@ class Manager:
             rid, status, snap = row
             try:
                 self.game = TrainGame.from_snapshot(rid, status, snap)
+                self.game.avatars = self.avatars
             except Exception as e:  # noqa: BLE001
                 log.error("train: stored game %d unreadable, ending it: %s", rid, e)
                 await asyncio.to_thread(store.save_snapshot, rid, ENDED, snap)
                 self.game = None
         g = self.game
+        if g is not None:
+            await self._load_avatars(list(g.engine.hunters) if g.engine else g.policy.lobby)
         if g is not None and g.status == ROUND_OPEN:
             async with self.lock:
                 if g.effective_deadline() <= self.now():
@@ -157,6 +162,17 @@ class Manager:
 
     async def stop(self) -> None:
         self._cancel_timer()
+
+    async def _load_avatars(self, pids: list[str]) -> None:
+        def load() -> dict[str, dict[str, Any]]:
+            from ..routers.me import load_avatar
+            from ..db import connect
+            conn = connect()
+            try:
+                return {pid: load_avatar(conn, pid) for pid in pids}
+            finally:
+                conn.close()
+        self.avatars.update(await asyncio.to_thread(load))
 
     # -- roles -----------------------------------------------------------------
 
@@ -271,7 +287,7 @@ class Manager:
             mid = E.cfgmod.normalize_map_id(map_id) if map_id else settings.default_map_id(hunter_count)
             if mid not in E.cfgmod.BUILTIN_MAPS:
                 raise ApiError(400, "unknown_map")
-            self.game = TrainGame(row_id=None, status=LOBBY, policy=Policy(hunter_count=hunter_count, map_id=mid, overrides=ov))
+            self.game = TrainGame(row_id=None, status=LOBBY, policy=Policy(hunter_count=hunter_count, map_id=mid, overrides=ov), avatars=self.avatars)
             await self._save()
             out = self._payload(pid)
         await self._push_state()
@@ -287,6 +303,7 @@ class Manager:
                     if len(g.policy.lobby) >= g.policy.hunter_count:
                         raise ApiError(409, "lobby_full")
                     g.policy.lobby.append(pid)
+                    await self._load_avatars([pid])
             elif pid in g.policy.lobby:
                 g.policy.lobby.remove(pid)
             await self._save()
