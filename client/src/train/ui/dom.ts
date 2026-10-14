@@ -35,7 +35,7 @@ export function initFolds(): void {
     const key = `train_fold:${id}`;
     const apply = (folded: boolean) => {
       $(id).classList.toggle("folded", folded);
-      b.textContent = folded ? "▴" : "▾";
+      b.innerHTML = `<i class="ic ic-${folded ? "tri_up" : "tri_down"}"></i>`;
       try { localStorage.setItem(key, folded ? "1" : "0"); } catch { /* ignore */ }
     };
     let folded = false;

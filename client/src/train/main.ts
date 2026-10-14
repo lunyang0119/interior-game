@@ -69,12 +69,12 @@ function startGame(data: TrainSceneData, key: string): void {
 // admin claim + preview
 // ---------------------------------------------------------------------------
 async function ensureAdmin(): Promise<boolean> {
+  // maps are public now; the claim panel below is only reached when the server refuses (old deploy)
   try {
-    const st = await api.state();
-    if (st.role === "fugitive") return true;
+    await api.maps();
+    return true;
   } catch (e) {
     toast(msgFor(e));
-    return false;
   }
   show("loading", false);
   show("panel-claim");

@@ -134,6 +134,7 @@ export const api = {
   vote: (target: string) => call<{ votes: string[]; need: number; passed: boolean }>("POST", "/api/train/vote", { target }),
   getConfig: () => call<ConfigResponse>("GET", "/api/train/config"),
   setConfig: (set: Record<string, unknown>, map_id?: string) => call<ConfigResponse>("PUT", "/api/train/config", { set, map_id }),
+  resetConfig: () => call<ConfigResponse>("PUT", "/api/train/config", { reset: true }),
   pause: () => call<unknown>("POST", "/api/train/pause", {}),
   resume: () => call<unknown>("POST", "/api/train/resume", {}),
   extend: (sec: number) => call<unknown>("POST", "/api/train/extend", { sec }),

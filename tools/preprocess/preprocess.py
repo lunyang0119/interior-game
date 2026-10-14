@@ -1184,6 +1184,8 @@ def main() -> None:
     sub.add_parser("scaffold").set_defaults(fn=cmd_scaffold)
     sub.add_parser("media").set_defaults(fn=cmd_media)
     sub.add_parser("ui").set_defaults(fn=cmd_ui)
+    sub.add_parser("train-ui", help="cyberpunk GUI frames + icons for /train/ (media/train + src/train/cyber.css)").set_defaults(
+        fn=lambda _: __import__("train_ui").build())
     sub.add_parser("editor").set_defaults(fn=lambda _: __import__("editor").main([]))
     args = ap.parse_args()
     args.fn(args)

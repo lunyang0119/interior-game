@@ -47,6 +47,7 @@ class VoteIn(BaseModel):
 class ConfigIn(BaseModel):
     set: dict[str, Any] = Field(default_factory=dict)
     map_id: str | None = Field(default=None, max_length=32)
+    reset: bool = False   # drop every runtime override first (then `set` applies on top)
 
 
 class ExtendIn(BaseModel):
@@ -155,7 +156,7 @@ async def get_config(request: Request, me: Player = Depends(current_player)):
 
 @router.put("/config")
 async def set_config(body: ConfigIn, request: Request, me: Player = Depends(current_player)):
-    return await _run(_mgr(request).set_config(me.id, body.set, body.map_id))
+    return await _run(_mgr(request).set_config(me.id, body.set, body.map_id, reset=body.reset))
 
 
 @router.post("/pause")
@@ -185,11 +186,9 @@ async def end_game(request: Request, me: Player = Depends(current_player)):
 
 @router.get("/maps")
 async def maps(request: Request, me: Player = Depends(current_player)):
-    _mgr(request)._require_admin(me.id)
     return {"maps": Manager.maps()}
 
 
 @router.get("/maps/{map_id}")
 async def map_detail(map_id: str, request: Request, me: Player = Depends(current_player)):
-    _mgr(request)._require_admin(me.id)
     return Manager.map_detail(map_id)

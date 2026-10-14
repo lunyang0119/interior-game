@@ -51,6 +51,7 @@ TARGETS: list[tuple[str, str, bool, str]] = [
     ("client/public/media", "theme.css", False, "UI 테마"),
     ("client/public/media", "*.json", False, "BGM/SFX 목록"),
     ("client/public/media/ui", "*.png", False, "UI 프레임"),
+    ("client/public/media/train", "*.png", False, "열차 추적 UI 프레임/아이콘 (train-ui)"),
     ("client/public/media/fonts", "*.ttf", False, "폰트"),
     ("client/public/media/bgm", "**/*.mp3", False, "BGM"),
     ("client/public/media/sfx", "**/*.mp3", False, "효과음"),

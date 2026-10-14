@@ -26,7 +26,7 @@ nano /opt/interior/server/.env     # SHEET_URL, DUCKDNS_TOKEN 채우기 (IP_SALT
 ```
 열차 추적 미니게임(`/train/`, 아래 "열차 추적")을 켜려면 같은 `.env`에 두 줄을 손으로 더한다(스크립트가 넣어 주지 않는다):
 ```
-TRAIN_ADMIN_SECRET=아무-긴-비밀문구     # 비어 있으면 /api/train/claim 이 막혀 게임을 만들 수 없다
+TRAIN_ADMIN_SECRET=아무-긴-비밀문구     # 선택. 게임은 누구나 열 수 있고(연 사람이 관제·도주자), 이 문구는 막힌 판을 다른 계정이 넘겨받을 때만 쓴다
 TRAIN_WEBHOOK_URL=https://discord.com/api/webhooks/...   # 선택. 게임 시작/체포 문장 두 줄만 보낸다
 ```
 Oracle 콘솔에서 VCN → Security List → Ingress에 TCP 80, 443 추가 (스크립트가 VM 안 iptables는 열어줌).
@@ -101,10 +101,11 @@ sudo systemctl start interior
 
 디스코드 봇의 "침입자 추적" 규칙 엔진(`server/app/train/engine.py` 등, 봇 레포 commit 2182a11 그대로 복사, 수정 금지)을 웹으로 올린 격리 미니게임. 본 게임과는 계정·토큰(`localStorage`)만 공유하고 방·돈·presence는 전혀 섞이지 않는다. 한 번에 한 판, 상태는 `train_games`(마이그레이션 016)에 전환마다 통째로 저장되어 재시작해도 라운드 마감이 그대로 이어진다(PAUSED 는 타이머 없이 복원).
 
-- **역할**: `POST /api/train/claim {secret}`(`TRAIN_ADMIN_SECRET`)을 부른 계정이 **도주자 = 관리자**가 된다(`train_meta.admin_id`, 다른 계정이 다시 부르면 교체). 로비에 `join`한 사람이 헌터, 나머지 로그인 사용자는 관전자(헌터와 같은 공개 뷰만). 헌터/관전자에게는 도주자 위치·RAM·경로(`fugitive_path`)가 어떤 응답에도 들어가지 않는다(테스트 `test_train.py`가 키 단위로 확인).
+- **역할**: 진행 중인 판이 없을 때 `POST /api/train/game`을 부른 계정이 그 판의 **도주자 = 관리자**가 된다(`train_meta.admin_id`에 저장, 재시작해도 유지). `POST /api/train/claim {secret}`(`TRAIN_ADMIN_SECRET`, 선택)은 같은 역할을 다른 계정으로 강제로 옮기는 비상용이다. 로비에 `join`한 사람이 헌터, 나머지 로그인 사용자는 관전자(헌터와 같은 공개 뷰만). 헌터/관전자에게는 도주자 위치·RAM·경로(`fugitive_path`)가 어떤 응답에도 들어가지 않는다(테스트 `test_train.py`가 키 단위로 확인).
 - **흐름**: 관리자 `POST /game {hunter_count, map_id?, overrides?}` → 헌터 `POST /join` → `POST /start`(라운드 1 열림, 디스코드에 `Activating Combat Mode`) → 라운드마다 헌터 `POST /order {type, target?}`, 도주자 `POST /fugitive/order {move?, hack?, target?}` / `POST /fugitive/ping` → 전원 제출 시 조기 정산(도주자가 미제출이면 `fugitive_grace_sec` 유예) 또는 마감(`round_timer_sec`, 기본 1시간) 시 미제출자 대기 처리 → 체포되면 디스코드에 체포 문장 한 줄. 헌터의 명령 내용은 헌터·관전자에게 공개, 도주자는 핑을 써야 그 라운드의 명령을 본다.
 - **투표로 건너뛰기**: 라운드가 열린 뒤 `vote_skip_after_sec`(기본 600초)이 지나면 `POST /vote {target}`으로 미제출 헌터를 "대기"로 넘길 수 있다. 다른 헌터의 과반(2명이면 1표, 4명이면 2표)이면 통과, 대상이 먼저 제출하면 무효, 라운드마다 초기화.
-- **관리자**: `GET/PUT /config`(엔진 튠값 즉시 반영, 맵은 로비에서만), `POST /pause` `/resume` `/extend {sec}` `/round/end` `/game/end`, `GET /maps` `/maps/{id}`(미리보기, `/train/?preview=car2077_12`).
+- **관리자**: `GET/PUT /config`(엔진 튠값 즉시 반영, 맵은 로비에서만), `POST /pause` `/resume` `/extend {sec}` `/round/end` `/game/end`, `GET /maps` `/maps/{id}`(공개, 미리보기 `/train/?preview=car2077_12`).
+- **UI**: `/train/`만 사이버펑크 GUI(`assets/graphic/GUI/cyberpunk GUI`)를 쓴다. `python tools/preprocess/preprocess.py train-ui`가 프레임 3장을 여백 없이 잘라 `client/public/media/train/`에, 아이콘 시트를 격자로 잘라 `icons.png`에 담고, 9-slice 변수와 `.ic-<이름>` 클래스를 `client/src/train/cyber.css`(생성 파일, 커밋함)로 쓴다. `<html class="train">`에서만 테마를 덮어쓰므로 방 게임 UI는 그대로. 슬라이스 경계·아이콘 이름은 `tools/preprocess/train_ui.py`의 `SLICES`/`ICON_NAMES`.
 - **설정 층**: 엔진 `DEFAULTS` → 웹 기본(`round_timer_sec 3600`, `early_resolve`) → `server/app/train/scaling_web.json[인원]`(맵 포함) → `data/train_config.json`(선택, `{키: 값}`) → 관리자 런타임 오버라이드. 시트는 쓰지 않는다. 밸런스 시뮬: `cd server && python -m app.train.sim --all --games 400 --seed 1 --scaling app/train/scaling_web.json`.
 
 복구 링크: `https://도메인/?t=TOKEN` — 열면 토큰이 localStorage로 옮겨지고 URL에서 지워진다.

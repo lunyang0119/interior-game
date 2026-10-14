@@ -13,8 +13,8 @@ export function initLobby(): void {
 }
 
 async function loadMaps(): Promise<void> {
-  if (maps.length || !isFugitive()) return;
-  try { maps = (await api.maps()).maps; } catch { /* not admin */ }
+  if (maps.length) return;
+  try { maps = (await api.maps()).maps; } catch { /* keep "auto" only */ }
 }
 
 function render(): void {
@@ -29,8 +29,8 @@ function render(): void {
   openPanel("panel-lobby");
 
   if (st === "IDLE") {
-    info.textContent = isFugitive() ? "진행 중인 추적이 없어요. 새 추적을 열어 주세요." : "진행 중인 추적이 없어요. 관제가 열면 여기서 탑승할 수 있어요.";
-    if (isFugitive()) {
+    info.textContent = "진행 중인 추적이 없어요. 새 추적을 열면 이 계정이 관제(도주자)가 돼요.";
+    {
       void loadMaps().then(() => {
         actions.innerHTML = "";
         const row = el("div", "row");

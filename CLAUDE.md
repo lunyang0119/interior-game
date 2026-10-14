@@ -31,6 +31,7 @@ python tools/preprocess/preprocess.py build      # slices.json/map_slices.json �
 python tools/preprocess/preprocess.py editor     # browser editor (slices, items, rooms, map, dock)
 python tools/preprocess/preprocess.py media      # BGM/fonts/SFX → client/public/media/
 python tools/preprocess/preprocess.py ui         # data/ui_theme.json → media/theme.css
+python tools/preprocess/preprocess.py train-ui   # assets/graphic/GUI/cyberpunk GUI → media/train/*.png + client/src/train/cyber.css (train page UI)
 pytest tools/preprocess/tests
 ```
 

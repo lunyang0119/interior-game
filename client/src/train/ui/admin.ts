@@ -7,6 +7,9 @@ import { $, button, el } from "./dom";
 
 let cfg: ConfigResponse | null = null;
 
+/** One-click playtest timings (runtime overrides only; data/train_config.json keeps the real defaults). */
+const TEST_PRESET: Record<string, unknown> = { round_timer_sec: 120, vote_skip_after_sec: 30, fugitive_grace_sec: 30 };
+
 export function initAdmin(): void {
   $("btn-admin-reload").onclick = () => void load();
   tbus.on("state:changed", render);
@@ -61,6 +64,20 @@ function renderConfig(): void {
     toast("설정을 반영했어요");
     renderConfig();
   }, "primary");
+  const presets = el("div", "row");
+  presets.append(
+    act("테스트 프리셋 (2분·투표 30초·유예 30초)", async () => {
+      cfg = await api.setConfig(TEST_PRESET);
+      toast("테스트 프리셋을 적용했어요. 다음 라운드부터 2분 타이머예요");
+      renderConfig();
+    }),
+    act("기본값으로", async () => {
+      cfg = await api.resetConfig();
+      toast("이 판의 덮어쓴 값을 모두 지웠어요");
+      renderConfig();
+    }),
+  );
   box.appendChild(apply);
+  box.appendChild(presets);
   box.appendChild(el("div", "small muted", `맵 ${cfg.map_id} · 굵은 키 = 이 판에서 덮어쓴 값. 라운드 타이머·유예·투표 개방은 서버 정책, 나머지는 엔진 값이에요.`));
 }

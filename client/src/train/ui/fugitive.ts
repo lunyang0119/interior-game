@@ -75,7 +75,7 @@ function render(): void {
   const status = $("fug-status");
   const submitted = !!f.order;
   show("btn-fug-cancel", submitted);
-  $("btn-fug-confirm").textContent = submitted ? "바꾼 행동으로 확정" : "이번 라운드 행동 확정";
+  $("btn-fug-confirm-val").textContent = submitted ? "바꾼 행동으로 확정" : "이번 라운드 행동 확정";
   const pickText = `${describeFugitiveOrder(tstate.fpick)}${tstate.fpick.hack === "doorlock" && !tstate.fpick.target ? " — 잠글 문을 눌러요" : ""}${tstate.fpick.hack === "distract" && !tstate.fpick.target ? " — 교란할 구역을 눌러요" : ""}`;
   status.textContent = submitted
     ? `✅ ${describeFugitiveOrder(f.order)} · 바꾸기: ${pickText}`
@@ -97,7 +97,7 @@ function render(): void {
   }
   const pingInfo = p.hacks?.ping;
   const pingBtn = $<HTMLButtonElement>("btn-fug-ping");
-  pingBtn.textContent = `핑 (${pingInfo?.cost ?? "?"})`;
+  $("btn-fug-ping-val").textContent = `핑 (${pingInfo?.cost ?? "?"})`;
   pingBtn.disabled = f.pinged || !(pingInfo?.ok ?? false);
   pingBtn.title = f.pinged ? "이번 라운드에 이미 핑을 썼어요" : (pingInfo?.why ?? "");
 }

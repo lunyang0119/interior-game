@@ -52,12 +52,10 @@ def recv(ws, kind, skip=("state", "submitted", "vote", "deadline", "round_open",
 
 
 def setup(client, hunters=("h1", "h2"), hunter_count=None, overrides=None):
-    """Admin claims, creates a lobby, hunters join, the game starts. Returns tokens {id: token} ('adm' = fugitive)."""
+    """'adm' opens a lobby (no secret: the opener becomes the fugitive), hunters join, the game starts. Returns tokens."""
     tok = {"adm": register(client, "adm")}
     for h in hunters:
         tok[h] = register(client, h)
-    r = client.post("/api/train/claim", json={"secret": SECRET}, headers=auth(tok["adm"]))
-    assert r.status_code == 200 and r.json()["role"] == "fugitive"
     body = {"hunter_count": hunter_count or len(hunters)}
     if overrides:
         body["overrides"] = overrides
@@ -122,10 +120,14 @@ def test_claim_disabled_without_secret(client, monkeypatch):
 
 def test_lobby_rules(client):
     adm, h1, h2, h3 = (register(client, x) for x in ("adm", "h1", "h2", "h3"))
-    assert client.post("/api/train/game", json={"hunter_count": 2}, headers=auth(h1)).json()["error"] == "not_admin"
-    client.post("/api/train/claim", json={"secret": SECRET}, headers=auth(adm))
+    # anyone opens a game and becomes its fugitive/admin — persisted, so a restart keeps the binding
+    assert client.get("/api/train/state", headers=auth(adm)).json()["role"] == "spectator"
     r = client.post("/api/train/game", json={"hunter_count": 2}, headers=auth(adm))
     assert r.json()["status"] == "LOBBY" and r.json()["map_id"] == "car2077_9"  # scaling_web picks the map
+    assert r.json()["role"] == "fugitive" and mgr(client).admin_id == "adm"
+    from app.train import store
+    assert store.load_admin() == "adm"
+    assert client.post("/api/train/start", headers=auth(h1)).json()["error"] == "not_admin"  # others stay spectators
     assert client.post("/api/train/join", headers=auth(adm)).json()["error"] == "is_admin"
     assert client.post("/api/train/start", headers=auth(adm)).json()["error"] == "not_enough_hunters"
     client.post("/api/train/join", headers=auth(h1))
@@ -224,8 +226,7 @@ def test_spectator_sees_public_view_only_and_cannot_act(client):
     assert_hunter_safe(s)
     assert client.post("/api/train/order", json={"type": "stay"}, headers=auth(spec)).json()["error"] == "not_hunter"
     assert client.post("/api/train/fugitive/ping", headers=auth(spec)).json()["error"] == "not_admin"
-    assert client.get("/api/train/maps", headers=auth(spec)).status_code == 403
-    assert client.get("/api/train/maps", headers=auth(tok["adm"])).json()["maps"][0]["id"] == "car2077_9"
+    assert client.get("/api/train/maps", headers=auth(spec)).json()["maps"][0]["id"] == "car2077_9"  # maps are public
     d = client.get("/api/train/maps/car2077_12", headers=auth(tok["adm"])).json()
     assert len(d["rooms"]) == 12 and {"id", "col", "row", "device", "neighbors"} <= set(d["rooms"][0])
 
@@ -482,13 +483,22 @@ def test_end_game_and_config(client):
     tok = setup(client)
     r = client.put("/api/train/config", json={"set": {"scan_budget": "2", "nope": 1}}, headers=auth(tok["adm"]))
     assert r.status_code == 400 and r.json()["error"] == "bad_config"
-    r = client.put("/api/train/config", json={"set": {"scan_budget": "2"}}, headers=auth(tok["adm"]))
-    assert r.json()["config"]["scan_budget"] == 2 and r.json()["overrides"] == {"scan_budget": 2}
-    assert mgr(client).game.engine.config["scan_budget"] == 2
+    base_scan = mgr(client).game.engine.config["scan_budget"]   # scaling layer value, not necessarily DEFAULTS
+    r = client.put("/api/train/config", json={"set": {"scan_budget": "3"}}, headers=auth(tok["adm"]))
+    assert r.json()["config"]["scan_budget"] == 3 and r.json()["overrides"] == {"scan_budget": 3}
+    assert mgr(client).game.engine.config["scan_budget"] == 3
     assert client.put("/api/train/config", json={"map_id": "car2077_16"}, headers=auth(tok["adm"])).json()["error"] == "map_locked"
     assert client.get("/api/train/config", headers=auth(tok["h1"])).status_code == 403
-    assert state(client, tok["h1"])["config"]["scan_budget"] == 2
+    assert state(client, tok["h1"])["config"]["scan_budget"] == 3
     assert "ram_max" not in state(client, tok["h1"])["config"]
+    # the test preset: three policy values in one PUT, then reset drops them all and restores the base values
+    base = mgr(client).game.engine.config["round_timer_sec"]
+    r = client.put("/api/train/config", json={"set": {"round_timer_sec": 120, "vote_skip_after_sec": 30, "fugitive_grace_sec": 30}}, headers=auth(tok["adm"]))
+    assert set(r.json()["overrides"]) == {"scan_budget", "round_timer_sec", "vote_skip_after_sec", "fugitive_grace_sec"}
+    assert mgr(client).game.engine.config["round_timer_sec"] == 120
+    r = client.put("/api/train/config", json={"reset": True}, headers=auth(tok["adm"]))
+    assert r.json()["overrides"] == {} and r.json()["config"]["round_timer_sec"] == base
+    assert mgr(client).game.engine.config["scan_budget"] == base_scan
     r = client.post("/api/train/game/end", headers=auth(tok["adm"]))
     assert r.json()["status"] == "IDLE" and mgr(client).game is None
     assert state(client, tok["h1"])["status"] == "IDLE"

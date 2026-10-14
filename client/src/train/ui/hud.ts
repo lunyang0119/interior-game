@@ -30,7 +30,7 @@ function tick(): void {
   const pending = (p.view?.hunters ?? []).some((h) => !h.submitted && !h.dazed && h.name !== p.you?.id);
   const open = p.vote_after_ts != null && now >= p.vote_after_ts;
   show("btn-vote", isHunter() && pending);
-  $("btn-vote").textContent = open || p.vote_after_ts == null ? "🗳 건너뛰기" : `🗳 ${fmtCountdown(p.vote_after_ts - now)}`;
+  $("btn-vote-val").textContent = open || p.vote_after_ts == null ? "건너뛰기" : fmtCountdown(p.vote_after_ts - now);
   $("btn-vote").title = open ? "미제출자 건너뛰기 투표" : "이 시간이 지나면 미제출자 건너뛰기 투표를 열 수 있어요";
 }
 
@@ -45,7 +45,9 @@ function render(): void {
   const done = v?.hunters.filter((h) => h.submitted || h.dazed).length ?? 0;
   $("hud-sub-val").textContent = total ? `${done}/${total}` : "–";
   const st = p?.status ?? "IDLE";
-  $("hud-status").textContent = st === "LOBBY" ? "🚃 모집 중" : st === "PAUSED" ? "⏸ 일시정지" : st === "CAPTURED" ? "★ 체포" : st === "IDLE" ? "대기" : tstate.phase === "playback" ? "▶ 재생" : "📡 라운드 진행";
+  const [icon, label] = st === "LOBBY" ? ["exit", "모집 중"] : st === "PAUSED" ? ["pause", "일시정지"] : st === "CAPTURED" ? ["trophy", "체포"]
+    : st === "IDLE" ? ["power", "대기"] : tstate.phase === "playback" ? ["play", "재생"] : ["signal", "라운드 진행"];
+  $("hud-status").innerHTML = `<i class="ic ic-${icon}"></i><span>${label}</span>`;
   show("btn-admin", isFugitive());
   show("btn-lobby", st === "LOBBY" || st === "IDLE");
   show("hud-game", st !== "IDLE" && st !== "LOBBY");

@@ -267,7 +267,8 @@ class Manager:
     # -- lobby -----------------------------------------------------------------
 
     async def create(self, pid: str, hunter_count: int, map_id: str | None, overrides: dict[str, Any] | None) -> dict[str, Any]:
-        self._require_admin(pid)
+        """Anyone may open a game while none is running; the opener becomes that game's fugitive/admin
+        (no secret needed — TRAIN_ADMIN_SECRET + /claim only re-binds the role, e.g. to take over a stuck game)."""
         if not MIN_HUNTERS <= hunter_count <= MAX_HUNTERS:
             raise ApiError(400, "bad_hunter_count")
         async with self.lock:
@@ -288,6 +289,9 @@ class Manager:
             if mid not in E.cfgmod.BUILTIN_MAPS:
                 raise ApiError(400, "unknown_map")
             self.game = TrainGame(row_id=None, status=LOBBY, policy=Policy(hunter_count=hunter_count, map_id=mid, overrides=ov), avatars=self.avatars)
+            if pid != self.admin_id:
+                self.admin_id = pid
+                await asyncio.to_thread(store.set_meta, "admin_id", pid)
             await self._save()
             out = self._payload(pid)
         await self._push_state()
@@ -548,12 +552,22 @@ class Manager:
             return {"config": g.config(), "overrides": dict(g.policy.overrides), "map_id": g.policy.map_id,
                     "defaults": dict(E.cfgmod.DEFAULTS)}
 
-    async def set_config(self, pid: str, values: dict[str, Any], map_id: str | None) -> dict[str, Any]:
+    async def set_config(self, pid: str, values: dict[str, Any], map_id: str | None, reset: bool = False) -> dict[str, Any]:
         self._require_admin(pid)
         async with self.lock:
             g = self._require_game()
             if g.status in (CAPTURED, ENDED):
                 raise ApiError(409, "not_open")
+            if reset and g.policy.overrides:
+                # back to DEFAULTS ⊕ scaling ⊕ train_config.json for every key the admin had overridden
+                base, _ = settings.build(g.policy.hunter_count, {})
+                if g.engine is not None:
+                    for k in g.policy.overrides:
+                        if k in base:
+                            g.engine.config[k] = base[k]
+                        else:
+                            g.engine.config.pop(k, None)
+                g.policy.overrides = {}
             if map_id is not None:
                 if g.status != LOBBY:
                     raise ApiError(409, "map_locked")

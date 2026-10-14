@@ -64,7 +64,7 @@ function render(): void {
   show("btn-order-confirm", !you.dazed);
   show("btn-order-cancel", !!you.order);
   const confirmBtn = $("btn-order-confirm");
-  confirmBtn.textContent = you.order ? "바꾼 행동으로 확정" : "이번 라운드 행동 확정";
+  $("btn-order-confirm-val").textContent = you.order ? "바꾼 행동으로 확정" : "이번 라운드 행동 확정";
   if (you.dazed) status.textContent = "☕ 증기에 휩싸여 이번 라운드는 행동할 수 없어요";
   else if (you.order && tstate.pick) status.textContent = `✅ ${describe(you.order)} → 바꾸기: ${describe(tstate.pick)}`;
   else if (you.order) status.textContent = `✅ 제출함: ${describe(you.order)} · 마감 전까지 바꿀 수 있어요`;

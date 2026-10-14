@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ko">
+<html lang="ko" class="train">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
@@ -10,27 +10,28 @@
   <link rel="stylesheet" href="/src/style.css" />
   <link rel="stylesheet" href="/src/train/style.css" />
   <link rel="stylesheet" href="/media/theme.css" />
+  <link rel="stylesheet" href="/src/train/cyber.css" />
 </head>
 <body>
   <div id="game"></div>
 
   <!-- top HUD -->
   <div id="hud" class="overlay">
-    <a id="btn-home" class="chip" href="/" title="방으로 돌아가기">🏠</a>
-    <div id="hud-id" class="chip">👤 <span id="hud-id-val">…</span></div>
+    <a id="btn-home" class="chip" href="/" title="방으로 돌아가기"><i class="ic ic-home"></i></a>
+    <div id="hud-id" class="chip"><i class="ic ic-gamepad"></i><span id="hud-id-val">…</span></div>
     <div id="hud-status" class="chip">대기</div>
     <span id="hud-game" class="hud-group hidden">
-      <div class="chip" title="라운드">📡 <span id="hud-round-val">–</span></div>
-      <div class="chip" title="제출 마감까지">⏳ <span id="hud-clock-val">–</span></div>
-      <div id="hud-trace" class="chip" title="추적률">🧭 <span id="hud-trace-val">–</span></div>
-      <div class="chip" title="제출 현황">✍ <span id="hud-sub-val">–</span></div>
+      <div class="chip" title="라운드"><i class="ic ic-signal"></i><span id="hud-round-val">–</span></div>
+      <div class="chip" title="제출 마감까지"><i class="ic ic-clock"></i><span id="hud-clock-val">–</span></div>
+      <div id="hud-trace" class="chip" title="추적률"><i class="ic ic-target"></i><span id="hud-trace-val">–</span></div>
+      <div class="chip" title="제출 현황"><i class="ic ic-menu"></i><span id="hud-sub-val">–</span></div>
     </span>
-    <button id="btn-lobby" class="chip" title="탑승">🚃</button>
-    <button id="btn-report" class="chip" title="판독 보고">📋</button>
-    <button id="btn-vote" class="chip hidden" title="건너뛰기 투표">🗳</button>
-    <button id="btn-admin" class="chip hidden" title="관제">🛠</button>
-    <button id="btn-home-cam" class="chip" title="내 위치로">📍</button>
-    <div id="hud-conn" class="chip hidden">🔌 연결 끊김 · 다시 연결 중…</div>
+    <button id="btn-lobby" class="chip" title="탑승"><i class="ic ic-exit"></i></button>
+    <button id="btn-report" class="chip" title="판독 보고"><i class="ic ic-chat"></i></button>
+    <button id="btn-vote" class="chip hidden" title="건너뛰기 투표"><i class="ic ic-trophy"></i><span id="btn-vote-val"></span></button>
+    <button id="btn-admin" class="chip hidden" title="관제"><i class="ic ic-gear"></i></button>
+    <button id="btn-home-cam" class="chip" title="내 위치로"><i class="ic ic-expand"></i></button>
+    <div id="hud-conn" class="chip hidden"><i class="ic ic-alert"></i><span>연결 끊김 · 다시 연결 중…</span></div>
   </div>
 
   <!-- admin map preview: pick any built-in map; renders from room data only -->
@@ -42,30 +43,30 @@
 
   <!-- hunter: this round's order -->
   <div id="orderbar" class="overlay bar hidden">
-    <div class="bar-head"><div id="order-status" class="bar-status"></div><button class="chip fold" data-fold="orderbar" title="접기/펴기">▾</button></div>
+    <div class="bar-head"><div id="order-status" class="bar-status"></div><button class="chip fold" data-fold="orderbar" title="접기/펴기"><i class="ic ic-tri_down"></i></button></div>
     <div id="order-pick" class="row bar-body">
-      <button id="btn-pick-search">🔍 수색</button>
-      <button id="btn-pick-scan">📶 추적</button>
-      <button id="btn-pick-stay">⏸ 대기</button>
+      <button id="btn-pick-search"><i class="ic ic-search"></i><span>수색</span></button>
+      <button id="btn-pick-scan"><i class="ic ic-signal"></i><span>추적</span></button>
+      <button id="btn-pick-stay"><i class="ic ic-pause"></i><span>대기</span></button>
     </div>
     <div class="row bar-body">
-      <button id="btn-order-confirm" class="primary" title="확정하면 이번 라운드의 RP는 끝나요. 모두 확정하면 바로 정산돼요.">이번 라운드 행동 확정</button>
-      <button id="btn-order-cancel" class="hidden">제출 취소</button>
+      <button id="btn-order-confirm" class="primary" title="확정하면 이번 라운드의 RP는 끝나요. 모두 확정하면 바로 정산돼요."><i class="ic ic-play"></i><span id="btn-order-confirm-val">이번 라운드 행동 확정</span></button>
+      <button id="btn-order-cancel" class="hidden"><i class="ic ic-close"></i><span>제출 취소</span></button>
     </div>
     <div class="small muted bar-hint bar-body">확정 = 이번 라운드의 내 RP 끝. 전원이 확정하면 바로 정산돼요. 마감 전엔 다른 행동을 골라 다시 확정하면 덮어써요.</div>
   </div>
 
   <!-- fugitive: move + quickhack + ping -->
   <div id="fugbar" class="overlay bar hidden">
-    <div class="bar-head"><div id="fug-status" class="bar-status"></div><button class="chip fold" data-fold="fugbar" title="접기/펴기">▾</button></div>
+    <div class="bar-head"><div id="fug-status" class="bar-status"></div><button class="chip fold" data-fold="fugbar" title="접기/펴기"><i class="ic ic-tri_down"></i></button></div>
     <div class="row small bar-body"><span id="fug-ram" class="chip"></span><span id="fug-trace" class="chip"></span></div>
     <div id="fug-pick" class="bar-body">
       <div id="fug-hacks" class="row small"></div>
-      <div class="row small"><button id="btn-fug-ping" class="chip">핑</button><button id="btn-fug-clear" class="chip">선택 지우기</button></div>
+      <div class="row small"><button id="btn-fug-ping" class="chip"><i class="ic ic-signal"></i><span id="btn-fug-ping-val">핑</span></button><button id="btn-fug-clear" class="chip"><i class="ic ic-close"></i><span>선택 지우기</span></button></div>
     </div>
     <div class="row bar-body">
-      <button id="btn-fug-confirm" class="primary">이번 라운드 행동 확정</button>
-      <button id="btn-fug-cancel" class="hidden">제출 취소</button>
+      <button id="btn-fug-confirm" class="primary"><i class="ic ic-play"></i><span id="btn-fug-confirm-val">이번 라운드 행동 확정</span></button>
+      <button id="btn-fug-cancel" class="hidden"><i class="ic ic-close"></i><span>제출 취소</span></button>
     </div>
     <div class="small muted bar-hint bar-body">갈 구역을 누르면 이동, 지금 구역을 누르면 제자리. 퀵핵은 장치가 맞는 구역에서만 켜져요. 마감 전엔 다시 골라 확정하면 덮어써요.</div>
   </div>
@@ -75,7 +76,7 @@
 
   <!-- panels -->
   <div id="panel-claim" class="panel hidden">
-    <div class="panel-head"><span>관제 권한</span><button class="close" data-close="panel-claim">✕</button></div>
+    <div class="panel-head"><span><i class="ic ic-crown"></i><span>관제 권한</span></span><button class="close" data-close="panel-claim">✕</button></div>
     <div class="small muted">관제(도주자) 비밀문구를 입력하면 이 계정이 관제가 돼요.</div>
     <div class="row">
       <input id="claim-secret" type="password" placeholder="비밀문구" autocomplete="off" autocapitalize="off" />
@@ -84,7 +85,7 @@
   </div>
 
   <div id="panel-lobby" class="panel hidden">
-    <div class="panel-head"><span>🚃 침입자 추적 — 탑승</span><button class="close" data-close="panel-lobby">✕</button></div>
+    <div class="panel-head"><span><i class="ic ic-exit"></i><span>침입자 추적 — 탑승</span></span><button class="close" data-close="panel-lobby">✕</button></div>
     <div id="lobby-info" class="small muted"></div>
     <div id="lobby-list"></div>
     <div id="lobby-actions" class="row"></div>
@@ -92,20 +93,20 @@
   </div>
 
   <div id="panel-report" class="panel hidden">
-    <div class="panel-head"><span>📋 판독 보고</span><button class="close" data-close="panel-report">✕</button></div>
+    <div class="panel-head"><span><i class="ic ic-chat"></i><span>판독 보고</span></span><button class="close" data-close="panel-report">✕</button></div>
     <div id="report-text" class="report-text"></div>
     <div class="panel-sub">승무원</div>
     <div id="report-crew"></div>
   </div>
 
   <div id="panel-vote" class="panel hidden">
-    <div class="panel-head"><span>🗳 건너뛰기 투표</span><button class="close" data-close="panel-vote">✕</button></div>
+    <div class="panel-head"><span><i class="ic ic-trophy"></i><span>건너뛰기 투표</span></span><button class="close" data-close="panel-vote">✕</button></div>
     <div id="vote-info" class="small muted"></div>
     <div id="vote-list"></div>
   </div>
 
   <div id="panel-admin" class="panel hidden">
-    <div class="panel-head"><span>🛠 관제</span><button class="close" data-close="panel-admin">✕</button></div>
+    <div class="panel-head"><span><i class="ic ic-gear"></i><span>관제</span></span><button class="close" data-close="panel-admin">✕</button></div>
     <div id="admin-flow" class="row"></div>
     <div class="panel-sub">튠값 <button id="btn-admin-reload" class="chip small">새로 읽기</button></div>
     <div id="admin-config"></div>
