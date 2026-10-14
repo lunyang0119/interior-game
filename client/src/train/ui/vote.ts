@@ -2,7 +2,7 @@
 
 import { api, msgFor } from "../api";
 import { tbus, toast } from "../bus";
-import { isHunter, me, tstate } from "../state";
+import { isHunter, label, me, tstate } from "../state";
 import { $, button, el } from "./dom";
 
 export function initVote(): void {
@@ -26,12 +26,12 @@ function render(): void {
     if (h.submitted || h.dazed) continue;
     const voters = p.votes?.[h.name] ?? [];
     const row = el("div", "vote-row");
-    row.appendChild(el("span", "", `${h.name} — ${voters.length}/${p.need ?? 1}표${voters.length ? ` (${voters.join(", ")})` : ""}`));
+    row.appendChild(el("span", "", `${label(h.name)} — ${voters.length}/${p.need ?? 1}표${voters.length ? ` (${voters.map(label).join(", ")})` : ""}`));
     if (open && isHunter() && h.name !== me()) {
       const b = button(voters.includes(me()!) ? "찬성함" : "건너뛰기 찬성", async () => {
         try {
           const r = await api.vote(h.name);
-          toast(r.passed ? `${h.name}은(는) 이번 라운드 대기로 처리됐어요` : `찬성 ${r.votes.length}/${r.need}`);
+          toast(r.passed ? `${label(h.name)}은(는) 이번 라운드 대기로 처리됐어요` : `찬성 ${r.votes.length}/${r.need}`);
         } catch (e) { toast(msgFor(e)); }
       }, voters.includes(me()!) ? "" : "primary");
       b.disabled = voters.includes(me()!);

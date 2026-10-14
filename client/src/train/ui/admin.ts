@@ -2,7 +2,7 @@
 
 import { api, msgFor, type ConfigResponse } from "../api";
 import { tbus, toast } from "../bus";
-import { isFugitive, tstate } from "../state";
+import { isAdmin, tstate } from "../state";
 import { $, button, el } from "./dom";
 
 let cfg: ConfigResponse | null = null;
@@ -17,7 +17,7 @@ export function initAdmin(): void {
 }
 
 async function load(): Promise<void> {
-  if (!isFugitive() || !tstate.payload || tstate.payload.status === "IDLE") return;
+  if (!isAdmin() || !tstate.payload || tstate.payload.status === "IDLE") return;
   try { cfg = await api.getConfig(); renderConfig(); } catch (e) { toast(msgFor(e)); }
 }
 
@@ -29,7 +29,7 @@ function render(): void {
   const p = tstate.payload;
   const flow = $("admin-flow");
   flow.innerHTML = "";
-  if (!isFugitive() || !p) return;
+  if (!isAdmin() || !p) return;
   const st = p.status;
   if (st === "ROUND_OPEN") {
     flow.append(act("⏸ 일시정지", api.pause), act("+10분", () => api.extend(600)), act("+1시간", () => api.extend(3600)),

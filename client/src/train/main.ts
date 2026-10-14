@@ -7,12 +7,12 @@ import { makeCatalog } from "../catalog";
 import { state } from "../state";
 import * as storage from "../storage";
 import { refreshThemeLink } from "../assets";
-import { api, ApiError, mapRooms, msgFor, type MapRoom, type MapSummary, type Report, type TrainState } from "./api";
+import { api, ApiError, mapRooms, msgFor, type BotReason, type MapRoom, type MapSummary, type Report, type TrainState } from "./api";
 import { tbus } from "./bus";
 import { TrainBoot } from "./scenes/TrainBoot";
 import { TrainScene, type TrainSceneData } from "./scenes/TrainScene";
-import { lastPlayed, markPlayed, tstate, type Phase } from "./state";
-import { S } from "./strings";
+import { label, lastPlayed, markPlayed, tstate, type Phase } from "./state";
+import { ORDER_KO, S } from "./strings";
 import { initAdmin } from "./ui/admin";
 import { $, closePanels, initFolds, show } from "./ui/dom";
 import { initFugitiveBar } from "./ui/fugitive";
@@ -262,6 +262,13 @@ function wireSocket(): void {
     // the capture line itself is shown when the playback finishes (play())
   });
   tsocket.on("started", (m: { line: string }) => banner(m.line, 3500));
+  tsocket.on("bot_thinking", (m: { id: string; round: number }) => toast(`🤖 ${label(m.id)} — R${m.round} 판단 중…`, 2500));
+  tsocket.on("bot_reason", (m: { reason: BotReason }) => {
+    const p = tstate.payload;
+    if (p) { p.bot_reasons = [...(p.bot_reasons ?? []), m.reason].slice(-24); tbus.emit("state:changed", {}); }
+    const order = `${ORDER_KO[m.reason.order as keyof typeof ORDER_KO] ?? m.reason.order}${m.reason.target ? ` → ${m.reason.target}` : ""}`;
+    toast(`🤖 ${label(m.reason.uid)} → ${order}: ${m.reason.reason}`, 6000);
+  });
   tsocket.on("paused", (m: { paused_remaining: number }) => {
     const p = tstate.payload;
     if (p) { p.status = "PAUSED"; p.paused_remaining = m.paused_remaining; applyState(p); toast("관제가 라운드를 잠시 멈췄어요"); }

@@ -23,6 +23,18 @@
    "name": "claude",
    "earned": 0,
    "registered": true
+  },
+  {
+   "id": "e2e_adm",
+   "name": "e2e_adm",
+   "earned": 0,
+   "registered": true
+  },
+  {
+   "id": "e2e_h1",
+   "name": "e2e_h1",
+   "earned": 0,
+   "registered": true
   }
  ]
 }

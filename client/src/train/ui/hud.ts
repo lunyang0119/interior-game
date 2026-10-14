@@ -2,7 +2,7 @@
 
 import { tbus } from "../bus";
 import { fmtCountdown } from "../report";
-import { isFugitive, isHunter, tstate } from "../state";
+import { isAdmin, isHunter, tstate } from "../state";
 import { $, openPanel, show } from "./dom";
 
 let timer: number | null = null;
@@ -48,7 +48,7 @@ function render(): void {
   const [icon, label] = st === "LOBBY" ? ["exit", "모집 중"] : st === "PAUSED" ? ["pause", "일시정지"] : st === "CAPTURED" ? ["trophy", "체포"]
     : st === "IDLE" ? ["power", "대기"] : tstate.phase === "playback" ? ["play", "재생"] : ["signal", "라운드 진행"];
   $("hud-status").innerHTML = `<i class="ic ic-${icon}"></i><span>${label}</span>`;
-  show("btn-admin", isFugitive());
+  show("btn-admin", isAdmin());
   show("btn-lobby", st === "LOBBY" || st === "IDLE");
   show("hud-game", st !== "IDLE" && st !== "LOBBY");
   tick();

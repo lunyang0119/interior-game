@@ -98,6 +98,7 @@ def env(tmp_path, monkeypatch):
     monkeypatch.setenv("FAKE_SHEET_PATH", str(data / "fake_sheet.json"))
     monkeypatch.setenv("TRAIN_ADMIN_SECRET", "train-secret")
     monkeypatch.setenv("TRAIN_WEBHOOK_URL", "")
+    monkeypatch.setenv("GEMINI_API_KEY", "")   # AI hunters off unless a test injects a fake client
 
     # config reads env at import time → reload it and everything that captured its values
     import importlib

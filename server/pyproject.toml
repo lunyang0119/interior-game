@@ -8,6 +8,7 @@ dependencies = [
     "uvicorn[standard]>=0.30",
     "httpx>=0.27",
     "pydantic>=2",
+    "google-genai>=1.0",   # AI hunters for the train minigame (app/train/bot_player.py); only used when GEMINI_API_KEY is set
 ]
 
 [project.optional-dependencies]

@@ -101,7 +101,13 @@ export interface TrainState {
   report?: Report | null;
   orders?: Record<string, Order | null>;
   config?: Record<string, unknown>;
+  ai_available?: boolean;
+  admin?: boolean;
+  fugitive_ai?: boolean;
+  /** every AI's reasoning, present once the game is CAPTURED (fugitive entries have uid "fugitive") */
+  ai_log?: BotReason[];
   // fugitive / admin only
+  bot_reasons?: BotReason[];
   fugitive?: FugitiveState | null;
   hacks?: Record<Hack, { ok: boolean; why: string; cost: number; trace: number }>;
   reachable?: string[];
@@ -109,6 +115,12 @@ export interface TrainState {
   hunters_full?: Record<string, { name: string; room: string; submitted: boolean; dazed_until: number; order: Order | null }>;
   position_history?: string[];
   overrides?: Record<string, unknown>;
+}
+
+export interface BotReason {
+  round: number; uid: string; name: string; order: string; target: string | null; reason: string;
+  accepted: boolean; note: string; error: string | null;
+  hack_target?: string | null;
 }
 
 export interface ConfigResponse { config: Record<string, unknown>; overrides: Record<string, unknown>; map_id: string; defaults: Record<string, unknown> }
@@ -122,10 +134,13 @@ export const api = {
   claim: (secret: string) => call<{ role: Role }>("POST", "/api/train/claim", { secret }),
   maps: () => call<{ maps: MapSummary[] }>("GET", "/api/train/maps"),
   map: (id: string) => call<MapDetail>("GET", `/api/train/maps/${encodeURIComponent(id)}`),
-  create: (hunter_count: number, map_id?: string) => call<TrainState>("POST", "/api/train/game", { hunter_count, map_id }),
+  create: (hunter_count: number, map_id?: string, fugitive_ai = false) => call<TrainState>("POST", "/api/train/game", { hunter_count, map_id, fugitive_ai }),
+  setFugitiveAi: (on: boolean) => call<TrainState>("POST", "/api/train/fugitive-ai", { on }),
   join: () => call<TrainState>("POST", "/api/train/join", {}),
   leave: () => call<TrainState>("POST", "/api/train/leave", {}),
   start: () => call<TrainState>("POST", "/api/train/start", {}),
+  addBots: (target_count: number) => call<TrainState>("POST", "/api/train/bots", { target_count }),
+  removeBots: () => call<TrainState>("DELETE", "/api/train/bots"),
   order: (type: OrderType, target?: string | null) => call<{ order: Order }>("POST", "/api/train/order", { type, target: target ?? null }),
   cancelOrder: () => call<{ order: null }>("DELETE", "/api/train/order"),
   fugitiveOrder: (o: Partial<FugitiveOrder>) => call<{ order: FugitiveOrder; resolved: boolean }>("POST", "/api/train/fugitive/order", o),

@@ -41,4 +41,6 @@ export const MESSAGES: Record<string, string> = {
   vote_bad_target: "그 사람은 투표 대상이 아니에요",
   map_locked: "맵은 모집 중에만 바꿀 수 있어요",
   bad_config: "설정 값이 이상해요",
+  ai_unavailable: "서버에 Gemini 키가 없어서 AI를 부를 수 없어요",
+  fugitive_is_ai: "이 판의 도주자는 AI가 맡고 있어요",
 };

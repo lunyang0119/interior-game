@@ -5,6 +5,7 @@ import { Avatar } from "../../avatar/Avatar";
 import { ensureAvatarTextures } from "../../avatar/AvatarLoader";
 import { DEFAULT_LOOK, type AvatarLook, type Chars } from "../../catalog";
 import { CELL } from "../../room/grid";
+import { label } from "../state";
 import { cellKey, pathToward, type Cell, type WalkGrid } from "../../room/walk";
 import { standCell, type Door, type Layout } from "./layout";
 
@@ -42,7 +43,7 @@ export class Hunters {
         await ensureAvatarTextures(this.scene, look, this.chars);
         if (this.avatars.has(id) || !this.order.includes(id)) continue; // raced with another sync
         const c = this.cellFor(id, rooms[id]);
-        a = new Avatar(this.scene, this.chars, look, c.cx, c.cy, id, true);
+        a = new Avatar(this.scene, this.chars, look, c.cx, c.cy, label(id), true);
         // Avatar only derives the facing from the movement when an onStep handler exists (the "local" mode);
         // a no-op handler makes a walking hunter face the way it goes instead of sliding sideways
         a.onStep = () => { /* facing only */ };

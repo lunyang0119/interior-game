@@ -65,6 +65,8 @@ SCENE_ROOMS = ("map", "dock")
 # empty = claiming disabled. The webhook (Discord) gets exactly two lines per game: COMBAT_MODE_ON and CAPTURE_LINE.
 TRAIN_ADMIN_SECRET = os.environ.get("TRAIN_ADMIN_SECRET", "")
 TRAIN_WEBHOOK_URL = os.environ.get("TRAIN_WEBHOOK_URL", "")
+# GEMINI_API_KEY (+ optional FUGITIVE_GEMINI_MODEL / FUGITIVE_GEMINI_FALLBACK_MODELS) is read by app/train/bot_player.py
+# itself; without it the "AI 승무원" buttons stay hidden.
 # Optional overrides of the engine DEFAULTS (key → value, coerced like the bot's Fugitive_Config sheet).
 TRAIN_CONFIG_PATH = _env_path("TRAIN_CONFIG_PATH", DATA_DIR / "train_config.json")
 

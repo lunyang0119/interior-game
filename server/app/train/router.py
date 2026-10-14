@@ -27,6 +27,7 @@ class CreateIn(BaseModel):
     hunter_count: int = Field(ge=2, le=6, default=4)
     map_id: str | None = Field(default=None, max_length=32)
     overrides: dict[str, Any] = Field(default_factory=dict)
+    fugitive_ai: bool = False
 
 
 class HunterOrderIn(BaseModel):
@@ -96,7 +97,7 @@ async def claim(body: ClaimIn, request: Request, me: Player = Depends(current_pl
 
 @router.post("/game")
 async def create(body: CreateIn, request: Request, me: Player = Depends(current_player)):
-    return await _run(_mgr(request).create(me.id, body.hunter_count, body.map_id, body.overrides))
+    return await _run(_mgr(request).create(me.id, body.hunter_count, body.map_id, body.overrides, body.fugitive_ai))
 
 
 @router.post("/join")
@@ -107,6 +108,29 @@ async def join(request: Request, me: Player = Depends(current_player)):
 @router.post("/leave")
 async def leave(request: Request, me: Player = Depends(current_player)):
     return await _mgr(request).join(me.id, False)
+
+
+class BotsIn(BaseModel):
+    target_count: int = Field(ge=2, le=6, default=6)   # clamped to the game's hunter_count
+
+
+@router.post("/bots")
+async def add_bots(body: BotsIn, request: Request, me: Player = Depends(current_player)):
+    return await _mgr(request).add_bots(me.id, body.target_count)
+
+
+class FugitiveAiIn(BaseModel):
+    on: bool = True
+
+
+@router.post("/fugitive-ai")
+async def set_fugitive_ai(body: FugitiveAiIn, request: Request, me: Player = Depends(current_player)):
+    return await _mgr(request).set_fugitive_ai(me.id, body.on)
+
+
+@router.delete("/bots")
+async def remove_bots(request: Request, me: Player = Depends(current_player)):
+    return await _mgr(request).remove_bots(me.id)
 
 
 @router.post("/start")

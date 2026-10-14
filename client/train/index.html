@@ -17,7 +17,7 @@
 
   <!-- top HUD -->
   <div id="hud" class="overlay">
-    <a id="btn-home" class="chip" href="/" title="방으로 돌아가기"><i class="ic ic-home"></i></a>
+    <a id="btn-home" class="chip" href="/" title="방으로 돌아가기"><i class="ic ic-home"></i><span>홈</span></a>
     <div id="hud-id" class="chip"><i class="ic ic-gamepad"></i><span id="hud-id-val">…</span></div>
     <div id="hud-status" class="chip">대기</div>
     <span id="hud-game" class="hud-group hidden">
@@ -26,11 +26,11 @@
       <div id="hud-trace" class="chip" title="추적률"><i class="ic ic-target"></i><span id="hud-trace-val">–</span></div>
       <div class="chip" title="제출 현황"><i class="ic ic-menu"></i><span id="hud-sub-val">–</span></div>
     </span>
-    <button id="btn-lobby" class="chip" title="탑승"><i class="ic ic-exit"></i></button>
-    <button id="btn-report" class="chip" title="판독 보고"><i class="ic ic-chat"></i></button>
+    <button id="btn-lobby" class="chip" title="탑승"><i class="ic ic-exit"></i><span>탑승</span></button>
+    <button id="btn-report" class="chip" title="판독 보고"><i class="ic ic-chat"></i><span>보고</span></button>
     <button id="btn-vote" class="chip hidden" title="건너뛰기 투표"><i class="ic ic-trophy"></i><span id="btn-vote-val"></span></button>
-    <button id="btn-admin" class="chip hidden" title="관제"><i class="ic ic-gear"></i></button>
-    <button id="btn-home-cam" class="chip" title="내 위치로"><i class="ic ic-expand"></i></button>
+    <button id="btn-admin" class="chip hidden" title="관제"><i class="ic ic-gear"></i><span>관제</span></button>
+    <button id="btn-home-cam" class="chip" title="내 위치로"><i class="ic ic-expand"></i><span>내 위치</span></button>
     <div id="hud-conn" class="chip hidden"><i class="ic ic-alert"></i><span>연결 끊김 · 다시 연결 중…</span></div>
   </div>
 
@@ -43,7 +43,7 @@
 
   <!-- hunter: this round's order -->
   <div id="orderbar" class="overlay bar hidden">
-    <div class="bar-head"><div id="order-status" class="bar-status"></div><button class="chip fold" data-fold="orderbar" title="접기/펴기"><i class="ic ic-tri_down"></i></button></div>
+    <div class="bar-head"><div id="order-status" class="bar-status"></div><button class="chip fold" data-fold="orderbar" title="접기/펴기"><i class="ic ic-tri_down"></i><span>접기</span></button></div>
     <div id="order-pick" class="row bar-body">
       <button id="btn-pick-search"><i class="ic ic-search"></i><span>수색</span></button>
       <button id="btn-pick-scan"><i class="ic ic-signal"></i><span>추적</span></button>
@@ -58,7 +58,7 @@
 
   <!-- fugitive: move + quickhack + ping -->
   <div id="fugbar" class="overlay bar hidden">
-    <div class="bar-head"><div id="fug-status" class="bar-status"></div><button class="chip fold" data-fold="fugbar" title="접기/펴기"><i class="ic ic-tri_down"></i></button></div>
+    <div class="bar-head"><div id="fug-status" class="bar-status"></div><button class="chip fold" data-fold="fugbar" title="접기/펴기"><i class="ic ic-tri_down"></i><span>접기</span></button></div>
     <div class="row small bar-body"><span id="fug-ram" class="chip"></span><span id="fug-trace" class="chip"></span></div>
     <div id="fug-pick" class="bar-body">
       <div id="fug-hacks" class="row small"></div>

@@ -4,6 +4,8 @@ import hashlib
 from contextlib import ExitStack, contextmanager
 import json
 import sqlite3
+import time
+import types
 from pathlib import Path
 
 import pytest
@@ -14,7 +16,8 @@ SECRET = "train-secret"
 # anything about the fugitive that must never reach a hunter/spectator client
 FORBIDDEN_KEYS = {"fugitive", "fugitive_path", "position_history", "hidden_events", "seed", "ram", "traced_at",
                   "hidden_until", "hacks", "hacks_disabled", "log", "log_entry", "admin_id", "hunters_full",
-                  "fugitive_order", "fugitive_room_before", "fugitive_room_after", "lockable_edges", "reachable"}
+                  "fugitive_order", "fugitive_room_before", "fugitive_room_after", "lockable_edges", "reachable",
+                  "bot_reasons"}
 
 
 def keys_of(obj, acc=None):
@@ -523,12 +526,99 @@ def test_ws_rejects_bad_token_and_ignores_moves(client, stack):
 # ---------------------------------------------------------------------------
 # engine copy integrity
 # ---------------------------------------------------------------------------
+class FakeGemini:
+    """Stands in for google.genai.Client: `models.generate_content(...)` returns a fixed JSON decision."""
+
+    def __init__(self, text: str):
+        self.text = text
+        self.models = self
+
+    def generate_content(self, model, contents, config=None):
+        if "침입자(도주자)입니다" in contents:      # the fugitive prompt (bot_player.build_fugitive_prompt)
+            return types.SimpleNamespace(text=self.fugitive_text)
+        assert "승무원" in contents and "도주자" not in contents.split("[현재 현황판]")[0]  # the hunter prompt is hunter-side only
+        return types.SimpleNamespace(text=self.text)
+
+    fugitive_text = '{"move": null, "hack": null, "target": null, "reason": "테스트 대기"}'
+
+
+def test_ai_fugitive_mode(client):
+    from app.train import bot_player as B
+    adm, h1 = register(client, "adm"), register(client, "h1")
+    assert client.post("/api/train/game", json={"hunter_count": 2, "fugitive_ai": True}, headers=auth(adm)).json()["error"] == "ai_unavailable"
+    # a fresh Manager on every test app, so inject the fake before opening the game
+    r = client.post("/api/train/game", json={"hunter_count": 2}, headers=auth(adm))
+    assert r.status_code == 200 and r.json()["role"] == "fugitive" and r.json()["admin"] is True
+    mgr(client).bot_player = B.GeminiPlayer(client=FakeGemini('{"order": "stay", "reason": "봇 대기"}'))
+    r = client.post("/api/train/fugitive-ai", json={"on": True}, headers=auth(adm))
+    assert r.json()["fugitive_ai"] is True and r.json()["role"] == "spectator" and r.json()["admin"] is True
+    # the admin keeps the controls but is no longer the fugitive: they may ride as a hunter and see nothing secret
+    assert client.post("/api/train/join", headers=auth(adm)).json()["role"] == "hunter"
+    assert client.post("/api/train/join", headers=auth(h1)).status_code == 200
+    assert client.post("/api/train/start", headers=auth(adm)).status_code == 200
+    st = state(client, adm)
+    assert st["role"] == "hunter" and st["admin"] is True and "fugitive" not in st
+    assert_hunter_safe(st)
+    assert client.post("/api/train/fugitive/ping", headers=auth(adm)).json()["error"] == "fugitive_is_ai"
+    assert client.post("/api/train/fugitive/order", json={"move": None}, headers=auth(adm)).json()["error"] == "fugitive_is_ai"
+    # Gemini submits the fugitive's order in the background; once both hunters are in, the round resolves at once
+    eng = mgr(client).game.engine
+    wait_for(lambda: eng.fugitive.order is not None)
+    assert eng.bot_reasons[-1]["uid"] == "fugitive" and eng.bot_reasons[-1]["reason"] == "테스트 대기"
+    assert "ai_log" not in state(client, h1)
+    assert client.post("/api/train/order", json={"type": "stay"}, headers=auth(h1)).status_code == 200
+    assert client.post("/api/train/order", json={"type": "stay"}, headers=auth(adm)).status_code == 200
+    assert state(client, h1)["round_no"] == 2
+    # turning the AI off in a lobby pulls the admin out of the crew
+    client.post("/api/train/game/end", headers=auth(adm))
+    client.post("/api/train/game", json={"hunter_count": 2, "fugitive_ai": True}, headers=auth(adm))
+    client.post("/api/train/join", headers=auth(adm))
+    r = client.post("/api/train/fugitive-ai", json={"on": False}, headers=auth(adm))
+    assert r.json()["lobby"] == [] and r.json()["role"] == "fugitive"
+    assert client.post("/api/train/join", headers=auth(adm)).json()["error"] == "is_admin"
+
+
+def test_ai_hunters_fill_the_lobby_and_submit(client):
+    from app.train import bot_player as B
+    adm, h1 = register(client, "adm"), register(client, "h1")
+    assert client.post("/api/train/game", json={"hunter_count": 3}, headers=auth(adm)).status_code == 200
+    # no GEMINI_API_KEY in tests → the buttons stay hidden and the endpoint refuses
+    assert state(client, h1)["ai_available"] is False
+    assert client.post("/api/train/bots", json={"target_count": 3}, headers=auth(adm)).json()["error"] == "ai_unavailable"
+    mgr(client).bot_player = B.GeminiPlayer(client=FakeGemini('{"order": "search", "reason": "테스트 수색"}'))
+    assert client.post("/api/train/join", headers=auth(h1)).status_code == 200
+    assert client.post("/api/train/bots", json={"target_count": 3}, headers=auth(h1)).json()["error"] == "not_admin"
+    r = client.post("/api/train/bots", json={"target_count": 6}, headers=auth(adm))   # clamped to hunter_count
+    assert r.status_code == 200 and r.json()["lobby"] == ["h1", "bot:1", "bot:2"] and r.json()["ai_available"] is True
+    assert client.post("/api/train/bots", json={"target_count": 3}, headers=auth(adm)).json()["error"] == "lobby_full"
+    assert client.delete("/api/train/bots", headers=auth(adm)).json()["lobby"] == ["h1"]
+    assert client.post("/api/train/bots", json={"target_count": 3}, headers=auth(adm)).json()["lobby"] == ["h1", "bot:1", "bot:2"]
+    assert client.post("/api/train/start", headers=auth(adm)).status_code == 200
+    # the bots decide in a background task right after the round opens
+    for _ in range(100):
+        st = state(client, h1)
+        subs = {h["name"]: h["submitted"] for h in st["view"]["hunters"]}
+        if subs["bot:1"] and subs["bot:2"]:
+            break
+        time.sleep(0.05)
+    assert subs["bot:1"] and subs["bot:2"] and not subs["h1"]
+    assert st["orders"]["bot:1"]["type"] == "search"          # bot orders are public like any hunter's
+    assert_hunter_safe(st)                                     # ...but their reasons are not
+    fs = state(client, adm)
+    assert [r["order"] for r in fs["bot_reasons"]] == ["search", "search"] and fs["bot_reasons"][0]["reason"] == "테스트 수색"
+    assert fs["avatars"]["bot:1"]["preset"] == 0
+    assert client.delete("/api/train/bots", headers=auth(adm)).json()["error"] == "not_open"   # lobby only
+    # h1 submits → everyone in → fugitive grace starts (early resolve path still works with bots)
+    assert client.post("/api/train/order", json={"type": "stay"}, headers=auth(h1)).status_code == 200
+    assert state(client, h1)["grace_until"] is not None
+
+
 def test_engine_files_copied_unchanged():
     root = Path(__file__).resolve().parents[2]
     ref, dst = root / "reference", root / "server" / "app" / "train"
     if not ref.exists():
         pytest.skip("reference/ not checked out")
-    for name in ("engine.py", "config.py", "strings.py", "sim.py"):
+    for name in ("engine.py", "config.py", "strings.py", "sim.py", "bot_player.py", "render.py"):
         src = (ref / name).read_bytes().replace(b"\r\n", b"\n")
         copied = (dst / name).read_bytes().replace(b"\r\n", b"\n").split(b"\n", 1)
         assert copied[0].startswith(b"# Copied unchanged") and b"2182a11" in copied[0]

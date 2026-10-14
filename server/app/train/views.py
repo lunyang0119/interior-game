@@ -51,6 +51,7 @@ def _base(game: "TrainGame", role: str, pid: str | None) -> dict[str, Any]:
         "status": game.status,
         "role": role,
         "hunter_count": p.hunter_count,
+        "fugitive_ai": p.fugitive_ai,
         "map_id": p.map_id,
         "lobby": list(p.lobby),
         "deadline_ts": p.deadline_ts,
@@ -115,6 +116,7 @@ def fugitive_payload(game: "TrainGame", pid: str) -> dict[str, Any]:
     speed = int(st.config.get("fugitive_speed", 1))
     out["reachable"] = sorted(r for r in gmap.rooms if 0 < gmap.distance(f.room, r) <= speed)
     out["lockable_edges"] = E.lockable_edges(st)
+    out["bot_reasons"] = list(st.bot_reasons[-24:])
     out["hunters_full"] = {
         uid: {"name": h.name, "room": h.room, "submitted": h.order is not None, "dazed_until": h.dazed_until,
               "order": order_dict(h.order) if pinged else None}

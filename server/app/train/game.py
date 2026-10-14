@@ -18,6 +18,7 @@ import httpx
 
 from .. import config as app_config
 from ..errors import ApiError
+from . import bot_player as B
 from . import engine as E
 from . import settings, store, views
 from .strings import CAPTURE_LINE, COMBAT_MODE_ON
@@ -29,6 +30,7 @@ log = logging.getLogger("train")
 LOBBY, ROUND_OPEN, PAUSED, CAPTURED, ENDED = "LOBBY", E.ROUND_OPEN, E.PAUSED, E.CAPTURED, store.ENDED
 TIMER_CHUNK_S = 60.0
 MIN_HUNTERS, MAX_HUNTERS = 2, 6
+BOT_LOOK = {"preset": 0, "skin": 0, "eyes": 0, "hair": 0, "hair_color": 0, "outfit": 0, "acc": 0}   # AI hunters' avatar
 
 
 class RuleApiError(ApiError):
@@ -62,6 +64,7 @@ class Policy:
     paused_at: float | None = None
     votes: dict[str, list[str]] = field(default_factory=dict)
     webhook_sent: bool = False
+    fugitive_ai: bool = False      # Gemini plays the fugitive; the admin keeps the controls and may ride as a hunter
 
 
 @dataclass
@@ -125,6 +128,11 @@ class Manager:
     def __init__(self) -> None:
         self.game: TrainGame | None = None
         self.admin_id: str | None = None
+        # AI hunters ("bot:N" lobby ids, bot_player.py from the Discord repo): decisions come from Gemini in a
+        # background task per round; the reasons go to the fugitive only (like the bot's control channel)
+        self.bot_player = B.GeminiPlayer()
+        self.bot_task: asyncio.Task[None] | None = None
+        self.fugitive_task: asyncio.Task[None] | None = None
         self.lock = asyncio.Lock()
         self._timer: asyncio.Task | None = None
         self.webhook: Webhook = post_webhook
@@ -155,6 +163,7 @@ class Manager:
                     await self._resolve(timed_out=True)
                 else:
                     self._arm()
+                    self._schedule_ai(g)
         elif g is not None:
             log.info("train: restored game %d (%s)", g.row_id, g.status)
             if g.status == CAPTURED and not g.policy.webhook_sent and g.engine is not None:
@@ -169,17 +178,20 @@ class Manager:
             from ..db import connect
             conn = connect()
             try:
-                return {pid: load_avatar(conn, pid) for pid in pids}
+                return {pid: load_avatar(conn, pid) for pid in pids if not B.is_bot(pid)}
             finally:
                 conn.close()
         self.avatars.update(await asyncio.to_thread(load))
+        for pid in pids:
+            if B.is_bot(pid):
+                self.avatars[pid] = dict(BOT_LOOK)
 
     # -- roles -----------------------------------------------------------------
 
     def role_of(self, pid: str | None) -> str:
-        if pid is not None and pid == self.admin_id:
-            return views.FUGITIVE
         g = self.game
+        if pid is not None and pid == self.admin_id and not (g is not None and g.policy.fugitive_ai):
+            return views.FUGITIVE
         if pid is not None and g is not None:
             if g.engine is not None and pid in g.engine.hunters:
                 return views.HUNTER
@@ -190,8 +202,13 @@ class Manager:
     def _payload(self, pid: str | None) -> dict[str, Any]:
         role = self.role_of(pid)
         if self.game is None:
-            return {"status": "IDLE", "role": role, "you": None}
-        return views.payload_for(self.game, role, pid)
+            return {"status": "IDLE", "role": role, "you": None, "ai_available": self.bot_player.available}
+        out = views.payload_for(self.game, role, pid)
+        out["ai_available"] = self.bot_player.available
+        out["admin"] = pid is not None and pid == self.admin_id
+        if self.game.status == CAPTURED and self.game.engine is not None:
+            out["ai_log"] = list(self.game.engine.bot_reasons)   # every AI's reasoning, revealed once the chase is over
+        return out
 
     async def state_for(self, pid: str | None) -> tuple[str, dict[str, Any]]:
         async with self.lock:
@@ -266,11 +283,14 @@ class Manager:
 
     # -- lobby -----------------------------------------------------------------
 
-    async def create(self, pid: str, hunter_count: int, map_id: str | None, overrides: dict[str, Any] | None) -> dict[str, Any]:
+    async def create(self, pid: str, hunter_count: int, map_id: str | None, overrides: dict[str, Any] | None,
+                     fugitive_ai: bool = False) -> dict[str, Any]:
         """Anyone may open a game while none is running; the opener becomes that game's fugitive/admin
         (no secret needed — TRAIN_ADMIN_SECRET + /claim only re-binds the role, e.g. to take over a stuck game)."""
         if not MIN_HUNTERS <= hunter_count <= MAX_HUNTERS:
             raise ApiError(400, "bad_hunter_count")
+        if fugitive_ai and not self.bot_player.available:
+            raise ApiError(503, "ai_unavailable")
         async with self.lock:
             g = self.game
             if g is not None and g.status not in (CAPTURED,):
@@ -288,7 +308,9 @@ class Manager:
             mid = E.cfgmod.normalize_map_id(map_id) if map_id else settings.default_map_id(hunter_count)
             if mid not in E.cfgmod.BUILTIN_MAPS:
                 raise ApiError(400, "unknown_map")
-            self.game = TrainGame(row_id=None, status=LOBBY, policy=Policy(hunter_count=hunter_count, map_id=mid, overrides=ov), avatars=self.avatars)
+            self.game = TrainGame(row_id=None, status=LOBBY,
+                                  policy=Policy(hunter_count=hunter_count, map_id=mid, overrides=ov, fugitive_ai=fugitive_ai),
+                                  avatars=self.avatars)
             if pid != self.admin_id:
                 self.admin_id = pid
                 await asyncio.to_thread(store.set_meta, "admin_id", pid)
@@ -300,7 +322,7 @@ class Manager:
     async def join(self, pid: str, joining: bool) -> dict[str, Any]:
         async with self.lock:
             g = self._require_game(LOBBY)
-            if pid == self.admin_id:
+            if pid == self.admin_id and not g.policy.fugitive_ai:
                 raise ApiError(403, "is_admin")
             if joining:
                 if pid not in g.policy.lobby:
@@ -315,6 +337,131 @@ class Manager:
         await self._push_state()
         return out
 
+    async def add_bots(self, pid: str, target_count: int) -> dict[str, Any]:
+        """Fill the lobby with AI hunters up to `target_count` (admin, LOBBY, needs GEMINI_API_KEY)."""
+        self._require_admin(pid)
+        async with self.lock:
+            g = self._require_game(LOBBY)
+            if not self.bot_player.available:
+                raise ApiError(503, "ai_unavailable")
+            target = min(max(target_count, MIN_HUNTERS), g.policy.hunter_count)
+            need = target - len(g.policy.lobby)
+            if need <= 0:
+                raise ApiError(409, "lobby_full")
+            existing = sum(1 for h in g.policy.lobby if B.is_bot(h))
+            for uid, _name in B.bot_hunters(need, start=existing + 1):
+                g.policy.lobby.append(uid)
+            await self._load_avatars(g.policy.lobby)
+            await self._save()
+        await self._push_state()
+        return self._payload(pid)
+
+    async def set_fugitive_ai(self, pid: str, on: bool) -> dict[str, Any]:
+        """Lobby only. Off → the admin leaves the lobby again (they become the fugitive)."""
+        self._require_admin(pid)
+        async with self.lock:
+            g = self._require_game(LOBBY)
+            if on and not self.bot_player.available:
+                raise ApiError(503, "ai_unavailable")
+            g.policy.fugitive_ai = on
+            if not on and pid in g.policy.lobby:
+                g.policy.lobby.remove(pid)
+            await self._save()
+        await self._push_state()
+        return self._payload(pid)
+
+    async def remove_bots(self, pid: str) -> dict[str, Any]:
+        self._require_admin(pid)
+        async with self.lock:
+            g = self._require_game(LOBBY)
+            g.policy.lobby = [h for h in g.policy.lobby if not B.is_bot(h)]
+            await self._save()
+        await self._push_state()
+        return self._payload(pid)
+
+    # -- AI hunters: one background task per round, decisions outside the lock, submits under it ------------
+
+    def _schedule_ai(self, g: TrainGame) -> None:
+        self._schedule_bot_turn(g)
+        self._schedule_fugitive_turn(g)
+
+    def _schedule_fugitive_turn(self, g: TrainGame) -> None:
+        st = g.engine
+        if st is None or not st.debug_fugitive_ai or g.status != ROUND_OPEN or st.fugitive.order is not None:
+            return
+        if self.fugitive_task is not None and not self.fugitive_task.done():
+            return
+        self.fugitive_task = asyncio.create_task(self._run_fugitive_turn(g, st.round_no))
+
+    async def _run_fugitive_turn(self, g: TrainGame, round_no: int) -> None:
+        """Mirror of the bot's _run_fugitive_turn: Gemini decides outside the lock; a rule-breaking answer keeps the
+        move and drops the hack, or waits."""
+        st = g.engine
+        try:
+            d = await B.decide_fugitive(self.bot_player, st)
+        except Exception:  # noqa: BLE001
+            log.exception("train: AI fugitive R%d failed", round_no)
+            return
+        async with self.lock:
+            if self.game is not g or g.status != ROUND_OPEN or st.round_no != round_no or st.fugitive.order is not None:
+                return
+            accepted, note = True, ""
+            try:
+                E.submit_fugitive_order(st, d.move, d.hack, d.target, now=self.now())
+            except E.RuleError as e:
+                accepted, note = False, str(e)
+                try:
+                    E.submit_fugitive_order(st, d.move, None, None, now=self.now())
+                    note += " → 퀵핵 없이 이동만 제출"
+                except E.RuleError:
+                    E.submit_fugitive_order(st, None, None, None, now=self.now())
+                    note += " → 대기"
+            B.record_fugitive_reason(st, d, accepted, note)
+            await self._save()
+            await self._maybe_early_resolve(g)
+
+    def _schedule_bot_turn(self, g: TrainGame) -> None:
+        st = g.engine
+        if st is None or not st.debug_bots or g.status != ROUND_OPEN:
+            return
+        pending = [uid for uid in st.hunters if B.is_bot(uid) and st.hunters[uid].order is None
+                   and st.hunters[uid].dazed_until < st.round_no]
+        if not pending or (self.bot_task is not None and not self.bot_task.done()):
+            return
+        self.bot_task = asyncio.create_task(self._run_bot_turn(g, st.round_no, pending))
+
+    async def _run_bot_turn(self, g: TrainGame, round_no: int, uids: list[str]) -> None:
+        st = g.engine
+        for uid in uids:
+            if self.game is not g or g.status != ROUND_OPEN or st.round_no != round_no:
+                return
+            if st.hunters[uid].order is not None:
+                continue
+            await self._push_to_fugitive({"type": "bot_thinking", "id": uid, "round": round_no})
+            try:
+                d = await self.bot_player.decide(st, uid)
+            except Exception:  # noqa: BLE001
+                log.exception("train: AI hunter %s R%d failed", uid, round_no)
+                continue
+            async with self.lock:
+                if self.game is not g or g.status != ROUND_OPEN or st.round_no != round_no:
+                    return
+                if st.hunters[uid].order is not None:
+                    continue
+                accepted, note = True, ""
+                try:
+                    o = E.submit_hunter_order(st, uid, d.order, d.target, now=self.now())
+                except E.RuleError as e:
+                    accepted, note = False, str(e)
+                    o = E.submit_hunter_order(st, uid, "stay", None, now=self.now())
+                B.record_reason(st, uid, d, accepted, note)
+                await self._push_to_fugitive({"type": "bot_reason", "reason": st.bot_reasons[-1]})
+                if await self._after_hunter_submit(g, uid, o):
+                    return   # the round resolved; the next round's open scheduled a fresh task
+
+    async def _push_to_fugitive(self, msg: dict[str, Any]) -> None:
+        await hub.send_each(lambda pid: msg if self.role_of(pid) == views.FUGITIVE else None)
+
     async def start_game(self, pid: str) -> dict[str, Any]:
         self._require_admin(pid)
         async with self.lock:
@@ -327,6 +474,8 @@ class Manager:
                 g.engine = E.new_game(gmap, cfg, [(h, h) for h in g.policy.lobby], now=self.now())
             except E.RuleError as e:
                 raise _rule(e)
+            g.engine.debug_bots = any(B.is_bot(h) for h in g.policy.lobby)
+            g.engine.debug_fugitive_ai = g.policy.fugitive_ai
             await self._open_round(g, push=False)
             out = self._payload(pid)
             await self._push({"type": "started", "line": COMBAT_MODE_ON})
@@ -351,6 +500,7 @@ class Manager:
         self._arm()
         if push:
             await self._push_round_open(g)
+        self._schedule_ai(g)
 
     async def _push_round_open(self, g: TrainGame) -> None:
         await self._push({"type": "round_open", "round": g.engine.round_no, "deadline_ts": g.policy.deadline_ts,
@@ -447,12 +597,17 @@ class Manager:
                 o = E.submit_hunter_order(st, pid, order_type, target, now=self.now())
             except E.RuleError as e:
                 raise _rule(e)
-            if g.policy.votes.pop(pid, None) is not None:
-                await self._push({"type": "vote", "target": pid, "voters": [], "need": g.votes_needed(), "passed": False, "void": True})
-            await self._save()
-            await self._push_submitted(g, pid, views.order_dict(o))
-            await self._maybe_early_resolve(g)
+            await self._after_hunter_submit(g, pid, o)
             return {"order": views.order_dict(o)}
+
+    async def _after_hunter_submit(self, g: TrainGame, pid: str, o: Any) -> bool:
+        """Under the lock, after a hunter's order went into the engine: void a pending vote against them, snapshot,
+        tell everyone, maybe resolve early. Returns True when the round was resolved."""
+        if g.policy.votes.pop(pid, None) is not None:
+            await self._push({"type": "vote", "target": pid, "voters": [], "need": g.votes_needed(), "passed": False, "void": True})
+        await self._save()
+        await self._push_submitted(g, pid, views.order_dict(o))
+        return await self._maybe_early_resolve(g)
 
     async def cancel_hunter_order(self, pid: str) -> dict[str, Any]:
         async with self.lock:
@@ -486,6 +641,9 @@ class Manager:
         self._require_admin(pid)
         async with self.lock:
             g = self._require_game(ROUND_OPEN)
+            if g.policy.fugitive_ai:
+                raise ApiError(403, "fugitive_is_ai")
+            g = self._require_game(ROUND_OPEN)
             try:
                 o = E.submit_fugitive_order(g.engine, move, hack, target, now=self.now())
             except E.RuleError as e:
@@ -498,6 +656,9 @@ class Manager:
         self._require_admin(pid)
         async with self.lock:
             g = self._require_game(ROUND_OPEN)
+            if g.policy.fugitive_ai:
+                raise ApiError(403, "fugitive_is_ai")
+            g = self._require_game(ROUND_OPEN)
             g.engine.fugitive.order = None
             await self._save()
             return {"order": None}
@@ -505,6 +666,9 @@ class Manager:
     async def ping(self, pid: str) -> dict[str, Any]:
         self._require_admin(pid)
         async with self.lock:
+            g = self._require_game(ROUND_OPEN)
+            if g.policy.fugitive_ai:
+                raise ApiError(403, "fugitive_is_ai")
             g = self._require_game(ROUND_OPEN)
             st = g.engine
             try:
@@ -619,6 +783,7 @@ class Manager:
             g.engine.paused_remaining = 0.0
             await self._save()
             self._arm()
+            self._schedule_ai(g)
             await self._push({"type": "resumed", "deadline_ts": g.policy.deadline_ts, "vote_after_ts": g.vote_after_ts()})
             return {"deadline_ts": g.policy.deadline_ts}
 

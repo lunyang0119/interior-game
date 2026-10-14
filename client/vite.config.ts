@@ -20,9 +20,10 @@ export default defineConfig({
     chunkSizeWarningLimit: 1500,
   },
   server: {
+    // API_PORT=8010 npm run dev → proxy to another uvicorn port (e.g. when 8000 is stuck)
     proxy: {
-      "/api": "http://localhost:8000",
-      "/ws": { target: "ws://localhost:8000", ws: true },
+      "/api": `http://localhost:${process.env.API_PORT ?? 8000}`,
+      "/ws": { target: `ws://localhost:${process.env.API_PORT ?? 8000}`, ws: true },
     },
   },
 });

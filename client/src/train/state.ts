@@ -28,6 +28,20 @@ export function me(): string | null {
   return tstate.payload?.you?.id ?? state.id ?? null;
 }
 
+/** AI hunters are lobby ids "bot:N" (server bot_player.py); everyone else is shown by their id. */
+export function isBot(id: string): boolean {
+  return id.startsWith("bot:");
+}
+
+export function label(id: string): string {
+  return isBot(id) ? `제미나이-${id.slice(4)}` : id;
+}
+
+/** The account holding the controls (pause, config, AI crew…). In fugitive-AI games this is not the fugitive. */
+export function isAdmin(): boolean {
+  return !!tstate.payload?.admin;
+}
+
 export function isFugitive(): boolean {
   return tstate.payload?.role === "fugitive";
 }
