@@ -61,7 +61,7 @@ export function initAccounts(): void {
     try {
       const r = await api.logins();
       out.textContent = r.logins.map((l) =>
-        `${new Date(l.ts * 1000).toLocaleString()}  ${l.ok ? "✓" : "✗"} ${l.action.padEnd(9)} ip:${l.ip_hash}  ${l.ua}`).join("\n") || "기록 없음";
+        `${new Date(l.ts * 1000).toLocaleString()}  ${l.ok ? "성공" : "실패"} ${l.action.padEnd(9)} ip:${l.ip_hash}  ${l.ua}`).join("\n") || "기록 없음";
       show("logins-out", out.classList.contains("hidden"));
     } catch (e) {
       toast(e instanceof ApiError ? msgFor(e.code) : String(e));

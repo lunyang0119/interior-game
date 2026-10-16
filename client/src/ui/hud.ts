@@ -57,7 +57,7 @@ export function initHud(): void {
   };
   bus.on("room:changed", ({ name, id, ruined, kind, floor }) => {
     $("hud-room-val").textContent = (name || id) + (kind === "mine" && floor ? ` ${floor}층` : "");
-    $("hud-room-ruined").textContent = ruined > 0 ? ` · 🧹 ${ruined}` : "";
+    setRich($("hud-room-ruined"), ruined > 0 ? ` · {repair}${ruined}` : "");
     show("hud-room", true);
     roomKind = kind === "mine" ? "mine" : "room";
     applyBars();
@@ -105,8 +105,8 @@ export function initHud(): void {
   bus.on("dock:ready", () => show("loading", false));
   bus.on("net:state", ({ online, reason }) => {
     show("hud-conn", !online);
-    $("hud-conn").textContent = reason === "replaced" ? "🔌 다른 곳에서 열려서 끊겼어요"
-      : reason === "rotated" ? "🔌 로그인이 바뀌어서 끊겼어요" : "🔌 연결 끊김 · 다시 연결 중…";
+    setRich($("hud-conn"), "{offline} " + (reason === "replaced" ? "다른 곳에서 열려서 끊겼어요"
+      : reason === "rotated" ? "로그인이 바뀌어서 끊겼어요" : "연결 끊김 · 다시 연결 중…"));
   });
   $("place-confirm").addEventListener("click", () => bus.emit("place:confirm"));
   $("place-again").addEventListener("click", () => bus.emit("place:confirm-again"));
@@ -206,14 +206,14 @@ export function initHud(): void {
   fishBtn.addEventListener("pointerleave", up);
   fishBtn.addEventListener("contextmenu", (e) => e.preventDefault());
   window.addEventListener("blur", up);
-  const fishLabel: Record<string, string> = { idle: "🎣 낚시", wait: "🎣 낚시", bite: "🎣 낚아올리기", hold: "🎣 버티는 중…" };
+  const fishLabel: Record<string, string> = { idle: "{rod} 낚시", wait: "{rod} 낚시", bite: "{rod} 낚아올리기", hold: "{rod} 버티는 중…" };
   bus.on("fish:state", ({ status, mode }) => {
     setRich($("fish-status"), status);
     $("fish-status").classList.toggle("real", mode === "bite" || mode === "hold");
     fishBtn.classList.toggle("waiting", mode === "wait");
     fishBtn.classList.toggle("bite", mode === "bite");
     fishBtn.classList.toggle("holding", mode === "hold");
-    fishBtn.textContent = fishLabel[mode];
+    setRich(fishBtn, fishLabel[mode]);
     $("fish-meter").style.visibility = mode === "hold" ? "visible" : "hidden";
   });
   bus.on("fish:meter", ({ meter }) => {

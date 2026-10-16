@@ -9,6 +9,7 @@
   --muted: #9a9ab0;
   --primary: #4f8cff;
   --danger: #e5534b;
+  --ok: #7cc67c; /* done / online (status.ok, the online dot) */
   --card: #1b1b24; /* inner cards inside panels (shop items, account rows, inputs) */
   --font-body: -apple-system, "Segoe UI", system-ui, sans-serif;
   --font-size: 15px;
@@ -108,11 +109,11 @@ img, .framed { image-rendering: pixelated; }
 #board-reserve .empty, #board-quests .empty { color: var(--muted); }
 #board-reserve .rsv { display: flex; gap: 10px; align-items: center; padding: 8px 10px; border-radius: 10px; background: var(--card); margin-bottom: 6px; }
 #board-reserve .rsv canvas { width: 48px; height: 48px; image-rendering: pixelated; flex: none; }
-#board-reserve .rsv .emoji { width: 48px; font-size: 28px; text-align: center; flex: none; }
+#board-reserve .rsv .slot { width: 48px; flex: none; }
 #board-reserve .rsv .body { flex: 1; min-width: 0; }
 #board-reserve .rsv .where { font-weight: 700; }
 #board-reserve .rsv .status { font-size: var(--fs-small); margin-top: 2px; }
-#board-reserve .rsv .status.ok { color: #7cc67c; }
+#board-reserve .rsv .status.ok { color: var(--ok); }
 #board-reserve .rsv .status.miss { color: #e07070; }
 #board-reserve .rsv button { padding: 6px 10px; font-size: var(--fs-small); flex: none; }
 #board-quests .quest { padding: 8px 10px; border-radius: 10px; background: var(--card); margin-bottom: 6px; }
@@ -145,6 +146,11 @@ button, .chip {
 .chip { border: var(--slice-chip-px) solid transparent; border-image: var(--frame-chip) var(--slice-chip) fill round; padding: var(--pad-chip) calc(var(--pad-chip) + 4px); }
 button:active { transform: scale(0.97); }
 button.big { padding: 12px 20px; font-weight: 700; font-size: var(--fs-big); background: var(--panel); box-shadow: 0 2px 8px rgba(0,0,0,.4); }
+/* phones: the icon sits above the label so three big buttons fit one row without breaking a word */
+@media (max-width: 899px), (pointer: coarse) {
+  button.big:has(> .icon) { display: inline-flex; flex-direction: column; align-items: center; white-space: nowrap; padding: 8px 14px; }
+  button.big > .icon { margin: -6px 0 -2px; }
+}
 button.primary { background: var(--primary); border: var(--slice-button-primary-px) solid transparent; border-image: var(--frame-button-primary) var(--slice-button-primary) fill round; }
 button.danger { background: var(--danger); }
 button.close { background: transparent; border: 0; border-image: none; font-size: 18px; }
@@ -161,6 +167,7 @@ button.close { background: transparent; border: 0; border-image: none; font-size
 .row.small button { padding: 6px 10px; font-size: var(--fs-small); }
 .small { font-size: var(--fs-small); }
 .muted { color: var(--muted); }
+.dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--ok); vertical-align: middle; }
 .credits { color: var(--muted); margin-top: 10px; font-size: 11px; }
 input {
   flex: 1; min-width: 0; border-radius: 10px; padding: var(--pad-input); font: inherit; background: var(--card); color: var(--text);

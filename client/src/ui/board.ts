@@ -10,7 +10,7 @@
 
 import { api, ApiError, msgFor, type ComfortView, type NeedProgress, type RoomProgress } from "../api";
 import { bus, toast } from "../bus";
-import { placeName, unitName, type Stage } from "../catalog";
+import { hasTag, placeName, TAG_DOG, unitName, type Stage } from "../catalog";
 import { applyCat, applyComfort, applyProgress, CAT_MAX_AFFECTION, CAT_TAPS_PER_LEVEL, catalog, state } from "../state";
 import { $, show, el } from "./dom";
 import { richEl, setRich } from "./icons";
@@ -44,13 +44,13 @@ function renderSummary(): void {
   setRich(box, parts.join(" · "));
 }
 
-/** "🐱 호감도 1/3 · 쓰다듬기 137/300" — the cat loves the inn a little more every 100 taps, for good. */
+/** "{cat} 호감도 1/3 · 쓰다듬기 137/300" — the cat loves the inn a little more every 100 taps, for good. */
 function catLine(): string {
   const c = state.cat;
   const goal = CAT_MAX_AFFECTION * CAT_TAPS_PER_LEVEL;
   return c.affection >= CAT_MAX_AFFECTION
-    ? `🐱 호감도 ${c.affection}/${CAT_MAX_AFFECTION} (최고예요)`
-    : `🐱 호감도 ${c.affection}/${CAT_MAX_AFFECTION} · 쓰다듬기 ${Math.min(c.taps, goal)}/${goal}`;
+    ? `{cat} 호감도 ${c.affection}/${CAT_MAX_AFFECTION} (최고예요)`
+    : `{cat} 호감도 ${c.affection}/${CAT_MAX_AFFECTION} · 쓰다듬기 ${Math.min(c.taps, goal)}/${goal}`;
 }
 
 /** "✓ 준비됐어요" or why not. */
@@ -66,12 +66,15 @@ function reservationCard(key: string, c: ComfortView): HTMLElement {
   const when = r.days_left <= 0 ? "오늘 밤" : `${r.days_left}일 뒤`;
   body.appendChild(el("div", "where", unitName(cat, key)));
   if (r.kind === "dog") {
-    card.appendChild(el("div", "emoji", "🐶"));
+    const slot = el("div", "slot");
+    card.appendChild(slot);
+    const dog = cat.items.find((it) => hasTag(it, TAG_DOG)); // any dog decoration stands for the guest
+    if (dog) void itemThumb(dog).then((canvas) => slot.replaceWith(canvas));
     body.appendChild(el("div", "what", `개를 좋아하는 손님이 ${when} 와요 — 개 장식이 있거나 안락도 ${DOG_COMFORT} 이상이면 3배를 내요`));
     body.appendChild(status(r.ready, c.beds === 0 ? "침대가 없어요" : `아직이에요 (안락도 ${c.score}/${DOG_COMFORT})`));
   } else {
     const item = r.item_id ? cat.byId.get(r.item_id) : undefined;
-    const slot = el("div", "emoji", "📦");
+    const slot = el("div", "slot");
     card.appendChild(slot);
     if (item) void itemThumb(item).then((canvas) => slot.replaceWith(canvas));
     body.appendChild(el("div", "what", `${when}까지 ${itemName(r.item_id)} 준비 — 있으면 2배, 없으면 다음날 손님이 안 와요`));

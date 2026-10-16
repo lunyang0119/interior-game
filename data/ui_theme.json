@@ -27,7 +27,8 @@
   "text": "#3a2626",
   "muted": "#8b6b66",
   "primary": "#c98a7a",
-  "danger": "#b5504a"
+  "danger": "#b5504a",
+  "ok": "#6f9e4c"
  },
  "frames": {
   "panel": {

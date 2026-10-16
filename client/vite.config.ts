@@ -7,6 +7,9 @@ export default defineConfig({
   build: {
     outDir: "../server/static",
     emptyOutDir: true,
+    // public/ holds only gen/ and media/ (~175 MB), which FastAPI mounts straight from client/public (main.py) —
+    // copying them into static/ made every build slow and every deploy/sync.sh upload them a second time
+    copyPublicDir: false,
     target: "es2020",
     // Phaser alone is ~1.2 MB: keep it in its own chunk so a redeploy of our code leaves the engine cached
     // in the browser (and the "chunk larger than 500 kB" note stops firing for our bundle).

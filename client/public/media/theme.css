@@ -19,6 +19,7 @@ html:root {
   --muted: #8b6b66;
   --primary: #c98a7a;
   --danger: #b5504a;
+  --ok: #6f9e4c;
   --frame-panel: url(/media/ui/panel.png);
   --slice-panel: 8;
   --slice-panel-px: 16px;
@@ -68,10 +69,24 @@ html #toast { border-radius: 0; background: none; box-shadow: none; backdrop-fil
     --preview-w: 120px;
   }
 }
-.icon { display: inline-block; width: 32px; height: 32px; vertical-align: middle; flex: 0 0 auto; margin: -8px -4px; background: url(/media/ui/icons.png) no-repeat; background-size: 500% 100%; image-rendering: pixelated; }
+.icon { display: inline-block; width: 32px; height: 32px; vertical-align: middle; flex: 0 0 auto; margin: -8px -4px; background: url(/media/ui/icons.png) no-repeat; background-size: 800% 300%; image-rendering: pixelated; }
 .icon.x2 { width: 64px; height: 64px; margin: -16px -8px; }
 .icon-coin { background-position: 0.0000% 0.0000%; }
-.icon-heart { background-position: 25.0000% 0.0000%; }
-.icon-star { background-position: 50.0000% 0.0000%; }
-.icon-check { background-position: 75.0000% 0.0000%; }
-.icon-close { background-position: 100.0000% 0.0000%; }
+.icon-heart { background-position: 14.2857% 0.0000%; }
+.icon-star { background-position: 28.5714% 0.0000%; }
+.icon-check { background-position: 42.8571% 0.0000%; }
+.icon-close { background-position: 57.1429% 0.0000%; }
+.icon-home { background-position: 71.4286% 0.0000%; }
+.icon-cart { background-position: 85.7143% 0.0000%; }
+.icon-offline { background-position: 100.0000% 0.0000%; }
+.icon-rod { background-position: 0.0000% 50.0000%; }
+.icon-pickaxe { background-position: 14.2857% 50.0000%; }
+.icon-book { background-position: 28.5714% 50.0000%; }
+.icon-notebook { background-position: 42.8571% 50.0000%; }
+.icon-letter { background-position: 57.1429% 50.0000%; }
+.icon-quest { background-position: 71.4286% 50.0000%; }
+.icon-repair { background-position: 85.7143% 50.0000%; }
+.icon-lock { background-position: 100.0000% 50.0000%; }
+.icon-sync { background-position: 0.0000% 100.0000%; }
+.icon-cat { background-position: 14.2857% 100.0000%; }
+.icon-me { background-position: 28.5714% 100.0000%; }

@@ -4,7 +4,7 @@ Reads data/ui_icons.json and writes
   client/public/media/ui/icons.png   every icon centred in its own cell×cell slot (8 per row)
 and returns the CSS (.icon at the theme scale, .icon.x2 twice that, + .icon-<name>) that cmd_ui appends to media/theme.css.
 
-A source is either `sheet` + x, y (+ w, h; default one cell) in assets/, or `key`: a slice already packed into
+A source is `sheet` + x, y (+ w, h; default one cell) in assets/, `gen` + x, y, w, h in client/public/gen/, or `key`: a slice packed into
 gen/interiors.json or gen/map.json (run `build` first), optionally shrunk by an integer `down`. The crop is trimmed
 to its pixels and must then fit the cell. Rules and the emoji → icon table: docs/conventions/icons.md.
 """
@@ -36,6 +36,12 @@ def _atlas_crop(key: str) -> Image.Image:
 def _source(name: str, spec: dict, cell: int) -> Image.Image:
     if "key" in spec:
         im = _atlas_crop(spec["key"])
+    elif "gen" in spec:  # a frame of another generated strip, e.g. the inn cat (gen/cat/<variant>.png)
+        src = C.OUT_DIR / spec["gen"]
+        if not src.exists():
+            raise SystemExit(f"icon '{name}': {src} not found (run build first)")
+        x, y = spec["x"], spec["y"]
+        im = Image.open(src).convert("RGBA").crop((x, y, x + spec.get("w", cell), y + spec.get("h", cell)))
     else:
         src = C.ASSETS_ROOT / spec["sheet"]
         if not src.exists():

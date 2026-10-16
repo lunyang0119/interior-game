@@ -71,12 +71,12 @@ export function describe(e: ActivityEvent): string {
     case "earn": return `${who(e.player_id)}가 ${e.amount ?? 0}{coin}를 벌어왔어요`;
     case "guest": {
       if (e.data?.skipped) return `${room}에는 손님이 아무도 안 왔어요`;
-      const extra = e.data?.dog ? " 🐶 개를 좋아하는 손님도 묵었어요!" : e.data?.reserved ? " 예약 손님이 두 배를 냈어요!" : "";
+      const extra = e.data?.dog ? " 개를 좋아하는 손님도 묵었어요!" : e.data?.reserved ? " 예약 손님이 두 배를 냈어요!" : "";
       return `${room}에 손님 ${e.data?.guests ?? 0}명이 묵고 ${e.amount ?? 0}{coin}를 냈어요${extra}`;
     }
     case "reserve":
       return e.data?.dog
-        ? `🐶 개를 좋아하는 손님이 ${e.data?.days ?? "?"}일 뒤 ${room}에 묵겠대요 — 개 장식이 있거나 안락도가 높으면 와요`
+        ? `개를 좋아하는 손님이 ${e.data?.days ?? "?"}일 뒤 ${room}에 묵겠대요 — 개 장식이 있거나 안락도가 높으면 와요`
         : `${room}에 예약이 들어왔어요 — ${e.data?.days ?? "?"}일 안에 ${itemName(e.item_id)}을(를) 놓아 주세요`;
     case "missed": return `${room}의 예약 손님이 ${itemName(e.item_id)}이(가) 없어서 돌아갔어요. 내일은 손님이 안 와요`;
     case "cat": return e.data?.affection != null
@@ -155,10 +155,10 @@ function renderGuests(): void {
     const parts = [`가구 ${c.base}`];
     if (c.mult > 1) parts.push(`세트 ×${c.mult}`);
     if (c.ruined) parts.push(`부서진 물건 −${c.ruined * 5}`);
-    if (c.affection) parts.push(`🐱+${c.affection * 3}`);
+    if (c.affection) parts.push(`{cat}+${c.affection * 3}`);
     if (c.affection && c.affection < CAT_MAX_AFFECTION) parts.push(`쓰다듬기 ${state.cat.taps}/${(c.affection + 1) * CAT_TAPS_PER_LEVEL}`);
     parts.push(`침대 ${c.beds}개`);
-    card.appendChild(el("div", "guest-sub", parts.join(" · ")));
+    card.appendChild(richEl("div", "guest-sub", parts.join(" · ")));
     let night: string;
     if (c.beds === 0) night = "침대가 없어서 손님을 못 받아요";
     else if (c.skipped) night = "오늘 밤은 손님이 안 와요 (예약을 못 지켰어요)";
@@ -169,8 +169,8 @@ function renderGuests(): void {
       const r = c.reservation;
       const when = r.days_left <= 0 ? "오늘 밤" : `${r.days_left}일 뒤`;
       card.appendChild(el("div", "reserve", r.kind === "dog"
-        ? `🐶 개를 좋아하는 손님이 ${when} 와요 — 개 장식이 있거나 안락도 70 이상이면 3배를 내요`
-        : `📝 예약: ${when}까지 ${itemName(r.item_id)} 준비 (있으면 2배, 없으면 다음날 손님이 안 와요)`));
+        ? `개를 좋아하는 손님이 ${when} 와요 — 개 장식이 있거나 안락도 70 이상이면 3배를 내요`
+        : `예약: ${when}까지 ${itemName(r.item_id)} 준비 (있으면 2배, 없으면 다음날 손님이 안 와요)`));
     }
     box.appendChild(card);
   }
@@ -301,7 +301,7 @@ export function initLog(): void {
   show("panel-log", false);
 }
 
-/** `🏠 2층 · 🧹 3 · 1/2단계 · 1호실 ☕42` — the HUD chip; tapping it opens the checklist. */
+/** `2층 · {repair}3 · 1/2단계 · 1호실 {heart}42` (after the home icon) — the HUD chip; tapping it opens the checklist. */
 function renderChip(): void {
   const p = state.progress[state.roomId];
   const c = state.comfort[currentUnit()];

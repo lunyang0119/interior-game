@@ -7,6 +7,7 @@ export const TAG_FIXED = "fixed";
 export const TAG_STAIRS = "stairs";
 export const TAG_NOTE = "note"; // carries a text anyone can rewrite (ui/note.ts)
 export const TAG_BOARD = "board"; // tapping it opens the 📋 board: restoration quests + guest reservations (ui/board.ts)
+export const TAG_DOG = "dog"; // satisfies the monthly dog-lover guest (server guests.py); its sprite stands for that guest on the board
 /** A wall-layer sprite standing on the floor (room divider): placed, drawn and walked around like furniture. */
 export const TAG_PARTITION = "partition";
 /** A partition avatars may walk through. */

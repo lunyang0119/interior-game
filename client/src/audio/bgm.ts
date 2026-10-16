@@ -35,7 +35,7 @@ let started = false;
 let fading = false;
 const muteListeners = new Set<(muted: boolean) => void>();
 
-/** One mute switch for music and sound effects (the 🔊 button). */
+/** One mute switch for music and sound effects (the 소리 chip). */
 export function isMuted(): boolean {
   return muted;
 }
@@ -127,7 +127,7 @@ function start(): void {
 
 function renderButton(): void {
   const b = document.getElementById("btn-bgm");
-  if (b) { b.textContent = muted ? "🔇" : "🔊"; b.title = muted ? "소리 켜기" : "소리 끄기 (음악·효과음)"; }
+  if (b) { b.textContent = muted ? "소리 꺼짐" : "소리"; b.title = muted ? "소리 켜기" : "소리 끄기 (음악·효과음)"; }
 }
 
 export function toggleMute(): void {

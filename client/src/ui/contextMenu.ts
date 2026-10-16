@@ -18,7 +18,7 @@ export function initContextMenu(): void {
     setRich($("ctx-remove"), ruined ? `팔기 (+${it ? priceOf(it, item.span) : 0}{coin})` : guest ? "치우기" : "팔기 (전액 환불)");
     const note = hasTag(it, TAG_NOTE);
     show("ctx-note", note);
-    $("ctx-note").textContent = note && item.note ? "📝 쪽지 읽기" : "📝 쪽지 쓰기";
+    setRich($("ctx-note"), note && item.note ? "{letter} 쪽지 읽기" : "{letter} 쪽지 쓰기");
     show("ctx", true);
     const w = ctx.offsetWidth, h = ctx.offsetHeight;
     ctx.style.left = `${Math.min(screenX, innerWidth - w - 8)}px`;

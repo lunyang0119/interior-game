@@ -1,11 +1,25 @@
 {
- "_help": "python tools/preprocess/preprocess.py ui 로 적용 (theme.css 와 같이 만들어짐). 아이콘 하나 = 이름 → 출처. sheet + x,y (+ w,h, 기본 cell) = assets/ 기준 PNG에서 잘라냄, key = gen 아틀라스(interiors/map)의 슬라이스 키(먼저 build 필요). down = 정수 축소 배율(큰 가구 스프라이트용). 잘라낸 그림은 투명 여백을 깎고 cell×cell 칸 가운데에 놓임 — 칸보다 크면 에러. 클라이언트에서는 icon(\"coin\") 또는 문구 안의 {coin}. 규칙과 대체표: docs/conventions/icons.md",
+ "_help": "python tools/preprocess/preprocess.py ui 로 적용 (theme.css 와 같이 만들어짐). 아이콘 하나 = 이름 → 출처. sheet + x,y (+ w,h, 기본 cell) = assets/ 기준 PNG에서 잘라냄, gen + x,y,w,h = client/public/gen/ 기준(고양이 스트립 등), key = gen 아틀라스(interiors/map)의 슬라이스 키(먼저 build 필요). down = 정수 축소 배율(큰 가구 스프라이트용). 잘라낸 그림은 투명 여백을 깎고 cell×cell 칸 가운데에 놓임 — 칸보다 크면 에러. 클라이언트에서는 icon(\"coin\") 또는 문구 안의 {coin}. 규칙과 대체표: docs/conventions/icons.md",
  "cell": 16,
  "icons": {
   "coin": {"sheet": "graphic/GUI/Sprout Lands - UI Pack - Basic pack/Sprite sheets/Icons/special icons/Special Icons.png", "x": 96, "y": 16},
   "heart": {"sheet": "graphic/GUI/Sprout Lands - UI Pack - Basic pack/Sprite sheets/Icons/special icons/Special Icons.png", "x": 48, "y": 16},
   "star": {"sheet": "graphic/GUI/Sprout Lands - UI Pack - Basic pack/Sprite sheets/Icons/special icons/Special Icons.png", "x": 0, "y": 16},
   "check": {"sheet": "graphic/GUI/Sprout Lands - UI Pack - Basic pack/Sprite sheets/Icons/All Icons.png", "x": 192, "y": 32},
-  "close": {"sheet": "graphic/GUI/Sprout Lands - UI Pack - Basic pack/Sprite sheets/Icons/All Icons.png", "x": 208, "y": 32}
+  "close": {"sheet": "graphic/GUI/Sprout Lands - UI Pack - Basic pack/Sprite sheets/Icons/All Icons.png", "x": 208, "y": 32},
+  "home": {"sheet": "graphic/GUI/Sprout Lands - UI Pack - Basic pack/Sprite sheets/Icons/All Icons.png", "x": 272, "y": 32},
+  "cart": {"sheet": "graphic/GUI/Sprout Lands - UI Pack - Basic pack/Sprite sheets/Icons/All Icons.png", "x": 272, "y": 16},
+  "offline": {"sheet": "graphic/GUI/Sprout Lands - UI Pack - Basic pack/Sprite sheets/Icons/All Icons.png", "x": 224, "y": 32},
+  "rod": {"sheet": "graphic/Map/Farm/Cute_Fantasy/Icons/Outline/Tool_Icons_Outline.png", "x": 112, "y": 0},
+  "pickaxe": {"sheet": "graphic/Map/Farm/Cute_Fantasy/Icons/Outline/Tool_Icons_Outline.png", "x": 32, "y": 0},
+  "book": {"sheet": "graphic/GUI/UI assets pack 2/UI books & more.png", "x": 544, "y": 192},
+  "notebook": {"sheet": "graphic/GUI/UI assets pack 2/UI books & more.png", "x": 544, "y": 240},
+  "letter": {"sheet": "graphic/GUI/UI assets pack 2/UI books & more.png", "x": 560, "y": 240},
+  "quest": {"sheet": "graphic/GUI/UI assets pack 2/UI books & more.png", "x": 592, "y": 240},
+  "repair": {"sheet": "graphic/GUI/UI assets pack 2/UI books & more.png", "x": 640, "y": 240},
+  "lock": {"sheet": "graphic/GUI/UI assets pack 2/UI books & more.png", "x": 688, "y": 240},
+  "sync": {"sheet": "graphic/GUI/UI assets pack 2/UI books & more.png", "x": 768, "y": 176},
+  "cat": {"gen": "cat/orange_0.png", "x": 104, "y": 5, "w": 16, "h": 14},
+  "me": {"sheet": "graphic/GUI/Sprout Lands - UI Pack - Basic pack/Sprite sheets/Icons/special icons/Small Happines-Sadness icons.png", "x": 0, "y": 16}
  }
 }
