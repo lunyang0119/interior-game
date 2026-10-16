@@ -74,6 +74,7 @@ With `SHEET_URL` empty, the server uses `data/fake_sheet.json` for balances — 
 ## Conventions and gotchas
 
 - Player-facing strings (toasts, UI text) are Korean in 해요체. Code and identifiers are English.
+- Before changing DOM UI or player-facing text, read `docs/conventions/ui.md` and `docs/conventions/copy.md` (icons: `docs/conventions/icons.md`, no emoji in new UI); for multi-step procedures (furniture, rooms, panels, migrations, placement rules, deploy) see `docs/conventions/workflow.md`.
 - Do not use the word `sheet` in slice keys — a server test asserts it never appears in `/api/catalog` output (the sheet URL must never leak).
 - `build` refuses to shrink character layers (would shift saved avatar indices); `--allow-shrink` overrides. Append new hair palette columns only at the end.
 - Slices whose source pack is missing are "frozen": copied from the previous `gen/interiors.png` atlas.
