@@ -214,3 +214,30 @@ def test_catalog_rejects_bad_rooms(env):
     except ValueError as e:
         assert "tile_lava" in str(e)
     importlib.reload(sys.modules["app.catalog"])
+
+
+def test_room_fx_need_a_built_sprite_and_anims_are_served(env):
+    import importlib
+    import sys
+    from app import catalog as cm
+    p = env["rooms"] / "house_a.json"
+    room = json.loads(p.read_text(encoding="utf-8"))
+    room["fx"] = [{"sprite": "ghost", "x": 3, "y": 4}]
+    p.write_text(json.dumps(room), encoding="utf-8")
+    try:
+        cm.load()
+        assert False, "expected ValueError"
+    except ValueError as e:
+        assert "fx sprite 'ghost'" in str(e)
+    # a built key works; an anim key (manifest `anim`) is served as catalog.anims
+    manifest_path = env["gen"] / "manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest["interiors"]["keys"]["steam"] = {"anim": {"frames": 8, "fps": 8}}
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+    room["fx"] = [{"sprite": "steam", "x": 3, "y": 4}, {"sprite": "chair", "x": 0, "y": 0}]
+    p.write_text(json.dumps(room), encoding="utf-8")
+    cat = cm.load()
+    assert [f.sprite for f in cat.rooms["house_a"].fx] == ["steam", "chair"]
+    assert cat.public()["anims"] == {"steam": {"frames": 8, "fps": 8}}
+    assert next(r for r in cat.public()["rooms"] if r["id"] == "house_a")["fx"][0] == {"sprite": "steam", "x": 3, "y": 4}
+    importlib.reload(sys.modules["app.catalog"])

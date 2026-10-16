@@ -7114,7 +7114,7 @@
    "h": 1,
    "layer": "furniture",
    "is_surface": true,
-   "surface_offset_y": 0,
+   "surface_offset_y": 12,
    "offset_y": 3
   },
   {

@@ -51,6 +51,18 @@ Character strips: 24 frames = 6 per direction in order right, up, left, down. `r
 
 경로는 `assets/graphic/Interior/` 기준. 그 다음 `build` → `scaffold` → `data/items.json`에서 이름/가격 편집 (footprint w/h는 내가 잡음).
 
+## 애니 슬라이스 (`anim`) 와 방 효과 (`fx`)
+
+프레임이 여러 장인 효과(커피포트 증기, 반짝임)는 `assets/graphic/fx/<이름>/*.png`에 프레임을 이름 순으로 넣고(전부 같은 크기) 슬라이스 에디터의 **애니 슬라이스 만들기**(시트 선택 아래)로 슬라이스를 만든다. `slices.json`에는 이렇게 저장된다:
+
+```json
+{"key": "fx_steam", "anim": "fx/FX002", "fps": 8}
+```
+
+경로는 `assets/graphic/` 기준, `fps`는 초당 프레임(기본 8), `scale`도 된다. `build`가 아틀라스에 `fx_steam`(= 첫 프레임)과 `fx_steam#0`…`#7`을 넣고 manifest 키 `fx_steam`에 `anim: {frames, fps}`를 적는다(`#i`는 키로 안 나감). 폴더가 사라지면 다른 슬라이스처럼 직전 아틀라스에서 동결 복사. 상점 아이템은 아니라 `scaffold`가 건너뛴다.
+
+놓는 건 방 에디터(/world) 방 탭의 **✨ 효과 놓기**: 팔레트(움직이는 것 🎞 먼저, 그 뒤 실내 아틀라스 전부)에서 고르고 클릭하면 그 칸 왼쪽 위에 놓이고, 드래그(Shift=칸 스냅)나 방향키(1칸 / Shift=8px / Ctrl=1px)로 **픽셀 단위**로 옮긴다. `rooms/<id>.json`의 `fx: [{sprite, x, y}]`(px, 왼쪽 위 기준)로 저장되고 게임의 `RoomScene`이 가구·아바타보다 위에 그리며 `anim` 키면 반복 재생한다. 열차 칸(`train_interiors.json`)에도 같은 필드가 들어가지만 열차 페이지는 아직 안 그린다. 서버는 `/api/catalog`에 `anims: {키: {frames, fps}}`를 같이 내려준다.
+
 ## 동결(freeze): 소스 팩이 사라진 슬라이스
 
 `build`는 슬라이스의 시트/파일이 디스크에 없으면 **직전 아틀라스(`gen/interiors.png`)의 프레임을 그대로 복사**한다.

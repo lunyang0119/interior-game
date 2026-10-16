@@ -203,3 +203,25 @@ def test_loop_strip_with_wrong_height_aborts(tmp_path: Path):
     Image.new("RGBA", (40, 19), (0, 0, 0, 0)).save(src)
     with pytest.raises(SystemExit):
         P._loop_strip({"name": "Ghost", "strip": src, "frame": (20, 20)}, "run")
+
+
+def test_anim_slice_packs_frames_and_manifest_lists_only_the_key(tmp_path: Path, monkeypatch):
+    """`anim` = a folder of frames under assets/graphic → atlas frames key, key#0..n-1; the manifest key carries
+    anim {frames, fps} and the #i frames are not keys of their own."""
+    import config as C
+    monkeypatch.setattr(C, "ASSETS", tmp_path)
+    d = tmp_path / "fx" / "steam"
+    d.mkdir(parents=True)
+    for i, col in enumerate([(255, 0, 0, 255), (0, 255, 0, 255), (0, 0, 255, 255)]):
+        Image.new("RGBA", (8, 8), col).save(d / f"steam_{i + 1:02d}.png")
+    slices = [{"key": "fx_steam", "anim": "fx/steam", "fps": 6}]
+    atlas, js = P.pack_atlas(slices, sheet_paths={}, file_base=tmp_path)
+    assert set(js["frames"]) == {"fx_steam", "fx_steam#0", "fx_steam#1", "fx_steam#2"}
+    f0, f1 = js["frames"]["fx_steam#0"]["frame"], js["frames"]["fx_steam#1"]["frame"]
+    assert atlas.getpixel((f0["x"], f0["y"])) == (255, 0, 0, 255) and atlas.getpixel((f1["x"], f1["y"])) == (0, 255, 0, 255)
+    keys = P.atlas_keys(js, slices, sets=True)
+    assert set(keys) == {"fx_steam"} and keys["fx_steam"]["anim"] == {"frames": 3, "fps": 6}
+    # frames of different sizes are refused
+    Image.new("RGBA", (9, 8), (0, 0, 0, 255)).save(d / "steam_04.png")
+    with pytest.raises(SystemExit):
+        P.anim_frames(slices[0])

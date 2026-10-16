@@ -27900,6 +27900,11 @@
   "file": "Furniture Assets/Rooms/Living/Living PNG/Floor Lamp.png"
  },
  {
+  "key": "fx_steam",
+  "anim": "fx/FX002",
+  "fps": 8
+ },
+ {
   "key": "kitchen_chair_fa",
   "file": "Furniture Assets/Rooms/Kitchen/Kitchen PNG/Chair.png"
  },

@@ -48,11 +48,27 @@
      "y": 3
     },
     {
-     "item_id": "cybe_93",
+     "item_id": "neon_86_3",
      "x": 1,
      "y": 0
+    },
+    {
+     "item_id": "neon_86_10",
+     "x": 3,
+     "y": 0
+    },
+    {
+     "item_id": "neon_86_10",
+     "x": 6,
+     "y": 0
+    },
+    {
+     "item_id": "neon_86_10",
+     "x": 0,
+     "y": 0
     }
-   ]
+   ],
+   "fx": []
   },
   "coffeepot": {
    "cols": 7,
@@ -88,7 +104,54 @@
     {
      "item_id": "coffepot_2",
      "x": 5,
-     "y": 1
+     "y": 2
+    },
+    {
+     "item_id": "neon_86_10",
+     "x": 0,
+     "y": 0
+    },
+    {
+     "item_id": "neon_86_10",
+     "x": 1,
+     "y": 0
+    },
+    {
+     "item_id": "neon_86_10",
+     "x": 2,
+     "y": 0
+    },
+    {
+     "item_id": "neon_86_10",
+     "x": 3,
+     "y": 0
+    },
+    {
+     "item_id": "neon_86_10",
+     "x": 4,
+     "y": 0
+    },
+    {
+     "item_id": "neon_86_10",
+     "x": 4,
+     "y": 0
+    },
+    {
+     "item_id": "neon_86_10",
+     "x": 5,
+     "y": 0
+    },
+    {
+     "item_id": "neon_86_10",
+     "x": 6,
+     "y": 0
+    }
+   ],
+   "fx": [
+    {
+     "sprite": "fx_steam",
+     "x": 80,
+     "y": 0
     }
    ]
   },
@@ -104,39 +167,126 @@
    "zoom": 2,
    "tiles": {
     "wall": [
-     "tile_wall_top",
-     "tile_wall_bottom"
+     "tile_cyber_wall_7",
+     "tile_cyber_wall_7"
     ],
     "wall_left": [
-     "tile_wall_top",
-     "tile_wall_bottom"
+     "tile_cyber_wall_7",
+     "tile_cyber_wall_7"
     ],
     "wall_right": [
-     "tile_wall_top",
-     "tile_wall_bottom"
+     "tile_cyber_wall_7",
+     "tile_cyber_wall_7"
     ],
-    "floor": "tile_floor_gray"
+    "floor": "tile_cybe_14"
    },
    "seed": [
     {
-     "item_id": "mordgen_024_window_grey",
+     "item_id": "cybe_87_3",
+     "x": 0,
+     "y": 4
+    },
+    {
+     "item_id": "cybe_91",
      "x": 1,
      "y": 0
     },
     {
-     "item_id": "mordgen_024_window_grey",
-     "x": 4,
+     "item_id": "cybe_91",
+     "x": 1,
      "y": 0
     },
     {
-     "item_id": "mordjail_006_bench_seat",
+     "item_id": "neon_86_10",
      "x": 0,
-     "y": 5
+     "y": 0
     },
     {
-     "item_id": "ppfurn_090_standing_lamp_cross_a",
+     "item_id": "neon_86_10",
+     "x": 2,
+     "y": 0
+    },
+    {
+     "item_id": "neon_86_10",
+     "x": 2,
+     "y": 0
+    },
+    {
+     "item_id": "neon_86_10",
+     "x": 6,
+     "y": 0
+    },
+    {
+     "item_id": "neon_86_9",
+     "x": 0,
+     "y": 1
+    },
+    {
+     "item_id": "neon_86_9",
+     "x": 1,
+     "y": 1
+    },
+    {
+     "item_id": "neon_86_9",
+     "x": 2,
+     "y": 1
+    },
+    {
+     "item_id": "neon_86_9",
+     "x": 3,
+     "y": 1
+    },
+    {
+     "item_id": "neon_86_9",
+     "x": 3,
+     "y": 1
+    },
+    {
+     "item_id": "neon_86_9",
+     "x": 4,
+     "y": 1
+    },
+    {
+     "item_id": "neon_86_9",
      "x": 5,
-     "y": 2
+     "y": 1
+    },
+    {
+     "item_id": "neon_86_9",
+     "x": 6,
+     "y": 1
+    },
+    {
+     "item_id": "neon_86_9",
+     "x": 6,
+     "y": 1
+    },
+    {
+     "item_id": "cybe_90_2",
+     "x": 6,
+     "y": 0
+    },
+    {
+     "item_id": "cybe_90_2",
+     "x": 6,
+     "y": 0
+    },
+    {
+     "item_id": "cybe_94",
+     "x": 5,
+     "y": 4
+    }
+   ],
+   "fx": [
+    {
+     "sprite": "cybe_88_2",
+     "x": 48,
+     "y": 0
+    },
+    {
+     "sprite": "cybe_88_2",
+     "x": 48,
+     "y": 0
     }
    ]
   },
@@ -152,41 +302,72 @@
    "zoom": 2,
    "tiles": {
     "wall": [
-     "tile_wall_top",
-     "tile_wall_bottom"
+     "tile_cybe_5",
+     "tile_cybe_8"
     ],
     "wall_left": [
-     "tile_wall_top",
-     "tile_wall_bottom"
+     "tile_cybe_4",
+     "tile_cybe_4"
     ],
     "wall_right": [
-     "tile_wall_top",
-     "tile_wall_bottom"
+     "tile_cybe_6",
+     "tile_cybe_9"
     ],
-    "floor": "tile_floor_gray"
+    "floor": "tile_cyber_4"
    },
    "seed": [
     {
-     "item_id": "mordgen_024_window_grey",
+     "item_id": "ppfurn_093_cabinet_speaker_narrow_grey_a",
+     "x": 4,
+     "y": 4
+    },
+    {
+     "item_id": "cybe_89",
+     "x": 3,
+     "y": 4
+    },
+    {
+     "item_id": "neon_86_10",
+     "x": 0,
+     "y": 0
+    },
+    {
+     "item_id": "neon_86_10",
      "x": 1,
      "y": 0
     },
     {
-     "item_id": "mordgen_024_window_grey",
+     "item_id": "neon_86_10",
+     "x": 2,
+     "y": 0
+    },
+    {
+     "item_id": "neon_86_10",
+     "x": 3,
+     "y": 0
+    },
+    {
+     "item_id": "neon_86_10",
      "x": 4,
      "y": 0
     },
     {
-     "item_id": "mordjail_006_bench_seat",
-     "x": 0,
-     "y": 5
+     "item_id": "neon_86_10",
+     "x": 5,
+     "y": 0
     },
     {
-     "item_id": "ppfurn_093_cabinet_speaker_narrow_grey_a",
-     "x": 5,
-     "y": 2
+     "item_id": "neon_86_10",
+     "x": 6,
+     "y": 0
+    },
+    {
+     "item_id": "neon_4",
+     "x": 1,
+     "y": 0
     }
-   ]
+   ],
+   "fx": []
   }
  }
 }
