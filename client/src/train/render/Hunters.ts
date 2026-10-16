@@ -17,6 +17,8 @@ export class Hunters {
   readonly avatars = new Map<string, Avatar>();
   private order: string[] = [];
   private grid: WalkGrid;
+  /** walks whose promise is still open (released by onArrive, or by update() once the avatar stands still) */
+  private waiting = new Map<Avatar, () => void>();
 
   constructor(private scene: Phaser.Scene, private chars: Chars, private layout: Layout) {
     this.grid = walkGrid(layout);
@@ -71,11 +73,20 @@ export class Hunters {
     return a ? { x: a.x, y: a.y } : null;
   }
 
+  /** Walk `a` to `to`. Never hangs: Avatar fires onArrive only after it actually moved, so a walk that a
+   *  concurrent place() cancelled (walkPath([])) or that finished within a single tick is released by update(). */
   private walkTo(a: Avatar, to: Cell): Promise<void> {
     const path = pathToward(this.grid, a.footCell(), to);
     if (!path.length) return Promise.resolve();
     return new Promise((resolve) => {
-      a.onArrive = () => { a.onArrive = null; resolve(); };
+      const done = () => {
+        if (this.waiting.get(a) === done) this.waiting.delete(a);
+        if (a.onArrive === done) a.onArrive = null;
+        resolve();
+      };
+      this.waiting.get(a)?.();   // a previous walk of this avatar is superseded: let its caller go on
+      this.waiting.set(a, done);
+      a.onArrive = done;
       a.walkPath(path);
     });
   }
@@ -104,10 +115,14 @@ export class Hunters {
   }
 
   update(time: number, delta: number): void {
-    for (const a of this.avatars.values()) a.update(time, delta);
+    for (const a of this.avatars.values()) {
+      a.update(time, delta);
+      if (!a.walking) this.waiting.get(a)?.();
+    }
   }
 
   destroy(): void {
+    for (const done of [...this.waiting.values()]) done();
     for (const a of this.avatars.values()) a.destroy();
     this.avatars.clear();
   }

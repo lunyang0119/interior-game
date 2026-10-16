@@ -32,6 +32,8 @@ export class TrainScene extends Phaser.Scene {
   private data_!: TrainSceneData;
   private offs: (() => void)[] = [];
   private busy = false;
+  /** the sync() still in flight (avatar textures loading): a playback waits for it so it cannot re-place the sprites mid-walk */
+  private syncing: Promise<void> | null = null;
 
   constructor() {
     super("Train");
@@ -91,6 +93,7 @@ export class TrainScene extends Phaser.Scene {
       this.fx.onCondition = (tag, rooms) => this.carMap.setCondition(tag, rooms); // template effects tied to gimmicks
       this.offs.push(tbus.on("scene:sync", () => void this.sync()));
       this.offs.push(tbus.on("playback:start", ({ report }) => void this.play(report)));
+      this.offs.push(tbus.on("playback:abort", () => { this.busy = false; void this.sync(); }));
       this.offs.push(tbus.on("camera:home", () => this.home()));
       this.offs.push(tbus.on("pick:changed", () => this.showPicks()));
       this.offs.push(tbus.on("throttle", ({ on }) => { if (on) this.tweens.pauseAll(); else this.tweens.resumeAll(); }));
@@ -124,7 +127,13 @@ export class TrainScene extends Phaser.Scene {
   }
 
   /** Redraw everyone from the payload (not while a playback is running). */
-  private async sync(): Promise<void> {
+  private sync(): Promise<void> {
+    const run = this.doSync().catch((e) => console.warn("train: sync failed", e));
+    this.syncing = run;
+    return run.finally(() => { if (this.syncing === run) this.syncing = null; });
+  }
+
+  private async doSync(): Promise<void> {
     const p = tstate.payload;
     if (!p || !this.hunters || !this.fugitive || !this.fx || this.busy) return;
     const view = p.view;
@@ -133,6 +142,7 @@ export class TrainScene extends Phaser.Scene {
     const rooms: Record<string, string> = {};
     for (const h of view.hunters) rooms[h.name] = h.room;
     await this.hunters.sync(ids, p.avatars ?? {}, rooms);
+    if (this.busy) return;   // a playback started while the textures loaded: it owns the sprites now
     this.fx.setMarkers(view.markers);
     this.fx.setLocks(view.locks);
     this.fx.setSteam(view.steam);
@@ -150,6 +160,7 @@ export class TrainScene extends Phaser.Scene {
     } else {
       this.fugitive.hide();
     }
+    if (this.busy) return;
     this.showPicks();
   }
 
@@ -173,22 +184,26 @@ export class TrainScene extends Phaser.Scene {
     this.fx.highlightRooms(here ? [...here.neighbors, here.id] : [], 0x4f8cff, [], sel);
   }
 
+  /** Play a round. Always ends with playback:done (main.ts drives its queue off it), even when the animation threw. */
   private async play(report: Report): Promise<void> {
-    if (!this.hunters || !this.fugitive || !this.fx) return;
+    if (!this.hunters || !this.fugitive || !this.fx) { tbus.emit("playback:done", { report }); return; }
     this.busy = true;
     this.fx.highlightRooms([]);
     try {
+      if (this.syncing) await this.syncing;   // let a running sync finish placing sprites before we move them
       // make sure every hunter of the report exists before animating
       const ids = report.order.length ? report.order : Object.keys(report.hunters);
       const rooms: Record<string, string> = {};
       for (const h of report.playback.hunters) rooms[h.id] = h.from;
       await this.hunters.sync(ids, tstate.payload?.avatars ?? {}, rooms, true);
       await playRound({ scene: this, layout: this.layout, hunters: this.hunters, fugitive: this.fugitive, fx: this.fx,
-        fugitiveView: isFugitive(), toast: (s) => tbus.emit("toast", { text: s, ms: 2600 }), skipped: () => tstate.skipping }, report);
+        fugitiveView: isFugitive(), toast: (s, ms) => tbus.emit("toast", { text: s, ms: ms ?? 2600 }), skipped: () => tstate.skipping }, report);
+    } catch (e) {
+      console.error("train: playback failed", e);
     } finally {
       this.busy = false;
+      tbus.emit("playback:done", { report });
     }
-    tbus.emit("playback:done", { report });
     void this.sync();
   }
 

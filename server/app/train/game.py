@@ -824,6 +824,8 @@ class Manager:
             self._arm()
             self._schedule_ai(g)
             await self._push({"type": "resumed", "deadline_ts": g.policy.deadline_ts, "vote_after_ts": g.vote_after_ts()})
+            # the pause dropped the fugitive's grace: if the crew is all in, start it again (or resolve right away)
+            await self._maybe_early_resolve(g)
             return {"deadline_ts": g.policy.deadline_ts}
 
     async def extend(self, pid: str, sec: float) -> dict[str, Any]:

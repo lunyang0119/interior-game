@@ -19,6 +19,7 @@ if TYPE_CHECKING:
     from .game import TrainGame
 
 FUGITIVE, HUNTER, SPECTATOR = "fugitive", "hunter", "spectator"
+REPLAY_ROUNDS = 8   # how many recent public reports every payload carries (`reports`)
 
 
 def order_dict(o: E.HunterOrder | None) -> dict[str, Any] | None:
@@ -76,6 +77,9 @@ def _base(game: "TrainGame", role: str, pid: str | None) -> dict[str, Any]:
     out["round_no"] = st.round_no
     out["view"] = view
     out["report"] = public_report(st.last_report)
+    # the last few rounds' public reports: a client that was away (or whose playback stalled) replays every round it
+    # has not seen, in order, instead of only the newest one
+    out["reports"] = [public_report(e["report"]) for e in st.log[-REPLAY_ROUNDS:]]
     out["orders"] = hunter_orders(st)
     out["fugitive_submitted"] = st.fugitive.order is not None   # a flag only; the order itself stays fugitive-only
     out["config"] = settings.public_config(st.config)

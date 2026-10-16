@@ -7,7 +7,7 @@ import { makeCatalog } from "../catalog";
 import { state } from "../state";
 import * as storage from "../storage";
 import { refreshThemeLink } from "../assets";
-import { api, ApiError, mapRooms, msgFor, type BotReason, type MapRoom, type MapSummary, type Report, type TrainState } from "./api";
+import { api, ApiError, mapRooms, msgFor, type BotReason, type LogEntry, type MapRoom, type MapSummary, type Report, type TrainState } from "./api";
 import { tbus } from "./bus";
 import { TrainBoot } from "./scenes/TrainBoot";
 import { TrainScene, type TrainSceneData } from "./scenes/TrainScene";
@@ -158,8 +158,13 @@ function applyState(p: TrainState): void {
     tstate.pingOrders = null;
   }
   if (tstate.phase !== "playback") tstate.phase = phaseFor(p);
+  if (prev?.game_id !== p.game_id) {
+    // a new game: whatever the old one was still playing back is over
+    pendingPlays.length = 0;
+    abortPlayback();
+    tstate.history.length = 0; tstate.thinking.clear(); tbus.emit("history:changed", {});
+  }
   if (p.report) remember(p.report);
-  if (prev?.game_id !== p.game_id) { tstate.history.length = 0; tstate.thinking.clear(); tbus.emit("history:changed", {}); }
   if (p.view && p.status !== "LOBBY" && p.status !== "IDLE") setTrace(p.report?.trace ?? p.view.trace ?? 0); else stopBgm();
   const rooms: MapRoom[] | null = p.view ? mapRooms(p.view.map_rows) : null;
   const key = p.view ? `${p.game_id}:${p.view.map_id}` : "";
@@ -173,6 +178,19 @@ function applyState(p: TrainState): void {
 let playQueue: Promise<void> = Promise.resolve();
 const pendingPlays: { report: Report; gameId: number | null }[] = [];   // ordered by round (G8)
 let draining = false;
+/** finishes the running playOne() early (watchdog, new game) so the queue can never stay stuck */
+let abortPlayback: () => void = () => undefined;
+/** a playback that is still "running" after this much visible time has hung (a whole round plays in ~15 s) */
+const PLAYBACK_WATCHDOG_MS = 60_000;
+
+/** The fugitive's round_resolved / payload log carries the engine's hidden notes: pin them on the report. */
+function withEntry(report: Report, entry: Partial<LogEntry> | undefined): Report {
+  if (entry) {
+    if (entry.fugitive_order !== undefined) report.fugitive_order = entry.fugitive_order;
+    if (entry.hidden_events) report.hidden_events = entry.hidden_events;
+  }
+  return report;
+}
 
 /** Queue a round's report; rounds play in order, one at a time; "건너뛰기" drains the rest instantly. */
 function play(report: Report, gameId: number | null): Promise<void> {
@@ -203,9 +221,16 @@ function playOne(report: Report, gameId: number | null): Promise<void> {
     closePanels();
     throttle();
     tbus.emit("state:changed", {});
-    const off = tbus.on("playback:done", ({ report: r }) => {
-      if (r !== report) return;
+    let finished = false;
+    let offReady: (() => void) | null = null;
+    let guard = 0;
+    const finish = () => {
+      if (finished) return;
+      finished = true;
       off();
+      offReady?.();
+      window.clearTimeout(guard);
+      abortPlayback = () => undefined;
       markPlayed(gameId, report.round);
       tstate.playing = null;
       if (tstate.payload) tstate.phase = phaseFor(tstate.payload);
@@ -216,11 +241,26 @@ function playOne(report: Report, gameId: number | null): Promise<void> {
         banner(`수수께끼의 인영을 ${name}${particle} 잡았다!\nConflict Resolved.`, 7000);
       }
       resolve();
-    });
+    };
+    const off = tbus.on("playback:done", ({ report: r }) => { if (r.round === report.round) finish(); });
+    // safety net: a stalled animation must never freeze the page in the playback phase. Hidden tabs do not
+    // count (the game loop sleeps there), so the timer re-arms until the tab is visible again.
+    const watch = () => {
+      if (document.hidden) { guard = window.setTimeout(watch, PLAYBACK_WATCHDOG_MS); return; }
+      console.warn(`train: playback of R${report.round} did not finish, skipping it`);
+      abortPlayback();
+    };
+    guard = window.setTimeout(watch, PLAYBACK_WATCHDOG_MS);
+    abortPlayback = () => {
+      if (finished) return;
+      tstate.skipping = true;        // whatever is still animating fast-forwards
+      tbus.emit("playback:abort", {});
+      finish();
+    };
     // the scene may still be booting (first payload): wait for it before starting the playback
     const kick = () => tbus.emit("playback:start", { report });
     if (game && game.scene.isActive("Train")) kick();
-    else { const offReady = tbus.on("scene:ready", () => { offReady(); kick(); }); }
+    else { offReady = tbus.on("scene:ready", () => { offReady?.(); offReady = null; kick(); }); }
   });
 }
 
@@ -246,11 +286,16 @@ document.addEventListener("visibilitychange", () => {
   if (document.hidden) game.loop.sleep(); else game.loop.wake(true);
 });
 
-/** hello/state after a (re)connect: replay a round this browser has not seen to its end. */
+/** hello/state after a (re)connect: replay every round this browser has not seen to its end, oldest first.
+ *  The fugitive payload carries the full engine log (with the hidden notes), everyone else the recent public reports. */
 function maybeReplay(p: TrainState): void {
-  const rep = p.report;
-  if (!rep || !p.view) return;
-  if (rep.round > lastPlayed(p.game_id)) void play(rep, p.game_id);
+  if (!p.view) return;
+  const seen = lastPlayed(p.game_id);
+  let reps: Report[] = p.log?.length ? p.log.map((e) => withEntry(e.report, e))
+    : p.reports?.length ? p.reports
+      : p.report ? [p.report] : [];
+  if (seen === 0) reps = reps.slice(-1);   // a browser that never watched this game only needs the newest round
+  for (const rep of reps) if (rep.round > seen) void play(rep, p.game_id);
 }
 
 type OrderMsg = { type: "move" | "search" | "scan" | "stay"; target: string | null } | null;
@@ -315,10 +360,12 @@ function wireSocket(): void {
     if (m.passed) toast(`${m.target}은(는) 투표로 이번 라운드 대기 처리됐어요`);
     applyState(p);
   });
-  tsocket.on("round_resolved", (m: { report: Report; state: TrainState }) => {
+  tsocket.on("round_resolved", (m: { report: Report; state: TrainState; log_entry?: LogEntry }) => {
+    // queue the playback first: it flips the phase to "playback" so applyState does not teleport the crew to
+    // their new rooms (scene:sync) a frame before the walk starts from the old ones
+    void play(withEntry(m.report, m.log_entry), m.state.game_id);
     applyState(m.state);
     if (document.hidden) tstate.unseenResult = true;
-    void play(m.report, m.state.game_id);
   });
   tbus.on("playback:skip", () => { tstate.skipping = true; });
   tbus.on("playback:replay", ({ report }) => { if (tstate.phase !== "playback") void play(report, tstate.payload?.game_id ?? null); });

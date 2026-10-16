@@ -4,8 +4,7 @@
 
 import Phaser from "phaser";
 import type { Report } from "../api";
-import { resultBubble } from "../report";
-import { DEVICE_KO } from "../strings";
+import { HACK_NOTICE_MS, hackNotice, resultBubble } from "../report";
 import type { Fx } from "./Fx";
 import type { Hunters } from "./Hunters";
 import type { Layout } from "./layout";
@@ -20,7 +19,7 @@ export interface PlaybackCtx {
   fx: Fx;
   /** this client is the fugitive: also walk the silhouette along fugitive_path */
   fugitiveView: boolean;
-  toast: (s: string) => void;
+  toast: (s: string, ms?: number) => void;
   /** 건너뛰기 pressed: skip the waits and walks, just land everything where the round ends */
   skipped: () => boolean;
 }
@@ -41,7 +40,10 @@ export async function playRound(ctx: PlaybackCtx, rep: Report): Promise<void> {
   // 1. the fugitive's pre-effects (what the hunters can perceive of them)
   fx.setLocks(rep.locks);
   fx.setSteam(rep.steam);
-  if (rep.signature && rep.signature !== "ping") ctx.toast(`⚠ ${DEVICE_KO[rep.signature] ?? rep.signature} 계열 장치에서 비정상 접근 감지`);
+  // quickhack notice: hunters learn what is public (locked doors, steam, blackout, the device signature) and where;
+  // the fugitive sees whether their own hack fired. Stays up long enough to read while the crew walks.
+  const notice = hackNotice(rep, ctx.fugitiveView);
+  if (notice) ctx.toast(notice, HACK_NOTICE_MS);
   if (rep.blackout && !ctx.skipped()) await fx.blackout();
   else await wait(scene, 300, ctx);
 

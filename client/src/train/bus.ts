@@ -23,6 +23,8 @@ export interface TrainEvents {
   "history:changed": Record<string, never>;
   /** 건너뛰기: finish the running playback (and the queued ones) instantly */
   "playback:skip": Record<string, never>;
+  /** main.ts gave up on the running playback (watchdog / new game): the scene frees itself and redraws from the payload */
+  "playback:abort": Record<string, never>;
   /** 다시 보기: play this report again */
   "playback:replay": { report: Report };
   "orderbar:unfold": Record<string, never>;

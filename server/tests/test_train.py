@@ -350,6 +350,41 @@ def test_pause_resume_shifts_clock(client):
     assert g.policy.deadline_ts == t0 + 1650
 
 
+def test_resume_restarts_grace_when_crew_is_in(client):
+    tok = setup(client, overrides={"round_timer_sec": 1000, "fugitive_grace_sec": 100})
+    m = mgr(client)
+    g = m.game
+    for h in ("h1", "h2"):
+        client.post("/api/train/order", json={"type": "stay"}, headers=auth(tok[h]))
+    assert g.policy.grace_until is not None
+    client.post("/api/train/pause", headers=auth(tok["adm"]))
+    assert g.policy.grace_until is None
+    client.post("/api/train/resume", headers=auth(tok["adm"]))
+    assert g.status == "ROUND_OPEN" and g.engine.round_no == 1
+    assert g.policy.grace_until is not None and g.policy.grace_until <= m.now() + 100
+    # ...and when the fugitive had already submitted, resuming resolves at once
+    client.post("/api/train/fugitive/order", json={}, headers=auth(tok["adm"]))
+    assert g.engine.round_no == 2
+    for h in ("h1", "h2"):
+        client.post("/api/train/order", json={"type": "stay"}, headers=auth(tok[h]))
+    client.post("/api/train/pause", headers=auth(tok["adm"]))
+    client.post("/api/train/resume", headers=auth(tok["adm"]))
+    assert g.engine.round_no == 2 and g.policy.grace_until is not None
+
+
+def test_state_carries_recent_public_reports(client):
+    tok = setup(client)
+    assert state(client, tok["h1"])["reports"] == []
+    for _ in range(2):
+        for h in ("h1", "h2"):
+            client.post("/api/train/order", json={"type": "stay"}, headers=auth(tok[h]))
+        client.post("/api/train/fugitive/order", json={}, headers=auth(tok["adm"]))
+    st = state(client, tok["h1"])
+    assert [r["round"] for r in st["reports"]] == [1, 2] and st["reports"][-1] == st["report"]
+    assert_hunter_safe(st)
+    assert [r["round"] for r in state(client, tok["adm"])["reports"]] == [1, 2]
+
+
 def test_paused_game_restores_without_timer(env):
     from fastapi.testclient import TestClient
     from app.main import create_app

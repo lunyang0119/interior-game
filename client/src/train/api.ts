@@ -74,7 +74,14 @@ export interface Report {
   captured_by: string | null; capture_how: string | null;
   hunters: Record<string, { name: string; room: string }>;
   playback: { hunters: PlaybackHunter[]; fugitive_path?: string[] };
+  /** fugitive client only, attached from the ws `log_entry` / the payload `log`: the own order and the engine's
+   *  hidden notes ("퀵핵 doorlock → A1-A2", "퀵핵 hide 무효: …", "잠긴 문(…) 앞에서 정지") */
+  fugitive_order?: FugitiveOrder | null;
+  hidden_events?: string[];
 }
+
+/** engine log entry (fugitive payload `log`): the full report plus what the hunters never see */
+export interface LogEntry { round: number; report: Report; hidden_events: string[]; fugitive_order: FugitiveOrder | null }
 
 export interface FugitiveState {
   room: string; ram: number; trace: number; tier: number; hidden_until: number; frozen: boolean;
@@ -99,6 +106,8 @@ export interface TrainState {
   round_no?: number;
   view?: PublicView | null;
   report?: Report | null;
+  /** the last few rounds' public reports, oldest first (a client that was away replays the unseen ones in order) */
+  reports?: Report[];
   orders?: Record<string, Order | null>;
   /** whether the fugitive has submitted this round (everyone sees the flag, never the order) */
   fugitive_submitted?: boolean;
@@ -117,6 +126,7 @@ export interface TrainState {
   reachable?: string[];
   lockable_edges?: string[];
   hunters_full?: Record<string, { name: string; room: string; submitted: boolean; dazed_until: number; order: Order | null }>;
+  log?: LogEntry[];
   position_history?: string[];
   overrides?: Record<string, unknown>;
 }

@@ -24,7 +24,12 @@ function latest(): Report | null {
 export function remember(rep: Report): void {
   const h = tstate.history;
   const i = h.findIndex((r) => r.round === rep.round);
-  if (i >= 0) h[i] = rep; else { h.push(rep); h.sort((a, b) => a.round - b.round); }
+  if (i >= 0) {
+    // the fugitive's hidden notes ride only on the ws round_resolved / payload log copy: keep them across re-sends
+    if (rep.fugitive_order === undefined && h[i].fugitive_order !== undefined) rep.fugitive_order = h[i].fugitive_order;
+    if (!rep.hidden_events && h[i].hidden_events) rep.hidden_events = h[i].hidden_events;
+    h[i] = rep;
+  } else { h.push(rep); h.sort((a, b) => a.round - b.round); }
   tbus.emit("history:changed", {});
 }
 
@@ -38,9 +43,10 @@ function render(): void {
   box.innerHTML = "";
   if (!on || !tstate.history.length) { box.appendChild(el("div", "small muted", "아직 판독 결과가 없어요")); return; }
   for (const rep of [...tstate.history].reverse()) {
-    const sec = el("div", "log-round" + (rep === tstate.playing ? " playing" : ""));
+    const playing = rep.round === tstate.playing?.round;
+    const sec = el("div", "log-round" + (playing ? " playing" : ""));
     const lines = reportLines(rep, (uid) => label(uid));
-    sec.appendChild(el("div", "log-head", lines[0] + (rep === tstate.playing ? " · 재생 중" : "")));
+    sec.appendChild(el("div", "log-head", lines[0] + (playing ? " · 재생 중" : "")));
     for (const l of lines.slice(1)) sec.appendChild(el("div", "small", l));
     box.appendChild(sec);
   }

@@ -22,6 +22,8 @@ export class FugitiveSprite {
   private revealed = false;
   private glitch: Phaser.Time.TimerEvent | null = null;
   private baseX = 0;
+  /** the open walk promise (see Hunters.walkTo: released by onArrive or by update() once the avatar stands still) */
+  private waiting: (() => void) | null = null;
 
   constructor(private scene: Phaser.Scene, chars: Chars, private layout: Layout) {
     this.ready = ensureAvatarTextures(scene, SILHOUETTE, chars).then(() => {
@@ -93,7 +95,18 @@ export class FugitiveSprite {
     for (const r of rooms.slice(1)) {
       const path = pathToward(grid, a.footCell(), this.cellFor(r));
       if (!path.length) continue;
-      await new Promise<void>((resolve) => { a.onArrive = () => { a.onArrive = null; resolve(); }; a.walkPath(path); });
+      await new Promise<void>((resolve) => {
+        const done = () => {
+          if (this.waiting === done) this.waiting = null;
+          if (a.onArrive === done) a.onArrive = null;
+          resolve();
+        };
+        this.waiting?.();
+        this.waiting = done;
+        a.onArrive = done;
+        a.walkPath(path);
+      });
+      if (!this.avatar) return;   // destroyed mid-walk (scene restart)
     }
     this.baseX = a.x;
   }
@@ -136,6 +149,7 @@ export class FugitiveSprite {
       const wasWalking = this.avatar.walking;
       this.avatar.update(time, delta);
       if (wasWalking && !this.avatar.walking) this.baseX = this.avatar.x;
+      if (!this.avatar.walking) this.waiting?.();
     }
   }
 
@@ -143,6 +157,7 @@ export class FugitiveSprite {
     this.glitch?.remove();
     this.avatar?.destroy();
     this.avatar = null;
+    this.waiting?.();
   }
 
   /** Is `cell` inside the fugitive's current room? (used for door picking) */
