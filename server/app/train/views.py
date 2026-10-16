@@ -77,6 +77,7 @@ def _base(game: "TrainGame", role: str, pid: str | None) -> dict[str, Any]:
     out["view"] = view
     out["report"] = public_report(st.last_report)
     out["orders"] = hunter_orders(st)
+    out["fugitive_submitted"] = st.fugitive.order is not None   # a flag only; the order itself stays fugitive-only
     out["config"] = settings.public_config(st.config)
     if pid is not None and pid in st.hunters:
         h = st.hunters[pid]

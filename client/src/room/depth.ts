@@ -8,6 +8,9 @@ export function depthOf(sortRow: number, zScale: number): number {
 /** Room base tiles sit below every item and avatar. */
 export const TILE_DEPTH = -1000;
 
+/** Room effects (`Room.fx`: steam, glows) draw over every item and avatar, under the name tags. */
+export const FX_DEPTH = 900_000;
+
 /** Row used for y-sorting an item. Floor patterns, rugs and wallpaper never overlap anything standing on / in
  *  front of them, so they ignore their footprint row and always sort below avatars (which start at row 0). */
 export function sortRowFor(layer: CollisionLayer | undefined, bottomRow: number): number {

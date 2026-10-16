@@ -45,7 +45,7 @@ def ws_auth(client, token, path="/ws/train"):
         yield ws
 
 
-def recv(ws, kind, skip=("state", "submitted", "vote", "deadline", "round_open", "hunter_order")):
+def recv(ws, kind, skip=("state", "submitted", "vote", "deadline", "round_open", "hunter_order", "fugitive_submitted")):
     kinds = (kind,) if isinstance(kind, str) else kind
     while True:
         m = ws.receive_json()
@@ -229,6 +229,11 @@ def test_spectator_sees_public_view_only_and_cannot_act(client):
     assert_hunter_safe(s)
     assert client.post("/api/train/order", json={"type": "stay"}, headers=auth(spec)).json()["error"] == "not_hunter"
     assert client.post("/api/train/fugitive/ping", headers=auth(spec)).json()["error"] == "not_admin"
+    assert state(client, tok["h1"])["fugitive_submitted"] is False
+    client.post("/api/train/fugitive/order", json={}, headers=auth(tok["adm"]))
+    s2 = state(client, tok["h1"])
+    assert s2["fugitive_submitted"] is True and "fugitive_order" not in json.dumps(s2)
+    assert_hunter_safe(s2)
     assert client.post("/api/train/reveal", json={"on": True}, headers=auth(tok["adm"])).json()["error"] == "not_captured"
     assert "route" not in state(client, tok["h1"])
     assert client.get("/api/train/maps", headers=auth(spec)).json()["maps"][0]["id"] == "car2077_9"  # maps are public

@@ -8,7 +8,7 @@ import { ensureAvatarTextures } from "../../avatar/AvatarLoader";
 import { DEFAULT_LOOK, type AvatarLook, type Chars } from "../../catalog";
 import { CELL } from "../../room/grid";
 import { cellKey, pathToward, type Cell } from "../../room/walk";
-import { ROOM_H, ROOM_W, type Layout } from "./layout";
+import { nearestFree, type Layout } from "./layout";
 import { walkGrid } from "./Hunters";
 
 const SILHOUETTE: AvatarLook = { ...DEFAULT_LOOK, preset: 0, skin: 0, outfit: 0, hair: 0 };
@@ -47,7 +47,7 @@ export class FugitiveSprite {
   /** The fugitive's standing spot in a room: right side, away from the hunters' slots. */
   cellFor(room: string): Cell {
     const b = this.layout.rooms.get(room);
-    return b ? { cx: b.x0 + ROOM_W - 3, cy: b.y0 + ROOM_H - 2 } : { cx: 0, cy: 0 };
+    return b ? nearestFree(this.layout, b, { cx: b.x0 + b.w - 3, cy: b.y0 + b.h - 2 }) : { cx: 0, cy: 0 };
   }
 
   async show(room: string): Promise<void> {
@@ -148,6 +148,6 @@ export class FugitiveSprite {
   /** Is `cell` inside the fugitive's current room? (used for door picking) */
   static cellInRoom(layout: Layout, room: string, c: Cell): boolean {
     const b = layout.rooms.get(room);
-    return !!b && c.cx >= b.x0 && c.cx < b.x0 + ROOM_W && c.cy >= b.y0 && c.cy < b.y0 + ROOM_H && layout.walkable.has(cellKey(c.cx, c.cy));
+    return !!b && c.cx >= b.x0 && c.cx < b.x0 + b.w && c.cy >= b.y0 && c.cy < b.y0 + b.h && layout.walkable.has(cellKey(c.cx, c.cy));
   }
 }

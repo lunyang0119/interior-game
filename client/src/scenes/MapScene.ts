@@ -241,13 +241,14 @@ export class MapScene extends Phaser.Scene {
     for (const [bx, by] of this.map.blocked) this.blocked.add(cellKey(bx, by));
   }
 
-  /** Places and decos share the editor's rules: bottom-left anchored box, rot in 90° steps, flip = mirror. */
-  private drawObj(sprite: string, x: number, y: number, hCells: number, rot: number, flip: boolean, depth: number): void {
+  /** Places and decos share the editor's rules: bottom-left anchored box, rot in 90° steps, flip = mirror,
+   *  `ox`/`oy` nudge the picture by pixels inside its cell. */
+  private drawObj(sprite: string, o: { x: number; y: number; ox?: number; oy?: number }, hCells: number, rot: number, flip: boolean, depth: number): void {
     const frame = this.textures.get(MAP_ATLAS).get(sprite);
     if (!frame) return;
     const turned = rot % 180 !== 0;
     const bw = turned ? frame.height : frame.width, bh = turned ? frame.width : frame.height;
-    const px = x * CELL + bw / 2, py = (y + hCells) * CELL - bh / 2;
+    const px = o.x * CELL + (o.ox ?? 0) + bw / 2, py = (o.y + hCells) * CELL + (o.oy ?? 0) - bh / 2;
     this.add.image(px, py, MAP_ATLAS, sprite).setAngle(rot).setFlipX(flip).setDepth(depth);
   }
 
@@ -260,7 +261,7 @@ export class MapScene extends Phaser.Scene {
 
   private drawObjects(): void {
     for (const p of this.map.places) {
-      if (p.sprite) this.drawObj(p.sprite, p.x, p.y, p.h, p.rot ?? 0, !!p.flip, depthOf(p.y + p.h - 1, 10));
+      if (p.sprite) this.drawObj(p.sprite, p, p.h, p.rot ?? 0, !!p.flip, depthOf(p.y + p.h - 1, 10));
       const doorSet = new Set(p.doors.map(([dx, dy]) => cellKey(dx, dy)));
       for (let cy = p.y; cy < p.y + p.h; cy++) for (let cx = p.x; cx < p.x + p.w; cx++) {
         const k = cellKey(cx, cy);
@@ -272,7 +273,7 @@ export class MapScene extends Phaser.Scene {
       const c = this.cellsOf(d.sprite, d.rot ?? 0);
       // flat decos (paths, 1 cell tall) sit under everything; taller ones y-sort with avatars
       const depth = c.h <= 1 && c.w <= 1 ? TILE_DEPTH + 1 : depthOf(d.y + c.h - 1, 10);
-      this.drawObj(d.sprite, d.x, d.y, c.h, d.rot ?? 0, !!d.flip, depth);
+      this.drawObj(d.sprite, d, c.h, d.rot ?? 0, !!d.flip, depth);
     }
   }
 

@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { Z_AVATAR, type AvatarLook, type Chars } from "../catalog";
+import { Z_AVATAR, frameSize, type AvatarLook, type Chars } from "../catalog";
 import { depthOf } from "../room/depth";
 import { CELL } from "../room/grid";
 import type { Cell } from "../room/walk";
@@ -41,10 +41,13 @@ export class Avatar extends Phaser.GameObjects.Container {
   private lastCell = { cx: -1, cy: -1 };
   private lastFrame: Phaser.Textures.Frame | null = null;
   private label: Phaser.GameObjects.Text;
+  /** Height of the tallest sheet the look draws (a loop-strip preset may differ from chars.frameH); the name tag sits above it. */
+  private frameH: number;
 
   constructor(scene: Phaser.Scene, private chars: Chars, look: AvatarLook, cellX: number, cellY: number,
               name = "", remote = false) {
     super(scene, (cellX + 0.5) * CELL, (cellY + 1) * CELL);
+    this.frameH = chars.frameH;
     this.speed = remote ? REMOTE_SPEED : SPEED;
     scene.add.existing(this);
     // name tag lives outside the container so its depth is independent of the y-sort
@@ -60,7 +63,7 @@ export class Avatar extends Phaser.GameObjects.Container {
   }
 
   private syncLabel(): void {
-    this.label.setPosition(Math.round(this.x), Math.round(this.y - this.chars.frameH - 1));
+    this.label.setPosition(Math.round(this.x), Math.round(this.y - this.frameH - 1));
   }
 
   destroy(fromScene?: boolean): void {
@@ -73,12 +76,16 @@ export class Avatar extends Phaser.GameObjects.Container {
     for (const s of this.sprites) s.destroy();
     this.sprites = [];
     this.lastFrame = null;
+    this.frameH = 0;
     for (const { layer, idx } of sheetsFor(look, this.chars)) {
       const s = this.scene.add.sprite(0, 0, texKey(layer, idx)).setOrigin(0.5, 1);
       this.add(s);
       this.sprites.push(s);
+      this.frameH = Math.max(this.frameH, frameSize(this.chars, layer, idx)[1]);
     }
+    if (!this.frameH) this.frameH = this.chars.frameH;
     this.playAnim();
+    this.syncLabel();
   }
 
   get cellX(): number { return this.x / CELL; }

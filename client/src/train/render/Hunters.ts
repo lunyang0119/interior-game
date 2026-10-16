@@ -29,7 +29,7 @@ export class Hunters {
 
   cellFor(id: string, room: string): Cell {
     const b = this.layout.rooms.get(room);
-    return b ? standCell(b, this.slot(id)) : { cx: 0, cy: 0 };
+    return b ? standCell(this.layout, b, this.slot(id)) : { cx: 0, cy: 0 };
   }
 
   /** Create/destroy avatars to match `ids` (in tag order) and stand them in `rooms` (unless `keepPositions`). */

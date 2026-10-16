@@ -1,7 +1,6 @@
 /** 📡 panel: the last report as text, every hunter's room + public order, fugitive extras. */
 
 import { tbus } from "../bus";
-import { reportLines } from "../report";
 import { isBot, isFugitive, label, tstate } from "../state";
 import { HACK_KO, ORDER_KO } from "../strings";
 import type { BotReason } from "../api";
@@ -23,13 +22,9 @@ export function initReport(): void {
 
 function render(): void {
   const p = tstate.payload;
-  const rep = $("report-text");
   const crew = $("report-crew");
-  rep.innerHTML = "";
   crew.innerHTML = "";
-  if (!p || !p.view) { rep.textContent = "아직 보고가 없어요"; return; }
-  if (p.report) for (const line of reportLines(p.report, (uid) => uid)) rep.appendChild(el("div", "", line));
-  else rep.textContent = "라운드 1 — 아직 판독 결과가 없어요";
+  if (!p || !p.view) return;
   const orders = isFugitive() ? (p.fugitive?.pinged ? (tstate.pingOrders ?? p.orders ?? {}) : null) : (p.orders ?? {});
   for (const h of p.view.hunters) {
     const o = orders ? orders[h.name] : undefined;

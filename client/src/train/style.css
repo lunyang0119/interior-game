@@ -49,12 +49,12 @@ button, .chip { display: inline-flex; align-items: center; justify-content: cent
 #hud-order { max-width: 100%; }
 #hud-order button.small { min-height: 22px; padding: 2px 8px; font-size: 11px; margin-left: 6px; }
 #hud-sub-val { max-width: 44vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-#roundlog { bottom: auto; top: calc(var(--safe-top) + 150px); max-height: 34vh; }
-#roundlog .log-body { overflow-y: auto; max-height: 26vh; font-size: 12px; line-height: 1.45; padding: 2px 4px; }
+.log-body { overflow-y: auto; max-height: 42vh; font-size: var(--fs-small); line-height: 1.45; padding: 2px 0; }
+#skipbar { bottom: calc(var(--safe-bottom) + 150px); justify-content: center; }
 .log-round { padding: 4px 0; border-top: 1px dashed rgba(55, 214, 230, 0.25); }
 .log-round:first-child { border-top: 0; }
 .log-round.playing .log-head { color: var(--primary); }
-.log-head { font-weight: 700; }
+.log-head { font-weight: 700; font-size: 14px; color: var(--primary); margin-bottom: 2px; }
 .help-row { display: flex; gap: 8px; align-items: baseline; margin: 3px 0; }
 .help-row b { flex: 0 0 72px; color: var(--primary); }
 .admin-danger { margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255, 107, 107, 0.35); }
@@ -63,8 +63,12 @@ button, .chip { display: inline-flex; align-items: center; justify-content: cent
 #fug-projection { font-size: 12px; color: var(--primary); text-align: center; min-height: 14px; }
 .thinking { color: var(--muted); font-style: italic; }
 button.armed { outline: 2px solid var(--danger); }
-@media (max-width: 899px) { #roundlog { top: calc(var(--safe-top) + 190px); } }
 
 /* foldable top toolbar: only the fold button (and the connection warning) stay */
 #hud.folded > *:not(.fold):not(#hud-conn) { display: none !important; }
 #hud .fold { margin-left: auto; }
+
+/* folded action bars: nothing but the 펴기 button */
+.bar.folded .bar-status { display: none !important; }
+.bar.folded .bar-head { justify-content: flex-end; }
+.bar.folded { padding-top: 2px; padding-bottom: 2px; }

@@ -66,7 +66,7 @@ export class ItemLayer {
     const pit = parent && this.cat.byId.get(parent.item_id);
     if (parent && pit && it?.layer === "surface_item") {
       sortRow = parent.y + pit.h - 1;
-      y = (row.y + h) * CELL - pit.surface_offset_y;
+      y = (row.y + h) * CELL - pit.surface_offset_y + (it.offset_y ?? 0);
     } else if (parent && pit && canHang(it)) {
       // hung on a partition: sorted with the partition's feet, just above it
       sortRow = parent.y + pit.h - 1;

@@ -291,6 +291,14 @@ function wireSocket(): void {
     toast(`${m.id}: ${m.order ? (m.order.type === "move" ? `이동 → ${m.order.target}` : m.order.type) : "제출 취소"}`, 2500);
     applyState(p);
   });
+  tsocket.on("fugitive_submitted", (m: { submitted: boolean; round: number }) => {
+    const p = tstate.payload;
+    if (!p || (p.round_no ?? m.round) !== m.round) return;
+    p.fugitive_submitted = m.submitted;
+    if (p.fugitive) p.fugitive.order = m.submitted ? (p.fugitive.order ?? { move: null, hack: null, target: null }) : null;
+    tstate.thinking.delete("fugitive");
+    applyState(p);
+  });
   tsocket.on("deadline", (m: { deadline_ts: number; reason: string; paused_remaining?: number | null }) => {
     const p = tstate.payload;
     if (!p) return;

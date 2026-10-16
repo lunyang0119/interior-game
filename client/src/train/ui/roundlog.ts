@@ -1,5 +1,5 @@
-/** Round result log under the map: one line per event in resolution order, every round this session has seen,
- *  newest first, scrollable. Carries the playback controls (건너뛰기 / 다시 보기) and a fold button. */
+/** Round result log inside the 보고 panel: one line per event in resolution order, every round this session has
+ *  seen, newest first, scrollable. 다시 보기 sits in the panel; 재생 건너뛰기 floats over the map while a round plays. */
 
 import type { Report } from "../api";
 import { tbus } from "../bus";
@@ -30,14 +30,13 @@ export function remember(rep: Report): void {
 
 function render(): void {
   const p = tstate.payload;
-  const on = !!p?.view && tstate.history.length > 0 && p.status !== "LOBBY" && p.status !== "IDLE";
-  show("roundlog", on);
-  if (!on) return;
+  const on = !!p?.view && p.status !== "LOBBY" && p.status !== "IDLE";
   const playing = tstate.phase === "playback";
-  show("btn-log-skip", playing);
-  show("btn-log-replay", !playing);
+  show("skipbar", playing);
+  show("btn-log-replay", on && !playing && tstate.history.length > 0);
   const box = $("roundlog-body");
   box.innerHTML = "";
+  if (!on || !tstate.history.length) { box.appendChild(el("div", "small muted", "아직 판독 결과가 없어요")); return; }
   for (const rep of [...tstate.history].reverse()) {
     const sec = el("div", "log-round" + (rep === tstate.playing ? " playing" : ""));
     const lines = reportLines(rep, (uid) => label(uid));

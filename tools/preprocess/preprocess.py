@@ -124,7 +124,40 @@ class SheetStore:
         return self.cache[name]
 
 
+ANIM_SEP = "#"       # atlas frame names of an anim slice's frames: <key>#0, <key>#1, … (<key> itself = frame 0)
+ANIM_DEFAULT_FPS = 8
+
+
+def anim_frames(s: dict) -> list[Image.Image]:
+    """Frames of an `anim` slice: every PNG in assets/graphic/<anim>/ in name order (all the same size), scaled
+    like a normal slice. SourceMissing when the folder is gone (the frozen atlas may still have the frames)."""
+    d = C.ASSETS / s["anim"]
+    files = sorted(d.glob("*.png")) if d.is_dir() else []
+    if not files:
+        raise SourceMissing(f"anim folder for slice '{s['key']}' has no PNG: {d}")
+    frames = [rescale(Image.open(p).convert("RGBA"), s.get("scale")) for p in files]
+    if any(f.size != frames[0].size for f in frames):
+        raise SystemExit(f"slice {s['key']}: anim frames in {d} are not all the same size")
+    return frames
+
+
+def anim_slice_frames(s: dict, frozen: tuple[Image.Image, dict] | None) -> list[tuple[str, Image.Image]]:
+    """(frame key, image) for every frame of an anim slice, falling back to the previous atlas like slice_image."""
+    try:
+        frames = anim_frames(s)
+    except SourceMissing as e:
+        frames = []
+        while (old := _frozen_crop(f"{s['key']}{ANIM_SEP}{len(frames)}", frozen)) is not None:
+            frames.append(old)
+        if not frames:
+            raise SystemExit(str(e)) from None
+        FROZEN_USED.append(s["key"])
+    return [(f"{s['key']}{ANIM_SEP}{i}", fr) for i, fr in enumerate(frames)]
+
+
 def _slice_from_source(s: dict, sheets: dict[str, Image.Image], file_base: Path) -> Image.Image:
+    if "anim" in s:
+        return anim_frames(s)[0]
     if "file" in s:
         path = file_base / s["file"]
         if not path.exists():
@@ -174,10 +207,13 @@ def is_blocky(im: Image.Image, k: int = 2) -> bool:
 
 
 def shrink_image(im: Image.Image, scale: float = 0.5, method: str = "auto") -> tuple[Image.Image, str]:
-    """Downscale a sheet for the 16px grid. `nearest` keeps 2×-upscaled art pixel-exact, `box` averages native
-    high-res art; `auto` picks nearest when the image is blocky at 1/scale, else box. Returns (image, method used)."""
+    """Rescale a sheet for the 16px grid. `nearest` keeps 2×-upscaled art pixel-exact, `box` averages native
+    high-res art; `auto` picks nearest when the image is blocky at 1/scale, else box, and always nearest when
+    enlarging (scale > 1, e.g. an 8px sheet). Returns (image, method used)."""
     im = im.convert("RGBA")
     size = (max(1, round(im.width * scale)), max(1, round(im.height * scale)))
+    if method == "auto" and scale > 1:
+        method = "nearest"
     if method == "auto":
         k = round(1 / scale)
         method = "nearest" if k >= 2 and abs(k * scale - 1) < 1e-9 and is_blocky(im, k) else "box"
@@ -264,8 +300,9 @@ def slice_image(s: dict, sheets: dict[str, Image.Image], file_base: Path | None 
                 frozen: tuple[Image.Image, dict] | None = None) -> Image.Image:
     """Crop for a slice: a rect on a named sheet (optionally with `transparent: [r,g,b]`, a backdrop
     colour to knock out), a standalone PNG (`file`, relative to `file_base`, default assets/graphic/Interior),
-    or `parts` — rects stacked top-to-bottom (for strips split by transparent separators). When the source is missing and `frozen` (a previous atlas) has the key,
-    the old frame is reused and the key is recorded in FROZEN_USED."""
+    `parts` — rects stacked top-to-bottom (for strips split by transparent separators) — or the first frame of an
+    `anim` folder (relative to assets/graphic; see anim_frames). When the source is missing and `frozen` (a previous
+    atlas) has the key, the old frame is reused and the key is recorded in FROZEN_USED."""
     file_base = file_base or C.INTERIOR
     try:
         return _slice_from_source(s, sheets, file_base)
@@ -431,7 +468,11 @@ def pack_atlas(slices: list[dict], sheet_paths: dict[str, Path] | None = None, i
     sheet_paths = C.all_sheets() if sheet_paths is None else sheet_paths
     FROZEN_USED.clear()
     sheets = SheetStore(sheet_paths)
-    crops = [(s["key"], slice_image(s, sheets, file_base=file_base, frozen=frozen)) for s in slices]
+    crops = []
+    for s in slices:
+        crops.append((s["key"], slice_image(s, sheets, file_base=file_base, frozen=frozen)))
+        if "anim" in s:  # the animation's frames ride along as <key>#i (the key itself stays frame 0)
+            crops += anim_slice_frames(s, frozen)
     crops.sort(key=lambda kc: (-kc[1].height, -kc[1].width, kc[0]))
 
     max_w = 2048  # keep both sides ≤ 4096: mobile WebGL rejects taller textures (was 512 wide × 7000+ tall → black room)
@@ -516,15 +557,19 @@ def set_of(sl: dict) -> str | None:
 def atlas_keys(atlas_json: dict, slices: list[dict] | None = None, sets: bool = False) -> dict:
     """Manifest entry per frame: size in px/cells plus the tile metadata (step/walk) set on the slice.
 
-    With sets=True (the interiors atlas) each key also carries its furniture `set` (see set_of()).
+    With sets=True (the interiors atlas) each key also carries its furniture `set` (see set_of()). An anim slice's
+    frames (<key>#i) are not keys of their own: the key carries `anim: {frames, fps}` instead.
     """
     keys = {k: {"w": f["frame"]["w"], "h": f["frame"]["h"],
                 "cw": f["frame"]["w"] // C.CELL, "ch": f["frame"]["h"] // C.CELL}
-            for k, f in atlas_json["frames"].items()}
+            for k, f in atlas_json["frames"].items() if ANIM_SEP not in k}
     for sl in slices or []:
         k = sl["key"]
         if k not in keys:
             continue
+        if "anim" in sl:
+            n = sum(1 for f in atlas_json["frames"] if f.startswith(k + ANIM_SEP))
+            keys[k]["anim"] = {"frames": n, "fps": sl.get("fps", ANIM_DEFAULT_FPS)}
         if sets and (s := set_of(sl)):
             keys[k]["set"] = s
         step = sl.get("step")
@@ -537,8 +582,34 @@ def atlas_keys(atlas_json: dict, slices: list[dict] | None = None, sets: bool = 
     return keys
 
 
+def frame_size(v: dict) -> tuple[int, int]:
+    """Frame size of a variant's strips: the character frame, or a loop strip's own (config._strip_presets)."""
+    return tuple(v["frame"]) if v.get("frame") else (C.FRAME_W, C.FRAME_H)
+
+
+def _loop_strip(v: dict, anim: str) -> Image.Image:
+    """A 24-frame strip for a loop-strip preset: FRAMES_PER_DIR frames sampled evenly from the loop for each
+    direction (so a long loop still fits), "left" mirrored. `anim` is ignored: run just plays faster."""
+    fw, fh = frame_size(v)
+    im = Image.open(v["strip"]).convert("RGBA")
+    if im.height != fh or im.width < fw or im.width % fw:
+        raise SystemExit(f"{v['name']}: {v['strip'].name} should be a row of {fw}x{fh} frames, got {im.width}x{im.height}")
+    n = im.width // fw
+    frames = [im.crop((i * fw, 0, (i + 1) * fw, fh)) for i in range(n)]
+    out = Image.new("RGBA", (fw * C.FRAMES_PER_DIR * len(C.DIRS), fh), (0, 0, 0, 0))
+    for di, d in enumerate(C.DIRS):
+        for k in range(C.FRAMES_PER_DIR):
+            fr = frames[(k * n) // C.FRAMES_PER_DIR]
+            if d == "left":
+                fr = fr.transpose(Image.Transpose.FLIP_LEFT_RIGHT)
+            out.paste(fr, ((di * C.FRAMES_PER_DIR + k) * fw, 0))
+    return out
+
+
 def _strip(v: dict, anim: str) -> Image.Image:
-    """One 24-frame strip (384x32) for a variant: cropped from a generator sheet or an explicit file."""
+    """One 24-frame strip (384x32) for a variant: cropped from a generator sheet, an explicit file, or a loop strip."""
+    if v.get("strip"):
+        return _loop_strip(v, anim)
     expected = C.FRAME_W * C.FRAMES_PER_DIR * len(C.DIRS)
     if v.get("sheet") is None and anim not in v:
         return Image.new("RGBA", (expected, C.FRAME_H), (0, 0, 0, 0))  # "none" variant
@@ -574,9 +645,11 @@ def build_char_layer(layer: str, variants: list[dict], out_dir: Path) -> dict:
         stale.unlink()
     groups: dict[int, list[int]] = {}
     names = []
+    sizes: dict[str, list[int]] = {}  # variants whose frames are not FRAME_W x FRAME_H (loop-strip presets)
     for i, v in enumerate(variants):
         strips = [_strip(v, a) for a in C.ANIM_STRIPS]
-        sheet = Image.new("RGBA", (sum(st.width for st in strips), C.FRAME_H), (0, 0, 0, 0))
+        fw, fh = frame_size(v)
+        sheet = Image.new("RGBA", (sum(st.width for st in strips), fh), (0, 0, 0, 0))
         x = 0
         for st in strips:
             sheet.paste(st, (x, 0))
@@ -584,7 +657,11 @@ def build_char_layer(layer: str, variants: list[dict], out_dir: Path) -> dict:
         sheet.save(out_dir / f"{i}.png", optimize=True)
         groups.setdefault(v.get("style", i), []).append(i)
         names.append(v.get("name", str(i)))
+        if (fw, fh) != (C.FRAME_W, C.FRAME_H):
+            sizes[str(i)] = [fw, fh]
     entry: dict = {"count": len(variants), "label": C.LAYER_LABELS.get(layer, layer)}
+    if sizes:
+        entry["sizes"] = sizes
     # "none" = index of the transparent "nothing" variant (first or last)
     if variants and variants[0].get("name") == "none":
         entry["none"] = 0
@@ -903,8 +980,8 @@ def cmd_scaffold(_: argparse.Namespace) -> None:
     added = 0
     for s in slices:
         key = s["key"]
-        if key in have or key.startswith("auto_") or key.startswith(TILE_PREFIX):
-            continue
+        if key in have or key.startswith("auto_") or key.startswith(TILE_PREFIX) or "anim" in s:
+            continue  # anim slices are room effects (rooms/<id>.json `fx`), not shop items
         if "file" in s:
             w, h = Image.open(C.INTERIOR / s["file"]).size
         elif "parts" in s:

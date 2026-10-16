@@ -100,6 +100,8 @@ export interface TrainState {
   view?: PublicView | null;
   report?: Report | null;
   orders?: Record<string, Order | null>;
+  /** whether the fugitive has submitted this round (everyone sees the flag, never the order) */
+  fugitive_submitted?: boolean;
   config?: Record<string, unknown>;
   ai_available?: boolean;
   admin?: boolean;

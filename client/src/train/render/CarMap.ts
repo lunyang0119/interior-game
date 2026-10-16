@@ -1,12 +1,14 @@
-/** Draws a Layout (layout.ts) with atlas tiles: floors, wall bands with windows, partitions, door gaps with a door
- *  sprite, the device sprite and a bench per room, and the room label. Nothing here knows about the game state. */
+/** Draws a Layout (layout.ts) with atlas tiles: partitions, door gaps with a door sprite, the room label, and per
+ *  room either its device's interior template (wall/floor tiles + seeded items, drawn like the room scenes do) or the
+ *  built-in look (plain tiles, windows, a bench and the device sprite). Nothing here knows about the game state. */
 
 import Phaser from "phaser";
 import { CELL } from "../../room/grid";
-import { depthOf, TILE_DEPTH } from "../../room/depth";
+import { canHang, collisionLayer, floorKeyAt, onWall, Z_HUNG, Z_SCALE, type Item, type Room, type Seed } from "../../catalog";
+import { depthOf, sortRowFor, TILE_DEPTH } from "../../room/depth";
 import { cellKey } from "../../room/walk";
 import { DEVICE_KO } from "../strings";
-import { benchCells, deviceCell, ROOM_H, ROOM_W, type Door, type Layout, type RoomBox } from "./layout";
+import { benchCells, deviceCell, type Door, type Layout, type RoomBox } from "./layout";
 import { ATLAS, DEVICES, DOOR_FRAME, PARTITION_EDGE, PARTITION_FILL, TRAIN_FRAMES, type TrainKey } from "./tiles";
 
 const Z_FURNITURE = 10; // below avatars (Z_AVATAR = 15) on the same row
@@ -28,7 +30,11 @@ export class CarMap {
   get heightPx(): number { return this.layout.rows * CELL; }
 
   private has(key: TrainKey): boolean {
-    return this.scene.textures.get(ATLAS).has(TRAIN_FRAMES[key]);
+    return this.hasFrame(TRAIN_FRAMES[key]);
+  }
+
+  private hasFrame(frame: string): boolean {
+    return this.scene.textures.get(ATLAS).has(frame);
   }
 
   private image(x: number, y: number, key: TrainKey): Phaser.GameObjects.Image {
@@ -43,14 +49,63 @@ export class CarMap {
     this.objects.push(rt);
     const draw = (key: TrainKey, cx: number, cy: number) => rt.drawFrame(ATLAS, TRAIN_FRAMES[key], cx * CELL, cy * CELL);
     for (const b of this.layout.rooms.values()) {
-      for (let x = b.x0; x < b.x0 + ROOM_W; x++) {
+      if (b.tpl) { this.drawTemplateTiles(rt, b, b.tpl); continue; }
+      for (let x = b.x0; x < b.x0 + b.w; x++) {
         draw("train_wall_top", x, b.wallY0);
         for (let y = b.wallY0 + 1; y < b.y0; y++) draw("train_wall_bottom", x, y);
-        for (let y = b.y0; y < b.y0 + ROOM_H; y++) draw("train_floor", x, y);
+        for (let y = b.y0; y < b.y0 + b.h; y++) draw("train_floor", x, y);
       }
-      if (this.has("train_window")) for (const wx of [b.x0 + 1, b.x0 + ROOM_W - 3]) draw("train_window", wx, b.wallY0);
+      if (this.has("train_window")) for (const wx of [b.x0 + 1, b.x0 + b.w - 3]) draw("train_window", wx, b.wallY0);
     }
     for (const d of this.layout.doors) for (const c of d.cells) draw("train_floor_door", c.cx, c.cy);
+  }
+
+  /** Wall rows (wall_left / wall_right on the edge columns) and the floor (painted grid, else tiles.floor),
+   *  exactly like a room scene. */
+  private drawTemplateTiles(rt: Phaser.GameObjects.RenderTexture, b: RoomBox, t: Room): void {
+    for (let ly = 0; ly < t.rows; ly++) for (let lx = 0; lx < t.cols; lx++) {
+      let key: string | undefined;
+      if (ly < t.wall_rows) {
+        const edge = lx === 0 ? t.tiles.wall_left : lx === t.cols - 1 ? t.tiles.wall_right : null;
+        key = (edge && edge.length > ly ? edge : t.tiles.wall)[ly];
+      } else {
+        key = floorKeyAt(t, lx, ly);
+      }
+      if (key && this.hasFrame(key)) rt.drawFrame(ATLAS, key, (b.x0 + lx) * CELL, (b.wallY0 + ly) * CELL);
+    }
+  }
+
+  /** A template's seeded items, positioned and depth-sorted like room/ItemLayer.ts does for placed items. */
+  private drawTemplateItems(b: RoomBox, t: Room): void {
+    const cat = this.layout.cat;
+    if (!cat) return;
+    const seeds = (t.seed ?? []).map((s) => ({ s, it: cat.byId.get(s.item_id) })).filter((o): o is { s: Seed; it: Item } => !!o.it);
+    for (const { s, it } of seeds) {
+      if (!this.hasFrame(it.sprite)) continue;
+      const cl = collisionLayer(it);
+      const row = b.wallY0 + s.y;
+      let y = (onWall(it) ? row * CELL : (row + it.h) * CELL) + (it.offset_y ?? 0);
+      let sortRow = sortRowFor(cl, row + it.h - 1);
+      let z = Z_SCALE[cl];
+      if (it.layer === "surface_item") {
+        // on the surface furniture under its bottom row, like a cup on a table
+        const by = s.y + it.h - 1;
+        const p = seeds.find((o) => o.it.is_surface && s.x >= o.s.x && s.x < o.s.x + o.it.w && by >= o.s.y && by < o.s.y + o.it.h);
+        if (p) { y = (row + it.h) * CELL - p.it.surface_offset_y + (it.offset_y ?? 0); sortRow = b.wallY0 + p.s.y + p.it.h - 1; }
+      } else if (canHang(it) && s.y >= t.wall_rows) {
+        z = Z_HUNG; // hung on a partition's face
+      }
+      const x = (b.x0 + s.x) * CELL;
+      const depth = depthOf(sortRow, z);
+      if (it.layer === "wallpaper") {
+        const ts = this.scene.add.tileSprite(x, y, (s.span || it.w) * CELL, this.scene.textures.getFrame(ATLAS, it.sprite).height, ATLAS, it.sprite)
+          .setOrigin(0, 0).setDepth(depth);
+        this.objects.push(ts);
+      } else {
+        const img = this.scene.add.image(x, y, ATLAS, it.sprite).setOrigin(0, onWall(it) ? 0 : 1).setDepth(depth);
+        this.objects.push(img);
+      }
+    }
   }
 
   private drawPartitions(): void {
@@ -94,6 +149,15 @@ export class CarMap {
   }
 
   private drawRoom(b: RoomBox): void {
+    if (b.tpl) this.drawTemplateItems(b, b.tpl);
+    else this.drawBuiltinFurniture(b);
+    const label = this.scene.add.text((b.x0 + b.w) * CELL - 2, (b.y0 + b.h) * CELL - 2, `${b.id} · ${DEVICE_KO[b.device] ?? b.device}`, {
+      fontFamily: '"Label", "Stardust", sans-serif', fontSize: "8px", color: "#f0f0f5", backgroundColor: "rgba(10,14,30,0.7)", padding: { x: 3, y: 1 }, resolution: 3,
+    }).setOrigin(1, 1).setDepth(TILE_DEPTH + 3);
+    this.objects.push(label);
+  }
+
+  private drawBuiltinFurniture(b: RoomBox): void {
     if (this.has("train_bench")) {
       const bc = benchCells(b)[0];
       this.image(bc.cx * CELL, (bc.cy + 1) * CELL, "train_bench").setDepth(depthOf(bc.cy, Z_FURNITURE));
@@ -103,10 +167,6 @@ export class CarMap {
     if (dev && this.has(dev.key)) {
       this.image((dc.cx - dev.w + 1) * CELL, (dc.cy + 1 + (dev.dy ?? 0)) * CELL, dev.key).setDepth(depthOf(dc.cy, Z_FURNITURE));
     }
-    const label = this.scene.add.text(b.x0 * CELL + 2, b.wallY0 * CELL + 2, `${b.id} · ${DEVICE_KO[b.device] ?? b.device}`, {
-      fontFamily: '"Label", "Stardust", sans-serif', fontSize: "8px", color: "#f0f0f5", stroke: "#000", strokeThickness: 2, resolution: 3,
-    }).setOrigin(0, 0).setDepth(TILE_DEPTH + 3);
-    this.objects.push(label);
   }
 
   /** Debug overlay: cell grid of every floor cell and the walkable cells (the preview's "칸 번호" toggle). */
@@ -116,7 +176,7 @@ export class CarMap {
     const g = this.scene.add.graphics().setDepth(TILE_DEPTH + 3);
     g.lineStyle(1, 0xffffff, 0.15);
     for (const b of this.layout.rooms.values()) {
-      for (let y = b.y0; y < b.y0 + ROOM_H; y++) for (let x = b.x0; x < b.x0 + ROOM_W; x++) g.strokeRect(x * CELL + 0.5, y * CELL + 0.5, CELL - 1, CELL - 1);
+      for (let y = b.y0; y < b.y0 + b.h; y++) for (let x = b.x0; x < b.x0 + b.w; x++) g.strokeRect(x * CELL + 0.5, y * CELL + 0.5, CELL - 1, CELL - 1);
     }
     g.lineStyle(1, 0x4f8cff, 0.6);
     for (const k of this.layout.walkable) {

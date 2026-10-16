@@ -86,11 +86,22 @@ export interface Room {
   /** Per-cell floor tiles painted in the world editor (rows × cols); null cells fall back to tiles.floor. */
   floor?: (string | null)[][] | null;
   exits: Exit[];
+  fx?: Fx[];
   /** Restoration stages (mirror server/app/restore.py); progress comes from /api/rooms and the ws `progress` message. */
   restore?: Stage[];
   /** Guest rooms inside this room (comfort/guests per zone, unit key `room:zone`). Empty = the whole room is one unit. */
   zones?: Zone[];
+  /** Items the server places once (owner $seed); the train page draws its compartment interiors straight from these. */
+  seed?: Seed[];
 }
+
+export interface Seed { item_id: string; x: number; y: number; span?: number | null }
+
+/** A decoration at a pixel position in the room, drawn on top of everything (world editor "효과 놓기"); `sprite` is an
+ *  interior atlas key, animated when `Catalog.anims` lists it. */
+export interface Fx { sprite: string; x: number; y: number }
+/** An interior atlas key built from an `anim` slice: its frames are `<key>#0` … `<key>#frames-1` in the atlas. */
+export interface AnimSpec { frames: number; fps: number }
 
 export interface Zone { id: string; name: string; x: number; y: number; w: number; h: number }
 
@@ -135,8 +146,12 @@ export type StepKind = "wood" | "tile" | "grass" | "water" | "none";
 export interface TileInfo { step?: StepKind; walk?: boolean }
 
 /** One avatar layer. `groups` = indices that share a style (colour variants); `none` = index that means "nothing";
- *  `exclusive` = when not none, this layer is drawn alone (premade characters). */
-export interface LayerSpec { count: number; label?: string; none?: number; exclusive?: boolean; groups?: number[][]; names?: string[] }
+ *  `exclusive` = when not none, this layer is drawn alone (premade characters); `sizes` = frame size of the variants
+ *  that are not frameW×frameH (loop-strip presets such as a hovering drone), keyed by index. */
+export interface LayerSpec {
+  count: number; label?: string; none?: number; exclusive?: boolean; groups?: number[][]; names?: string[];
+  sizes?: Record<string, [number, number]>;
+}
 
 export interface Chars {
   frameW: number;
@@ -144,6 +159,11 @@ export interface Chars {
   anims: Record<string, [number, number]>;
   layerOrder: string[];
   layers: Record<string, LayerSpec>;
+}
+
+/** Frame size of one variant's sheet (`gen/chars/<layer>/<idx>.png`): its own when the manifest lists one, else the character frame. */
+export function frameSize(chars: Chars, layer: string, idx: number): [number, number] {
+  return chars.layers[layer]?.sizes?.[String(idx)] ?? [chars.frameW, chars.frameH];
 }
 
 /** The inn cat's sprite strip (`gen/cat/<variant>.png`, built from config.CAT_VARIANT). anims keys are
@@ -167,10 +187,12 @@ export interface MapPlace {
   h: number;
   rot?: number;
   flip?: boolean;
+  ox?: number; // pixel nudge of the picture inside its cell (0–15); the footprint stays on x/y
+  oy?: number;
   doors: [number, number][];
   spawn?: { x: number; y: number } | null;
 }
-export interface MapDeco { sprite: string; x: number; y: number; rot?: number; flip?: boolean }
+export interface MapDeco { sprite: string; x: number; y: number; rot?: number; flip?: boolean; ox?: number; oy?: number }
 /** Cells where the fixed backdrop `bg` (gen/mapbg/<bg>.png) shows; later zones win. */
 export interface BgZone { x: number; y: number; w: number; h: number; bg: string }
 export interface MapData {
@@ -196,6 +218,10 @@ export interface Catalog {
   cat: CatSpec | null;
   /** Tile metadata by atlas ("interior" = room tiles, "map" = overworld tiles); only keys that carry any. */
   tiles: { interior: Record<string, TileInfo>; map: Record<string, TileInfo> };
+  /** /train/ compartment interiors by engine device (data/train_interiors.json); null = built-in compartments. */
+  train: Record<string, Room> | null;
+  /** Animated interior atlas keys (anim slices) → frame count and speed. */
+  anims: Record<string, AnimSpec>;
   /** see assets.ts */
   assetVersion: string;
 }
@@ -287,6 +313,8 @@ export function exitAt(room: Room, cx: number, cy: number): Exit | null {
 export interface RawCatalog {
   items: Item[]; room: Room; rooms?: Room[]; map?: MapData | null; chars: Chars; cat?: CatSpec | null;
   tiles?: { interior?: Record<string, TileInfo>; map?: Record<string, TileInfo> } | null;
+  train?: Record<string, Room> | null;
+  anims?: Record<string, AnimSpec> | null;
   /** hash of the generated atlases/theme on the server; appended to /gen and /media URLs (see assets.ts) */
   asset_version?: string;
 }
@@ -297,5 +325,5 @@ export function makeCatalog(raw: RawCatalog): Catalog {
   const room = rooms.get(raw.room.id ?? "inn") ?? list[0];
   const tiles = { interior: raw.tiles?.interior ?? {}, map: raw.tiles?.map ?? {} };
   return { items: raw.items, byId: new Map(raw.items.map((i) => [i.id, i])), room, rooms, map: raw.map ?? null, chars: raw.chars, cat: raw.cat ?? null, tiles,
-    assetVersion: raw.asset_version ?? "" };
+    train: raw.train ?? null, anims: raw.anims ?? {}, assetVersion: raw.asset_version ?? "" };
 }

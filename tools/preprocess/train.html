@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>train map editor</title>
+<style>
+  :root { color-scheme: dark; --bg: #1e1e26; --panel: #272733; --line: #3a3a4a; --fg: #e8e8f0; --dim: #9a9ab0;
+          --green: #6fd36f; --blue: #6fb3ff; --sel: #ffd35c; --red: #ff6b6b; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 13px/1.4 system-ui, sans-serif; background: var(--bg); color: var(--fg);
+         display: grid; grid-template-columns: 260px 1fr 280px; grid-template-rows: 1fr auto; height: 100vh; }
+  #left, #right { background: var(--panel); overflow: auto; padding: 8px; }
+  #left { border-right: 1px solid var(--line); } #right { border-left: 1px solid var(--line); }
+  #center { overflow: auto; padding: 16px; background: #15151c; }
+  #bottom { grid-column: 1 / -1; border-top: 1px solid var(--line); background: var(--panel); padding: 6px 8px; display: flex; gap: 8px; align-items: flex-start; }
+  #log { flex: 1; margin: 0; max-height: 90px; overflow: auto; font: 11px/1.3 ui-monospace, monospace; color: var(--dim); white-space: pre-wrap; }
+  h3 { margin: 10px 0 4px; font-size: 12px; color: var(--dim); text-transform: uppercase; letter-spacing: .05em; }
+  label { display: flex; align-items: center; gap: 6px; margin: 3px 0; }
+  label span { width: 70px; color: var(--dim); flex-shrink: 0; }
+  input, select, button { font: inherit; color: var(--fg); background: #1a1a22; border: 1px solid var(--line); border-radius: 4px; padding: 3px 6px; }
+  input[type=text] { flex: 1; min-width: 0; }
+  button { cursor: pointer; background: #33334a; } button:hover { background: #40405a; }
+  button.primary { background: #2f6f3f; } button.danger { background: #6f2f2f; }
+  button:disabled { opacity: .5; cursor: default; }
+  a { color: var(--blue); }
+  .row { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin: 4px 0; }
+  .hint { color: var(--dim); font-size: 11px; }
+  #mapList div { padding: 3px 6px; border-radius: 4px; cursor: pointer; display: flex; gap: 6px; }
+  #mapList div:hover { background: #33334a; } #mapList div.on { background: #4a4a2a; color: var(--sel); }
+  #mapList .tag { margin-left: auto; font-size: 11px; color: var(--dim); } #mapList .tag.mod { color: var(--green); }
+  #errors { color: var(--red); font-size: 12px; } #errors.ok { color: var(--green); }
+  svg text { pointer-events: none; user-select: none; }
+  .slot { fill: transparent; stroke: #3a3a4a; stroke-dasharray: 4 4; cursor: copy; } .slot:hover { fill: #22222e; }
+  .room { cursor: pointer; stroke: #0008; stroke-width: 2; } .room.sel { stroke: var(--sel); stroke-width: 3; }
+  .door { cursor: pointer; } .door.open { fill: #c89a55; } .door.shut { fill: #ffffff10; stroke: #ffffff30; stroke-dasharray: 3 3; }
+  .door:hover { fill: #ffd35c; }
+  .legend span { display: inline-block; padding: 1px 6px; border-radius: 3px; margin: 2px; color: #111; }
+</style>
+</head>
+<body>
+<div id="left">
+  <div class="row"><a href="/">← 슬라이스 에디터</a> <a href="/world">방·맵 에디터</a></div>
+  <h3>맵</h3>
+  <div id="mapList"></div>
+  <div class="row">
+    <button id="newBtn">새 맵</button><button id="copyBtn">복사</button><button id="delBtn" class="danger">삭제</button>
+  </div>
+  <label><span>맵 id</span><input type="text" id="mapId"></label>
+  <p class="hint">내장 맵은 server/app/train/config.py에 있어요 (엔진 원본이라 그 파일은 안 고쳐요). 내장 맵을 고치면 같은 id로
+    data/train_maps.json에 덮어쓰기본이 생기고, '삭제'는 내장으로 되돌려요. 로비의 맵 고르기에 다 나와요. 인원별 기본 맵(자동)은
+    scaling_web.json이 정해요.</p>
+</div>
+<div id="center"><svg id="grid"></svg></div>
+<div id="right">
+  <h3>방</h3>
+  <div id="roomPanel" class="hint">빈 칸(점선)을 누르면 방이 생겨요. 방을 누르면 선택, 방 사이 막대를 누르면 문이 열리고 닫혀요.</div>
+  <h3>한꺼번에</h3>
+  <div class="row"><button id="allDoors">이웃끼리 문 전부 열기</button></div>
+  <div class="row"><button id="autoDev">장치 자동 배치</button><span class="hint">누를 때마다 배치가 돌아가요</span></div>
+  <h3>장치</h3>
+  <div class="legend" id="legend"></div>
+  <h3>검사</h3>
+  <div id="errors"></div>
+  <div class="row" style="margin-top:12px"><button id="saveBtn" class="primary">저장 (data/train_maps.json)</button></div>
+  <p class="hint">게임 서버는 파일이 바뀌면 다시 읽어요 (재시작 필요 없음). 진행 중인 게임은 시작할 때의 맵을 그대로 써요.</p>
+</div>
+<div id="bottom"><pre id="log"></pre></div>
+<script>
+const $ = (id) => document.getElementById(id);
+const COLORS = { curtain: "#c792ea", coffeepot: "#ffc857", light: "#8be28b", speaker: "#7fb3ff" };
+const CELL = 96, PAD = 24, BOX = 72;
+let S = null;            // server state
+let maps = {};           // id → {rooms: {rid: {device, col, row, nb: Set}}, builtin: bool}
+let cur = null, selRoom = null, devOffset = 0, dirty = false;
+
+const log = (m) => { $("log").textContent = m + "\n" + $("log").textContent; };
+
+function fromRows(rows) {
+  const rooms = {};
+  for (const r of rows) rooms[r.room] = { device: r.device, col: +r.col, row: +r.row, nb: new Set(String(r.neighbors || "").split(",").filter(Boolean)) };
+  return { rooms };
+}
+function toRows(m) {
+  return Object.entries(m.rooms).sort(([, a], [, b]) => a.row - b.row || a.col - b.col)
+    .map(([id, r]) => ({ room: id, device: r.device, neighbors: [...r.nb].sort().join(","), col: r.col, row: r.row }));
+}
+const sameRows = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+
+async function load() {
+  S = await (await fetch("/api/train-maps")).json();
+  maps = {};
+  for (const [id, rows] of Object.entries(S.builtin)) maps[id] = fromRows(rows);
+  for (const [id, rows] of Object.entries(S.custom)) maps[id] = fromRows(rows);
+  $("legend").innerHTML = S.devices.map((d) => `<span style="background:${COLORS[d.id] || "#aaa"}">${d.ko} ${d.id}</span>`).join("");
+  if (!cur || !maps[cur]) cur = Object.keys(maps)[0];
+  dirty = false; render();
+}
+
+/** What the file should hold: every non-built-in map + built-ins that differ from the engine's. */
+function fileMaps() {
+  const out = {};
+  for (const [id, m] of Object.entries(maps)) {
+    const rows = toRows(m);
+    if (S.builtin[id] && sameRows(rows, toRows(fromRows(S.builtin[id])))) continue;
+    out[id] = rows;
+  }
+  return out;
+}
+
+function at(m, c, r) { return Object.entries(m.rooms).find(([, x]) => x.col === c && x.row === r)?.[0]; }
+
+function problems(m) {
+  const out = [], ids = Object.keys(m.rooms);
+  if (ids.length < 2) out.push("방이 2개 이상 있어야 해요");
+  for (const [id, r] of Object.entries(m.rooms)) {
+    if (!/^[A-Za-z0-9_]{1,8}$/.test(id)) out.push(`방 id '${id}'는 영문/숫자/_ 8자 이하`);
+    for (const n of r.nb) if (m.rooms[n]?.device === r.device && id < n) out.push(`${id}-${n}: 같은 장치(${r.device})끼리 붙어 있어요`);
+  }
+  if (ids.length) {
+    const seen = new Set([ids[0]]), q = [ids[0]];
+    while (q.length) for (const n of m.rooms[q.shift()].nb) if (!seen.has(n)) { seen.add(n); q.push(n); }
+    if (seen.size !== ids.length) out.push(`문으로 이어지지 않은 방: ${ids.filter((i) => !seen.has(i)).join(", ")}`);
+  }
+  return out;
+}
+
+function svgEl(tag, attrs, parent) {
+  const e = document.createElementNS("http://www.w3.org/2000/svg", tag);
+  for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+  parent?.appendChild(e); return e;
+}
+
+function render() {
+  // map list
+  const fm = S ? fileMaps() : {};
+  $("mapList").innerHTML = "";
+  for (const id of Object.keys(maps)) {
+    const d = document.createElement("div");
+    d.className = id === cur ? "on" : "";
+    const tag = S.builtin[id] ? (fm[id] ? "내장·수정됨" : "내장") : "새 맵";
+    d.innerHTML = `<b></b><span class="tag ${fm[id] ? "mod" : ""}">${tag} · ${Object.keys(maps[id].rooms).length}칸</span>`;
+    d.firstChild.textContent = id;
+    d.onclick = () => { cur = id; selRoom = null; render(); };
+    $("mapList").appendChild(d);
+  }
+  const m = maps[cur];
+  $("mapId").value = cur || "";
+  $("mapId").disabled = !m || !!S.builtin[cur];
+  $("delBtn").textContent = S.builtin[cur] ? "내장으로 되돌리기" : "삭제";
+  $("delBtn").disabled = !m || (S.builtin[cur] && !fm[cur]);
+  $("saveBtn").textContent = dirty ? "저장 (data/train_maps.json) *" : "저장 (data/train_maps.json)";
+  const svg = $("grid"); svg.innerHTML = "";
+  if (!m) return;
+  const rs = Object.values(m.rooms);
+  const n = Math.min(S.max_grid, Math.max(3, ...rs.map((r) => r.col + 1)));
+  const k = Math.min(S.max_grid, Math.max(3, ...rs.map((r) => r.row + 1)));
+  svg.setAttribute("width", PAD * 2 + n * CELL); svg.setAttribute("height", PAD * 2 + k * CELL);
+  const X = (c) => PAD + (c - 1) * CELL + (CELL - BOX) / 2, Y = (r) => PAD + (r - 1) * CELL + (CELL - BOX) / 2;
+  for (let r = 1; r <= k; r++) for (let c = 1; c <= n; c++) {
+    if (at(m, c, r)) continue;
+    const s = svgEl("rect", { x: X(c), y: Y(r), width: BOX, height: BOX, rx: 6, class: "slot" }, svg);
+    s.onclick = () => addRoom(c, r);
+  }
+  for (const [id, r] of Object.entries(m.rooms)) {
+    const g = svgEl("rect", { x: X(r.col), y: Y(r.row), width: BOX, height: BOX, rx: 6, fill: COLORS[r.device] || "#888",
+                              class: "room" + (id === selRoom ? " sel" : "") }, svg);
+    g.onclick = () => { selRoom = id; render(); };
+    svgEl("text", { x: X(r.col) + BOX / 2, y: Y(r.row) + 30, "text-anchor": "middle", fill: "#111", "font-weight": 700, "font-size": 16 }, svg).textContent = id;
+    const ko = S.devices.find((d) => d.id === r.device)?.ko || r.device;
+    svgEl("text", { x: X(r.col) + BOX / 2, y: Y(r.row) + 52, "text-anchor": "middle", fill: "#111", "font-size": 12 }, svg).textContent = ko;
+  }
+  // door handles between grid neighbours (right and down from each room)
+  for (const [id, r] of Object.entries(m.rooms)) {
+    for (const [dc, dr] of [[1, 0], [0, 1]]) {
+      const o = at(m, r.col + dc, r.row + dr);
+      if (!o) continue;
+      const open = r.nb.has(o);
+      const gap = CELL - BOX;
+      const attrs = dc ? { x: X(r.col) + BOX, y: Y(r.row) + BOX / 2 - 14, width: gap, height: 28 }
+                       : { x: X(r.col) + BOX / 2 - 14, y: Y(r.row) + BOX, width: 28, height: gap };
+      const d = svgEl("rect", { ...attrs, rx: 3, class: "door " + (open ? "open" : "shut") }, svg);
+      d.onclick = () => { toggleDoor(id, o); };
+      svgEl("title", {}, d).textContent = `${id}-${o} 문 ${open ? "닫기" : "열기"}`;
+    }
+  }
+  roomPanel();
+  const ps = problems(m);
+  $("errors").className = ps.length ? "" : "ok";
+  $("errors").textContent = ps.length ? ps.join("\n") : "문제 없어요";
+  $("errors").style.whiteSpace = "pre-wrap";
+}
+
+function roomPanel() {
+  const m = maps[cur], r = selRoom && m.rooms[selRoom];
+  const p = $("roomPanel");
+  if (!r) { p.className = "hint"; p.textContent = "빈 칸(점선)을 누르면 방이 생겨요. 방을 누르면 선택, 방 사이 막대를 누르면 문이 열리고 닫혀요."; return; }
+  p.className = "";
+  p.innerHTML = `<label><span>id</span><input type="text" id="roomId"></label>
+    <label><span>장치</span><select id="roomDev">${S.devices.map((d) => `<option value="${d.id}">${d.ko} (${d.id})</option>`).join("")}</select></label>
+    <div class="hint">칸 (${r.col}, ${r.row}) · 문: ${[...r.nb].sort().join(", ") || "없음"}</div>
+    <div class="row"><button id="roomDel" class="danger">방 지우기</button></div>`;
+  $("roomId").value = selRoom; $("roomDev").value = r.device;
+  $("roomId").onchange = (e) => renameRoom(selRoom, e.target.value.trim());
+  $("roomDev").onchange = (e) => { r.device = e.target.value; touch(); };
+  $("roomDel").onclick = () => {
+    for (const x of Object.values(m.rooms)) x.nb.delete(selRoom);
+    delete m.rooms[selRoom]; selRoom = null; touch();
+  };
+}
+
+function touch() { dirty = true; render(); }
+
+function addRoom(c, r) {
+  const m = maps[cur];
+  let id = "ABCDEFGH"[r - 1] + c;
+  while (m.rooms[id]) id += "_";
+  const near = [[-1, 0], [1, 0], [0, -1], [0, 1]].map(([dc, dr]) => at(m, c + dc, r + dr)).filter(Boolean);
+  const used = new Set(near.map((o) => m.rooms[o].device));
+  const device = S.devices.map((d) => d.id).find((d) => !used.has(d)) || S.devices[0].id;
+  m.rooms[id] = { device, col: c, row: r, nb: new Set() };
+  for (const o of near) { m.rooms[id].nb.add(o); m.rooms[o].nb.add(id); }   // new rooms start with every door open
+  selRoom = id; touch();
+}
+
+function toggleDoor(a, b) {
+  const m = maps[cur];
+  if (m.rooms[a].nb.has(b)) { m.rooms[a].nb.delete(b); m.rooms[b].nb.delete(a); }
+  else { m.rooms[a].nb.add(b); m.rooms[b].nb.add(a); }
+  touch();
+}
+
+function renameRoom(old, nid) {
+  const m = maps[cur];
+  if (!nid || nid === old) return render();
+  if (m.rooms[nid]) { alert(`${nid}는 이미 있어요`); return render(); }
+  if (!/^[A-Za-z0-9_]{1,8}$/.test(nid)) { alert("방 id는 영문/숫자/_ 8자 이하"); return render(); }
+  m.rooms[nid] = m.rooms[old]; delete m.rooms[old];
+  for (const x of Object.values(m.rooms)) if (x.nb.delete(old)) x.nb.add(nid);
+  selRoom = nid; touch();
+}
+
+$("allDoors").onclick = () => {
+  const m = maps[cur];
+  for (const [id, r] of Object.entries(m.rooms))
+    for (const [dc, dr] of [[1, 0], [0, 1], [-1, 0], [0, -1]]) { const o = at(m, r.col + dc, r.row + dr); if (o) r.nb.add(o); }
+  touch();
+};
+$("autoDev").onclick = () => {
+  // same formula as the engine's _grid_map: neighbours always differ ((col + 2·row) mod 4 steps by 1 or 2)
+  const ids = S.devices.map((d) => d.id);
+  for (const r of Object.values(maps[cur].rooms)) r.device = ids[(r.col + 2 * r.row + devOffset) % ids.length];
+  devOffset = (devOffset + 1) % ids.length; touch();
+};
+$("newBtn").onclick = () => {
+  let i = 1; while (maps[`my_map_${i}`]) i++;
+  cur = `my_map_${i}`; maps[cur] = { rooms: {} }; selRoom = null;
+  addRoom(1, 1); addRoom(2, 1);
+};
+$("copyBtn").onclick = () => {
+  if (!maps[cur]) return;
+  let id = cur + "_copy"; while (maps[id]) id += "_";
+  maps[id] = fromRows(toRows(maps[cur])); cur = id; selRoom = null; touch();
+};
+$("delBtn").onclick = () => {
+  if (S.builtin[cur]) {
+    if (!confirm(`${cur}를 내장 맵으로 되돌릴까요?`)) return;
+    maps[cur] = fromRows(S.builtin[cur]);
+  } else {
+    if (!confirm(`${cur}를 지울까요?`)) return;
+    delete maps[cur]; cur = Object.keys(maps)[0];
+  }
+  selRoom = null; touch();
+};
+$("mapId").onchange = (e) => {
+  const nid = e.target.value.trim();
+  if (!nid || nid === cur) return;
+  if (!/^[a-z0-9_]{1,32}$/.test(nid)) { alert("맵 id는 영문 소문자/숫자/_ 32자 이하"); return render(); }
+  if (maps[nid]) { alert(`${nid}는 이미 있어요`); return render(); }
+  maps[nid] = maps[cur]; delete maps[cur]; cur = nid; touch();
+};
+$("saveBtn").onclick = async () => {
+  const bad = Object.entries(maps).map(([id, m]) => [id, problems(m)]).filter(([, p]) => p.length);
+  if (bad.length) { alert(bad.map(([id, p]) => `${id}: ${p[0]}`).join("\n")); return; }
+  const r = await (await fetch("/api/train-maps", { method: "PUT", body: JSON.stringify({ maps: fileMaps() }) })).json();
+  if (r.error) { alert(r.error); log("✖ " + r.error); return; }
+  log(`저장했어요: ${Object.keys(r.custom).length}개 맵 → ${r.path}`);
+  S = r; dirty = false; render();
+};
+window.onbeforeunload = () => (dirty ? "저장 안 한 변경이 있어요" : undefined);
+load().catch((e) => log("✖ " + e));
+</script>
+</body>
+</html>

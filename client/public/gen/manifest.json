@@ -46,8 +46,14 @@
   ],
   "layers": {
    "preset": {
-    "count": 21,
+    "count": 22,
     "label": "\ud504\ub9ac\uc14b \uce90\ub9ad\ud130",
+    "sizes": {
+     "21": [
+      36,
+      30
+     ]
+    },
     "none": 0,
     "exclusive": true,
     "names": [
@@ -71,7 +77,8 @@
      "Premade_Character_17",
      "Premade_Character_18",
      "Premade_Character_19",
-     "Premade_Character_20"
+     "Premade_Character_20",
+     "Drone_flight_animation"
     ]
    },
    "skin": {
@@ -1865,6 +1872,13 @@
     "ch": 10,
     "set": "topdown"
    },
+   "new_85": {
+    "w": 48,
+    "h": 112,
+    "cw": 3,
+    "ch": 7,
+    "set": "16px_cyberpunk_background_tileset_v_1_1_bb2000_1"
+   },
    "tall_cabinet_olive1": {
     "w": 48,
     "h": 112,
@@ -1878,13 +1892,6 @@
     "cw": 3,
     "ch": 7,
     "set": "topdown"
-   },
-   "moritl_002_door_frame_cluster": {
-    "w": 192,
-    "h": 96,
-    "cw": 12,
-    "ch": 6,
-    "set": "interior_tiles_lite"
    },
    "bookshelf_cabinet_set": {
     "w": 112,
@@ -2873,6 +2880,27 @@
     "ch": 4,
     "set": "pi_living"
    },
+   "tile_cyber_2": {
+    "w": 32,
+    "h": 64,
+    "cw": 2,
+    "ch": 4,
+    "set": "16px_16px_cyberpunk_background_tileset_v_1_1_bb2000_1"
+   },
+   "tile_cyber_3": {
+    "w": 32,
+    "h": 64,
+    "cw": 2,
+    "ch": 4,
+    "set": "16px_16px_cyberpunk_background_tileset_v_1_1_bb2000_1"
+   },
+   "tile_cyber_4": {
+    "w": 32,
+    "h": 64,
+    "cw": 2,
+    "ch": 4,
+    "set": "16px_16px_cyberpunk_background_tileset_v_1_1_bb2000_1"
+   },
    "lamp_floor_dark_cream": {
     "w": 16,
     "h": 64,
@@ -3083,6 +3111,13 @@
     "ch": 4,
     "set": "pi_living"
    },
+   "tile_cyber": {
+    "w": 16,
+    "h": 64,
+    "cw": 1,
+    "ch": 4,
+    "set": "16px_16px_cyberpunk_background_tileset_v_1_1_bb2000_1"
+   },
    "moritl_046_brick_wall_pattern": {
     "w": 31,
     "h": 63,
@@ -3131,6 +3166,20 @@
     "cw": 1,
     "ch": 3,
     "set": "interior_no_shadow"
+   },
+   "doorside_5": {
+    "w": 28,
+    "h": 56,
+    "cw": 1,
+    "ch": 3,
+    "set": "lpc_doors_animated_1"
+   },
+   "doorside_4": {
+    "w": 28,
+    "h": 55,
+    "cw": 1,
+    "ch": 3,
+    "set": "lpc_doors_animated_1"
    },
    "mordbed_036_bed_navy": {
     "w": 30,
@@ -5022,20 +5071,6 @@
     "ch": 3,
     "set": "free_modern_pack"
    },
-   "fmp_074": {
-    "w": 32,
-    "h": 48,
-    "cw": 2,
-    "ch": 3,
-    "set": "free_modern_pack"
-   },
-   "fmp_075": {
-    "w": 32,
-    "h": 48,
-    "cw": 2,
-    "ch": 3,
-    "set": "free_modern_pack"
-   },
    "grandfather_clock_tan1": {
     "w": 32,
     "h": 48,
@@ -6513,6 +6548,20 @@
     "ch": 3,
     "set": "topdown"
    },
+   "cybe_94": {
+    "w": 16,
+    "h": 48,
+    "cw": 1,
+    "ch": 3,
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_props"
+   },
+   "cybe_95": {
+    "w": 16,
+    "h": 48,
+    "cw": 1,
+    "ch": 3,
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_props"
+   },
    "f03_plant_01": {
     "w": 16,
     "h": 48,
@@ -7395,6 +7444,13 @@
     "ch": 3,
     "set": "ppfurniture_pack_freev"
    },
+   "tile_cyber_wall_7": {
+    "w": 16,
+    "h": 48,
+    "cw": 1,
+    "ch": 3,
+    "set": "16px_cyberpunk_background_tileset_v_1_1_bb2000_2"
+   },
    "wallpaper_cream_solid": {
     "w": 16,
     "h": 48,
@@ -7423,12 +7479,33 @@
     "ch": 3,
     "set": "topdown"
    },
+   "doorside_2": {
+    "w": 8,
+    "h": 48,
+    "cw": 0,
+    "ch": 3,
+    "set": "lpc_doors_animated_1"
+   },
+   "doorside_3": {
+    "w": 8,
+    "h": 48,
+    "cw": 0,
+    "ch": 3,
+    "set": "lpc_doors_animated_1"
+   },
    "moritl_012_bookshelf_cabinet_combo": {
     "w": 64,
     "h": 47,
     "cw": 4,
     "ch": 2,
     "set": "interior_tiles_lite"
+   },
+   "doorside": {
+    "w": 8,
+    "h": 47,
+    "cw": 0,
+    "ch": 2,
+    "set": "lpc_doors_animated_1"
    },
    "moritl_wallpaper": {
     "w": 70,
@@ -7731,6 +7808,27 @@
     "ch": 2,
     "set": "mi_television_and_film_studio"
    },
+   "cybe_105": {
+    "w": 16,
+    "h": 40,
+    "cw": 1,
+    "ch": 2,
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_tiles_fences"
+   },
+   "cybe_106": {
+    "w": 16,
+    "h": 40,
+    "cw": 1,
+    "ch": 2,
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_tiles_fences"
+   },
+   "cybe_107": {
+    "w": 16,
+    "h": 40,
+    "cw": 1,
+    "ch": 2,
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_tiles_fences"
+   },
    "mordstudio_02_light_no": {
     "w": 16,
     "h": 40,
@@ -7786,6 +7884,20 @@
     "cw": 2,
     "ch": 2,
     "set": "interior_tiles_lite"
+   },
+   "fmp_074": {
+    "w": 20,
+    "h": 38,
+    "cw": 1,
+    "ch": 2,
+    "set": "free_modern_pack"
+   },
+   "fmp_075": {
+    "w": 19,
+    "h": 38,
+    "cw": 1,
+    "ch": 2,
+    "set": "free_modern_pack"
    },
    "fmp_020": {
     "w": 16,
@@ -8822,6 +8934,13 @@
     "cw": 3,
     "ch": 2,
     "set": "furniture_assets"
+   },
+   "cybe_87_2": {
+    "w": 48,
+    "h": 32,
+    "cw": 3,
+    "ch": 2,
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_props"
    },
    "decor_shelf_small": {
     "w": 48,
@@ -10126,13 +10245,6 @@
     "set": "free_modern_pack"
    },
    "fmp_008": {
-    "w": 32,
-    "h": 32,
-    "cw": 2,
-    "ch": 2,
-    "set": "free_modern_pack"
-   },
-   "fmp_011": {
     "w": 32,
     "h": 32,
     "cw": 2,
@@ -12099,6 +12211,13 @@
     "ch": 2,
     "set": "mi_free"
    },
+   "new_86": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2,
+    "set": "cyberpunk_city_props"
+   },
    "nightstand_brown_c": {
     "w": 32,
     "h": 32,
@@ -12952,6 +13071,13 @@
     "cw": 1,
     "ch": 2,
     "set": "pi_bedroom"
+   },
+   "cybe_91": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2,
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_props"
    },
    "f03_chess": {
     "w": 16,
@@ -17272,6 +17398,13 @@
     "ch": 1,
     "set": "mi_hospital"
    },
+   "coff_89": {
+    "w": 96,
+    "h": 27,
+    "cw": 6,
+    "ch": 1,
+    "set": "coffee_shop_tiles_png_coffee_shop_props"
+   },
    "mordernBase_07_sofar_front": {
     "w": 48,
     "h": 27,
@@ -17314,12 +17447,26 @@
     "ch": 1,
     "set": "kitchen"
    },
+   "cybe_91_3": {
+    "w": 31,
+    "h": 27,
+    "cw": 1,
+    "ch": 1,
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_doors_windows_signs"
+   },
    "fmp_40": {
     "w": 31,
     "h": 27,
     "cw": 1,
     "ch": 1,
     "set": "free_modern_pack"
+   },
+   "cybe_90_3": {
+    "w": 30,
+    "h": 27,
+    "cw": 1,
+    "ch": 1,
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_doors_windows_signs"
    },
    "nosh_122_stove": {
     "w": 21,
@@ -17397,6 +17544,13 @@
     "cw": 2,
     "ch": 1,
     "set": "interior_no_shadow"
+   },
+   "cybe_87_3": {
+    "w": 28,
+    "h": 26,
+    "cw": 1,
+    "ch": 1,
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_props"
    },
    "mordernhospital_11_japangi_full": {
     "w": 24,
@@ -17502,6 +17656,13 @@
     "cw": 0,
     "ch": 1,
     "set": "interior_no_shadow"
+   },
+   "cybe_89_2": {
+    "w": 46,
+    "h": 25,
+    "cw": 2,
+    "ch": 1,
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_doors_windows_signs"
    },
    "mordgallery_01_rustyvangogh": {
     "w": 32,
@@ -17762,6 +17923,13 @@
     "ch": 1,
     "set": "interior_no_shadow"
    },
+   "cybe_92_2": {
+    "w": 14,
+    "h": 25,
+    "cw": 0,
+    "ch": 1,
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_doors_windows_signs"
+   },
    "mordstudio_01_camera_back": {
     "w": 13,
     "h": 25,
@@ -17775,6 +17943,20 @@
     "cw": 4,
     "ch": 1,
     "set": "mi_grocery_store"
+   },
+   "cybe_88_2": {
+    "w": 48,
+    "h": 24,
+    "cw": 3,
+    "ch": 1,
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_doors_windows_signs"
+   },
+   "cybe_88_3": {
+    "w": 47,
+    "h": 24,
+    "cw": 2,
+    "ch": 1,
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_doors_windows_signs"
    },
    "nosh_155_bathtub_clawfoot": {
     "w": 40,
@@ -17831,6 +18013,13 @@
     "cw": 2,
     "ch": 1,
     "set": "axulart"
+   },
+   "coffe_pot": {
+    "w": 32,
+    "h": 24,
+    "cw": 2,
+    "ch": 1,
+    "set": "coffee_shop_props"
    },
    "mordhalloween_039_candy_jar": {
     "w": 32,
@@ -17922,6 +18111,13 @@
     "cw": 0,
     "ch": 1,
     "set": "interior_no_shadow"
+   },
+   "cybe_90_2": {
+    "w": 14,
+    "h": 24,
+    "cw": 0,
+    "ch": 1,
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_doors_windows_signs"
    },
    "moritl_035_sink_narrow": {
     "w": 14,
@@ -18091,12 +18287,26 @@
     "ch": 1,
     "set": "interior_tiles_lite"
    },
+   "cybe_91_2": {
+    "w": 13,
+    "h": 23,
+    "cw": 0,
+    "ch": 1,
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_doors_windows_signs"
+   },
    "moritl_022_sideboard_tv_stand": {
     "w": 46,
     "h": 22,
     "cw": 2,
     "ch": 1,
     "set": "interior_tiles_lite"
+   },
+   "fmp_011": {
+    "w": 32,
+    "h": 22,
+    "cw": 2,
+    "ch": 1,
+    "set": "free_modern_pack"
    },
    "mordhalloween_036_window_broken": {
     "w": 25,
@@ -18447,6 +18657,13 @@
     "cw": 1,
     "ch": 1,
     "set": "tiles_and_items"
+   },
+   "neon_4": {
+    "w": 36,
+    "h": 19,
+    "cw": 2,
+    "ch": 1,
+    "set": "16px_cyberpunk_cyb_assets_neons"
    },
    "mordernhospital_04_whiteboard": {
     "w": 29,
@@ -18818,6 +19035,34 @@
     "cw": 3,
     "ch": 1,
     "set": "pi_living"
+   },
+   "neon": {
+    "w": 39,
+    "h": 16,
+    "cw": 2,
+    "ch": 1,
+    "set": "16px_cyberpunk_cyb_assets_neons"
+   },
+   "cybe_90": {
+    "w": 32,
+    "h": 16,
+    "cw": 2,
+    "ch": 1,
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_props"
+   },
+   "cybe_92": {
+    "w": 32,
+    "h": 16,
+    "cw": 2,
+    "ch": 1,
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_props"
+   },
+   "cybe_93": {
+    "w": 32,
+    "h": 16,
+    "cw": 2,
+    "ch": 1,
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_props"
    },
    "f03_bench_narrow": {
     "w": 32,
@@ -19673,6 +19918,41 @@
     "ch": 1,
     "set": "mi_christmas"
    },
+   "neon_86_3": {
+    "w": 32,
+    "h": 16,
+    "cw": 2,
+    "ch": 1,
+    "set": "neon_sign_05"
+   },
+   "neon_86_4": {
+    "w": 32,
+    "h": 16,
+    "cw": 2,
+    "ch": 1,
+    "set": "neon_sign_04"
+   },
+   "neon_86_5": {
+    "w": 32,
+    "h": 16,
+    "cw": 2,
+    "ch": 1,
+    "set": "neon_sign_03"
+   },
+   "neon_86_6": {
+    "w": 32,
+    "h": 16,
+    "cw": 2,
+    "ch": 1,
+    "set": "neon_sign_02"
+   },
+   "neon_86_7": {
+    "w": 32,
+    "h": 16,
+    "cw": 2,
+    "ch": 1,
+    "set": "neon_sign_01"
+   },
    "new_5": {
     "w": 32,
     "h": 16,
@@ -20127,6 +20407,34 @@
     "cw": 1,
     "ch": 1,
     "set": "small_items02"
+   },
+   "cybe_118": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_tiles_fences"
+   },
+   "cybe_87": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_props"
+   },
+   "cybe_88": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_props"
+   },
+   "cybe_89": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_props"
    },
    "desk_calendar": {
     "w": 16,
@@ -23537,6 +23845,48 @@
     "ch": 1,
     "set": "topdown"
    },
+   "neon_86": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "neon_yellow_top"
+   },
+   "neon_86_10": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "neon_cyan_top"
+   },
+   "neon_86_11": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "neon_cyan_bottom"
+   },
+   "neon_86_2": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "neon_yellow_bottom"
+   },
+   "neon_86_8": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "neon_pink_top"
+   },
+   "neon_86_9": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "neon_pink_bottom"
+   },
    "new_10": {
     "w": 16,
     "h": 16,
@@ -23620,6 +23970,13 @@
     "cw": 1,
     "ch": 1,
     "set": "medieval_pack"
+   },
+   "new_87": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "cyberpunk_city_doors_windows_signs"
    },
    "new_9": {
     "w": 16,
@@ -24489,6 +24846,314 @@
     "ch": 1,
     "set": "small_items02"
    },
+   "tile_coffee": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "coffee_shop_tiles_png_coffee_shop_floor_walls_32x32"
+   },
+   "tile_coffee_2": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "coffee_shop_tiles_png_coffee_shop_floor_walls_32x32"
+   },
+   "tile_coffee_3": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "coffee_shop_tiles_png_coffee_shop_floor_walls_32x32"
+   },
+   "tile_coffee_4": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "coffee_shop_tiles_png_coffee_shop_floor_walls_32x32"
+   },
+   "tile_coffee_5": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "coffee_shop_tiles_png_coffee_shop_floor_walls_32x32"
+   },
+   "tile_coffee_6": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "coffee_shop_tiles_png_coffee_shop_floor_walls_32x32"
+   },
+   "tile_coffee_7": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "coffee_shop_tiles_png_coffee_shop_floor_walls_32x32"
+   },
+   "tile_coffee_8": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "coffee_shop_tiles_png_coffee_shop_floor_walls_32x32"
+   },
+   "tile_coffee_9": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "coffee_shop_tiles_png_coffee_shop_floor_walls_32x32"
+   },
+   "tile_coffee_wall": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "coffee_shop_tiles_png_coffee_shop_floor_walls_32x32"
+   },
+   "tile_coffee_wall_2": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "coffee_shop_tiles_png_coffee_shop_floor_walls_32x32"
+   },
+   "tile_coffee_wall_3": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "coffee_shop_tiles_png_coffee_shop_floor_walls_32x32"
+   },
+   "tile_coffee_wall_4": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "coffee_shop_tiles_png_coffee_shop_floor_walls_32x32"
+   },
+   "tile_cybe": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_tiles_fences"
+   },
+   "tile_cybe_10": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_tiles_fences"
+   },
+   "tile_cybe_11": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_tiles_fences"
+   },
+   "tile_cybe_12": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_tiles_fences"
+   },
+   "tile_cybe_13": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_tiles_fences"
+   },
+   "tile_cybe_14": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_tiles_fences"
+   },
+   "tile_cybe_15": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_tiles_fences"
+   },
+   "tile_cybe_16": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_tiles_fences"
+   },
+   "tile_cybe_17": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_tiles_fences"
+   },
+   "tile_cybe_18": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_tiles_fences"
+   },
+   "tile_cybe_19": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_tiles_fences"
+   },
+   "tile_cybe_2": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_tiles_fences"
+   },
+   "tile_cybe_20": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_tiles_fences"
+   },
+   "tile_cybe_21": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_tiles_fences"
+   },
+   "tile_cybe_22": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_tiles_fences"
+   },
+   "tile_cybe_23": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_tiles_fences"
+   },
+   "tile_cybe_24": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_tiles_fences"
+   },
+   "tile_cybe_25": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_tiles_fences"
+   },
+   "tile_cybe_26": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_tiles_fences"
+   },
+   "tile_cybe_27": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_tiles_fences"
+   },
+   "tile_cybe_28": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_tiles_fences"
+   },
+   "tile_cybe_29": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_tiles_fences"
+   },
+   "tile_cybe_3": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_tiles_fences"
+   },
+   "tile_cybe_30": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_tiles_fences"
+   },
+   "tile_cybe_31": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_tiles_fences"
+   },
+   "tile_cybe_4": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_tiles_fences"
+   },
+   "tile_cybe_5": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_tiles_fences"
+   },
+   "tile_cybe_6": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_tiles_fences"
+   },
+   "tile_cybe_7": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_tiles_fences"
+   },
+   "tile_cybe_8": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_tiles_fences"
+   },
+   "tile_cybe_9": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_tiles_fences"
+   },
    "tile_floor_brick": {
     "w": 16,
     "h": 16,
@@ -24983,12 +25648,75 @@
     "ch": 1,
     "set": "misc"
    },
+   "cybe_112": {
+    "w": 8,
+    "h": 16,
+    "cw": 0,
+    "ch": 1,
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_tiles_fences"
+   },
+   "cybe_117": {
+    "w": 8,
+    "h": 16,
+    "cw": 0,
+    "ch": 1,
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_tiles_fences"
+   },
+   "cybe_119": {
+    "w": 8,
+    "h": 16,
+    "cw": 0,
+    "ch": 1,
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_tiles_fences"
+   },
+   "cybe_120": {
+    "w": 8,
+    "h": 16,
+    "cw": 0,
+    "ch": 1,
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_tiles_fences"
+   },
+   "cybe_121": {
+    "w": 8,
+    "h": 16,
+    "cw": 0,
+    "ch": 1,
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_tiles_fences"
+   },
+   "cybe_122": {
+    "w": 8,
+    "h": 16,
+    "cw": 0,
+    "ch": 1,
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_tiles_fences"
+   },
+   "cybe_123": {
+    "w": 8,
+    "h": 16,
+    "cw": 0,
+    "ch": 1,
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_tiles_fences"
+   },
+   "coffepot_2": {
+    "w": 21,
+    "h": 15,
+    "cw": 1,
+    "ch": 0,
+    "set": "16px_coffee_shop_tiles_png_coffee_shop_props"
+   },
    "med_beer": {
     "w": 15,
     "h": 14,
     "cw": 0,
     "ch": 0,
     "set": "medieval_pack"
+   },
+   "neon_3": {
+    "w": 55,
+    "h": 13,
+    "cw": 3,
+    "ch": 0,
+    "set": "16px_cyberpunk_cyb_assets_neons"
    },
    "moritl_028_mat_small": {
     "w": 23,
@@ -25032,6 +25760,13 @@
     "ch": 0,
     "set": "interior_no_shadow"
    },
+   "cybe_89_3": {
+    "w": 11,
+    "h": 12,
+    "cw": 0,
+    "ch": 0,
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_doors_windows_signs"
+   },
    "8gym_86": {
     "w": 9,
     "h": 12,
@@ -25039,12 +25774,26 @@
     "ch": 0,
     "set": "8_gym_shadowless"
    },
+   "cybe_113": {
+    "w": 8,
+    "h": 12,
+    "cw": 0,
+    "ch": 0,
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_tiles_fences"
+   },
    "mordlivingroom_04_jangsik": {
     "w": 28,
     "h": 11,
     "cw": 1,
     "ch": 0,
     "set": "mi_livingroom"
+   },
+   "cybe_88_4": {
+    "w": 12,
+    "h": 11,
+    "cw": 0,
+    "ch": 0,
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_doors_windows_signs"
    },
    "notepad_td": {
     "w": 10,
@@ -25060,6 +25809,20 @@
     "ch": 0,
     "set": "topdown"
    },
+   "cybe_116": {
+    "w": 10,
+    "h": 10,
+    "cw": 0,
+    "ch": 0,
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_tiles_fences"
+   },
+   "cybe_114": {
+    "w": 8,
+    "h": 10,
+    "cw": 0,
+    "ch": 0,
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_tiles_fences"
+   },
    "note_scrap_td": {
     "w": 8,
     "h": 10,
@@ -25074,12 +25837,26 @@
     "ch": 0,
     "set": "mi_hospital"
    },
+   "neon_2": {
+    "w": 55,
+    "h": 8,
+    "cw": 3,
+    "ch": 0,
+    "set": "16px_cyberpunk_cyb_assets_neons"
+   },
    "book_dark_td": {
     "w": 16,
     "h": 8,
     "cw": 1,
     "ch": 0,
     "set": "topdown"
+   },
+   "cybe_115": {
+    "w": 8,
+    "h": 4,
+    "cw": 0,
+    "ch": 0,
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_tiles_fences"
    }
   }
  },

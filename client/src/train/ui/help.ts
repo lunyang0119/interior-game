@@ -18,7 +18,7 @@ export const LEGEND: [string, string][] = [
   ["👁 목격", "침입자와 같은 구역에서 라운드를 마치면 그 구역이 공개돼요. 체포는 아니에요 (은신·증기 중엔 목격 안 됨)"],
   ["신호 강도", "가장 가까운 승무원과 침입자의 거리. 강 = 바로 옆까지, 중 = 몇 칸 안, 약 = 멀리, 판독 불가 = 광학 재부팅"],
   ["시그니처", "침입자가 퀵핵을 쓴 장치 계열(커튼·커피포트·조명·스피커). 역탐지 = 핑을 썼다는 뜻"],
-  ["추적률", "라운드마다 오르고 퀵핵을 쓸수록 더 올라요. 티어가 오르면 ◎ 표식이 더 최신 위치를 가리켜요 (T1 2라운드 지연 → T2 1라운드 → T3 실시간)"],
+  ["추적률·경계도", "추적률은 라운드마다 오르고 퀵핵을 쓸수록 더 올라요. 경계도가 오르면 ◎ 표식이 더 최신 위치를 가리켜요 (1 = 2라운드 지연 → 2 = 1라운드 → 3 = 실시간)"],
   ["행동 불가", "증기에 휩싸인 승무원은 그 라운드에 아무것도 못 해요. 제출 현황에서는 자동으로 '완료'로 쳐요"],
 ];
 
@@ -50,10 +50,12 @@ export async function openHelp(): Promise<void> {
   const box = $("help-body");
   box.innerHTML = "";
   const p = tstate.payload;
+  const seen = new Set<string>();
+  const norm = (l: string) => l.replace(/[\s·.,()]/g, "").slice(0, 24);
   box.appendChild(el("div", "panel-sub", "규칙"));
-  for (const l of reflow(text.help)) box.appendChild(el("div", "small", l));
+  for (const l of reflow(text.help)) { seen.add(norm(l)); box.appendChild(el("div", "small", l)); }
   box.appendChild(el("div", "panel-sub", "조작"));
-  for (const l of reflow(text.tutorial)) box.appendChild(el("div", "small", l));
+  for (const l of reflow(text.tutorial)) if (!seen.has(norm(l))) box.appendChild(el("div", "small", l));
 
   box.appendChild(el("div", "panel-sub", "행동"));
   const scan = p?.config?.scan_budget ?? "?";

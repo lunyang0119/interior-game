@@ -69,6 +69,8 @@ TRAIN_WEBHOOK_URL = os.environ.get("TRAIN_WEBHOOK_URL", "")
 # itself; without it the "AI 승무원" buttons stay hidden.
 # Optional overrides of the engine DEFAULTS (key → value, coerced like the bot's Fugitive_Config sheet).
 TRAIN_CONFIG_PATH = _env_path("TRAIN_CONFIG_PATH", DATA_DIR / "train_config.json")
+# Extra/replacement train maps (app/train/maps.py), edited in the preprocess editor's /train-maps page.
+TRAIN_MAPS_PATH = _env_path("TRAIN_MAPS_PATH", DATA_DIR / "train_maps.json")
 
 # Rate limits: (requests, per_seconds)
 RATE_PLAYER = (120, 60)

@@ -45,5 +45,6 @@ function render(): void {
     }
     list.appendChild(row);
   }
-  if (!list.children.length) list.appendChild(el("div", "small muted", "모두 제출했어요"));
+  if (!list.children.length) list.appendChild(el("div", "small muted", "승무원은 모두 제출했어요"));
+  if (p.status === "ROUND_OPEN") list.appendChild(el("div", "small muted", p.fugitive_submitted ? "도주자: 제출함" : tstate.thinking.has("fugitive") ? "도주자: AI가 판단 중…" : "도주자: 아직 미제출 (전원 제출 후 유예 시간이 지나면 대기 처리)"));
 }

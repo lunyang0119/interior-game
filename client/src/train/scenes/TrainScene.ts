@@ -42,7 +42,7 @@ export class TrainScene extends Phaser.Scene {
   }
 
   create(): void {
-    const layout = this.layout = buildLayout(this.data_.rooms);
+    const layout = this.layout = buildLayout(this.data_.rooms, state.catalog);
     this.carMap = new CarMap(this, layout);
     this.cameras.main.setBackgroundColor("#14141c");
     this.camCtl = new CameraController(this, { worldW: this.carMap.widthPx, worldH: this.carMap.heightPx, minZoom: 1, maxZoom: 4, targetRows: layout.rows });

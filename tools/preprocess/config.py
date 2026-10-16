@@ -264,11 +264,32 @@ def _with_extra_hair_colors(variants: list[dict]) -> list[dict]:
     return variants
 
 
+# Loop strips as premade characters: assets/custom/preset/<Name>_<W>x<H>.png is one horizontal strip of WxH
+# frames (any count) that loops — a drone hovering, a ghost bobbing. The build samples FRAMES_PER_DIR frames of
+# it for every direction and anim ("left" mirrored) and the variant keeps its own frame size (manifest `sizes`),
+# so it need not fit the 16x32 character frame. They come after the pack's premade characters, in file order.
+PRESET_STRIP_DIR = CUSTOM_DIR / "preset"
+PRESET_STRIP_RE = re.compile(r"^(?P<name>[A-Za-z0-9][A-Za-z0-9_-]*)_(?P<w>\d+)x(?P<h>\d+)\.png$")
+
+
+def _strip_presets() -> list[dict]:
+    out: list[dict] = []
+    if not PRESET_STRIP_DIR.exists():
+        return out
+    for p in sorted(PRESET_STRIP_DIR.glob("*.png")):
+        m = PRESET_STRIP_RE.match(p.name)
+        if not m:
+            continue  # e.g. a scratch file without the _WxH suffix
+        out.append({"name": m.group("name"), "strip": p, "frame": (int(m.group("w")), int(m.group("h"))),
+                    "style": 10_000 + len(out), "color": 0})
+    return out
+
+
 # layer -> list of variants (index = value stored in avatars table).
 # Layers with an empty list are exposed in manifest with count 0 so the editor hides them.
 CHAR_LAYERS = {
     # premade characters: index 0 = none (default). When a preset is chosen it replaces every other layer.
-    "preset": _gen_layer("0_Premade_Characters", "Premade_Character", none_first=True),
+    "preset": _gen_layer("0_Premade_Characters", "Premade_Character", none_first=True) + _strip_presets(),
     "skin": _gen_layer("Bodies", "Body"),
     "eyes": _gen_layer("Eyes", "Eyes"),
     "outfit": _gen_layer("Outfits", "Outfit"),

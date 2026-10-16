@@ -7111,10 +7111,11 @@
    "price": 14,
    "sprite": "fmp_011",
    "w": 2,
-   "h": 2,
+   "h": 1,
    "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
+   "is_surface": true,
+   "surface_offset_y": 0,
+   "offset_y": 3
   },
   {
    "id": "fmp_012",
@@ -7768,22 +7769,23 @@
   },
   {
    "id": "fmp_074",
-   "name": "빨간 안락의자 왼쪽",
+   "name": "빨간 안락의자 왼쪽 열차",
    "price": 21,
    "sprite": "fmp_074",
    "w": 2,
-   "h": 2,
+   "h": 3,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "offset_y": 0
   },
   {
    "id": "fmp_075",
-   "name": "빨간 안락의자 오른쪽",
+   "name": "빨간 안락의자 열차",
    "price": 21,
    "sprite": "fmp_075",
    "w": 2,
-   "h": 2,
+   "h": 3,
    "layer": "furniture",
    "is_surface": false,
    "surface_offset_y": 0
@@ -29904,17 +29906,6 @@
    "surface_offset_y": 0
   },
   {
-   "id": "moritl_002_door_frame_cluster",
-   "name": "나무 문틀 모음",
-   "price": 50,
-   "sprite": "moritl_002_door_frame_cluster",
-   "w": 1,
-   "h": 1,
-   "layer": "wall",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
    "id": "moritl_003_fabric_swatch_maroon",
    "name": "자주 러그",
    "price": 50,
@@ -36373,6 +36364,1209 @@
    "w": 1,
    "h": 1,
    "layer": "wallpaper",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "doorside_2",
+   "name": "doorside 2",
+   "price": 50,
+   "sprite": "doorside_2",
+   "w": 1,
+   "h": 2,
+   "layer": "furniture",
+   "is_surface": false,
+   "surface_offset_y": 0,
+   "tags": [
+    "door"
+   ]
+  },
+  {
+   "id": "doorside_3",
+   "name": "doorside 3",
+   "price": 50,
+   "sprite": "doorside_3",
+   "w": 1,
+   "h": 2,
+   "layer": "furniture",
+   "is_surface": false,
+   "surface_offset_y": 0,
+   "tags": [
+    "door"
+   ]
+  },
+  {
+   "id": "doorside",
+   "name": "doorside",
+   "price": 50,
+   "sprite": "doorside",
+   "w": 1,
+   "h": 2,
+   "layer": "furniture",
+   "is_surface": false,
+   "surface_offset_y": 0,
+   "tags": [
+    "door"
+   ]
+  },
+  {
+   "id": "doorside_4",
+   "name": "doorside 4",
+   "price": 50,
+   "sprite": "doorside_4",
+   "w": 2,
+   "h": 3,
+   "layer": "wall",
+   "is_surface": false,
+   "surface_offset_y": 0,
+   "tags": [
+    "door"
+   ],
+   "offset_y": 0
+  },
+  {
+   "id": "doorside_5",
+   "name": "doorside 5",
+   "price": 50,
+   "sprite": "doorside_5",
+   "w": 2,
+   "h": 3,
+   "layer": "wall",
+   "is_surface": false,
+   "surface_offset_y": 0,
+   "tags": [
+    "door"
+   ],
+   "offset_y": 0
+  },
+  {
+   "id": "tile_cyber",
+   "name": "16px 86",
+   "price": 50,
+   "sprite": "tile_cyber",
+   "w": 1,
+   "h": 2,
+   "layer": "wallpaper",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "tile_cyber_2",
+   "name": "16px 87",
+   "price": 50,
+   "sprite": "tile_cyber_2",
+   "w": 2,
+   "h": 2,
+   "layer": "wallpaper",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "tile_cyber_3",
+   "name": "16px 88",
+   "price": 50,
+   "sprite": "tile_cyber_3",
+   "w": 2,
+   "h": 2,
+   "layer": "wallpaper",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "tile_cyber_4",
+   "name": "16px 89",
+   "price": 50,
+   "sprite": "tile_cyber_4",
+   "w": 2,
+   "h": 2,
+   "layer": "wallpaper",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "tile_cyber_wall_7",
+   "name": "cyber wall 7",
+   "price": 50,
+   "sprite": "tile_cyber_wall_7",
+   "w": 1,
+   "h": 2,
+   "layer": "wallpaper",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "neon",
+   "name": "neon",
+   "price": 50,
+   "sprite": "neon",
+   "w": 3,
+   "h": 1,
+   "layer": "wall",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "neon_2",
+   "name": "neon 2",
+   "price": 50,
+   "sprite": "neon_2",
+   "w": 4,
+   "h": 1,
+   "layer": "wall",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "neon_3",
+   "name": "neon 3",
+   "price": 50,
+   "sprite": "neon_3",
+   "w": 4,
+   "h": 1,
+   "layer": "wall",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "neon_4",
+   "name": "neon 4",
+   "price": 50,
+   "sprite": "neon_4",
+   "w": 3,
+   "h": 2,
+   "layer": "wall",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "neon_86",
+   "name": "neon 86",
+   "price": 50,
+   "sprite": "neon_86",
+   "w": 1,
+   "h": 1,
+   "layer": "wall",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "neon_86_2",
+   "name": "neon 86 2",
+   "price": 50,
+   "sprite": "neon_86_2",
+   "w": 1,
+   "h": 1,
+   "layer": "wall",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "neon_86_3",
+   "name": "neon 86 3",
+   "price": 50,
+   "sprite": "neon_86_3",
+   "w": 2,
+   "h": 1,
+   "layer": "wall",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "neon_86_4",
+   "name": "neon 86 4",
+   "price": 50,
+   "sprite": "neon_86_4",
+   "w": 2,
+   "h": 1,
+   "layer": "wall",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "neon_86_5",
+   "name": "neon 86 5",
+   "price": 50,
+   "sprite": "neon_86_5",
+   "w": 2,
+   "h": 1,
+   "layer": "wall",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "neon_86_6",
+   "name": "neon 86 6",
+   "price": 50,
+   "sprite": "neon_86_6",
+   "w": 2,
+   "h": 1,
+   "layer": "wall",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "neon_86_7",
+   "name": "neon 86 7",
+   "price": 50,
+   "sprite": "neon_86_7",
+   "w": 2,
+   "h": 1,
+   "layer": "wall",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "neon_86_8",
+   "name": "neon 86 8",
+   "price": 50,
+   "sprite": "neon_86_8",
+   "w": 1,
+   "h": 1,
+   "layer": "wall",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "neon_86_9",
+   "name": "neon 86 9",
+   "price": 50,
+   "sprite": "neon_86_9",
+   "w": 1,
+   "h": 1,
+   "layer": "wall",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "neon_86_10",
+   "name": "neon 86 10",
+   "price": 50,
+   "sprite": "neon_86_10",
+   "w": 1,
+   "h": 1,
+   "layer": "wall",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "neon_86_11",
+   "name": "neon 86 11",
+   "price": 50,
+   "sprite": "neon_86_11",
+   "w": 1,
+   "h": 1,
+   "layer": "wall",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "cybe_87",
+   "name": "cybe 87",
+   "price": 50,
+   "sprite": "cybe_87",
+   "w": 1,
+   "h": 1,
+   "layer": "floor",
+   "is_surface": false,
+   "surface_offset_y": 0,
+   "tags": [
+    "rug"
+   ]
+  },
+  {
+   "id": "cybe_88",
+   "name": "cybe 88",
+   "price": 50,
+   "sprite": "cybe_88",
+   "w": 1,
+   "h": 1,
+   "layer": "floor",
+   "is_surface": false,
+   "surface_offset_y": 0,
+   "tags": [
+    "rug"
+   ]
+  },
+  {
+   "id": "cybe_89",
+   "name": "cybe 89",
+   "price": 50,
+   "sprite": "cybe_89",
+   "w": 1,
+   "h": 1,
+   "layer": "floor",
+   "is_surface": false,
+   "surface_offset_y": 0,
+   "tags": [
+    "rug"
+   ]
+  },
+  {
+   "id": "cybe_90",
+   "name": "cybe 90",
+   "price": 50,
+   "sprite": "cybe_90",
+   "w": 2,
+   "h": 1,
+   "layer": "furniture",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "cybe_91",
+   "name": "cybe 91",
+   "price": 50,
+   "sprite": "cybe_91",
+   "w": 1,
+   "h": 2,
+   "layer": "wall",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "cybe_93",
+   "name": "cybe 93",
+   "price": 50,
+   "sprite": "cybe_93",
+   "w": 2,
+   "h": 1,
+   "layer": "wall",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "cybe_92",
+   "name": "cybe 92",
+   "price": 50,
+   "sprite": "cybe_92",
+   "w": 2,
+   "h": 1,
+   "layer": "wall",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "cybe_94",
+   "name": "cybe 94",
+   "price": 50,
+   "sprite": "cybe_94",
+   "w": 1,
+   "h": 2,
+   "layer": "furniture",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "cybe_95",
+   "name": "cybe 95",
+   "price": 50,
+   "sprite": "cybe_95",
+   "w": 1,
+   "h": 2,
+   "layer": "furniture",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "cybe_87_2",
+   "name": "cybe 87 2",
+   "price": 50,
+   "sprite": "cybe_87_2",
+   "w": 3,
+   "h": 2,
+   "layer": "furniture",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "cybe_87_3",
+   "name": "cybe 87 3",
+   "price": 50,
+   "sprite": "cybe_87_3",
+   "w": 2,
+   "h": 2,
+   "layer": "furniture",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "tile_cybe",
+   "name": "cybe 87 4",
+   "price": 50,
+   "sprite": "tile_cybe",
+   "w": 1,
+   "h": 1,
+   "layer": "floor",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "tile_cybe_2",
+   "name": "cybe 88 2",
+   "price": 50,
+   "sprite": "tile_cybe_2",
+   "w": 1,
+   "h": 1,
+   "layer": "floor",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "tile_cybe_3",
+   "name": "cybe 89 2",
+   "price": 50,
+   "sprite": "tile_cybe_3",
+   "w": 1,
+   "h": 1,
+   "layer": "floor",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "tile_cybe_4",
+   "name": "cybe 90 2",
+   "price": 50,
+   "sprite": "tile_cybe_4",
+   "w": 1,
+   "h": 1,
+   "layer": "floor",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "tile_cybe_5",
+   "name": "cybe 91 2",
+   "price": 50,
+   "sprite": "tile_cybe_5",
+   "w": 1,
+   "h": 1,
+   "layer": "floor",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "tile_cybe_6",
+   "name": "cybe 92 2",
+   "price": 50,
+   "sprite": "tile_cybe_6",
+   "w": 1,
+   "h": 1,
+   "layer": "floor",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "tile_cybe_7",
+   "name": "cybe 93 2",
+   "price": 50,
+   "sprite": "tile_cybe_7",
+   "w": 1,
+   "h": 1,
+   "layer": "floor",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "tile_cybe_8",
+   "name": "cybe 94 2",
+   "price": 50,
+   "sprite": "tile_cybe_8",
+   "w": 1,
+   "h": 1,
+   "layer": "floor",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "tile_cybe_9",
+   "name": "cybe 95 2",
+   "price": 50,
+   "sprite": "tile_cybe_9",
+   "w": 1,
+   "h": 1,
+   "layer": "floor",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "tile_cybe_10",
+   "name": "cybe 96",
+   "price": 50,
+   "sprite": "tile_cybe_10",
+   "w": 1,
+   "h": 1,
+   "layer": "floor",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "tile_cybe_11",
+   "name": "cybe 97",
+   "price": 50,
+   "sprite": "tile_cybe_11",
+   "w": 1,
+   "h": 1,
+   "layer": "floor",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "tile_cybe_12",
+   "name": "cybe 98",
+   "price": 50,
+   "sprite": "tile_cybe_12",
+   "w": 1,
+   "h": 1,
+   "layer": "floor",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "tile_cybe_13",
+   "name": "cybe 99",
+   "price": 50,
+   "sprite": "tile_cybe_13",
+   "w": 1,
+   "h": 1,
+   "layer": "floor",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "tile_cybe_14",
+   "name": "cybe 100",
+   "price": 50,
+   "sprite": "tile_cybe_14",
+   "w": 1,
+   "h": 1,
+   "layer": "floor",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "tile_cybe_15",
+   "name": "cybe 101",
+   "price": 50,
+   "sprite": "tile_cybe_15",
+   "w": 1,
+   "h": 1,
+   "layer": "floor",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "tile_cybe_18",
+   "name": "cybe 102",
+   "price": 50,
+   "sprite": "tile_cybe_18",
+   "w": 1,
+   "h": 1,
+   "layer": "floor",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "tile_cybe_19",
+   "name": "cybe 103",
+   "price": 50,
+   "sprite": "tile_cybe_19",
+   "w": 1,
+   "h": 1,
+   "layer": "floor",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "tile_cybe_20",
+   "name": "cybe 104",
+   "price": 50,
+   "sprite": "tile_cybe_20",
+   "w": 1,
+   "h": 1,
+   "layer": "floor",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "cybe_105",
+   "name": "cybe 105",
+   "price": 50,
+   "sprite": "cybe_105",
+   "w": 1,
+   "h": 2,
+   "layer": "floor",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "cybe_106",
+   "name": "cybe 106",
+   "price": 50,
+   "sprite": "cybe_106",
+   "w": 1,
+   "h": 2,
+   "layer": "floor",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "cybe_107",
+   "name": "cybe 107",
+   "price": 50,
+   "sprite": "cybe_107",
+   "w": 1,
+   "h": 2,
+   "layer": "wall",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "tile_cybe_16",
+   "name": "cybe 108",
+   "price": 50,
+   "sprite": "tile_cybe_16",
+   "w": 1,
+   "h": 1,
+   "layer": "floor",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "tile_cybe_17",
+   "name": "cybe 109",
+   "price": 50,
+   "sprite": "tile_cybe_17",
+   "w": 1,
+   "h": 1,
+   "layer": "floor",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "tile_cybe_21",
+   "name": "cybe 110",
+   "price": 50,
+   "sprite": "tile_cybe_21",
+   "w": 1,
+   "h": 1,
+   "layer": "floor",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "tile_cybe_22",
+   "name": "cybe 111",
+   "price": 50,
+   "sprite": "tile_cybe_22",
+   "w": 1,
+   "h": 1,
+   "layer": "floor",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "cybe_112",
+   "name": "cybe 112",
+   "price": 50,
+   "sprite": "cybe_112",
+   "w": 1,
+   "h": 1,
+   "layer": "wall",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "cybe_113",
+   "name": "cybe 113",
+   "price": 50,
+   "sprite": "cybe_113",
+   "w": 1,
+   "h": 1,
+   "layer": "wall",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "cybe_114",
+   "name": "cybe 114",
+   "price": 50,
+   "sprite": "cybe_114",
+   "w": 1,
+   "h": 1,
+   "layer": "wall",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "cybe_115",
+   "name": "cybe 115",
+   "price": 50,
+   "sprite": "cybe_115",
+   "w": 1,
+   "h": 1,
+   "layer": "wall",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "cybe_116",
+   "name": "cybe 116",
+   "price": 50,
+   "sprite": "cybe_116",
+   "w": 1,
+   "h": 1,
+   "layer": "wall",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "cybe_117",
+   "name": "cybe 117",
+   "price": 50,
+   "sprite": "cybe_117",
+   "w": 1,
+   "h": 1,
+   "layer": "wall",
+   "is_surface": false,
+   "surface_offset_y": 0,
+   "tags": [
+    "partition"
+   ]
+  },
+  {
+   "id": "cybe_118",
+   "name": "cybe 118",
+   "price": 50,
+   "sprite": "cybe_118",
+   "w": 1,
+   "h": 1,
+   "layer": "wall",
+   "is_surface": false,
+   "surface_offset_y": 0,
+   "tags": [
+    "partition"
+   ]
+  },
+  {
+   "id": "cybe_119",
+   "name": "cybe 119",
+   "price": 50,
+   "sprite": "cybe_119",
+   "w": 1,
+   "h": 1,
+   "layer": "wall",
+   "is_surface": false,
+   "surface_offset_y": 0,
+   "tags": [
+    "partition"
+   ]
+  },
+  {
+   "id": "cybe_120",
+   "name": "cybe 120",
+   "price": 50,
+   "sprite": "cybe_120",
+   "w": 1,
+   "h": 1,
+   "layer": "wall",
+   "is_surface": false,
+   "surface_offset_y": 0,
+   "tags": [
+    "partition"
+   ]
+  },
+  {
+   "id": "cybe_121",
+   "name": "cybe 121",
+   "price": 50,
+   "sprite": "cybe_121",
+   "w": 1,
+   "h": 1,
+   "layer": "wall",
+   "is_surface": false,
+   "surface_offset_y": 0,
+   "tags": [
+    "partition"
+   ]
+  },
+  {
+   "id": "cybe_122",
+   "name": "cybe 122",
+   "price": 50,
+   "sprite": "cybe_122",
+   "w": 1,
+   "h": 1,
+   "layer": "wall",
+   "is_surface": false,
+   "surface_offset_y": 0,
+   "tags": [
+    "partition"
+   ]
+  },
+  {
+   "id": "cybe_123",
+   "name": "cybe 123",
+   "price": 50,
+   "sprite": "cybe_123",
+   "w": 1,
+   "h": 1,
+   "layer": "wall",
+   "is_surface": false,
+   "surface_offset_y": 0,
+   "tags": [
+    "partition"
+   ]
+  },
+  {
+   "id": "tile_cybe_23",
+   "name": "cybe 124",
+   "price": 50,
+   "sprite": "tile_cybe_23",
+   "w": 1,
+   "h": 1,
+   "layer": "floor",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "tile_cybe_24",
+   "name": "cybe 125",
+   "price": 50,
+   "sprite": "tile_cybe_24",
+   "w": 1,
+   "h": 1,
+   "layer": "floor",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "tile_cybe_25",
+   "name": "cybe 126",
+   "price": 50,
+   "sprite": "tile_cybe_25",
+   "w": 1,
+   "h": 1,
+   "layer": "floor",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "tile_cybe_26",
+   "name": "cybe 127",
+   "price": 50,
+   "sprite": "tile_cybe_26",
+   "w": 1,
+   "h": 1,
+   "layer": "floor",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "tile_cybe_27",
+   "name": "cybe 128",
+   "price": 50,
+   "sprite": "tile_cybe_27",
+   "w": 1,
+   "h": 1,
+   "layer": "floor",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "tile_cybe_28",
+   "name": "cybe 129",
+   "price": 50,
+   "sprite": "tile_cybe_28",
+   "w": 1,
+   "h": 1,
+   "layer": "floor",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "tile_cybe_29",
+   "name": "cybe 130",
+   "price": 50,
+   "sprite": "tile_cybe_29",
+   "w": 1,
+   "h": 1,
+   "layer": "floor",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "tile_cybe_30",
+   "name": "cybe 131",
+   "price": 50,
+   "sprite": "tile_cybe_30",
+   "w": 1,
+   "h": 1,
+   "layer": "floor",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "tile_cybe_31",
+   "name": "cybe 132",
+   "price": 50,
+   "sprite": "tile_cybe_31",
+   "w": 1,
+   "h": 1,
+   "layer": "floor",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "cybe_88_2",
+   "name": "cybe 88 2",
+   "price": 50,
+   "sprite": "cybe_88_2",
+   "w": 3,
+   "h": 2,
+   "layer": "wall",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "cybe_88_3",
+   "name": "cybe 88 3",
+   "price": 50,
+   "sprite": "cybe_88_3",
+   "w": 3,
+   "h": 2,
+   "layer": "wall",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "cybe_89_2",
+   "name": "cybe 89 2",
+   "price": 50,
+   "sprite": "cybe_89_2",
+   "w": 3,
+   "h": 2,
+   "layer": "wall",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "cybe_90_2",
+   "name": "cybe 90 2",
+   "price": 50,
+   "sprite": "cybe_90_2",
+   "w": 1,
+   "h": 2,
+   "layer": "wall",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "cybe_91_2",
+   "name": "cybe 91 2",
+   "price": 50,
+   "sprite": "cybe_91_2",
+   "w": 1,
+   "h": 2,
+   "layer": "wall",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "cybe_92_2",
+   "name": "cybe 92 2",
+   "price": 50,
+   "sprite": "cybe_92_2",
+   "w": 1,
+   "h": 2,
+   "layer": "wall",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "cybe_88_4",
+   "name": "cybe 88 4",
+   "price": 50,
+   "sprite": "cybe_88_4",
+   "w": 1,
+   "h": 1,
+   "layer": "wall",
+   "is_surface": false,
+   "surface_offset_y": 0,
+   "tags": [
+    "partition"
+   ]
+  },
+  {
+   "id": "cybe_89_3",
+   "name": "cybe 89 3",
+   "price": 50,
+   "sprite": "cybe_89_3",
+   "w": 1,
+   "h": 1,
+   "layer": "wall",
+   "is_surface": false,
+   "surface_offset_y": 0,
+   "tags": [
+    "partition"
+   ]
+  },
+  {
+   "id": "cybe_90_3",
+   "name": "cybe 90 3",
+   "price": 50,
+   "sprite": "cybe_90_3",
+   "w": 2,
+   "h": 2,
+   "layer": "wall",
+   "is_surface": false,
+   "surface_offset_y": 0,
+   "tags": [
+    "door"
+   ]
+  },
+  {
+   "id": "cybe_91_3",
+   "name": "cybe 91 3",
+   "price": 50,
+   "sprite": "cybe_91_3",
+   "w": 2,
+   "h": 2,
+   "layer": "wall",
+   "is_surface": false,
+   "surface_offset_y": 0,
+   "tags": [
+    "door"
+   ]
+  },
+  {
+   "id": "tile_coffee",
+   "name": "coffee",
+   "price": 50,
+   "sprite": "tile_coffee",
+   "w": 1,
+   "h": 1,
+   "layer": "floor",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "tile_coffee_2",
+   "name": "coffee 2",
+   "price": 50,
+   "sprite": "tile_coffee_2",
+   "w": 1,
+   "h": 1,
+   "layer": "floor",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "tile_coffee_3",
+   "name": "coffee 3",
+   "price": 50,
+   "sprite": "tile_coffee_3",
+   "w": 1,
+   "h": 1,
+   "layer": "floor",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "tile_coffee_4",
+   "name": "coffee 4",
+   "price": 50,
+   "sprite": "tile_coffee_4",
+   "w": 1,
+   "h": 1,
+   "layer": "floor",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "tile_coffee_5",
+   "name": "coffee 5",
+   "price": 50,
+   "sprite": "tile_coffee_5",
+   "w": 1,
+   "h": 1,
+   "layer": "floor",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "tile_coffee_6",
+   "name": "coffee 6",
+   "price": 50,
+   "sprite": "tile_coffee_6",
+   "w": 1,
+   "h": 1,
+   "layer": "floor",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "tile_coffee_7",
+   "name": "coffee 7",
+   "price": 50,
+   "sprite": "tile_coffee_7",
+   "w": 1,
+   "h": 1,
+   "layer": "floor",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "tile_coffee_8",
+   "name": "coffee 8",
+   "price": 50,
+   "sprite": "tile_coffee_8",
+   "w": 1,
+   "h": 1,
+   "layer": "floor",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "tile_coffee_9",
+   "name": "coffee 9",
+   "price": 50,
+   "sprite": "tile_coffee_9",
+   "w": 1,
+   "h": 1,
+   "layer": "floor",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "coffe_pot",
+   "name": "coffe pot",
+   "price": 50,
+   "sprite": "coffe_pot",
+   "w": 2,
+   "h": 2,
+   "layer": "surface_item",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "coffepot_2",
+   "name": "coffepot 2",
+   "price": 50,
+   "sprite": "coffepot_2",
+   "w": 2,
+   "h": 1,
+   "layer": "surface_item",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "coff_89",
+   "name": "coff 89",
+   "price": 50,
+   "sprite": "coff_89",
+   "w": 6,
+   "h": 2,
+   "layer": "furniture",
    "is_surface": false,
    "surface_offset_y": 0
   }

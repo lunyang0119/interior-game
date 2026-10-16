@@ -20,6 +20,7 @@ from .. import config as app_config
 from ..errors import ApiError
 from . import bot_player as B
 from . import engine as E
+from . import maps as train_maps
 from . import settings, store, views
 from .strings import CAPTURE_LINE, COMBAT_MODE_ON
 from .utils import get_korean_particle
@@ -134,6 +135,8 @@ class Manager:
         self.bot_player = B.GeminiPlayer()
         self.bot_task: asyncio.Task[None] | None = None
         self.fugitive_task: asyncio.Task[None] | None = None
+        self.bot_task_round = -1
+        self.fugitive_task_round = -1
         self.lock = asyncio.Lock()
         self._timer: asyncio.Task | None = None
         self.webhook: Webhook = post_webhook
@@ -311,7 +314,7 @@ class Manager:
                 except E.cfgmod.ConfigError as e:
                     raise RuleApiError(str(e), "bad_config")
             mid = E.cfgmod.normalize_map_id(map_id) if map_id else settings.default_map_id(hunter_count)
-            if mid not in E.cfgmod.BUILTIN_MAPS:
+            if not train_maps.exists(mid):
                 raise ApiError(400, "unknown_map")
             self.game = TrainGame(row_id=None, status=LOBBY,
                                   policy=Policy(hunter_count=hunter_count, map_id=mid, overrides=ov, fugitive_ai=fugitive_ai),
@@ -407,7 +410,10 @@ class Manager:
         if st is None or not st.debug_fugitive_ai or g.status != ROUND_OPEN or st.fugitive.order is not None:
             return
         if self.fugitive_task is not None and not self.fugitive_task.done():
-            return
+            if self.fugitive_task_round == st.round_no:
+                return
+            self.fugitive_task.cancel()   # still waiting on Gemini for an earlier round: that answer is useless now
+        self.fugitive_task_round = st.round_no
         self.fugitive_task = asyncio.create_task(self._run_fugitive_turn(g, st.round_no))
 
     async def _run_fugitive_turn(self, g: TrainGame, round_no: int) -> None:
@@ -437,6 +443,7 @@ class Manager:
             B.record_fugitive_reason(st, d, accepted, note)
             await self._push_to_fugitive({"type": "bot_reason", "reason": st.bot_reasons[-1]})
             await self._save()
+            await self._push_fugitive_submitted(g)
             await self._maybe_early_resolve(g)
 
     def _schedule_bot_turn(self, g: TrainGame) -> None:
@@ -445,8 +452,13 @@ class Manager:
             return
         pending = [uid for uid in st.hunters if B.is_bot(uid) and st.hunters[uid].order is None
                    and st.hunters[uid].dazed_until < st.round_no]
-        if not pending or (self.bot_task is not None and not self.bot_task.done()):
+        if not pending:
             return
+        if self.bot_task is not None and not self.bot_task.done():
+            if self.bot_task_round == st.round_no:
+                return
+            self.bot_task.cancel()
+        self.bot_task_round = st.round_no
         self.bot_task = asyncio.create_task(self._run_bot_turn(g, st.round_no, pending))
 
     async def _run_bot_turn(self, g: TrainGame, round_no: int, uids: list[str]) -> None:
@@ -478,6 +490,10 @@ class Manager:
                 if await self._after_hunter_submit(g, uid, o):
                     return   # the round resolved; the next round's open scheduled a fresh task
 
+    async def _push_fugitive_submitted(self, g: TrainGame) -> None:
+        """Everyone learns WHETHER the fugitive has submitted (never what): hunters need it to read a stalled round."""
+        await self._push({"type": "fugitive_submitted", "submitted": g.engine.fugitive.order is not None, "round": g.engine.round_no})
+
     async def _push_to_fugitive(self, msg: dict[str, Any]) -> None:
         await hub.send_each(lambda pid: msg if self.role_of(pid) == views.FUGITIVE else None)
 
@@ -488,7 +504,9 @@ class Manager:
             if len(g.policy.lobby) < MIN_HUNTERS:
                 raise ApiError(409, "not_enough_hunters")
             cfg, _ = settings.build(g.policy.hunter_count, g.policy.overrides)
-            gmap = E.GameMap.builtin(g.policy.map_id)
+            gmap = train_maps.game_map(g.policy.map_id)
+            if gmap is None:   # the map was removed from data/train_maps.json after the lobby picked it
+                raise ApiError(409, "unknown_map")
             try:
                 g.engine = E.new_game(gmap, cfg, [(h, h) for h in g.policy.lobby], now=self.now())
             except E.RuleError as e:
@@ -668,6 +686,7 @@ class Manager:
             except E.RuleError as e:
                 raise _rule(e)
             await self._save()
+            await self._push_fugitive_submitted(g)
             resolved = await self._maybe_early_resolve(g)
             return {"order": views.forder_dict(o), "resolved": resolved}
 
@@ -680,6 +699,7 @@ class Manager:
             g = self._require_game(ROUND_OPEN)
             g.engine.fugitive.order = None
             await self._save()
+            await self._push_fugitive_submitted(g)
             return {"order": None}
 
     async def ping(self, pid: str) -> dict[str, Any]:
@@ -755,7 +775,7 @@ class Manager:
                 if g.status != LOBBY:
                     raise ApiError(409, "map_locked")
                 mid = E.cfgmod.normalize_map_id(map_id)
-                if mid not in E.cfgmod.BUILTIN_MAPS:
+                if not train_maps.exists(mid):
                     raise ApiError(400, "unknown_map")
                 g.policy.map_id = mid
             for k, v in values.items():
@@ -847,17 +867,17 @@ class Manager:
     @staticmethod
     def maps() -> list[dict[str, Any]]:
         out = []
-        for mid, rows in E.cfgmod.BUILTIN_MAPS.items():
-            cols = max(c for (_d, _n, c, _r) in rows.values())
-            rws = max(r for (_d, _n, _c, r) in rows.values())
+        for mid, rows in train_maps.all_maps().items():
+            cols = max(int(r["col"]) for r in rows)
+            rws = max(int(r["row"]) for r in rows)
             out.append({"id": mid, "rooms": len(rows), "cols": cols, "rows": rws})
         return out
 
     @staticmethod
     def map_detail(map_id: str) -> dict[str, Any]:
         mid = E.cfgmod.normalize_map_id(map_id)
-        if mid not in E.cfgmod.BUILTIN_MAPS:
+        gmap = train_maps.game_map(mid)
+        if gmap is None:
             raise ApiError(404, "unknown_map")
-        gmap = E.GameMap.builtin(mid)
         return {"id": mid, "rooms": [{"id": r.id, "col": r.col, "row": r.row, "device": r.device, "neighbors": list(r.neighbors)}
                                      for r in gmap.rooms.values()]}

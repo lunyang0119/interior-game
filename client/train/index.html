@@ -22,9 +22,8 @@
     <div id="hud-status" class="chip" title="추적 상태">대기</div>
     <div id="hud-order" class="chip hidden" title="이번 라운드에 제출한 내 행동"><i class="ic ic-play"></i><span id="hud-order-val"></span><button id="btn-order-change" class="small">바꾸기</button></div>
     <span id="hud-game" class="hud-group hidden">
-      <div class="chip" title="라운드 번호"><i class="ic ic-signal"></i><span id="hud-round-val">–</span></div>
       <div class="chip" title="제출 마감까지 남은 시간. 전원이 제출하면 바로 정산돼요"><i class="ic ic-clock"></i><span id="hud-clock-val">–</span></div>
-      <div id="hud-trace" class="chip" title="추적률: 라운드마다 오르고 퀵핵을 쓰면 더 올라요. T1 = ◎ 표식 2라운드 지연, T2 = 1라운드, T3 = 실시간"><i class="ic ic-target"></i><span id="hud-trace-val">–</span></div>
+      <div id="hud-trace" class="chip" title="추적률 · 경계도: 추적률은 라운드마다 오르고 퀵핵을 쓰면 더 올라요. 경계도 1 = ◎ 표식 2라운드 지연, 2 = 1라운드, 3 = 실시간"><i class="ic ic-target"></i><span id="hud-trace-val">–</span></div>
       <button id="hud-sub" class="chip" title="제출 현황 — 미제출 승무원 이름. 누르면 건너뛰기 투표 패널"><i class="ic ic-menu"></i><span id="hud-sub-val">–</span></button>
     </span>
     <button id="btn-lobby" class="chip" title="탑승"><i class="ic ic-exit"></i><span>탑승</span></button>
@@ -45,14 +44,8 @@
     <label class="chip small"><input id="preview-grid" type="checkbox" /> 칸 번호</label>
   </div>
 
-  <!-- round result log (every round this session saw) + playback controls -->
-  <div id="roundlog" class="overlay bar hidden">
-    <div class="bar-head"><div class="bar-status">판독 기록</div>
-      <button id="btn-log-skip" class="chip hidden" title="재생을 건너뛰고 결과만 보기"><i class="ic ic-play_small"></i><span>건너뛰기</span></button>
-      <button id="btn-log-replay" class="chip hidden" title="마지막 라운드 재생을 다시 보기"><i class="ic ic-play_back"></i><span>다시 보기</span></button>
-      <button class="chip fold" data-fold="roundlog" title="접기/펴기"><i class="ic ic-tri_down"></i><span>접기</span></button></div>
-    <div id="roundlog-body" class="bar-body log-body"></div>
-  </div>
+  <!-- 건너뛰기 while a round plays back (the log itself lives in the 보고 panel) -->
+  <div id="skipbar" class="overlay hidden"><button id="btn-log-skip" class="chip" title="재생을 건너뛰고 결과만 보기"><i class="ic ic-play_small"></i><span>재생 건너뛰기</span></button></div>
 
   <!-- hunter: this round's order -->
   <div id="orderbar" class="overlay bar hidden">
@@ -108,9 +101,11 @@
 
   <div id="panel-report" class="panel hidden">
     <div class="panel-head"><span><i class="ic ic-chat"></i><span>판독 보고</span></span><button class="close" data-close="panel-report">✕</button></div>
-    <div id="report-text" class="report-text"></div>
     <div class="panel-sub">승무원</div>
     <div id="report-crew"></div>
+    <div class="panel-sub">판독 기록 <button id="btn-log-replay" class="chip small hidden" title="마지막 라운드 재생을 다시 보기"><i class="ic ic-play_back"></i><span>다시 보기</span></button></div>
+    <div id="roundlog-body" class="log-body"></div>
+    <div id="report-text" class="report-text hidden"></div>
   </div>
 
   <div id="panel-help" class="panel hidden">

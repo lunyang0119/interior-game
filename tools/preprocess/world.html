@@ -29,6 +29,8 @@
   body:not([data-mode=room]) .room-only { display: none !important; }
   body:not([data-mode=map]) .map-only { display: none !important; }
   body:not([data-mode=dock]) .dock-only { display: none !important; }
+  body[data-train] .notrain { display: none !important; }
+  body:not([data-train]) .trainonly { display: none !important; }
   #dockLayers li { display: flex; gap: 4px; align-items: center; }
   #dockLayers li .nm { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   #dockLayers li button { padding: 0 5px; }
@@ -60,29 +62,35 @@
 </head>
 <body data-mode="room">
 <div id="left">
-  <div id="tabs"><button id="tabRoom" class="on">방</button><button id="tabMap">맵</button><button id="tabDock">부두</button><a href="/" style="align-self:center;margin-left:auto">← 슬라이스 에디터</a></div>
+  <div id="tabs"><button id="tabRoom" class="on">방</button><button id="tabMap">맵</button><button id="tabDock">부두</button><a href="/" style="align-self:center;margin-left:auto">← 슬라이스 에디터</a> <a href="/train-maps" style="align-self:center">열차 맵 →</a></div>
 
   <div class="room-only">
     <label><span>방</span><select id="roomSel"></select></label>
-    <div class="row"><button id="roomNew">새 방</button><button id="roomDup">복제</button><button id="roomDel" class="danger">삭제</button></div>
-    <label><span>id</span><input type="text" id="rId" placeholder="inn_2f"></label>
-    <label><span>이름</span><input type="text" id="rName"></label>
-    <label><span>종류</span><select id="rKind" title="room = 꾸미는 방 · mine = 광산(가구 배치 없음, 서버가 광석을 스폰 — data/mine.json의 room)"><option value="room">방</option><option value="mine">광산</option></select></label>
+    <div class="row"><button id="roomNew">새 방</button><button id="roomDup" class="notrain">복제</button><button id="roomDel" class="danger notrain">삭제</button></div>
+    <div class="hint trainonly" style="border:1px solid var(--line);border-radius:4px;padding:6px;margin:4px 0">
+      🚆 <b>열차 칸 인테리어</b> (/train/). 엔진 장치(커튼·커피포트·조명·스피커)마다 하나씩, 그 장치가 있는 칸은 전부 이 모습이에요.
+      좌표는 칸 하나 기준이고, 크기(cols / rows / wall_rows)는 네 칸이 같이 바뀌어요. 가구(furniture·partition)와 막힌 칸은 못 지나가요.
+      주황 칸은 문 바로 앞이라 게임에서 항상 지나갈 수 있게 비워요. 파란 칸은 뒷문이 뚫리는 벽이에요.
+      저장하면 <code>data/train_interiors.json</code>에 써져요 (게임 서버 재시작 필요).
+    </div>
+    <label class="notrain"><span>id</span><input type="text" id="rId" placeholder="inn_2f"></label>
+    <label class="notrain"><span>이름</span><input type="text" id="rName"></label>
+    <label class="notrain"><span>종류</span><select id="rKind" title="room = 꾸미는 방 · mine = 광산(가구 배치 없음, 서버가 광석을 스폰 — data/mine.json의 room)"><option value="room">방</option><option value="mine">광산</option></select></label>
     <div class="row">
       <label><span>cols</span><input type="number" id="rCols" min="4" max="80"></label>
       <label><span>rows</span><input type="number" id="rRows" min="2" max="60"></label>
     </div>
     <div class="row">
       <label><span>wall_rows</span><input type="number" id="rWall" min="0" max="10"></label>
-      <label><span>zoom</span><input type="number" id="rZoom" min="1" max="4"></label>
+      <label class="notrain"><span>zoom</span><input type="number" id="rZoom" min="1" max="4"></label>
     </div>
     <h3>타일</h3>
     <div id="wallTiles"></div>
     <label><span>바닥</span><select id="tFloor"></select></label>
     <div class="hint">벽 타일은 wall_rows 줄 수만큼 위→아래. 왼쪽/오른쪽 끝 열은 wall_left / wall_right.</div>
-    <h3>출구 (기믹)</h3>
-    <ul id="exitList" class="plain"></ul>
-    <div id="exitForm" style="display:none">
+    <h3 class="notrain">출구 (기믹)</h3>
+    <ul id="exitList" class="plain notrain"></ul>
+    <div id="exitForm" class="notrain" style="display:none">
       <label><span>→ 방</span><select id="eTo"></select></label>
       <div class="row">
         <label><span>x</span><input type="number" id="eX" min="0"></label><label><span>y</span><input type="number" id="eY" min="0"></label>
@@ -94,9 +102,9 @@
       </div>
       <div class="hint">아바타가 이 칸에 도착하면 → 방으로 이동해서 도착 좌표에 서요. 계단 스프라이트는 시드로 같은 자리에 놓고 <code>stairs, fixed</code> 태그.</div>
     </div>
-    <h3>구역 (객실)</h3>
-    <ul id="zoneList" class="plain"></ul>
-    <div id="zoneForm" style="display:none">
+    <h3 class="notrain">구역 (객실)</h3>
+    <ul id="zoneList" class="plain notrain"></ul>
+    <div id="zoneForm" class="notrain" style="display:none">
       <div class="row">
         <label><span>id</span><input type="text" id="rzId" size="6"></label><label><span>이름</span><input type="text" id="rzName" size="8"></label>
       </div>
@@ -106,11 +114,11 @@
         <button id="rzDel" class="danger">구역 삭제</button>
       </div>
     </div>
-    <div class="hint">구역은 손님을 따로 받는 객실이에요: 구역마다 안락도·침대·예약이 따로 계산되고, 가구는 왼쪽 위 칸이 들어 있는 구역 소속이에요. 구역이 하나도 없으면 방 전체가 한 단위. 구역끼리 겹치면 안 돼요.</div>
+    <div class="hint notrain">구역은 손님을 따로 받는 객실이에요: 구역마다 안락도·침대·예약이 따로 계산되고, 가구는 왼쪽 위 칸이 들어 있는 구역 소속이에요. 구역이 하나도 없으면 방 전체가 한 단위. 구역끼리 겹치면 안 돼요.</div>
     <h3>시드 (처음부터 놓인 물건)</h3>
     <div class="hint">놓인 물건은 <code>$seed</code> 소유라 게임에선 "???"로 보여요. ruined 태그면 팔 수 있고, fixed면 못 건드려요.
       벽 장식(<code>wall</code>)은 벽 줄 말고도 <code>partition</code> 시드의 벽면(발 위로 그림 높이만큼) 위에 걸 수 있어요. 바닥 무늬 위에 러그를 깔려면 러그에 <code>rug</code> 태그.</div>
-    <div class="row" title="ruined 태그 아이템을 바닥(벽 장식은 벽) 칸에 무작위로 놓아요. 서로 겹쳐도 되지만 partition 시드와는 안 겹쳐요. 소품(surface_item)은 뺌.">
+    <div class="row notrain" title="ruined 태그 아이템을 바닥(벽 장식은 벽) 칸에 무작위로 놓아요. 서로 겹쳐도 되지만 partition 시드와는 안 겹쳐요. 소품(surface_item)은 뺌.">
       <span class="dim">🎲 ruined 흩뿌리기</span>
       <input type="number" id="scatterN" min="1" max="200" value="8" style="width:56px">개
       <button id="scatterBtn">흩뿌리기</button>
@@ -135,6 +143,11 @@
       <div class="row">
         <label><span>x</span><input type="number" id="pX" min="0"></label><label><span>y</span><input type="number" id="pY" min="0"></label>
         <label><span>w</span><input type="number" id="pW" min="1"></label><label><span>h</span><input type="number" id="pH" min="1"></label>
+      </div>
+      <div class="row">
+        <label title="그림만 칸 안에서 픽셀 단위로 밀기 (문·막힌 칸은 그대로)"><span>+px x</span><input type="number" id="pOX" min="0" max="15"></label>
+        <label><span>+px y</span><input type="number" id="pOY" min="0" max="15"></label>
+        <span class="hint">방향키=1칸 · Shift=8px · Ctrl=1px</span>
       </div>
       <div class="row">
         <span class="dim">회전 <b id="pRot">0</b>°</span><button id="pRotBtn" title="R">↻ 회전</button>
@@ -167,6 +180,11 @@
       <div class="row">
         <label><span>x</span><input type="number" id="dX" min="0"></label><label><span>y</span><input type="number" id="dY" min="0"></label>
         <span class="dim"><b id="dSize"></b>칸</span>
+      </div>
+      <div class="row">
+        <label title="그림을 칸 안에서 픽셀 단위로 밀기"><span>+px x</span><input type="number" id="dOX" min="0" max="15"></label>
+        <label><span>+px y</span><input type="number" id="dOY" min="0" max="15"></label>
+        <span class="hint">방향키=1칸 · Shift=8px · Ctrl=1px</span>
       </div>
       <div class="row">
         <span class="dim">회전 <b id="dRot">0</b>°</span><button id="dRotBtn" title="R">↻ 회전</button>
@@ -210,8 +228,8 @@
   </div>
   <h3>도구</h3>
   <div class="tools room-only">
-    <button data-tool="select" class="on">선택/이동</button><button data-tool="seed">시드 놓기</button><button data-tool="floor">바닥 칠하기</button><button data-tool="exit">출구 그리기</button><button data-tool="zone">구역 그리기</button>
-    <button data-tool="blocked">막힌 칸</button><button data-tool="spawn">스폰</button>
+    <button data-tool="select" class="on">선택/이동</button><button data-tool="seed">시드 놓기</button><button data-tool="floor">바닥 칠하기</button><button data-tool="exit" class="notrain">출구 그리기</button><button data-tool="zone" class="notrain">구역 그리기</button>
+    <button data-tool="blocked">막힌 칸</button><button data-tool="spawn" class="notrain">스폰</button>
   </div>
   <div class="tools map-only">
     <button data-tool="select" class="on">선택/이동</button><button data-tool="paint">칠하기</button><button data-tool="erase">지우개</button>
@@ -235,7 +253,7 @@
 <div id="bottom">
   <button id="save" class="primary">저장</button>
   <button id="reload">다시 불러오기</button>
-  <span class="hint">방은 data/rooms/&lt;id&gt;.json (+ inn은 data/room.json에도 복사) · 맵은 data/map.json · 저장 후 게임 서버 재시작</span>
+  <span class="hint">방은 data/rooms/&lt;id&gt;.json (+ inn은 data/room.json에도 복사) · 열차 칸은 data/train_interiors.json · 맵은 data/map.json · 저장 후 게임 서버 재시작</span>
   <details id="deploy" class="hidden"><summary></summary><div id="deployBody"></div></details>
   <pre id="log"></pre>
 </div>
@@ -248,6 +266,12 @@
   let DK = null, dock = null, selLayer = null;  // /api/dock, working layout, selected layer
   const dockImgs = {};                // N → Image (gen/dock/N.png)
   let rooms = {}, map = null, items = [];
+  // /train/ compartment templates ride along in `rooms` as "train:<device>" (marked __train) so the room tools
+  // work on them unchanged; they are split out again on save (PUT /api/train-interiors), never sent as rooms.
+  const TRAIN_PREFIX = "train:";
+  const realIds = () => Object.keys(rooms).filter((id) => !rooms[id].__train);
+  const trainRooms = () => Object.values(rooms).filter((r) => r.__train);
+  const TRAIN_LIMITS = { cols: [4, 16], floor: [2, 12], wall: [0, 4] };   // mirrors server catalog.TRAIN_*
   let mode = "room", tool = "select", zoom = 2, showGrid = true, showChar = true;
   let roomId = "inn", room = null;    // current room object
   let selSeed = null, selExit = null, selPlace = null, selDeco = null;
@@ -317,14 +341,15 @@
     if (!f || !a.img) { g.fillStyle = "rgba(255,0,255,.4)"; g.fillRect(x, y, w || CELL * zoom, h || CELL * zoom); return; }
     g.drawImage(a.img, f.x, f.y, f.w, f.h, x, y, w || f.w * zoom, h || f.h * zoom);
   }
-  /** Draw a map object (place/deco) into its cell box: bottom-left anchored, rotated in 90° steps around the box centre, optional mirror. */
+  /** Draw a map object (place/deco) into its cell box: bottom-left anchored, rotated in 90° steps around the box centre, optional mirror,
+   *  `ox`/`oy` = pixel nudge of the picture inside the cell (mirrors client/src/scenes/MapScene.ts drawObj). */
   function boxOf(f, rot) { const r = ((rot || 0) % 360 + 360) % 360; return r % 180 ? { w: f.h, h: f.w } : { w: f.w, h: f.h }; }
   function cellsOf(f, rot) { const b = boxOf(f, rot); return { w: Math.ceil(b.w / CELL), h: Math.ceil(b.h / CELL) }; }
-  function drawObj(key, x, y, h, rot, flip, alpha) {
+  function drawObj(key, x, y, h, rot, flip, alpha, ox, oy) {
     const a = atlas.map, f = frameOf("map", key), cz = CELL * zoom;
     if (!f || !a.img) { g.fillStyle = "rgba(255,0,255,.4)"; g.fillRect(x * cz, y * cz, cz, cz); return; }
     const b = boxOf(f, rot);
-    const px = x * cz, py = (y + h) * cz - b.h * zoom;  // bottom-left of the box
+    const px = x * cz + (ox || 0) * zoom, py = (y + h) * cz + (oy || 0) * zoom - b.h * zoom;  // bottom-left of the box
     g.save();
     if (alpha != null) g.globalAlpha = alpha;
     g.translate(px + b.w * zoom / 2, py + b.h * zoom / 2);
@@ -362,6 +387,10 @@
   async function load() {
     W = await (await fetch("/api/world")).json();
     rooms = W.rooms; map = W.map; items = W.items;
+    for (const [dev, r] of Object.entries(W.train.rooms)) {
+      const ko = (W.train.devices.find((d) => d.id === dev) || {}).ko || dev;
+      rooms[TRAIN_PREFIX + dev] = { ...r, id: TRAIN_PREFIX + dev, name: `열차 칸 · ${ko}`, __train: dev, exits: [], zones: [] };
+    }
     if (!map.layers) map.layers = { ground: [], deco: [] };
     for (const l of ["ground", "deco"]) map.layers[l] = fitGrid(map.layers[l] || [], map.cols, map.rows);
     map.blocked = map.blocked || []; map.places = map.places || []; map.decos = map.decos || []; map.bg_zones = map.bg_zones || []; if (map.bg_default === undefined) map.bg_default = null;
@@ -382,16 +411,28 @@
     const broken = Object.values(rooms).flatMap((rm) => seedProblems(rm).map(({ s, why }) => `${rm.id || "?"}: ${s.item_id} (${s.x},${s.y}) — ${why}`));
     if (broken.length && !confirm("규칙에 안 맞는 시드가 있어요 (게임에서는 건너뛰어짐). 빨간 칸을 고친 뒤 저장하는 게 좋아요.\n" + broken.slice(0, 12).join("\n") + (broken.length > 12 ? `\n… 외 ${broken.length - 12}개` : "") + "\n\n그래도 저장할까요?")) return;
     for (const rm of Object.values(rooms)) if (rm.floor && !rm.floor.some((row) => row.some((k) => k))) delete rm.floor;
+    const real = Object.fromEntries(realIds().map((id) => [id, rooms[id]]));
+    const train = {};
+    for (const rm of trainRooms()) {
+      for (const col of ["wall", "wall_left", "wall_right"]) {
+        const arr = rm.tiles[col] = (rm.tiles[col] || []).slice(0, rm.wall_rows);
+        if (col === "wall" || arr.length) while (arr.length < rm.wall_rows) arr.push(arr[arr.length - 1] || rm.tiles.wall[0] || W.tile_keys[0]);
+      }
+      const { id, name, __train, exits, zones, kind, restore, ...keep } = rm;
+      train[__train] = { ...keep, spawn: { x: 0, y: rm.wall_rows } };
+    }
     try {
-      let r = await fetch("/api/rooms", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(rooms) });
+      let r = await fetch("/api/rooms", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(real) });
       let j = await r.json(); if (j.error) throw new Error("방: " + j.error);
+      r = await fetch("/api/train-interiors", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ rooms: train }) });
+      j = await r.json(); if (j.error) throw new Error("열차 칸: " + j.error);
       r = await fetch("/api/map", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(map) });
       j = await r.json(); if (j.error) throw new Error("맵: " + j.error);
       if (dock) {
         r = await fetch("/api/dock", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(dock) });
         j = await r.json(); if (j.error) throw new Error("부두: " + j.error);
       }
-      dirty = false; log(`저장 완료 (방 ${Object.keys(rooms).length}개, 맵 ${map.cols}×${map.rows})`);
+      dirty = false; log(`저장 완료 (방 ${realIds().length}개, 열차 칸 ${trainRooms().length}개, 맵 ${map.cols}×${map.rows})`);
     } catch (e) { alert("저장 실패: " + e.message); }
   }
   $("save").onclick = save;
@@ -407,7 +448,7 @@
     $("stageHint").textContent = m === "room"
       ? "선택: 시드/출구 클릭·드래그 이동 · 시드 놓기: 팔레트 아이템 고르고 클릭 · 바닥 칠하기: 타일 고르고 클릭/드래그, 우클릭=기본 바닥으로 · 출구/구역: 드래그로 사각형 · Delete=삭제"
       : m === "map"
-      ? "칠하기: 클릭/드래그 · 우클릭=지우개 · 장소/데코 놓기: 팔레트에서 고르고 클릭 · 선택: 드래그 이동 · R=회전 · F=반전 · Delete=삭제"
+      ? "칠하기: 클릭/드래그 · 우클릭=지우개 · 장소/데코 놓기: 팔레트에서 고르고 클릭 · 선택: 드래그 이동 · 방향키=1칸, Shift=8px, Ctrl=1px · R=회전 · F=반전 · Delete=삭제"
       : "레이어 클릭=선택 · 드래그=이동(픽셀 단위, Shift=16px 스냅) · 팔레트 클릭=슬라이스 레이어 추가 · Delete=삭제";
   }
   function setTool(t) {
@@ -499,6 +540,8 @@
   // ---- room side panel
   function setRoom(id) {
     roomId = id; room = rooms[id]; selSeed = selExit = selRZone = null;
+    if (room.__train) document.body.dataset.train = "1"; else delete document.body.dataset.train;
+    if (room.__train && ["exit", "zone", "spawn"].includes(tool)) setTool("select");
     room.exits = room.exits || []; room.seed = room.seed || []; room.blocked = room.blocked || []; room.zones = room.zones || [];
     room.tiles = room.tiles || { wall: [], wall_left: [], wall_right: [], floor: "" };
     if (room.floor) room.floor = fitGrid(room.floor, room.cols, room.rows);
@@ -587,7 +630,8 @@
   const dockPx = (e) => { const r = cv.getBoundingClientRect(); return { x: (e.clientX - r.left) / zoom, y: (e.clientY - r.top) / zoom }; };
   function hitLayer(p) { let best = null; for (const l of dock.layers) { if (l.visible === false) continue; const b = layerBox(l); if (p.x >= b.x && p.x < b.x + b.w && p.y >= b.y && p.y < b.y + b.h) best = l; } return best; }
   function renderRoomSide() {
-    const sel = $("roomSel"); sel.innerHTML = Object.keys(rooms).map((id) => `<option value="${id}"${id === roomId ? " selected" : ""}>${id} · ${rooms[id].name || ""}</option>`).join("");
+    const roomOpt = (id) => `<option value="${id}"${id === roomId ? " selected" : ""}>${rooms[id].__train ? rooms[id].name : `${id} · ${rooms[id].name || ""}`}</option>`;
+    const sel = $("roomSel"); sel.innerHTML = realIds().map(roomOpt).join("") + `<optgroup label="🚆 열차 칸 (/train/)">${trainRooms().map((r) => roomOpt(r.id)).join("")}</optgroup>`;
     $("rId").value = roomId; $("rName").value = room.name || ""; $("rCols").value = room.cols; $("rRows").value = room.rows; $("rWall").value = room.wall_rows; $("rZoom").value = room.zoom || 2; $("rKind").value = room.kind || "room";
     $("roomDel").disabled = roomId === "inn";
     const tiles = W.tile_keys;
@@ -608,7 +652,7 @@
     room.exits.forEach((e, i) => { const li = document.createElement("li"); li.className = e === selExit ? "sel" : ""; li.textContent = `#${i + 1} (${e.x},${e.y}) ${e.w}×${e.h} → ${e.to}`; li.onclick = () => { selExit = e; selSeed = null; renderSide(); draw(); }; el.appendChild(li); });
     $("exitForm").style.display = selExit ? "" : "none";
     if (selExit) {
-      const targets = Object.keys(rooms).filter((id) => id !== roomId).concat(["map"]);
+      const targets = realIds().filter((id) => id !== roomId).concat(["map"]);
       $("eTo").innerHTML = targets.map((t) => `<option${t === selExit.to ? " selected" : ""}>${t}</option>`).join("");
       $("eX").value = selExit.x; $("eY").value = selExit.y; $("eW").value = selExit.w; $("eH").value = selExit.h;
       $("eSX").value = (selExit.spawn || {}).x ?? 0; $("eSY").value = (selExit.spawn || {}).y ?? 0;
@@ -691,6 +735,7 @@
   $("rKind").onchange = () => { if ($("rKind").value === "room") delete room.kind; else room.kind = $("rKind").value; touch(); renderSide(); };
   for (const [id, f] of [["rCols", "cols"], ["rRows", "rows"], ["rWall", "wall_rows"], ["rZoom", "zoom"]]) $(id).onchange = () => {
     const v = parseInt($(id).value, 10); if (isNaN(v)) return;
+    if (room.__train && f !== "zoom") { resizeTrain(f, v); return; }
     room[f] = v;
     if (room.wall_rows >= room.rows) room.wall_rows = Math.max(0, room.rows - 1);
     room.spawn = room.spawn || { x: 0, y: 0 };
@@ -699,6 +744,31 @@
     room.blocked = room.blocked.filter(([x, y]) => x < room.cols && y < room.rows);
     touch(); renderSide(); layout(); draw();
   };
+  // every compartment shares one size: a change applies to all four. Floor contents move with the wall band so a
+  // wall_rows change keeps the floor layout; whatever falls outside is dropped.
+  function resizeTrain(f, v) {
+    const L = TRAIN_LIMITS, cur = trainRooms()[0];
+    let cols = cur.cols, wall = cur.wall_rows, floor = cur.rows - cur.wall_rows;
+    if (f === "cols") cols = v; else if (f === "wall_rows") wall = v; else floor = v - wall;
+    cols = Math.max(L.cols[0], Math.min(L.cols[1], cols));
+    wall = Math.max(L.wall[0], Math.min(L.wall[1], wall));
+    floor = Math.max(L.floor[0], 4 - wall, Math.min(L.floor[1], floor));
+    for (const r of trainRooms()) {
+      const dy = wall - r.wall_rows;
+      r.seed = r.seed.filter((s) => {
+        const it = itemById(s.item_id);
+        if (!(it && onWall(it) && s.y < r.wall_rows)) s.y += dy;
+        return s.x < cols && s.y >= 0 && s.y < wall + floor;
+      });
+      r.blocked = r.blocked.map(([x, y]) => [x, y + dy]).filter(([x, y]) => x < cols && y >= wall && y < wall + floor);
+      if (r.floor) {
+        const old = r.floor; r.floor = [];
+        for (let y = 0; y < wall + floor; y++) { const src = old[y - dy] || []; r.floor.push([...Array(cols)].map((_, x) => (y >= wall ? src[x] ?? null : null))); }
+      }
+      r.cols = cols; r.wall_rows = wall; r.rows = wall + floor;
+    }
+    touch(); renderSide(); layout(); draw();
+  }
   for (const [id, f] of [["eX", "x"], ["eY", "y"], ["eW", "w"], ["eH", "h"]]) $(id).onchange = () => { selExit[f] = Math.max(f === "w" || f === "h" ? 1 : 0, parseInt($(id).value, 10) || 0); touch(); renderSide(); draw(); };
   $("eSX").onchange = () => { selExit.spawn = selExit.spawn || {}; selExit.spawn.x = parseInt($("eSX").value, 10) || 0; touch(); };
   $("eSY").onchange = () => { selExit.spawn = selExit.spawn || {}; selExit.spawn.y = parseInt($("eSY").value, 10) || 0; touch(); };
@@ -740,13 +810,14 @@
   function renderMapSide() {
     $("mCols").value = map.cols; $("mRows").value = map.rows;
     const pl = $("placeList"); pl.innerHTML = "";
-    map.places.forEach((p, i) => { const li = document.createElement("li"); li.className = p === selPlace ? "sel" : ""; li.textContent = `${p.name || "?"} → ${p.room} (${p.x},${p.y})`; li.onclick = () => { selPlace = p; renderMapSide(); draw(); }; pl.appendChild(li); });
+    map.places.forEach((p, i) => { const li = document.createElement("li"); li.className = p === selPlace ? "sel" : ""; li.textContent = `${p.name || "?"} → ${p.room} (${p.x},${p.y})${offText(p)}`; li.onclick = () => { selPlace = p; renderMapSide(); draw(); }; pl.appendChild(li); });
     $("placeForm").style.display = selPlace ? "" : "none";
     if (selPlace) {
-      const targets = Object.keys(rooms).concat(["dock"]);
+      const targets = realIds().concat(["dock"]);
       $("pRoom").innerHTML = targets.map((t) => `<option${t === selPlace.room ? " selected" : ""}>${t}</option>`).join("");
       $("pName").value = selPlace.name || ""; $("pSprite").value = selPlace.sprite || "";
       $("pX").value = selPlace.x; $("pY").value = selPlace.y; $("pW").value = selPlace.w; $("pH").value = selPlace.h;
+      $("pOX").value = selPlace.ox || 0; $("pOY").value = selPlace.oy || 0;
       $("pRot").textContent = selPlace.rot || 0; $("pFlip").textContent = selPlace.flip ? "반전됨" : "";
       $("pDoorN").textContent = (selPlace.doors || []).length;
       $("pSpawn").textContent = selPlace.spawn ? `(${selPlace.spawn.x},${selPlace.spawn.y})` : "-";
@@ -764,10 +835,11 @@
     for (const b of bgs) { if ((W.bgs_built || []).includes(b)) pv.insertAdjacentHTML("beforeend", `<img src="/gen/mapbg/${b}.png" title="${b}" style="width:96px;height:56px;object-fit:cover;image-rendering:pixelated;border:1px solid var(--line)">`); }
     if (!bgs.length) pv.textContent = "assets/graphic/Map/Backgrounds 폴더에 PNG를 넣고 빌드하세요";
     const dl = $("decoList"); dl.innerHTML = "";
-    map.decos.forEach((d) => { const li = document.createElement("li"); li.className = d === selDeco ? "sel" : ""; li.textContent = `${d.sprite} (${d.x},${d.y})${d.rot ? ` ${d.rot}°` : ""}${d.flip ? " ⇋" : ""}`; li.onclick = () => { selDeco = d; selPlace = null; renderMapSide(); draw(); }; dl.appendChild(li); });
+    map.decos.forEach((d) => { const li = document.createElement("li"); li.className = d === selDeco ? "sel" : ""; li.textContent = `${d.sprite} (${d.x},${d.y})${offText(d)}${d.rot ? ` ${d.rot}°` : ""}${d.flip ? " ⇋" : ""}`; li.onclick = () => { selDeco = d; selPlace = null; renderMapSide(); draw(); }; dl.appendChild(li); });
     $("decoForm").style.display = selDeco ? "" : "none";
     if (selDeco) {
       $("dSprite").value = selDeco.sprite; $("dX").value = selDeco.x; $("dY").value = selDeco.y;
+      $("dOX").value = selDeco.ox || 0; $("dOY").value = selDeco.oy || 0;
       const f = frameOf("map", selDeco.sprite); const c = f ? cellsOf(f, selDeco.rot) : { w: 1, h: 1 };
       $("dSize").textContent = `${c.w}×${c.h}`; $("dRot").textContent = selDeco.rot || 0; $("dFlip").textContent = selDeco.flip ? "반전됨" : "";
     }
@@ -784,11 +856,29 @@
     touch(); renderMapSide(); draw();
   }
   function flipObj(o) { o.flip = !o.flip; touch(); renderMapSide(); draw(); }
+  /** `ox`/`oy` = pixel nudge of the picture inside its anchor cell (0..CELL-1, absent when 0). */
+  const offText = (o) => (o.ox || o.oy ? ` +${o.ox || 0},${o.oy || 0}px` : "");
+  function setOff(o, ox, oy) { if (ox) o.ox = ox; else delete o.ox; if (oy) o.oy = oy; else delete o.oy; }
+  /** Move a place/deco by whole pixels; overflow past the cell carries into x/y (a place's doors/spawn follow, like a drag). */
+  function nudgeObj(o, dx, dy, isPlace) {
+    const px = Math.max(0, o.x * CELL + (o.ox || 0) + dx), py = Math.max(0, o.y * CELL + (o.oy || 0) + dy);
+    const nx = Math.floor(px / CELL), ny = Math.floor(py / CELL);
+    if (isPlace && (nx !== o.x || ny !== o.y)) {
+      const cx = nx - o.x, cy = ny - o.y;
+      o.doors = (o.doors || []).map(([x, y]) => [x + cx, y + cy]);
+      if (o.spawn) o.spawn = { x: o.spawn.x + cx, y: o.spawn.y + cy };
+    }
+    o.x = nx; o.y = ny; setOff(o, px % CELL, py % CELL);
+    touch(); renderMapSide(); draw();
+  }
   $("pRotBtn").onclick = () => selPlace && rotateObj(selPlace, true);
   $("pFlipBtn").onclick = () => selPlace && flipObj(selPlace);
   $("dRotBtn").onclick = () => selDeco && rotateObj(selDeco, false);
   $("dFlipBtn").onclick = () => selDeco && flipObj(selDeco);
   for (const [id, f] of [["dX", "x"], ["dY", "y"]]) $(id).onchange = () => { selDeco[f] = Math.max(0, parseInt($(id).value, 10) || 0); touch(); renderMapSide(); draw(); };
+  const offInput = (id, sel) => { const v = Math.max(0, Math.min(CELL - 1, parseInt($(id).value, 10) || 0)); const o = sel(); if (!o) return; setOff(o, id.endsWith("X") ? v : o.ox || 0, id.endsWith("Y") ? v : o.oy || 0); touch(); renderMapSide(); draw(); };
+  for (const id of ["dOX", "dOY"]) $(id).onchange = () => offInput(id, () => selDeco);
+  for (const id of ["pOX", "pOY"]) $(id).onchange = () => offInput(id, () => selPlace);
   $("mBgDefault").onchange = () => { map.bg_default = $("mBgDefault").value || null; touch(); draw(); };
   $("zBg").onchange = () => { if (selZone) { selZone.bg = $("zBg").value; touch(); renderMapSide(); draw(); } };
   for (const [id, f, min] of [["zX", "x", 0], ["zY", "y", 0], ["zW", "w", 1], ["zH", "h", 1]]) $(id).onchange = () => { if (!selZone) return; const v = parseInt($(id).value, 10); if (isNaN(v)) return; selZone[f] = Math.max(min, v); touch(); renderMapSide(); draw(); };
@@ -859,7 +949,7 @@
     for (const { s, it } of seeds) {
       const f = frameOf("interior", it.sprite);
       const w = (it.layer === "wallpaper" ? (s.span || it.w) : it.w);
-      if (it.layer === "wallpaper" && f) { for (let ox = 0; ox < w * CELL; ox += f.w) drawKey("interior", it.sprite, (s.x * CELL + ox) * zoom, s.y * cz, Math.min(f.w, w * CELL - ox) * zoom, f.h * zoom); }
+      if (it.layer === "wallpaper" && f) { for (let ox = 0; ox < w * CELL; ox += f.w) drawKey("interior", it.sprite, (s.x * CELL + ox) * zoom, s.y * cz + (it.offset_y || 0) * zoom, Math.min(f.w, w * CELL - ox) * zoom, f.h * zoom); }
       else if (onWall(it)) drawKey("interior", it.sprite, s.x * cz, s.y * cz + (it.offset_y || 0) * zoom);
       else drawKey("interior", it.sprite, s.x * cz, (s.y + it.h) * cz - (f ? f.h * zoom : cz) + (it.offset_y || 0) * zoom);
       const bad = seedProblem(s, room);
@@ -880,6 +970,16 @@
     }
     if (drag && (drag.mode === "exit" || drag.mode === "zone") && drag.rect) { const r = drag.rect; g.strokeStyle = "#fff"; g.setLineDash([4, 3]); g.strokeRect(r.x * cz + .5, r.y * cz + .5, r.w * cz, r.h * cz); g.setLineDash([]); }
     if (room.spawn) { g.strokeStyle = "#6fd36f"; g.lineWidth = 2; g.strokeRect(room.spawn.x * cz + 2, room.spawn.y * cz + 2, cz - 4, cz - 4); drawChar(room.spawn.x, room.spawn.y); }
+    if (room.__train) {
+      // mirrors client/src/train/render/layout.ts: side doors (2 tall) mid-height on both sides, back/front doors
+      // (2 wide) mid-width through the wall band; the floor cell inside each door is always kept free in the game
+      const W_ = room.cols, H_ = room.rows - room.wall_rows, WR = room.wall_rows;
+      const sy = WR + Math.floor((H_ - 2) / 2), sx = Math.floor((W_ - 2) / 2);
+      const entry = [];
+      for (let i = 0; i < 2; i++) entry.push([0, sy + i], [W_ - 1, sy + i], [sx + i, WR], [sx + i, room.rows - 1]);
+      g.fillStyle = "rgba(255,150,40,.28)"; for (const [x, y] of entry) g.fillRect(x * cz, y * cz, cz, cz);
+      g.fillStyle = "rgba(90,160,255,.25)"; for (let y = 0; y < WR; y++) for (let i = 0; i < 2; i++) g.fillRect((sx + i) * cz, y * cz, cz, cz);
+    }
     if (tool === "floor" && palTile && hover && hover.y >= room.wall_rows) { g.globalAlpha = .6; drawKey("interior", palTile, hover.x * cz, hover.y * cz, cz, cz); g.globalAlpha = 1; g.strokeStyle = "rgba(255,255,255,.6)"; g.strokeRect(hover.x * cz + .5, hover.y * cz + .5, cz - 1, cz - 1); }
     if (tool === "seed" && palKey && hover) { const it = itemById(palKey); if (it) { g.strokeStyle = "rgba(255,255,255,.6)"; g.setLineDash([3, 3]); g.strokeRect(hover.x * cz + .5, hover.y * cz + .5, it.w * cz, it.h * cz); g.setLineDash([]); } }
   }
@@ -897,7 +997,7 @@
     const objs = map.places.map((p) => ({ o: p, place: true, ...sizeBox(p, true) })).concat(map.decos.map((d) => ({ o: d, place: false, ...sizeBox(d, false) })));
     objs.sort((a, b) => (a.o.y + a.h) - (b.o.y + b.h));
     for (const { o, place, w, h } of objs) {
-      if (o.sprite) drawObj(o.sprite, o.x, o.y, h, o.rot, o.flip);
+      if (o.sprite) drawObj(o.sprite, o.x, o.y, h, o.rot, o.flip, null, o.ox, o.oy);
       const sel = place ? o === selPlace : o === selDeco;
       g.strokeStyle = sel ? "#ffd35c" : place ? "rgba(255,255,255,.3)" : "rgba(150,255,150,.25)"; g.lineWidth = sel ? 2 : 1; g.strokeRect(o.x * cz + .5, o.y * cz + .5, w * cz - 1, h * cz - 1);
       if (place) {
@@ -975,7 +1075,7 @@
       if (tool === "paint" || tool === "erase" || right) { if (!palKey && !right && tool === "paint") { alert("팔레트에서 타일을 고르세요"); return; } paint(c, right || tool === "erase"); drag = { mode: "paint", erase: right || tool === "erase" }; draw(); return; }
       if (tool === "place" && palKey) {
         const f = frameOf("map", palKey); const w = f ? Math.ceil(f.w / CELL) : 1, h = f ? Math.ceil(f.h / CELL) : 1;
-        const p = { room: Object.keys(rooms).find((id) => !map.places.some((q) => q.room === id)) || "dock", name: palKey, sprite: palKey, x: c.x, y: c.y, w, h, rot: 0, flip: false,
+        const p = { room: realIds().find((id) => !map.places.some((q) => q.room === id)) || "dock", name: palKey, sprite: palKey, x: c.x, y: c.y, w, h, rot: 0, flip: false,
                     doors: [[c.x + Math.floor(w / 2), c.y + h - 1]] };
         p.spawn = defaultSpawn(p);
         map.places.push(p); selPlace = p; selDeco = null; touch(); renderMapSide(); draw(); return;
@@ -1040,7 +1140,7 @@
       room.zones.push(z); selRZone = z; selSeed = selExit = null; touch(); renderSide();
     }
     if (d.mode === "exit" && d.rect) {
-      const targets = Object.keys(rooms).filter((id) => id !== roomId).concat(["map"]);
+      const targets = realIds().filter((id) => id !== roomId).concat(["map"]);
       const to = targets[0]; const t = rooms[to];
       const e = { ...d.rect, to, spawn: t && t.spawn ? { ...t.spawn } : { x: 0, y: 0 } };
       room.exits.push(e); selExit = e; selSeed = null; touch(); renderSide();
@@ -1053,6 +1153,12 @@
       if (mode === "room" && selSeed) $("seedDel").click(); else if (mode === "room" && selExit) $("eDel").click(); else if (mode === "room" && selRZone) $("rzDel").click(); else if (mode === "map" && selPlace) $("pDel").click(); else if (mode === "map" && selDeco) $("dDel").click(); else if (mode === "map" && selZone) $("zDel").click(); else if (mode === "dock" && selLayer) $("dkDel").click();
     }
     if (mode === "map" && (e.key === "r" || e.key === "R")) { if (selPlace) rotateObj(selPlace, true); else if (selDeco) rotateObj(selDeco, false); }
+    // arrows move the selected place/deco: a cell, Shift = 8px, Ctrl = 1px (the picture nudges inside its cell)
+    const arrow = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[e.key];
+    if (mode === "map" && arrow && (selPlace || selDeco)) {
+      const step = e.ctrlKey ? 1 : e.shiftKey ? CELL / 2 : CELL;
+      nudgeObj(selPlace || selDeco, arrow[0] * step, arrow[1] * step, !!selPlace); e.preventDefault();
+    }
     if (mode === "map" && (e.key === "f" || e.key === "F")) { if (selPlace) flipObj(selPlace); else if (selDeco) flipObj(selDeco); }
     if (e.key === "Escape") { selSeed = selExit = selRZone = selPlace = selDeco = selLayer = null; doorPick = spawnPick = false; setTool("select"); renderSide(); draw(); }
   });

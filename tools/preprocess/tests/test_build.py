@@ -166,3 +166,40 @@ def test_loot_icons_from_slice_keys_paths_and_frame_lists(tmp_path: Path, monkey
     assert Image.open(gen / "coal.png").size == (8, 8)  # the explicit icon path wins over the sprite
     assert Image.open(gen / "pickaxe_2.png").getpixel((0, 0)) == (50, 200, 50, 255)
     assert Image.open(gen / "ladder.png").size == (8, 8) and not (gen / "gone.png").exists()
+
+
+def test_loop_strip_preset_samples_every_direction_and_keeps_its_frame_size(tmp_path: Path):
+    """A 36x30 hover loop of 14 frames → 48 frames of 36x30; left is mirrored, the manifest lists the size."""
+    import config as C
+    fw, fh, n = 36, 30, 14
+    strip = Image.new("RGBA", (fw * n, fh), (0, 0, 0, 0))
+    for i in range(n):  # frame i: a 2px dot at x = 2 + i so frames are distinguishable, plus a left-edge marker
+        strip.paste(Image.new("RGBA", (2, 2), (255, 0, 0, 255)), (i * fw + 2 + i, 10))
+        strip.paste(Image.new("RGBA", (1, fh), (0, 0, 255, 255)), (i * fw, 0))
+    src = tmp_path / "Drone_36x30.png"
+    strip.save(src)
+    v = {"name": "Drone", "strip": src, "frame": (fw, fh), "style": 10_000, "color": 0}
+    entry = P.build_char_layer("preset", [{"name": "none", "sheet": None, "style": 0, "color": 0}, v], tmp_path / "out")
+    assert entry["count"] == 2 and entry["sizes"] == {"1": [fw, fh]} and entry["names"] == ["none", "Drone"]
+    none = Image.open(tmp_path / "out" / "0.png")
+    assert none.size == (C.FRAME_W * 48, C.FRAME_H)  # the none variant keeps the character frame
+    sheet = Image.open(tmp_path / "out" / "1.png").convert("RGBA")
+    assert sheet.size == (fw * 48, fh)
+    frames = [sheet.crop((k * fw, 0, (k + 1) * fw, fh)) for k in range(48)]
+    picked = [(k * n) // C.FRAMES_PER_DIR for k in range(C.FRAMES_PER_DIR)]  # 0,2,4,7,9,11
+    for di, d in enumerate(C.DIRS):
+        for k in range(C.FRAMES_PER_DIR):
+            fr = frames[di * C.FRAMES_PER_DIR + k]
+            dot_x = 2 + picked[k]
+            if d == "left":
+                assert fr.getpixel((fw - 1, 0))[2] == 255 and fr.getpixel((fw - 1 - dot_x, 10))[0] == 255  # mirrored
+            else:
+                assert fr.getpixel((0, 0))[2] == 255 and fr.getpixel((dot_x, 10))[0] == 255
+    assert all(a.tobytes() == b.tobytes() for a, b in zip(frames[24:], frames[:24]))  # idle = the same frames as run
+
+
+def test_loop_strip_with_wrong_height_aborts(tmp_path: Path):
+    src = tmp_path / "Ghost_20x20.png"
+    Image.new("RGBA", (40, 19), (0, 0, 0, 0)).save(src)
+    with pytest.raises(SystemExit):
+        P._loop_strip({"name": "Ghost", "strip": src, "frame": (20, 20)}, "run")

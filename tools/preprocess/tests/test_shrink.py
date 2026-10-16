@@ -37,6 +37,14 @@ def test_auto_picks_box_for_native_hires_art():
     assert a == 64 and r == g == b == 255  # premultiplied average keeps the colour, only alpha drops
 
 
+def test_auto_enlarges_with_nearest():
+    im = Image.new("RGBA", (2, 1), (0, 0, 0, 0))
+    im.putpixel((0, 0), (255, 0, 0, 255))
+    out, used = P.shrink_image(im, 2.0, "auto")  # 8px sheet → 16px grid
+    assert used == "nearest" and out.size == (4, 2)
+    assert out.getpixel((1, 1)) == (255, 0, 0, 255) and out.getpixel((2, 0)) == (0, 0, 0, 0)
+
+
 def test_shrunk_path_flattens_under_root(monkeypatch, tmp_path):
     assets = tmp_path / "graphic"
     (assets / "Interior" / "pack" / "32x32").mkdir(parents=True)

@@ -15,6 +15,7 @@ def test_map_loads(catalog):
     assert m is not None and m.cols == 8 and m.places[0].doors == [[3, 2]] and m.places[1].room == "dock"
     assert m.layers["ground"][0][0] == "g"
     assert m.bg_default == "sky" and m.bg_zones[0].bg == "sea" and m.bg_zones[0].w == 3
+    assert (m.decos[0].ox, m.decos[0].oy) == (0, 0)  # absent = no pixel nudge
 
 
 def test_map_rejects_bad_data(env):
@@ -26,6 +27,8 @@ def test_map_rejects_bad_data(env):
         (lambda m: m["layers"]["ground"][0].__setitem__(0, "lava"), "tile 'lava'"),
         (lambda m: m["places"][0]["doors"].append([99, 0]), "door outside"),
         (lambda m: m["decos"].append({"sprite": "ghost", "x": 0, "y": 0}), "deco sprite"),
+        (lambda m: m["decos"][0].update(ox=16), "less than 16"),  # pixel nudge stays inside the cell
+        (lambda m: m["places"][0].update(oy=-1), "greater than or equal to 0"),
         (lambda m: m["bg_zones"].append({"x": 0, "y": 0, "w": 1, "h": 1, "bg": "void"}), "background 'void'"),
         (lambda m: m.update(bg_default="void"), "background 'void'"),
     ]:

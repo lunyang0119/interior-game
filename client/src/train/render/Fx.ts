@@ -3,7 +3,7 @@
 import Phaser from "phaser";
 import { CELL } from "../../room/grid";
 import { TILE_DEPTH } from "../../room/depth";
-import { ROOM_H, ROOM_W, type Layout } from "./layout";
+import type { Layout } from "./layout";
 
 const FX_DEPTH = 900_000;       // above furniture and avatars
 const OVERLAY_DEPTH = 950_000;  // full-screen effects
@@ -31,7 +31,7 @@ export class Fx {
 
   roomCenter(room: string): { x: number; y: number } | null {
     const b = this.layout.rooms.get(room);
-    return b ? { x: (b.x0 + ROOM_W / 2) * CELL, y: (b.y0 + ROOM_H / 2) * CELL } : null;
+    return b ? { x: (b.x0 + b.w / 2) * CELL, y: (b.y0 + b.h / 2) * CELL } : null;
   }
 
   private text(x: number, y: number, s: string, size = 12, color = "#ffd54a"): Phaser.GameObjects.Text {
@@ -72,7 +72,7 @@ export class Fx {
       if (this.steam.has(r)) continue;
       const b = this.layout.rooms.get(r);
       if (!b) continue;
-      const rect = this.scene.add.rectangle(b.x0 * CELL, b.y0 * CELL, ROOM_W * CELL, ROOM_H * CELL, 0xffffff, 0.35).setOrigin(0).setDepth(FX_DEPTH - 1);
+      const rect = this.scene.add.rectangle(b.x0 * CELL, b.y0 * CELL, b.w * CELL, b.h * CELL, 0xffffff, 0.35).setOrigin(0).setDepth(FX_DEPTH - 1);
       this.scene.tweens.add({ targets: rect, alpha: { from: 0.25, to: 0.5 }, duration: 900, yoyo: true, repeat: -1 });
       const c = this.roomCenter(r)!;
       const t = this.text(c.x, c.y + CELL, "☕", 16, "#ffffff");
@@ -114,8 +114,8 @@ export class Fx {
       const b = this.layout.rooms.get(r);
       if (!b) continue;
       g.lineStyle(2, r === selected ? 0xffd54a : color, r === selected ? 1 : 0.8);
-      g.strokeRect(b.x0 * CELL + 1, b.y0 * CELL + 1, ROOM_W * CELL - 2, ROOM_H * CELL - 2);
-      if (r !== selected) { g.fillStyle(color, 0.12); g.fillRect(b.x0 * CELL, b.y0 * CELL, ROOM_W * CELL, ROOM_H * CELL); }
+      g.strokeRect(b.x0 * CELL + 1, b.y0 * CELL + 1, b.w * CELL - 2, b.h * CELL - 2);
+      if (r !== selected) { g.fillStyle(color, 0.12); g.fillRect(b.x0 * CELL, b.y0 * CELL, b.w * CELL, b.h * CELL); }
     }
     for (const d of doors) {
       g.lineStyle(2, 0xff6b6b, 0.9);

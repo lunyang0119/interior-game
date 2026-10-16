@@ -71,7 +71,7 @@ function render(): void {
   const f = p.fugitive;
   const ramMax = Number(p.config?.ram_max ?? 10);
   $("fug-ram").textContent = `RAM ${"▮".repeat(Math.max(0, f.ram))}${"▯".repeat(Math.max(0, ramMax - f.ram))} ${f.ram}/${ramMax}`;
-  $("fug-trace").textContent = `추적률 ${f.trace}% (T${f.tier})${f.frozen ? " · 동결" : ""}${f.hacks_disabled ? " · 덱 봉인" : ""}${f.hidden_until >= (p.round_no ?? 0) ? " · 은신 중" : ""}`;
+  $("fug-trace").textContent = `추적률 ${f.trace}% · 경계도 ${f.tier}${f.frozen ? " · 동결" : ""}${f.hacks_disabled ? " · 덱 봉인" : ""}${f.hidden_until >= (p.round_no ?? 0) ? " · 은신 중" : ""}`;
   const status = $("fug-status");
   const submitted = !!f.order;
   show("btn-fug-cancel", submitted);
@@ -130,5 +130,5 @@ function projection(p: NonNullable<typeof tstate.payload>, hack: Hack | null, pi
   if (hack) parts.push(`${HACK_KO[hack]} +${Number(p.hacks?.[hack]?.trace ?? 0)}`);
   if (pinged) parts.push("핑 반영됨");
   parts.push(`기본 +${passive}`);
-  return `추적률 ${f.trace} → ${next} (${parts.join(", ")}) · 다음 라운드 티어 ${tier} (${lag})`;
+  return `추적률 ${f.trace} → ${next} (${parts.join(", ")}) · 다음 라운드 경계도 ${tier} (${lag})`;
 }

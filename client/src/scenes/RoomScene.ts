@@ -10,7 +10,7 @@ import { Gestures } from "../input/Gestures";
 import { dirDelta, WalkKeys } from "../input/Keyboard";
 import { InnCat } from "../npc/Cat";
 import { GuestNpcs } from "../npc/GuestNpcs";
-import { TILE_DEPTH } from "../room/depth";
+import { FX_DEPTH, TILE_DEPTH } from "../room/depth";
 import { CELL, footprint, worldToCell } from "../room/grid";
 import { ATLAS, ItemLayer } from "../room/ItemLayer";
 import { MineFloor } from "../room/MineFloor";
@@ -143,6 +143,27 @@ export class RoomScene extends Phaser.Scene {
     }
     rt.endDraw();
     this.cameras.main.setBackgroundColor("#1b1b24");
+    this.drawFx();
+  }
+
+  /** Pixel-placed decorations from the room data (steam over the kettle…): static frames, or looping when the
+   *  sprite is an anim slice (frames `<key>#i`, speed from catalog.anims). Always above items and avatars. */
+  private drawFx(): void {
+    const atlas = this.textures.get(ATLAS);
+    for (const f of this.room.fx ?? []) {
+      if (!atlas.has(f.sprite)) continue; // placed with a newer build than this atlas: skip quietly
+      const s = this.add.sprite(f.x, f.y, ATLAS, f.sprite).setOrigin(0).setDepth(FX_DEPTH);
+      const spec = this.cat.anims[f.sprite];
+      if (!spec || spec.frames < 2) continue;
+      const key = `fx:${f.sprite}`;
+      if (!this.anims.exists(key)) {
+        const frames = Array.from({ length: spec.frames }, (_, i) => ({ key: ATLAS, frame: `${f.sprite}#${i}` }))
+          .filter((fr) => atlas.has(fr.frame));
+        if (frames.length < 2) continue;
+        this.anims.create({ key, frames, frameRate: spec.fps, repeat: -1 });
+      }
+      s.play(key);
+    }
   }
 
   // ---------------------------------------------------------------- data

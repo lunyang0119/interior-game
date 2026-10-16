@@ -1,6 +1,6 @@
 import { api, ApiError, msgFor } from "../api";
 import { bus, toast } from "../bus";
-import { AVATAR_LAYERS, DEFAULT_LOOK, drawList, type AvatarLook, type LayerSpec } from "../catalog";
+import { AVATAR_LAYERS, DEFAULT_LOOK, drawList, frameSize, type AvatarLook, type LayerSpec } from "../catalog";
 import { catalog, state } from "../state";
 import { $, guard, show, togglePanel } from "./hud";
 import { assetUrl } from "../assets";
@@ -30,15 +30,20 @@ async function preview(): Promise<void> {
   const ctx = canvas.getContext("2d")!;
   const seq = ++previewSeq;
   const frame = chars.anims["idle_down"]?.[0] ?? 0;
-  const images: HTMLImageElement[] = [];
-  for (const { layer, idx } of drawList(draft, chars)) images.push(await sheet(layer, idx));
+  const images: { im: HTMLImageElement; w: number; h: number }[] = [];
+  for (const { layer, idx } of drawList(draft, chars)) {
+    const [w, h] = frameSize(chars, layer, idx);
+    images.push({ im: await sheet(layer, idx), w, h });
+  }
   if (seq !== previewSeq) return; // a newer preview started while loading
-  canvas.width = chars.frameW * SCALE;
-  canvas.height = chars.frameH * SCALE;
+  // the canvas fits the biggest sheet drawn (a loop-strip preset may be wider than the character frame); feet at the bottom centre
+  const cw = Math.max(chars.frameW, ...images.map((i) => i.w)), ch = Math.max(chars.frameH, ...images.map((i) => i.h));
+  canvas.width = cw * SCALE;
+  canvas.height = ch * SCALE;
   ctx.imageSmoothingEnabled = false;
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  for (const im of images) {
-    ctx.drawImage(im, frame * chars.frameW, 0, chars.frameW, chars.frameH, 0, 0, canvas.width, canvas.height);
+  for (const { im, w, h } of images) {
+    ctx.drawImage(im, frame * w, 0, w, h, ((cw - w) / 2) * SCALE, (ch - h) * SCALE, w * SCALE, h * SCALE);
   }
 }
 

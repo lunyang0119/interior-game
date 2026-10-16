@@ -1,4 +1,4 @@
-"""Loads and validates data/items.json, data/rooms/*.json, data/map.json and gen/manifest.json."""
+"""Loads and validates data/items.json, data/rooms/*.json, data/map.json, data/train_interiors.json and gen/manifest.json."""
 
 from __future__ import annotations
 
@@ -145,6 +145,15 @@ class Seed(BaseModel):
     span: int | None = Field(default=None, ge=1)
 
 
+class Fx(BaseModel):
+    """A decoration drawn at a pixel position in the room, always on top of items and avatars (steam over a pot,
+    a glow). Placed in the world editor ("효과 놓기"). `sprite` is an interior atlas key; one built from an `anim`
+    slice animates (the manifest key carries `anim {frames, fps}`, served as `catalog.anims`)."""
+    sprite: str
+    x: int = Field(ge=0)
+    y: int = Field(ge=0)
+
+
 class Zone(BaseModel):
     """A rectangle inside a room that takes guests on its own (a guest room on a floor). Drawn in the world
     editor ("구역 그리기"). Rooms without zones are one guest unit as a whole."""
@@ -186,6 +195,8 @@ class Room(BaseModel):
     restore: list[Stage] = []
     # Guest rooms inside this room (comfort/guests per zone). Empty = the whole room is one guest unit.
     zones: list[Zone] = []
+    # Pixel-placed decorations / animations drawn on top (see Fx).
+    fx: list[Fx] = []
 
     @model_validator(mode="after")
     def _zones(self) -> "Room":
@@ -226,6 +237,9 @@ class Room(BaseModel):
         return "wall" if y < self.wall_rows else "floor"
 
 
+MAP_CELL = 16  # map cell size in px; `ox`/`oy` offsets stay inside one cell (the editor carries overflow into x/y)
+
+
 class MapPlace(BaseModel):
     """A house/dock on the overworld. Standing on a door cell asks to enter `room` (a room id or "dock")."""
     room: str
@@ -237,6 +251,8 @@ class MapPlace(BaseModel):
     h: int = Field(ge=1, default=1)
     rot: int = 0
     flip: bool = False
+    ox: int = Field(ge=0, lt=MAP_CELL, default=0)  # pixel nudge of the picture inside its cell (editor: Shift/Ctrl+arrows)
+    oy: int = Field(ge=0, lt=MAP_CELL, default=0)
     doors: list[list[int]] = []
     spawn: dict[str, int] | None = None  # where you stand on the map after leaving this place
 
@@ -247,6 +263,8 @@ class MapDeco(BaseModel):
     y: int
     rot: int = 0
     flip: bool = False
+    ox: int = Field(ge=0, lt=MAP_CELL, default=0)
+    oy: int = Field(ge=0, lt=MAP_CELL, default=0)
 
 
 class BgZone(BaseModel):
@@ -284,6 +302,9 @@ class Catalog:
     layer_counts: dict[str, int] = field(default_factory=dict)
     # {"interior": {key: TileMeta}, "map": {key: TileMeta}} — only keys that carry step/walk
     tiles: dict[str, dict[str, TileMeta]] = field(default_factory=lambda: {"interior": {}, "map": {}})
+    # /train/ compartment interiors by engine device (data/train_interiors.json, world editor "열차 칸");
+    # all share one size. Empty = the train page draws its built-in compartments.
+    train: dict[str, Room] = field(default_factory=dict)
     # hash of the generated atlases + theme: the client appends it to /gen and /media URLs so a rebuild
     # bypasses the long browser/Caddy cache instead of serving a stale atlas for a day
     asset_version: str = ""
@@ -318,6 +339,9 @@ class Catalog:
                 "cat": self.manifest.get("cat"),
                 "tiles": {atlas: {k: m.model_dump(exclude_none=True) for k, m in metas.items()}
                           for atlas, metas in self.tiles.items()},
+                "train": {d: r.model_dump() for d, r in self.train.items()} or None,
+                # interior atlas keys built from an `anim` slice: {key: {frames, fps}} (frames are <key>#i)
+                "anims": {k: spec["anim"] for k, spec in self.manifest["interiors"]["keys"].items() if "anim" in spec},
                 "asset_version": self.asset_version,
             }
         return self._public
@@ -393,19 +417,7 @@ def load(data_dir: Path | None = None, gen_dir: Path | None = None) -> Catalog:
             raise ValueError(f"{it.id}: pair '{it.pair}' is not an item")
 
     for room in rooms.values():
-        tiles = room.tiles
-        for key in [*tiles.wall, *tiles.wall_left, *tiles.wall_right, tiles.floor]:
-            if key not in keys:
-                raise ValueError(f"room {room.id}: tile '{key}' not in manifest")
-        if len(tiles.wall) != room.wall_rows:
-            raise ValueError(f"room {room.id}: tiles.wall must have one key per wall row")
-        if room.floor is not None:
-            if len(room.floor) != room.rows or any(len(r) != room.cols for r in room.floor):
-                raise ValueError(f"room {room.id}: floor grid is not {room.cols}x{room.rows}")
-            for r in room.floor:
-                for k in r:
-                    if k is not None and k not in keys:
-                        raise ValueError(f"room {room.id}: floor tile '{k}' not in manifest")
+        _check_tiles_and_seeds(room, keys, items)
         if not room.in_bounds(room.spawn["x"], room.spawn["y"]):
             raise ValueError(f"room {room.id}: spawn outside the room")
         for e in room.exits:
@@ -415,9 +427,6 @@ def load(data_dir: Path | None = None, gen_dir: Path | None = None) -> Catalog:
                 raise ValueError(f"room {room.id}: exit to '{e.to}' is outside the room")
             if e.to in rooms and not rooms[e.to].in_bounds(e.spawn.get("x", -1), e.spawn.get("y", -1)):
                 raise ValueError(f"room {room.id}: exit to '{e.to}' spawns outside that room")
-        for sd in room.seed:
-            if sd.item_id not in items:
-                raise ValueError(f"room {room.id}: seed item '{sd.item_id}' is not an item")
         if len({st.id for st in room.restore}) != len(room.restore):
             raise ValueError(f"room {room.id}: duplicate restore stage id")
         for st in room.restore:
@@ -429,7 +438,60 @@ def load(data_dir: Path | None = None, gen_dir: Path | None = None) -> Catalog:
     layer_counts = {name: spec["count"] for name, spec in manifest["chars"]["layers"].items()}
     tiles = {"interior": _tile_meta(keys), "map": _tile_meta(manifest.get("map", {}).get("keys", {}))}
     return Catalog(items=items, rooms=rooms, manifest=manifest, layer_counts=layer_counts,
-                   map=_load_map(data_dir, rooms, manifest), tiles=tiles, asset_version=asset_version(gen_dir))
+                   map=_load_map(data_dir, rooms, manifest), tiles=tiles, train=_load_train(data_dir, keys, items),
+                   asset_version=asset_version(gen_dir))
+
+
+def _check_tiles_and_seeds(room: Room, keys: dict, items: dict[str, Item]) -> None:
+    tiles = room.tiles
+    for key in [*tiles.wall, *tiles.wall_left, *tiles.wall_right, tiles.floor]:
+        if key not in keys:
+            raise ValueError(f"room {room.id}: tile '{key}' not in manifest")
+    if len(tiles.wall) != room.wall_rows:
+        raise ValueError(f"room {room.id}: tiles.wall must have one key per wall row")
+    if room.floor is not None:
+        if len(room.floor) != room.rows or any(len(r) != room.cols for r in room.floor):
+            raise ValueError(f"room {room.id}: floor grid is not {room.cols}x{room.rows}")
+        for r in room.floor:
+            for k in r:
+                if k is not None and k not in keys:
+                    raise ValueError(f"room {room.id}: floor tile '{k}' not in manifest")
+    for sd in room.seed:
+        if sd.item_id not in items:
+            raise ValueError(f"room {room.id}: seed item '{sd.item_id}' is not an item")
+    for fx in room.fx:
+        if fx.sprite not in keys:
+            raise ValueError(f"room {room.id}: fx sprite '{fx.sprite}' not in manifest (build?)")
+
+
+# /train/ compartment size limits (client/src/train/render/layout.ts cuts 2-cell doors into the sides and the back
+# wall, so a compartment needs at least 2 floor rows and 2 columns; rows >= 4 comes from Room).
+TRAIN_FLOOR_ROWS = (2, 12)
+TRAIN_COLS = (4, 16)
+TRAIN_WALL_ROWS = (0, 4)
+
+
+def _load_train(data_dir: Path, keys: dict, items: dict[str, Item]) -> dict[str, Room]:
+    """data/train_interiors.json {"rooms": {device: Room-shaped}} (world editor). Optional."""
+    p = data_dir / "train_interiors.json"
+    if not p.exists():
+        return {}
+    from .train.config import DEVICES
+    raw = json.loads(p.read_text(encoding="utf-8")).get("rooms") or {}
+    out: dict[str, Room] = {}
+    for dev, r in raw.items():
+        if dev not in DEVICES:
+            raise ValueError(f"train_interiors.json: unknown device '{dev}' ({', '.join(DEVICES)})")
+        room = Room.model_validate({**r, "id": f"train_{dev}"})
+        _check_tiles_and_seeds(room, keys, items)
+        floor_rows = room.rows - room.wall_rows
+        if not (TRAIN_COLS[0] <= room.cols <= TRAIN_COLS[1] and TRAIN_FLOOR_ROWS[0] <= floor_rows <= TRAIN_FLOOR_ROWS[1]
+                and TRAIN_WALL_ROWS[0] <= room.wall_rows <= TRAIN_WALL_ROWS[1]):
+            raise ValueError(f"train_interiors.json: {dev}: size {room.cols}x{floor_rows}+{room.wall_rows} out of range")
+        out[dev] = room
+    if len({(r.cols, r.rows, r.wall_rows) for r in out.values()}) > 1:
+        raise ValueError("train_interiors.json: every compartment must have the same cols/rows/wall_rows")
+    return out
 
 
 def _tile_meta(keys: dict) -> dict[str, TileMeta]:

@@ -104,13 +104,19 @@
   <div id="tabs">
     <button id="tabFurn" class="on">시트·슬라이스</button><button id="tabItems">아이템</button>
     <button id="tabSingles">낱개</button><button id="tabChars">캐릭터</button>
-    <a href="/world" style="align-self:center;margin-left:auto">방·맵 에디터 →</a>
+    <a href="/world" style="align-self:center;margin-left:auto">방·맵 에디터 →</a> <a href="/train-maps" style="align-self:center">열차 맵 →</a>
   </div>
   <div id="furnLeft">
   <input type="text" id="sheetFilter" placeholder="시트 이름 걸러내기… (예: Basement)" style="width:100%">
   <label><span>시트</span><select id="sheetSel"></select></label>
+  <div class="row" title="assets/graphic/fx/<폴더>/*.png 프레임들을 하나의 애니 슬라이스로 (방 에디터 '효과 놓기'로 픽셀 단위 배치)">
+    <label style="flex:1"><span>애니</span><select id="animSel" style="flex:1"></select></label>
+    <button id="animAdd">애니 슬라이스 만들기</button>
+  </div>
   <div class="row">
-    <button id="shrinkBtn" title="이 시트의 절반 크기 사본을 assets/graphic/<루트>/_16px/ 에 만들어요. 32px 타일 시트를 16px 격자로 자르고 싶을 때.">32→16 축소본 만들기</button>
+    <input type="number" id="shrinkFrom" value="32" min="1" max="256" step="1" style="width:52px" title="원본 시트의 격자 크기(px). 16px 격자로 맞춘 사본을 assets/graphic/<루트>/_16px/ 에 만들어요.">
+    <span style="align-self:center">→16</span>
+    <button id="shrinkBtn" title="원본 격자 크기를 16px로 맞춘 사본을 assets/graphic/<루트>/_16px/ 에 만들어요 (16보다 크면 축소, 작으면 확대).">축소본 혹은 확대본 만들기</button>
     <select id="shrinkMethod" title="nearest: 2배 확대된 그림을 픽셀 그대로 되돌림 · box: 진짜 고해상도 그림을 평균내서 축소 · auto: 그림을 보고 고름"><option value="auto" selected>auto</option><option value="nearest">nearest</option><option value="box">box</option></select>
   </div>
   <div class="row">
@@ -183,7 +189,7 @@
       <input type="file" id="cFile" accept="image/png" multiple>
       <button id="cUpload" class="primary">업로드</button>
       <button id="cBuild">캐릭터 빌드</button>
-      <span class="hint">파일 이름 = 접두사_스타일번호_색번호.png (예: Hairstyle_30_01.png). 같은 스타일의 다른 색은 _02, _03…</span>
+      <span class="hint">파일 이름 = 접두사_스타일번호_색번호.png (예: Hairstyle_30_01.png). 같은 스타일의 다른 색은 _02, _03… · 프리셋 캐릭터는 896×656 시트 대신 가로 띠 애니(이름_가로x세로.png, 예: Drone_36x30.png)도 돼요</span>
     </div>
     <div id="charBody"></div>
   </div>
@@ -209,6 +215,7 @@
       <button id="partAdd">조각 추가</button>
     </div>
     <label><span>scale</span><input type="number" id="sScale" step="0.25" min="0.125" max="8" placeholder="1"><span class="hint" style="width:auto">32px 타일은 0.5</span></label>
+    <label id="fpsRow" style="display:none"><span>fps</span><input type="number" id="sFps" min="1" max="60" step="1"><span class="hint" style="width:auto">애니 속도 (초당 프레임)</span></label>
     <div id="tileMeta" style="display:none">
       <label><span>발소리</span><select id="sStep"><option value="">(기본: 방은 wood, 맵은 grass)</option><option value="wood">wood 나무</option><option value="tile">tile 타일·돌</option><option value="grass">grass 풀</option><option value="water">water 물</option><option value="none">none 무음</option></select></label>
       <label><span>통행</span><input type="checkbox" id="sNoWalk"> <span class="hint" style="width:auto">못 지나감 (walk:false) — 물·구덩이. 가구도 못 놓아요</span></label>
@@ -297,7 +304,7 @@
   const isMapSlice = (s) => mapSlices.includes(s);
   const rectOf = (s) => ("parts" in s) ? s.parts[Math.min(partIdx, s.parts.length - 1)] : s;
   const rectsOf = (s) => ("parts" in s) ? s.parts : [s];
-  const sheetOf = (s) => ("file" in s) ? FILE_SHEET : ("parts" in s) ? (s.parts[0] && s.parts[0].sheet) : s.sheet;
+  const sheetOf = (s) => ("file" in s || "anim" in s) ? FILE_SHEET : ("parts" in s) ? (s.parts[0] && s.parts[0].sheet) : s.sheet;
   const itemOf = (s) => s && items.find((it) => it.sprite === s.key);
   const itemById = (id) => items.find((it) => it.id === id);
   const cls = (s) => isMapSlice(s) ? "map" : s.key.startsWith("auto_") ? "auto" : s.key.startsWith("tile_") ? "tile" : "named";
@@ -338,17 +345,20 @@
       for (let i = 0; i < L.count; i++) {
         const t = document.createElement("div"); t.className = "thumb" + (L.none === i ? " none" : "");
         t.title = `${i}: ${(L.names || [])[i] || ""}`;
+        // loop-strip presets keep their own frame size (manifest `sizes`); scale them to fit the thumb
+        const [fw, fh] = (L.sizes || {})[i] || [CH.frameW, CH.frameH];
+        const sc = Math.max(1, Math.min(3, Math.floor(48 / fw), Math.floor(96 / fh)));
         t.style.backgroundImage = `url(/chars/${key}/${i}.png)`;
-        t.style.backgroundSize = `${CH.frames * CH.frameW * 3}px ${CH.frameH * 3}px`;
-        t.style.backgroundPosition = `-${downIdle * CH.frameW * 3}px 0`;
+        t.style.backgroundSize = `${CH.frames * fw * sc}px ${fh * sc}px`;
+        t.style.backgroundPosition = `-${downIdle * fw * sc}px 0`;
         grid.appendChild(t);
       }
       body.appendChild(grid);
       const cu = CH.custom[key];
       if (cu) {
         const ul = document.createElement("ul"); ul.className = "files";
-        ul.innerHTML = `<li class="dim">assets/custom/${cu.folder}/ (${cu.files.length}개)</li>` +
-          cu.files.map((f) => `<li class="${f.ok ? "" : "bad"}">${f.name} <span class="dim">${f.w}×${f.h}</span>${f.ok ? "" : " ⚠ 크기/이름 확인"} <button data-del="${key}|${f.name}">삭제</button></li>`).join("");
+        ul.innerHTML = `<li class="dim">assets/custom/${cu.folder}/ (${cu.files.length}개)${cu.strip ? " — 가로 띠 애니(이름_가로x세로.png, 한 바퀴 도는 프레임들; 방향 없이 왼쪽만 반전)" : ""}</li>` +
+          cu.files.map((f) => `<li class="${f.ok ? "" : "bad"}">${f.name} <span class="dim">${f.w}×${f.h}</span>${f.ok ? "" : (cu.strip ? " ⚠ 이름이 이름_가로x세로.png 꼴이 아니거나 크기가 안 맞아요 (빌드에서 빠짐)" : " ⚠ 크기/이름 확인")} <button data-del="${key}|${f.name}">삭제</button></li>`).join("");
         ul.querySelectorAll("button[data-del]").forEach((b) => b.onclick = async () => {
           const [layer, name] = b.dataset.del.split("|");
           if (!confirm(`${name} 삭제할까요? (빌드 전까지 게임에는 그대로 남아요)`)) return;
@@ -542,6 +552,16 @@
   }
   $("singlesTheme").onchange = renderSingles;
   $("singlesSearch").oninput = renderSingles;
+  // an anim slice: a folder of frames (assets/graphic/fx/<name>) → atlas frames key#0..n, animated by the game as a room effect
+  $("animAdd").onclick = () => {
+    const folder = $("animSel").value; if (!folder) { alert("assets/graphic/fx/<이름>/ 폴더에 프레임 PNG들을 넣고 에디터를 다시 시작하세요"); return; }
+    const have = slices.find((s) => s.anim === folder);
+    if (have) { goTo(have); return; }
+    let n = 1; while (allSlices().some((s) => s.key === `new_${n}`)) n++;
+    const s = { key: `new_${n}`, anim: folder, fps: S.anim_fps || 8 };
+    slices.push(s); mark(s); goTo(s); $("sKey").focus(); $("sKey").select();
+  };
+  $("sFps").addEventListener("change", () => { if (!sel || !("anim" in sel)) return; const v = parseInt($("sFps").value, 10); sel.fps = Math.max(1, Math.min(60, v || 8)); $("sFps").value = sel.fps; mark(sel); });
 
   function goTo(s) {
     setTab("furn");
@@ -559,6 +579,7 @@
     for (const id of ["itemLayerSet", "batchLayerSel"]) $(id).innerHTML = S.layers.map((l) => `<option>${l}</option>`).join("");
     $("rSpan").max = S.room.cols || 20;
     $("singlesTheme").innerHTML = (S.singles || []).map((t) => `<option value="${t.name}">${t.name} (${t.count})</option>`).join("");
+    $("animSel").innerHTML = (S.anims || []).map((a) => `<option value="${a.folder}">${a.folder} (${a.frames}프레임 ${a.w}×${a.h})</option>`).join("") || `<option value="">(assets/graphic/fx/ 에 폴더 없음)</option>`;
     fillSheetSelect();
     setSheet(S.sheets.find((s) => s.exists)?.name || FILE_SHEET);
   }
@@ -585,15 +606,19 @@
     if (!sheet || sheet === FILE_SHEET) return;
     const info = sheetInfo(sheet);
     if (!info?.exists) { alert("원본이 없는 시트는 축소할 수 없어요"); return; }
-    if (info.name.includes("/_16px/") && !confirm("이미 축소본이에요. 또 절반으로 줄일까요?")) return;
+    const from = parseInt($("shrinkFrom").value, 10);
+    if (!(from >= 1 && from <= 256)) { alert("원본 격자 크기는 1~256 사이 정수로 써 주세요"); return; }
+    if (from === 16) { alert("이미 16px이에요. 바꿀 게 없어요"); return; }
+    const kind = from > 16 ? "축소본" : "확대본";
+    if (info.name.includes("/_16px/") && !confirm(`이미 16px 사본이에요. 또 ${from}→16으로 바꿀까요?`)) return;
     const b = $("shrinkBtn"); b.disabled = true;
     try {
-      const r = await (await fetch("/api/shrink", { method: "POST", body: JSON.stringify({ sheet, method: $("shrinkMethod").value }) })).json();
+      const r = await (await fetch("/api/shrink", { method: "POST", body: JSON.stringify({ sheet, method: $("shrinkMethod").value, scale: 16 / from }) })).json();
       if (!r.ok) { alert(r.error || "실패"); return; }
       S.sheets = (await (await fetch("/api/state")).json()).sheets;
       fillSheetSelect();
       setSheet(r.sheet);
-      alert(`축소본을 만들었어요 (${r.method})\n${r.sheet}`);
+      alert(`${kind}을 만들었어요 (${from}→16, ${r.method})\n${r.sheet}`);
     } finally { b.disabled = false; }
   };
 
@@ -797,11 +822,14 @@
     $("sliceGroup").textContent = mp ? "map_slices.json → gen/map.png" : "slices.json → gen/interiors.png";
     $("itemSection").style.display = mp ? "none" : ""; $("mapNote").style.display = mp ? "" : "none";
     $("sKey").value = sel.key;
-    const isFile = "file" in sel, isParts = "parts" in sel;
+    const isAnim = "anim" in sel, isFile = "file" in sel || isAnim, isParts = "parts" in sel;
     $("rectForm").style.display = (isFile || isParts) ? "none" : "";
     $("partsForm").style.display = isParts ? "" : "none";
     $("fileNote").style.display = isFile ? "" : "none";
-    if (isFile) $("fileNote").textContent = `파일 슬라이스: ${sel.file} (좌표 편집 없음)`;
+    if (isAnim) { const a = (S.anims || []).find((x) => x.folder === sel.anim); $("fileNote").textContent = `애니 슬라이스: assets/graphic/${sel.anim}${a ? ` (${a.frames}프레임 ${a.w}×${a.h})` : " (폴더 없음!)"} — 방 에디터 '효과 놓기'로 픽셀 단위 배치, 상점 아이템은 아님`; }
+    else if (isFile) $("fileNote").textContent = `파일 슬라이스: ${sel.file} (좌표 편집 없음)`;
+    $("fpsRow").style.display = isAnim ? "" : "none";
+    if (isAnim) $("sFps").value = sel.fps || S.anim_fps || 8;
     $("toParts").textContent = isParts ? "단일 사각형으로" : "parts로 변환";
     $("toParts").disabled = isFile;
     $("sScale").value = sel.scale && sel.scale !== 1 ? sel.scale : "";
@@ -1018,11 +1046,11 @@
   function refreshRoom(spec) {
     const it = itemOf(sel);
     const layer = it ? it.layer : "furniture";
-    const w = it ? it.w : 1, h = it ? it.h : 1;
+    const w = it ? it.w : 1, h = it ? it.h : 1, oy = it ? (it.offset_y || 0) : 0;
     $("spanRow").style.display = layer === "wallpaper" ? "" : "none";
     const span = parseInt($("rSpan").value, 10) || 1; $("rSpanVal").textContent = span;
     const x = parseInt($("rX").value, 10) || 0, y = parseInt($("rY").value, 10) || 0;
-    $("roomImg").src = `/api/room-preview?spec=${spec}&x=${x}&y=${y}&layer=${layer}&w=${w}&h=${h}&span=${span}&t=${Date.now()}`;
+    $("roomImg").src = `/api/room-preview?spec=${spec}&x=${x}&y=${y}&layer=${layer}&w=${w}&h=${h}&span=${span}&offset_y=${oy}&t=${Date.now()}`;
   }
   for (const id of ["rX", "rY", "rSpan"]) $(id).addEventListener("input", () => { if (sel && !isMapSlice(sel)) refreshRoom(encodeURIComponent(JSON.stringify(sel))); });
 

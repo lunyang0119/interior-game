@@ -36,7 +36,7 @@ function tick(): void {
     el.textContent = p?.status === "PAUSED" ? (p.paused_remaining != null ? `일시정지 · ${fmtRemain(p.paused_remaining)}` : "일시정지") : "–";
   } else {
     const grace = p.grace_until != null && p.grace_until < p.deadline_ts;
-    el.textContent = (grace ? "유예 " : "") + fmtRemain((grace ? p.grace_until! : p.deadline_ts) - now);
+    el.textContent = (grace ? "도주자 대기 " : "") + fmtRemain((grace ? p.grace_until! : p.deadline_ts) - now);
   }
   // the vote chip: once the window opens; before that it counts down to it
   const pending = pendingHunters().filter((n) => n !== p?.you?.id);
@@ -53,21 +53,22 @@ function tick(): void {
 function render(): void {
   const p = tstate.payload;
   const v = p?.view;
-  $("hud-round-val").textContent = p && v && p.status !== "LOBBY" && p.status !== "IDLE" ? `R${p.round_no ?? v.round_no}` : "–";
+  const round = p && v && p.status !== "LOBBY" && p.status !== "IDLE" ? `R${p.round_no ?? v.round_no}` : "";
   const trace = p?.fugitive ? p.fugitive.trace : (p?.report?.trace ?? v?.trace ?? 0);
   const tier = p?.fugitive ? p.fugitive.tier : (p?.report?.tier ?? 0);
-  $("hud-trace-val").textContent = p && v ? `${trace}% T${tier}` : "–";
+  $("hud-trace-val").textContent = p && v ? `${trace}% · 경계도 ${tier}` : "–";
   // submission status by name
   const pending = pendingHunters();
   const total = v?.hunters.length ?? 0;
   const sub = $("hud-sub-val");
+  const fug = p?.status === "ROUND_OPEN" ? (p.fugitive_submitted ? " · 도주자 ✓" : tstate.thinking.has("fugitive") ? " · 도주자 판단 중" : " · 도주자 미제출") : "";
   if (!total) sub.textContent = "–";
-  else if (!pending.length) sub.textContent = `전원 제출 ${total}/${total}`;
-  else sub.textContent = `미제출 ${pending.length}: ${pending.map((n) => label(n) + (tstate.thinking.has(n) ? "(판단 중)" : "")).join(", ")}`;
+  else if (!pending.length) sub.textContent = `승무원 전원 제출${fug}`;
+  else sub.textContent = `미제출 ${pending.length}: ${pending.map((n) => label(n) + (tstate.thinking.has(n) ? "(판단 중)" : "")).join(", ")}${fug}`;
   const st = p?.status ?? "IDLE";
   const spectator = p?.role === "spectator" && st !== "IDLE" && st !== "LOBBY";
-  const [icon, lbl] = st === "LOBBY" ? ["exit", "모집 중"] : st === "PAUSED" ? ["pause", "일시정지"] : st === "CAPTURED" ? ["trophy", "체포"]
-    : st === "IDLE" ? ["power", "대기"] : tstate.phase === "playback" ? ["play", "재생"] : spectator ? ["camera", "관전 중"] : ["signal", "라운드 진행"];
+  const [icon, lbl] = st === "LOBBY" ? ["exit", "모집 중"] : st === "PAUSED" ? ["pause", `${round} 일시정지`] : st === "CAPTURED" ? ["trophy", `${round} 체포`]
+    : st === "IDLE" ? ["power", "대기"] : tstate.phase === "playback" ? ["play", `${round} 재생`] : spectator ? ["camera", `${round} 관전 중`] : ["signal", `${round} 진행 중`];
   $("hud-status").innerHTML = `<i class="ic ic-${icon}"></i><span>${lbl}</span>`;
   $("hud-status").title = spectator ? "이 추적의 참가자가 아니라 지켜보는 중이에요. 다음 판에 로비에서 탑승하세요" : "추적 상태";
   // my submitted order stays on the HUD

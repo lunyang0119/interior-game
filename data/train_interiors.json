@@ -1,0 +1,192 @@
+{
+ "_comment": "열차 추적(/train/) 칸 인테리어. 장치마다 하나, 방 에디터(/world)의 '열차 칸'에서 고쳐요. 크기는 전부 같아야 해요. 저장 후 게임 서버 재시작.",
+ "rooms": {
+  "curtain": {
+   "cols": 7,
+   "rows": 6,
+   "wall_rows": 2,
+   "spawn": {
+    "x": 0,
+    "y": 2
+   },
+   "blocked": [],
+   "zoom": 2,
+   "tiles": {
+    "wall": [
+     "tile_cyber_wall_7",
+     "tile_cyber_wall_7"
+    ],
+    "wall_left": [
+     "tile_cyber_wall_7",
+     "tile_cyber_wall_7"
+    ],
+    "wall_right": [
+     "tile_cyber_wall_7",
+     "tile_cyber_wall_7"
+    ],
+    "floor": "tile_cybe_14"
+   },
+   "seed": [
+    {
+     "item_id": "cybe_107",
+     "x": 4,
+     "y": 0
+    },
+    {
+     "item_id": "cybe_107",
+     "x": 5,
+     "y": 0
+    },
+    {
+     "item_id": "cybe_88",
+     "x": 1,
+     "y": 4
+    },
+    {
+     "item_id": "cybe_87",
+     "x": 5,
+     "y": 3
+    },
+    {
+     "item_id": "cybe_93",
+     "x": 1,
+     "y": 0
+    }
+   ]
+  },
+  "coffeepot": {
+   "cols": 7,
+   "rows": 6,
+   "wall_rows": 2,
+   "spawn": {
+    "x": 0,
+    "y": 2
+   },
+   "blocked": [],
+   "zoom": 2,
+   "tiles": {
+    "wall": [
+     "tile_coffee_wall",
+     "tile_coffee_wall"
+    ],
+    "wall_left": [
+     "tile_coffee_wall",
+     "tile_coffee_wall"
+    ],
+    "wall_right": [
+     "tile_coffee_wall",
+     "tile_coffee_wall"
+    ],
+    "floor": "tile_coffee"
+   },
+   "seed": [
+    {
+     "item_id": "fmp_011",
+     "x": 5,
+     "y": 2
+    },
+    {
+     "item_id": "coffepot_2",
+     "x": 5,
+     "y": 1
+    }
+   ]
+  },
+  "light": {
+   "cols": 7,
+   "rows": 6,
+   "wall_rows": 2,
+   "spawn": {
+    "x": 0,
+    "y": 2
+   },
+   "blocked": [],
+   "zoom": 2,
+   "tiles": {
+    "wall": [
+     "tile_wall_top",
+     "tile_wall_bottom"
+    ],
+    "wall_left": [
+     "tile_wall_top",
+     "tile_wall_bottom"
+    ],
+    "wall_right": [
+     "tile_wall_top",
+     "tile_wall_bottom"
+    ],
+    "floor": "tile_floor_gray"
+   },
+   "seed": [
+    {
+     "item_id": "mordgen_024_window_grey",
+     "x": 1,
+     "y": 0
+    },
+    {
+     "item_id": "mordgen_024_window_grey",
+     "x": 4,
+     "y": 0
+    },
+    {
+     "item_id": "mordjail_006_bench_seat",
+     "x": 0,
+     "y": 5
+    },
+    {
+     "item_id": "ppfurn_090_standing_lamp_cross_a",
+     "x": 5,
+     "y": 2
+    }
+   ]
+  },
+  "speaker": {
+   "cols": 7,
+   "rows": 6,
+   "wall_rows": 2,
+   "spawn": {
+    "x": 0,
+    "y": 2
+   },
+   "blocked": [],
+   "zoom": 2,
+   "tiles": {
+    "wall": [
+     "tile_wall_top",
+     "tile_wall_bottom"
+    ],
+    "wall_left": [
+     "tile_wall_top",
+     "tile_wall_bottom"
+    ],
+    "wall_right": [
+     "tile_wall_top",
+     "tile_wall_bottom"
+    ],
+    "floor": "tile_floor_gray"
+   },
+   "seed": [
+    {
+     "item_id": "mordgen_024_window_grey",
+     "x": 1,
+     "y": 0
+    },
+    {
+     "item_id": "mordgen_024_window_grey",
+     "x": 4,
+     "y": 0
+    },
+    {
+     "item_id": "mordjail_006_bench_seat",
+     "x": 0,
+     "y": 5
+    },
+    {
+     "item_id": "ppfurn_093_cabinet_speaker_narrow_grey_a",
+     "x": 5,
+     "y": 2
+    }
+   ]
+  }
+ }
+}

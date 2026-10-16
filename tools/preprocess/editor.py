@@ -6,7 +6,9 @@
 
 /        editor.html  — sheets (every PNG under assets/graphic/Interior + Map), slices, items (tags, pair),
                         single-object PNG browser, character sheets
-/world   world.html   — room editor (size, tiles, seeded items, exits) and map editor (tiles, places)
+/world   world.html   — room editor (size, tiles, seeded items, exits) and map editor (tiles, places); also the
+                        /train/ compartment interiors ("열차 칸", data/train_interiors.json)
+/train-maps train.html — /train/ minigame maps (rooms, devices, doors) → data/train_maps.json
 
 Local dev tool only: stdlib http.server + Pillow, nothing is needed at runtime.
 """
@@ -39,9 +41,11 @@ import preprocess as P  # noqa: E402
 
 HTML_FILE = Path(__file__).with_name("editor.html")
 WORLD_FILE = Path(__file__).with_name("world.html")
+TRAIN_FILE = Path(__file__).with_name("train.html")
 ROOM_FILE = C.REPO_ROOT / "data" / "room.json"          # legacy single room the game server still reads (mirror of rooms/inn.json)
 ROOMS_DIR = C.REPO_ROOT / "data" / "rooms"
 MAP_FILE = C.REPO_ROOT / "data" / "map.json"
+TRAIN_INTERIORS_FILE = C.REPO_ROOT / "data" / "train_interiors.json"
 LAYERS = ["furniture", "surface_item", "floor", "wall", "wallpaper"]
 TAG_RE = re.compile(r"^[a-z0-9_]+$")
 # item tags the game server understands (shown as checkboxes/chips in the editor; any other [a-z0-9_] tag is allowed too)
@@ -74,6 +78,15 @@ CHAR_SHEET_SIZE = (896, 656)
 CHAR_NAME_RE = re.compile(r"^[A-Za-z]+_\d+(?:_[A-Za-z0-9]+)*\.png$")
 
 
+STRIP_LAYER = "preset"  # loop strips (config.PRESET_STRIP_DIR) become premade characters
+
+
+def strip_ok(name: str, w: int, h: int) -> bool:
+    """A loop-strip preset file is usable: `<Name>_<W>x<H>.png`, H tall, a whole number of W-wide frames."""
+    m = C.PRESET_STRIP_RE.match(name)
+    return bool(m) and h == int(m.group("h")) and w >= int(m.group("w")) and w % int(m.group("w")) == 0
+
+
 def char_state() -> dict:
     """Layers as built in manifest.json + the custom sheets on disk (what a rebuild would pick up)."""
     manifest = C.OUT_DIR / "manifest.json"
@@ -90,6 +103,16 @@ def char_state() -> dict:
                     w, h = 0, 0
                 files.append({"name": p.name, "w": w, "h": h, "ok": (w, h) == CHAR_SHEET_SIZE and p.name.startswith(prefix + "_")})
         custom[layer] = {"folder": folder, "prefix": prefix, "files": files}
+    # preset loop strips: any frame size, the name carries it
+    files = []
+    if C.PRESET_STRIP_DIR.exists():
+        for p in sorted(C.PRESET_STRIP_DIR.glob("*.png")):
+            try:
+                w, h = Image.open(p).size
+            except Exception:
+                w, h = 0, 0
+            files.append({"name": p.name, "w": w, "h": h, "ok": strip_ok(p.name, w, h)})
+    custom[STRIP_LAYER] = {"folder": C.PRESET_STRIP_DIR.name, "prefix": "", "strip": True, "files": files}
     return {"layers": layers, "order": C.LAYER_ORDER, "custom": custom, "customDir": str(C.CUSTOM_DIR),
             "frameW": C.FRAME_W, "frameH": C.FRAME_H, "frames": len(C.ANIM_STRIPS) * len(C.DIRS) * C.FRAMES_PER_DIR}
 WALL_LAYERS = ("wall", "wallpaper")
@@ -137,6 +160,27 @@ def sheet_list() -> list[dict]:
             except Exception:
                 entry["exists"] = False
         out.append(entry)
+    return out
+
+
+ANIM_ROOT = C.ASSETS / "fx"  # assets/graphic/fx/<name>/*.png — frame folders the slice editor offers as anim slices
+
+
+def anim_folders() -> list[dict]:
+    """Frame folders under assets/graphic/fx: {folder: "fx/FX002", frames, w, h} (w/h of the first frame)."""
+    out = []
+    if not ANIM_ROOT.is_dir():
+        return out
+    for d in sorted(p for p in ANIM_ROOT.iterdir() if p.is_dir()):
+        files = sorted(d.glob("*.png"))
+        if not files:
+            continue
+        try:
+            with Image.open(files[0]) as im:
+                w, h = im.size
+        except Exception:
+            continue
+        out.append({"folder": d.relative_to(C.ASSETS).as_posix(), "frames": len(files), "w": w, "h": h})
     return out
 
 
@@ -322,6 +366,12 @@ def validate_room(rid: str, room: dict, all_ids: set[str], item_ids: set[str], t
             return f"{rid}: 시드에 모르는 아이템 '{sd.get('item_id')}'"
         if not isinstance(sd.get("x"), int) or not isinstance(sd.get("y"), int):
             return f"{rid}: 시드 좌표가 정수가 아니에요"
+    built = _atlas_frames()  # effects need a built interior atlas key (the game server checks the manifest the same way)
+    for fx in room.get("fx", []):
+        if not isinstance(fx.get("sprite"), str) or (built and fx["sprite"] not in built):
+            return f"{rid}: 효과에 모르는 슬라이스 '{fx.get('sprite')}' (빌드했나요?)"
+        if not all(isinstance(fx.get(k), int) and not isinstance(fx.get(k), bool) and fx[k] >= 0 for k in ("x", "y")):
+            return f"{rid}: 효과 좌표(px)가 0 이상 정수가 아니에요"
     return None
 
 
@@ -341,7 +391,7 @@ def save_rooms(rooms: dict[str, dict]) -> None:
         if stale.stem not in rooms:
             stale.unlink()
     for rid, room in rooms.items():
-        room = {"id": rid, **{k: v for k, v in room.items() if k != "id"}}
+        room = {"id": rid, **{k: v for k, v in room.items() if k != "id" and not (k == "fx" and not v)}}
         (ROOMS_DIR / f"{rid}.json").write_text(json.dumps(room, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
     # the game server (until the multi-room phase) reads data/room.json: keep it equal to the inn
     if "inn" in rooms:
@@ -381,7 +431,9 @@ def validate_map(m: dict, room_ids: set[str], map_keys: set[str]) -> str | None:
         return isinstance(c, (list, tuple)) and len(c) == 2 and all(isinstance(v, int) and v >= 0 for v in c) and c[0] < cols and c[1] < rows
 
     def rot_ok(o: dict) -> bool:
-        return o.get("rot", 0) in (0, 90, 180, 270) and isinstance(o.get("flip", False), bool)
+        # ox/oy: pixel nudge inside the anchor cell (the editor carries overflow into x/y, so 0..CELL-1 is enough)
+        return (o.get("rot", 0) in (0, 90, 180, 270) and isinstance(o.get("flip", False), bool)
+                and all(isinstance(o.get(k, 0), int) and 0 <= o.get(k, 0) < C.CELL for k in ("ox", "oy")))
 
     for pl in m.get("places", []):
         if pl.get("room") not in room_ids and pl.get("room") != "dock":
@@ -389,7 +441,7 @@ def validate_map(m: dict, room_ids: set[str], map_keys: set[str]) -> str | None:
         if pl.get("sprite") and pl["sprite"] not in map_keys:
             return f"장소 '{pl.get('name')}': 모르는 스프라이트 '{pl['sprite']}'"
         if not rot_ok(pl):
-            return f"장소 '{pl.get('name')}': rot은 0/90/180/270, flip은 true/false"
+            return f"장소 '{pl.get('name')}': rot은 0/90/180/270, flip은 true/false, ox/oy는 0~{C.CELL - 1}"
         if not all(cell_ok(c) for c in pl.get("doors", [])):
             return f"장소 '{pl.get('name')}': 문 칸이 맵 밖이에요"
         sp = pl.get("spawn")
@@ -409,7 +461,7 @@ def validate_map(m: dict, room_ids: set[str], map_keys: set[str]) -> str | None:
         if not cell_ok([d.get("x"), d.get("y")]):
             return f"데코 '{d.get('sprite')}': 위치가 맵 밖이에요"
         if not rot_ok(d):
-            return f"데코 '{d.get('sprite')}': rot은 0/90/180/270, flip은 true/false"
+            return f"데코 '{d.get('sprite')}': rot은 0/90/180/270, flip은 true/false, ox/oy는 0~{C.CELL - 1}"
     return None
 
 
@@ -497,6 +549,14 @@ def validate_slices(slices: list, seen: set[str] | None = None) -> str | None:
             return f"{key}: step은 {' / '.join(P.TILE_STEPS)} 중 하나"
         if "walk" in s and s["walk"] is not False:
             return f"{key}: walk는 false만 쓸 수 있어요 (지우면 걸을 수 있음)"
+        if "anim" in s:
+            d = C.ASSETS / str(s["anim"])
+            if not isinstance(s["anim"], str) or not d.is_dir() or not any(d.glob("*.png")):
+                return f"{key}: anim 폴더에 PNG가 없어요 (assets/graphic/{s['anim']})"
+            fps = s.get("fps", P.ANIM_DEFAULT_FPS)
+            if not isinstance(fps, (int, float)) or isinstance(fps, bool) or not 1 <= fps <= 60:
+                return f"{key}: fps는 1~60"
+            continue
         if "file" in s:
             continue
         rects = s["parts"] if "parts" in s else [s]
@@ -520,8 +580,9 @@ def blit(dst: Image.Image, src: Image.Image, x: int, y: int) -> None:
     dst.alpha_composite(layer)
 
 
-def room_preview(spec: dict, x: int, y: int, layer: str, w: int, h: int, span: int) -> Image.Image:
-    """The slice composited on a small room exactly as the game draws it (see client/src/room/ItemLayer.ts)."""
+def room_preview(spec: dict, x: int, y: int, layer: str, w: int, h: int, span: int, offset_y: int = 0) -> Image.Image:
+    """The slice composited on a small room exactly as the game draws it (see client/src/room/ItemLayer.ts);
+    `offset_y` moves only the picture down, the footprint outline stays put."""
     room = load_room()
     cell = C.CELL
     cols = int(room.get("cols", 20))
@@ -563,13 +624,117 @@ def room_preview(spec: dict, x: int, y: int, layer: str, w: int, h: int, span: i
         px, py = x * cell, y * cell
     else:
         px, py = x * cell, (y + h) * cell - im.height
-    blit(out, im, px, py)
+    blit(out, im, px, py + offset_y)
     # footprint outline so the occupied cells are obvious
     fw = (span if layer == "wallpaper" else w) * cell
     outline = Image.new("RGBA", out.size, (0, 0, 0, 0))
     ImageDraw.Draw(outline).rectangle((x * cell, y * cell, x * cell + fw - 1, y * cell + h * cell - 1), outline=(255, 80, 80, 220))
     out.alpha_composite(outline)
     return out.resize((out.width * PREVIEW_SCALE, out.height * PREVIEW_SCALE), Image.NEAREST)
+
+
+def server_module(name: str):
+    """A module of the game server (server/app/...); only used for ones with stdlib-only imports."""
+    server = str(C.REPO_ROOT / "server")
+    if server not in sys.path:
+        sys.path.insert(0, server)
+    return importlib.import_module(name)
+
+
+def train_maps_module():
+    """server/app/train/maps.py (the game server's own validation)."""
+    return server_module("app.train.maps")
+
+
+# /train/ compartment interiors: one Room-shaped template per engine device, all the same size (the server's
+# catalog._load_train checks the same limits). The defaults reproduce the built-in look of
+# client/src/train/render/layout.ts + tiles.ts so the first edit starts from what the game shows.
+TRAIN_COLS, TRAIN_FLOOR_ROWS, TRAIN_WALL_ROWS = (4, 16), (2, 12), (0, 4)
+TRAIN_DEFAULT_SEED = [("mordgen_024_window_grey", 1, 0), ("mordgen_024_window_grey", 4, 0), ("mordjail_006_bench_seat", 0, 5)]
+TRAIN_DEFAULT_DEVICE = {"curtain": ("mordgen_032_curtain_tan", 3, 0), "coffeepot": ("mordkitchen_090_kettle_with_extras", 3, 2),
+                        "light": ("ppfurn_090_standing_lamp_cross_a", 5, 2), "speaker": ("ppfurn_093_cabinet_speaker_narrow_grey_a", 5, 2)}
+
+
+def default_train_room(device: str, item_ids: set[str]) -> dict:
+    seed = [*TRAIN_DEFAULT_SEED, *([TRAIN_DEFAULT_DEVICE[device]] if device in TRAIN_DEFAULT_DEVICE else [])]
+    WALL = ["tile_wall_top", "tile_wall_bottom"]
+    return {"cols": 7, "rows": 6, "wall_rows": 2, "spawn": {"x": 0, "y": 2}, "blocked": [], "zoom": 2,
+            "tiles": {"wall": WALL, "wall_left": list(WALL), "wall_right": list(WALL), "floor": "tile_floor_gray"},
+            "seed": [{"item_id": i, "x": x, "y": y} for i, x, y in seed if i in item_ids]}
+
+
+def train_interiors_state() -> dict:
+    devices = server_module("app.train.config").DEVICES
+    ko = server_module("app.train.strings").DEVICE_KO
+    saved = json.loads(TRAIN_INTERIORS_FILE.read_text(encoding="utf-8")).get("rooms", {}) if TRAIN_INTERIORS_FILE.exists() else {}
+    item_ids = {it["id"] for it in load_items()["items"]}
+    rooms = {}
+    for d in devices:
+        r = saved.get(d) or default_train_room(d, item_ids)
+        if d not in saved and saved:   # a device added later: take the saved size
+            ref = next(iter(saved.values()))
+            r.update(cols=ref["cols"], rows=ref["rows"], wall_rows=ref["wall_rows"],
+                     tiles={**r["tiles"], **{k: (r["tiles"]["wall"] * ref["wall_rows"])[:ref["wall_rows"]] for k in ("wall", "wall_left", "wall_right")}})
+            r["seed"] = [s for s in r["seed"] if s["x"] < r["cols"] and s["y"] < r["rows"]]
+        rooms[d] = r
+    return {"rooms": rooms, "devices": [{"id": d, "ko": ko.get(d, d)} for d in devices], "saved": bool(saved)}
+
+
+def save_train_interiors(body: dict) -> str | None:
+    devices = server_module("app.train.config").DEVICES
+    rooms = body.get("rooms") if isinstance(body, dict) else None
+    if not isinstance(rooms, dict) or not rooms:
+        return "rooms가 없어요"
+    item_ids = {it["id"] for it in load_items()["items"]}
+    tile_keys = {s["key"] for s in P.load_slices() if s["key"].startswith(P.TILE_PREFIX)}
+    sizes = set()
+    for d, r in rooms.items():
+        if d not in devices:
+            return f"모르는 장치 '{d}'"
+        r.update(exits=[], spawn={"x": 0, "y": r.get("wall_rows", 0)})
+        err = validate_room(f"train_{d}", r, set(), item_ids, tile_keys)
+        if err:
+            return err
+        floor = r["rows"] - r["wall_rows"]
+        if not (TRAIN_COLS[0] <= r["cols"] <= TRAIN_COLS[1] and TRAIN_FLOOR_ROWS[0] <= floor <= TRAIN_FLOOR_ROWS[1]
+                and TRAIN_WALL_ROWS[0] <= r["wall_rows"] <= TRAIN_WALL_ROWS[1]):
+            return (f"{d}: 크기는 cols {TRAIN_COLS[0]}~{TRAIN_COLS[1]}, 바닥 {TRAIN_FLOOR_ROWS[0]}~{TRAIN_FLOOR_ROWS[1]}줄, "
+                    f"벽 {TRAIN_WALL_ROWS[0]}~{TRAIN_WALL_ROWS[1]}줄이어야 해요")
+        sizes.add((r["cols"], r["rows"], r["wall_rows"]))
+        r.pop("exits")
+    if len(sizes) > 1:
+        return "열차 칸은 네 개 모두 크기가 같아야 해요"
+    out = {"_comment": "열차 추적(/train/) 칸 인테리어. 장치마다 하나, 방 에디터(/world)의 '열차 칸'에서 고쳐요. 크기는 전부 같아야 해요. "
+                       "저장 후 게임 서버 재시작.",
+           "rooms": {d: rooms[d] for d in devices if d in rooms}}
+    TRAIN_INTERIORS_FILE.write_text(json.dumps(out, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+    return None
+
+
+def train_maps_state() -> dict:
+    TM = train_maps_module()
+    from app.train.strings import DEVICE_KO
+    p = TM.app_config.TRAIN_MAPS_PATH
+    custom = json.loads(p.read_text(encoding="utf-8")).get("maps", {}) if p.exists() else {}
+    return {"builtin": TM.builtin_rows(), "custom": custom, "path": str(p), "max_grid": TM.MAX_GRID,
+            "devices": [{"id": d, "ko": DEVICE_KO.get(d, d)} for d in TM.cfgmod.DEVICES]}
+
+
+def save_train_maps(body: dict) -> str | None:
+    TM = train_maps_module()
+    maps = body.get("maps") if isinstance(body, dict) else None
+    if not isinstance(maps, dict):
+        return "maps가 없어요"
+    for mid, rows in maps.items():
+        err = TM.validate(mid, rows)
+        if err:
+            return err
+    out = {"_comment": "열차 추적(/train/) 맵. 에디터 /train-maps 에서 고쳐요. 내장 맵(server/app/train/config.py)과 같은 id면 그 맵을 대신해요. "
+                       "진행 중인 게임은 시작할 때의 맵을 그대로 써요.",
+           "maps": {mid: [TM._row(r) for r in rows] for mid, rows in maps.items()}}
+    p = TM.app_config.TRAIN_MAPS_PATH
+    p.write_text(json.dumps(out, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+    return None
 
 
 def run_build() -> str:
@@ -760,6 +925,10 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_bytes(HTML_FILE.read_bytes(), "text/html; charset=utf-8")
             elif u.path == "/world":
                 self.send_bytes(WORLD_FILE.read_bytes(), "text/html; charset=utf-8")
+            elif u.path == "/train-maps":
+                self.send_bytes(TRAIN_FILE.read_bytes(), "text/html; charset=utf-8")
+            elif u.path == "/api/train-maps":
+                self.send_json(train_maps_state())
             elif u.path == "/api/deploy":
                 self.send_json(D.status())
             elif u.path == "/api/deploy/log":
@@ -771,7 +940,7 @@ class Handler(BaseHTTPRequestHandler):
                     "items": load_items()["items"], "layers": LAYERS, "cell": C.CELL,
                     "tags": [{"tag": t, "desc": d} for t, d in KNOWN_TAGS],
                     "room": {k: room.get(k) for k in ("cols", "rows", "wall_rows", "tiles")},
-                    "singles": singles_themes(),
+                    "singles": singles_themes(), "anims": anim_folders(), "anim_fps": P.ANIM_DEFAULT_FPS,
                     "atlas": {"interior": (C.OUT_DIR / "interiors.json").exists(), "map": (C.OUT_DIR / "map.json").exists()},
                 })
             elif u.path == "/api/world":
@@ -786,6 +955,7 @@ class Handler(BaseHTTPRequestHandler):
                     "tiles": {s["key"]: {k: s[k] for k in ("step", "walk") if k in s}
                               for s in P.load_slices() if s["key"].startswith(P.TILE_PREFIX) and ("step" in s or "walk" in s)},
                     "atlas": {"interior": (C.OUT_DIR / "interiors.json").exists(), "map": (C.OUT_DIR / "map.json").exists()},
+                    "train": train_interiors_state(),
                     "bgs": bg_names(), "bgs_built": sorted(p.stem for p in (C.OUT_DIR / "mapbg").glob("*.png")) if (C.OUT_DIR / "mapbg").exists() else [],
                 })
             elif u.path == "/api/dock":
@@ -828,7 +998,7 @@ class Handler(BaseHTTPRequestHandler):
             elif u.path == "/api/room-preview":
                 g = lambda k, d: int(q.get(k, [d])[0])  # noqa: E731
                 im = room_preview(json.loads(q["spec"][0]), g("x", 0), g("y", 0), q.get("layer", ["furniture"])[0],
-                                  g("w", 1), g("h", 1), g("span", 1))
+                                  g("w", 1), g("h", 1), g("span", 1), g("offset_y", 0))
                 self.send_bytes(png_bytes(im), "image/png")
             else:
                 self.send_error(HTTPStatus.NOT_FOUND)
@@ -887,6 +1057,18 @@ class Handler(BaseHTTPRequestHandler):
                 if st["built"]:  # the game reads gen/dock.json; keep it in sync without a full build
                     P.write_dock_layout(st["images"], (st["w"], st["h"]))
                 self.send_json({"ok": True})
+            elif u.path == "/api/train-interiors":
+                err = save_train_interiors(body)
+                if err:
+                    self.send_json({"error": err}, 400)
+                    return
+                self.send_json({"ok": True})
+            elif u.path == "/api/train-maps":
+                err = save_train_maps(body)
+                if err:
+                    self.send_json({"error": err}, 400)
+                    return
+                self.send_json({"ok": True, **train_maps_state()})
             elif u.path == "/api/map":
                 err = validate_map(body, set(load_rooms()), atlas_keys("map"))
                 if err:
@@ -949,7 +1131,8 @@ class Handler(BaseHTTPRequestHandler):
             if u.path == "/api/build":
                 self.send_json({"ok": True, "log": run_build()})
             elif u.path == "/api/shrink":
-                # {sheet, method?, scale?} → 16px copy under <Root>/_16px/, then the sheet list is rescanned
+                # {sheet, method?, scale?} → 16px copy under <Root>/_16px/ (scale = 16 / source grid; >1 enlarges),
+                # then the sheet list is rescanned
                 n = int(self.headers.get("Content-Length") or 0)
                 body = json.loads(self.rfile.read(n).decode("utf-8")) if n else {}
                 src = sheet_path(body.get("sheet", ""))
@@ -981,6 +1164,27 @@ class Handler(BaseHTTPRequestHandler):
             elif u.path == "/api/char-upload":
                 # raw PNG body; ?layer=hair&name=Hairstyle_30_01.png → assets/custom/Hairstyles/
                 layer, name = q.get("layer", [""])[0], q.get("name", [""])[0]
+                if layer == STRIP_LAYER:
+                    # a loop strip: <Name>_<W>x<H>.png, checked against its own frame size, never fitted
+                    n = int(self.headers.get("Content-Length") or 0)
+                    raw = self.rfile.read(n)
+                    try:
+                        im = Image.open(io.BytesIO(raw))
+                        im.verify()
+                        w, h = Image.open(io.BytesIO(raw)).size
+                    except Exception:
+                        self.send_json({"error": "PNG 파일이 아니에요"}, 400)
+                        return
+                    if not C.PRESET_STRIP_RE.match(name):
+                        self.send_json({"error": "파일 이름은 이름_가로x세로.png 형식이어야 해요 (예: Drone_36x30.png, 프레임 한 칸 크기)"}, 400)
+                        return
+                    if not strip_ok(name, w, h):
+                        self.send_json({"error": f"이름의 프레임 크기와 그림이 안 맞아요: {w}×{h}는 높이가 같고 가로가 프레임 폭의 배수여야 해요"}, 400)
+                        return
+                    C.PRESET_STRIP_DIR.mkdir(parents=True, exist_ok=True)
+                    (C.PRESET_STRIP_DIR / name).write_bytes(raw)
+                    self.send_json({"ok": True, "path": str(C.PRESET_STRIP_DIR / name), "fitted": False, "from": [w, h]})
+                    return
                 if layer not in CHAR_FOLDERS:
                     self.send_json({"error": f"모르는 레이어 {layer}"}, 400)
                     return
@@ -1017,10 +1221,10 @@ class Handler(BaseHTTPRequestHandler):
             elif u.path == "/api/char-delete":
                 body = self.read_json() or {}
                 layer, name = body.get("layer"), body.get("name", "")
-                if layer not in CHAR_FOLDERS or "/" in name or "\\" in name or not name.endswith(".png"):
+                if (layer not in CHAR_FOLDERS and layer != STRIP_LAYER) or "/" in name or "\\" in name or not name.endswith(".png"):
                     self.send_json({"error": "잘못된 요청"}, 400)
                     return
-                p = C.CUSTOM_DIR / CHAR_FOLDERS[layer][0] / name
+                p = (C.PRESET_STRIP_DIR if layer == STRIP_LAYER else C.CUSTOM_DIR / CHAR_FOLDERS[layer][0]) / name
                 if p.exists():
                     p.unlink()
                 self.send_json({"ok": True})
