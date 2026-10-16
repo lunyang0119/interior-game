@@ -61,7 +61,17 @@ Character strips: 24 frames = 6 per direction in order right, up, left, down. `r
 
 경로는 `assets/graphic/` 기준, `fps`는 초당 프레임(기본 8), `scale`도 된다. `build`가 아틀라스에 `fx_steam`(= 첫 프레임)과 `fx_steam#0`…`#7`을 넣고 manifest 키 `fx_steam`에 `anim: {frames, fps}`를 적는다(`#i`는 키로 안 나감). 폴더가 사라지면 다른 슬라이스처럼 직전 아틀라스에서 동결 복사. 상점 아이템은 아니라 `scaffold`가 건너뛴다.
 
-놓는 건 방 에디터(/world) 방 탭의 **✨ 효과 놓기**: 팔레트(움직이는 것 🎞 먼저, 그 뒤 실내 아틀라스 전부)에서 고르고 클릭하면 그 칸 왼쪽 위에 놓이고, 드래그(Shift=칸 스냅)나 방향키(1칸 / Shift=8px / Ctrl=1px)로 **픽셀 단위**로 옮긴다. `rooms/<id>.json`의 `fx: [{sprite, x, y}]`(px, 왼쪽 위 기준)로 저장되고 게임의 `RoomScene`이 가구·아바타보다 위에 그리며 `anim` 키면 반복 재생한다. 열차 칸(`train_interiors.json`)에도 같은 필드가 들어가지만 열차 페이지는 아직 안 그린다. 서버는 `/api/catalog`에 `anims: {키: {frames, fps}}`를 같이 내려준다.
+프레임이 한 시트에 흩어져 있으면(깜빡이는 불빛: 켜진 그림·꺼진 그림) 먼저 각각을 보통 슬라이스로 자르고, 목록에서 체크한 뒤 **🎞 체크한 걸로 애니 만들기**(목록 순서 = 재생 순서). 저장 형식은 `frames`:
+
+```json
+{"key": "fx_blink", "frames": ["lamp_on", "lamp_off", "lamp_on"], "fps": 3}
+```
+
+같은 아틀라스의 슬라이스 key만 쓸 수 있고(애니 슬라이스는 안 됨), 같은 key를 여러 번 써도 된다. 패널의 `frames` 칸(쉼표 구분)으로 순서를 고친다. 프레임 크기가 달라도 되고 왼쪽 위 기준으로 맞춰 그려진다. 나머지(`#i` 프레임, manifest `anim`, 효과 놓기)는 `anim`과 같다.
+
+놓는 건 방 에디터(/world) 방 탭의 **✨ 효과 놓기**: 팔레트(움직이는 것 🎞 먼저, 그 뒤 실내 아틀라스 전부)에서 고르고 클릭하면 그 칸 왼쪽 위에 놓이고, 드래그(Shift=칸 스냅)나 방향키(1칸 / Shift=8px / Ctrl=1px)로 **픽셀 단위**로 옮긴다. `rooms/<id>.json`의 `fx: [{sprite, x, y}]`(px, 왼쪽 위 기준)로 저장되고 게임의 `RoomScene`이 가구·아바타보다 위에 그리며 `anim` 키면 반복 재생한다. 서버는 `/api/catalog`에 `anims: {키: {frames, fps}}`를 같이 내려준다.
+
+**기믹 조건 (`when`)**: 효과 패널의 "조건"을 고르면 `fx[].when`에 태그가 저장되고, 그 기믹이 켜진 동안에만 보인다(에디터에선 반투명 + 태그 글자). 열차 칸(`train_interiors.json`, 에디터의 "열차 칸")에서 쓰라고 만든 것: `steam` = 커피포트 과부하(그 라운드 동안 공개 뷰 `steam`에 든 칸), `blackout` = 조명 해킹(화면이 깜빡이는 동안 모든 칸), `marker` = 신호 감지(◎)된 칸. 열차 페이지의 `CarMap.drawTemplateFx`가 그리고 `Fx.onCondition` → `CarMap.setCondition(tag, rooms)`로 켜고 끈다. 보통 방은 기믹 상태가 없어서 조건 있는 효과를 아예 안 그린다. 예: 커피포트 칸에 `fx_steam`을 포트 위에 놓고 조건을 `steam`으로.
 
 ## 동결(freeze): 소스 팩이 사라진 슬라이스
 

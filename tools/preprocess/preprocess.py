@@ -128,9 +128,31 @@ ANIM_SEP = "#"       # atlas frame names of an anim slice's frames: <key>#0, <ke
 ANIM_DEFAULT_FPS = 8
 
 
-def anim_frames(s: dict) -> list[Image.Image]:
-    """Frames of an `anim` slice: every PNG in assets/graphic/<anim>/ in name order (all the same size), scaled
-    like a normal slice. SourceMissing when the folder is gone (the frozen atlas may still have the frames)."""
+def is_anim(s: dict) -> bool:
+    """An animated slice: `anim` (a folder of frame PNGs) or `frames` (a list of other slices' keys)."""
+    return "anim" in s or "frames" in s
+
+
+def anim_frames(s: dict, sheets: dict[str, Image.Image] | None = None, file_base: Path | None = None,
+                index: dict[str, dict] | None = None, frozen: tuple[Image.Image, dict] | None = None) -> list[Image.Image]:
+    """Frames of an animated slice, scaled like a normal slice.
+
+    `anim`: every PNG in assets/graphic/<anim>/ in name order, all the same size (SourceMissing when the folder is gone;
+    the frozen atlas may still have the frames). `frames`: the crops of the listed slices (`index` = slices by key,
+    same atlas; a blinking lamp cut as two slices of a sheet), each with its own frozen fallback; sizes may differ
+    (drawn top-left aligned)."""
+    if "frames" in s:
+        out = []
+        for k in s["frames"]:
+            spec = (index or {}).get(k)
+            if spec is None:
+                raise SystemExit(f"slice {s['key']}: frame '{k}' is not a slice of the same atlas")
+            if is_anim(spec):
+                raise SystemExit(f"slice {s['key']}: frame '{k}' is itself animated")
+            out.append(rescale(slice_image(spec, sheets or {}, file_base=file_base, frozen=frozen, index=index), s.get("scale")))
+        if not out:
+            raise SystemExit(f"slice {s['key']}: frames is empty")
+        return out
     d = C.ASSETS / s["anim"]
     files = sorted(d.glob("*.png")) if d.is_dir() else []
     if not files:
@@ -141,10 +163,11 @@ def anim_frames(s: dict) -> list[Image.Image]:
     return frames
 
 
-def anim_slice_frames(s: dict, frozen: tuple[Image.Image, dict] | None) -> list[tuple[str, Image.Image]]:
+def anim_slice_frames(s: dict, sheets: dict[str, Image.Image], file_base: Path | None, index: dict[str, dict],
+                      frozen: tuple[Image.Image, dict] | None) -> list[tuple[str, Image.Image]]:
     """(frame key, image) for every frame of an anim slice, falling back to the previous atlas like slice_image."""
     try:
-        frames = anim_frames(s)
+        frames = anim_frames(s, sheets, file_base, index, frozen)
     except SourceMissing as e:
         frames = []
         while (old := _frozen_crop(f"{s['key']}{ANIM_SEP}{len(frames)}", frozen)) is not None:
@@ -155,9 +178,10 @@ def anim_slice_frames(s: dict, frozen: tuple[Image.Image, dict] | None) -> list[
     return [(f"{s['key']}{ANIM_SEP}{i}", fr) for i, fr in enumerate(frames)]
 
 
-def _slice_from_source(s: dict, sheets: dict[str, Image.Image], file_base: Path) -> Image.Image:
-    if "anim" in s:
-        return anim_frames(s)[0]
+def _slice_from_source(s: dict, sheets: dict[str, Image.Image], file_base: Path, index: dict[str, dict] | None = None,
+                       frozen: tuple[Image.Image, dict] | None = None) -> Image.Image:
+    if is_anim(s):
+        return anim_frames(s, sheets, file_base, index, frozen)[0]
     if "file" in s:
         path = file_base / s["file"]
         if not path.exists():
@@ -297,15 +321,16 @@ def knock_out(im: Image.Image, rgb: tuple[int, ...]) -> Image.Image:
 
 
 def slice_image(s: dict, sheets: dict[str, Image.Image], file_base: Path | None = None,
-                frozen: tuple[Image.Image, dict] | None = None) -> Image.Image:
+                frozen: tuple[Image.Image, dict] | None = None, index: dict[str, dict] | None = None) -> Image.Image:
     """Crop for a slice: a rect on a named sheet (optionally with `transparent: [r,g,b]`, a backdrop
     colour to knock out), a standalone PNG (`file`, relative to `file_base`, default assets/graphic/Interior),
     `parts` — rects stacked top-to-bottom (for strips split by transparent separators) — or the first frame of an
-    `anim` folder (relative to assets/graphic; see anim_frames). When the source is missing and `frozen` (a previous
-    atlas) has the key, the old frame is reused and the key is recorded in FROZEN_USED."""
+    animated slice (`anim` folder relative to assets/graphic, or `frames` = other slices looked up in `index`; see
+    anim_frames). When the source is missing and `frozen` (a previous atlas) has the key, the old frame is reused
+    and the key is recorded in FROZEN_USED."""
     file_base = file_base or C.INTERIOR
     try:
-        return _slice_from_source(s, sheets, file_base)
+        return _slice_from_source(s, sheets, file_base, index, frozen)
     except SourceMissing as e:
         old = _frozen_crop(s["key"], frozen)
         if old is None:
@@ -468,11 +493,12 @@ def pack_atlas(slices: list[dict], sheet_paths: dict[str, Path] | None = None, i
     sheet_paths = C.all_sheets() if sheet_paths is None else sheet_paths
     FROZEN_USED.clear()
     sheets = SheetStore(sheet_paths)
+    index = {s["key"]: s for s in slices}  # `frames` anims refer to other slices of this atlas by key
     crops = []
     for s in slices:
-        crops.append((s["key"], slice_image(s, sheets, file_base=file_base, frozen=frozen)))
-        if "anim" in s:  # the animation's frames ride along as <key>#i (the key itself stays frame 0)
-            crops += anim_slice_frames(s, frozen)
+        crops.append((s["key"], slice_image(s, sheets, file_base=file_base, frozen=frozen, index=index)))
+        if is_anim(s):  # the animation's frames ride along as <key>#i (the key itself stays frame 0)
+            crops += anim_slice_frames(s, sheets, file_base, index, frozen)
     crops.sort(key=lambda kc: (-kc[1].height, -kc[1].width, kc[0]))
 
     max_w = 2048  # keep both sides ≤ 4096: mobile WebGL rejects taller textures (was 512 wide × 7000+ tall → black room)
@@ -567,7 +593,7 @@ def atlas_keys(atlas_json: dict, slices: list[dict] | None = None, sets: bool = 
         k = sl["key"]
         if k not in keys:
             continue
-        if "anim" in sl:
+        if is_anim(sl):
             n = sum(1 for f in atlas_json["frames"] if f.startswith(k + ANIM_SEP))
             keys[k]["anim"] = {"frames": n, "fps": sl.get("fps", ANIM_DEFAULT_FPS)}
         if sets and (s := set_of(sl)):
@@ -980,8 +1006,8 @@ def cmd_scaffold(_: argparse.Namespace) -> None:
     added = 0
     for s in slices:
         key = s["key"]
-        if key in have or key.startswith("auto_") or key.startswith(TILE_PREFIX) or "anim" in s:
-            continue  # anim slices are room effects (rooms/<id>.json `fx`), not shop items
+        if key in have or key.startswith("auto_") or key.startswith(TILE_PREFIX) or is_anim(s):
+            continue  # animated slices are room effects (rooms/<id>.json `fx`), not shop items
         if "file" in s:
             w, h = Image.open(C.INTERIOR / s["file"]).size
         elif "parts" in s:

@@ -129,6 +129,7 @@
     <button id="chkAll" title="목록에 보이는 것 전부">☑ 전체</button><button id="chkAuto" title="목록의 auto_ 만">☑ auto</button><button id="chkNone">☐ 해제</button>
     <button id="batchRename" class="primary" title="체크한 슬라이스의 key를 바꿈. 아래 칸이 비어 있으면 auto_/new_ 만 [폴더_]시트4글자_원래이름 으로, 적혀 있으면 체크한 전부를 그 이름(_2, _3… 또는 {n})으로">이름 일괄 변경</button>
     <button id="batchCreate" title="체크한 슬라이스 중 아이템이 없는 것(⚠)에 상점 항목을 만듦 (auto_/new_/tile_/맵 슬라이스는 건너뜀)">아이템 일괄 만들기</button>
+    <button id="batchAnim" title="체크한 슬라이스들을 목록 순서대로 프레임 삼아 애니 슬라이스 하나를 만듦 (깜빡이는 불빛처럼 한 시트에서 따로 자른 그림들). 방 에디터 '효과 놓기'로 배치">🎞 체크한 걸로 애니 만들기</button>
   </div>
   <div class="row small" style="margin:0 0 4px; gap:6px">
     <span class="dim">새 이름:</span><input type="text" id="batchName" placeholder="비우면 자동 · 예: sofa_blue 또는 chair_{n}" style="flex:1" title="체크한 순서대로 sofa_blue, sofa_blue_2, sofa_blue_3… / {n}=1,2,3… {nn}=01,02… {orig}=원래 key">
@@ -216,6 +217,7 @@
     </div>
     <label><span>scale</span><input type="number" id="sScale" step="0.25" min="0.125" max="8" placeholder="1"><span class="hint" style="width:auto">32px 타일은 0.5</span></label>
     <label id="fpsRow" style="display:none"><span>fps</span><input type="number" id="sFps" min="1" max="60" step="1"><span class="hint" style="width:auto">애니 속도 (초당 프레임)</span></label>
+    <label id="framesRow" style="display:none" title="프레임이 될 슬라이스 key들, 쉼표로. 같은 아틀라스의 슬라이스만, 애니 슬라이스는 안 됨"><span>frames</span><input type="text" id="sFrames" placeholder="lamp_on, lamp_off"></label>
     <div id="tileMeta" style="display:none">
       <label><span>발소리</span><select id="sStep"><option value="">(기본: 방은 wood, 맵은 grass)</option><option value="wood">wood 나무</option><option value="tile">tile 타일·돌</option><option value="grass">grass 풀</option><option value="water">water 물</option><option value="none">none 무음</option></select></label>
       <label><span>통행</span><input type="checkbox" id="sNoWalk"> <span class="hint" style="width:auto">못 지나감 (walk:false) — 물·구덩이. 가구도 못 놓아요</span></label>
@@ -304,7 +306,8 @@
   const isMapSlice = (s) => mapSlices.includes(s);
   const rectOf = (s) => ("parts" in s) ? s.parts[Math.min(partIdx, s.parts.length - 1)] : s;
   const rectsOf = (s) => ("parts" in s) ? s.parts : [s];
-  const sheetOf = (s) => ("file" in s || "anim" in s) ? FILE_SHEET : ("parts" in s) ? (s.parts[0] && s.parts[0].sheet) : s.sheet;
+  const isAnimSlice = (s) => "anim" in s || "frames" in s;
+  const sheetOf = (s) => ("file" in s || isAnimSlice(s)) ? FILE_SHEET : ("parts" in s) ? (s.parts[0] && s.parts[0].sheet) : s.sheet;
   const itemOf = (s) => s && items.find((it) => it.sprite === s.key);
   const itemById = (id) => items.find((it) => it.id === id);
   const cls = (s) => isMapSlice(s) ? "map" : s.key.startsWith("auto_") ? "auto" : s.key.startsWith("tile_") ? "tile" : "named";
@@ -561,7 +564,28 @@
     const s = { key: `new_${n}`, anim: folder, fps: S.anim_fps || 8 };
     slices.push(s); mark(s); goTo(s); $("sKey").focus(); $("sKey").select();
   };
-  $("sFps").addEventListener("change", () => { if (!sel || !("anim" in sel)) return; const v = parseInt($("sFps").value, 10); sel.fps = Math.max(1, Math.min(60, v || 8)); $("sFps").value = sel.fps; mark(sel); });
+  $("sFps").addEventListener("change", () => { if (!sel || !isAnimSlice(sel)) return; const v = parseInt($("sFps").value, 10); sel.fps = Math.max(1, Math.min(60, v || 8)); $("sFps").value = sel.fps; mark(sel); });
+  // an anim slice out of other slices (a lamp cut as on/off pieces of one sheet): frames = their keys, in order
+  const animFromKeys = (keys) => {
+    const bad = keys.filter((k) => { const s = allSlices().find((x) => x.key === k); return !s || isAnimSlice(s) || isMapSlice(s); });
+    if (bad.length) { alert("프레임이 될 수 없는 key: " + bad.join(", ") + "\n(실내 슬라이스만, 애니 슬라이스는 안 돼요)"); return null; }
+    return keys;
+  };
+  $("batchAnim").onclick = () => {
+    const keys = allSlices().filter((s) => checked.has(s)).map((s) => s.key);  // in list order
+    if (keys.length < 2) { alert("프레임이 될 슬라이스를 2개 이상 체크하세요 (목록 순서 = 재생 순서)"); return; }
+    if (!animFromKeys(keys)) return;
+    let n = 1; while (allSlices().some((s) => s.key === `new_${n}`)) n++;
+    const s = { key: `new_${n}`, frames: keys, fps: S.anim_fps || 8 };
+    slices.push(s); mark(s); checked.clear(); updateBatchBtn(); goTo(s); $("sKey").focus(); $("sKey").select();
+  };
+  $("sFrames").addEventListener("change", () => {
+    if (!sel || !("frames" in sel)) return;
+    const keys = $("sFrames").value.split(",").map((k) => k.trim()).filter(Boolean);
+    if (!keys.length) { alert("프레임이 하나는 있어야 해요"); $("sFrames").value = sel.frames.join(", "); return; }
+    if (!animFromKeys(keys)) { $("sFrames").value = sel.frames.join(", "); return; }
+    sel.frames = keys; mark(sel); refreshPreview();
+  });
 
   function goTo(s) {
     setTab("furn");
@@ -822,13 +846,16 @@
     $("sliceGroup").textContent = mp ? "map_slices.json → gen/map.png" : "slices.json → gen/interiors.png";
     $("itemSection").style.display = mp ? "none" : ""; $("mapNote").style.display = mp ? "" : "none";
     $("sKey").value = sel.key;
-    const isAnim = "anim" in sel, isFile = "file" in sel || isAnim, isParts = "parts" in sel;
+    const isAnim = isAnimSlice(sel), isFile = "file" in sel || isAnim, isParts = "parts" in sel;
     $("rectForm").style.display = (isFile || isParts) ? "none" : "";
     $("partsForm").style.display = isParts ? "" : "none";
     $("fileNote").style.display = isFile ? "" : "none";
-    if (isAnim) { const a = (S.anims || []).find((x) => x.folder === sel.anim); $("fileNote").textContent = `애니 슬라이스: assets/graphic/${sel.anim}${a ? ` (${a.frames}프레임 ${a.w}×${a.h})` : " (폴더 없음!)"} — 방 에디터 '효과 놓기'로 픽셀 단위 배치, 상점 아이템은 아님`; }
+    if ("frames" in sel) $("fileNote").textContent = `애니 슬라이스 (${sel.frames.length}프레임 = 다른 슬라이스들) — 방 에디터 '효과 놓기'로 픽셀 단위 배치, 상점 아이템은 아님`;
+    else if (isAnim) { const a = (S.anims || []).find((x) => x.folder === sel.anim); $("fileNote").textContent = `애니 슬라이스: assets/graphic/${sel.anim}${a ? ` (${a.frames}프레임 ${a.w}×${a.h})` : " (폴더 없음!)"} — 방 에디터 '효과 놓기'로 픽셀 단위 배치, 상점 아이템은 아님`; }
     else if (isFile) $("fileNote").textContent = `파일 슬라이스: ${sel.file} (좌표 편집 없음)`;
     $("fpsRow").style.display = isAnim ? "" : "none";
+    $("framesRow").style.display = "frames" in sel ? "" : "none";
+    if ("frames" in sel) $("sFrames").value = sel.frames.join(", ");
     if (isAnim) $("sFps").value = sel.fps || S.anim_fps || 8;
     $("toParts").textContent = isParts ? "단일 사각형으로" : "parts로 변환";
     $("toParts").disabled = isFile;

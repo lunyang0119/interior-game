@@ -148,10 +148,14 @@ class Seed(BaseModel):
 class Fx(BaseModel):
     """A decoration drawn at a pixel position in the room, always on top of items and avatars (steam over a pot,
     a glow). Placed in the world editor ("효과 놓기"). `sprite` is an interior atlas key; one built from an `anim`
-    slice animates (the manifest key carries `anim {frames, fps}`, served as `catalog.anims`)."""
+    slice animates (the manifest key carries `anim {frames, fps}`, served as `catalog.anims`).
+    `when` = a gimmick tag: the client shows the effect only while that gimmick is active in the room (train
+    compartments: `steam` = coffeepot overload, `blackout` = light reboot, `marker` = signal detected); None = always.
+    Ordinary rooms have no gimmicks yet, so a tagged effect never shows there."""
     sprite: str
     x: int = Field(ge=0)
     y: int = Field(ge=0)
+    when: str | None = Field(default=None, pattern=r"^[a-z][a-z0-9_]*$")
 
 
 class Zone(BaseModel):

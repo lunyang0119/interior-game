@@ -6562,6 +6562,34 @@
     "ch": 3,
     "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_props"
    },
+   "cyber_light_anime_light1": {
+    "w": 16,
+    "h": 48,
+    "cw": 1,
+    "ch": 3,
+    "set": "cyberpunkcity_props_light1"
+   },
+   "cyber_light_anime_light1_2": {
+    "w": 16,
+    "h": 48,
+    "cw": 1,
+    "ch": 3,
+    "set": "cyberpunkcity_props_light1"
+   },
+   "cyber_light_anime_light2": {
+    "w": 16,
+    "h": 48,
+    "cw": 1,
+    "ch": 3,
+    "set": "cyberpunkcity_props_light2"
+   },
+   "cyber_light_anime_light2_2": {
+    "w": 16,
+    "h": 48,
+    "cw": 1,
+    "ch": 3,
+    "set": "cyberpunkcity_props_light2"
+   },
    "f03_plant_01": {
     "w": 16,
     "h": 48,
@@ -7499,6 +7527,47 @@
     "cw": 4,
     "ch": 2,
     "set": "interior_tiles_lite"
+   },
+   "fuck": {
+    "w": 12,
+    "h": 47,
+    "cw": 0,
+    "ch": 2,
+    "anim": {
+     "frames": 13,
+     "fps": 13
+    }
+   },
+   "light_anim": {
+    "w": 12,
+    "h": 47,
+    "cw": 0,
+    "ch": 2,
+    "set": "animationsprite"
+   },
+   "light_anim_2": {
+    "w": 12,
+    "h": 47,
+    "cw": 0,
+    "ch": 2,
+    "set": "animationsprite"
+   },
+   "light_anim_3": {
+    "w": 12,
+    "h": 47,
+    "cw": 0,
+    "ch": 2,
+    "set": "animationsprite"
+   },
+   "new_88": {
+    "w": 12,
+    "h": 47,
+    "cw": 0,
+    "ch": 2,
+    "anim": {
+     "frames": 13,
+     "fps": 13
+    }
    },
    "doorside": {
     "w": 8,
@@ -17968,6 +18037,44 @@
     "ch": 1,
     "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_doors_windows_signs"
    },
+   "light_window_anim": {
+    "w": 46,
+    "h": 24,
+    "cw": 2,
+    "ch": 1,
+    "set": "animationsprite"
+   },
+   "light_window_anim_2": {
+    "w": 46,
+    "h": 24,
+    "cw": 2,
+    "ch": 1,
+    "set": "animationsprite"
+   },
+   "light_window_anim_3": {
+    "w": 46,
+    "h": 24,
+    "cw": 2,
+    "ch": 1,
+    "set": "animationsprite"
+   },
+   "light_window_anim_4": {
+    "w": 46,
+    "h": 24,
+    "cw": 2,
+    "ch": 1,
+    "set": "animationsprite"
+   },
+   "light_window_animation_real": {
+    "w": 46,
+    "h": 24,
+    "cw": 2,
+    "ch": 1,
+    "anim": {
+     "frames": 8,
+     "fps": 8
+    }
+   },
    "nosh_155_bathtub_clawfoot": {
     "w": 40,
     "h": 24,
@@ -18304,12 +18411,26 @@
     "ch": 1,
     "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_doors_windows_signs"
    },
+   "light_window_anim_5": {
+    "w": 46,
+    "h": 22,
+    "cw": 2,
+    "ch": 1,
+    "set": "animationsprite"
+   },
    "moritl_022_sideboard_tv_stand": {
     "w": 46,
     "h": 22,
     "cw": 2,
     "ch": 1,
     "set": "interior_tiles_lite"
+   },
+   "light_window_anim_6": {
+    "w": 45,
+    "h": 22,
+    "cw": 2,
+    "ch": 1,
+    "set": "animationsprite"
    },
    "fmp_011": {
     "w": 32,

@@ -240,8 +240,9 @@
     <div class="row">
       <label><span>x px</span><input type="number" id="fxX" min="0"></label><label><span>y px</span><input type="number" id="fxY" min="0"></label>
     </div>
+    <label title="기믹이 켜져 있을 때만 보여요. 열차 칸(/train/)에서만 동작하고, 보통 방에선 조건 있는 효과는 안 그려져요"><span>조건</span><select id="fxWhen"></select></label>
     <div class="row"><button id="fxDel" class="danger">효과 삭제</button></div>
-    <div class="hint">드래그=픽셀 이동(Shift=칸 스냅) · 방향키=1칸 · Shift+방향키=8px · Ctrl+방향키=1px. 왼쪽 위 모서리 기준.</div>
+    <div class="hint">드래그=픽셀 이동(Shift=칸 스냅) · 방향키=1칸 · Shift+방향키=8px · Ctrl+방향키=1px. 왼쪽 위 모서리 기준. 조건이 있는 효과는 반투명으로 그려져요.</div>
   </div>
   <div class="tools map-only">
     <button data-tool="select" class="on">선택/이동</button><button data-tool="paint">칠하기</button><button data-tool="erase">지우개</button>
@@ -718,12 +719,17 @@
     // effects
     const fl = $("fxList"); fl.innerHTML = "";
     room.fx.forEach((f) => { const li = document.createElement("li"); li.className = f === selFx ? "sel" : ""; const n = animFrames(f.sprite);
-      li.innerHTML = `${n ? "🎞 " : ""}${f.sprite} <span class="dim">(${f.x},${f.y})px${n ? ` · ${n}프레임` : ""}${frameOf("interior", f.sprite) ? "" : ' <span style="color:#ff6b6b">아틀라스에 없음</span>'}</span>`;
+      li.innerHTML = `${n ? "🎞 " : ""}${f.sprite}${f.when ? ` <span class="tag">${f.when}</span>` : ""} <span class="dim">(${f.x},${f.y})px${n ? ` · ${n}프레임` : ""}${frameOf("interior", f.sprite) ? "" : ' <span style="color:#ff6b6b">아틀라스에 없음</span>'}</span>`;
       li.onclick = () => { selFx = f; selSeed = selExit = selRZone = null; renderSide(); draw(); }; fl.appendChild(li); });
     $("fxProps").style.display = selFx ? "" : "none";
-    if (selFx) { const f = frameOf("interior", selFx.sprite); $("fxInfo").innerHTML = `<b>${selFx.sprite}</b> <span class="dim">${f ? `${f.w}×${f.h}px` : "아틀라스에 없음 (빌드?)"}${animFrames(selFx.sprite) ? ` · ${animFrames(selFx.sprite)}프레임` : " · 정지 그림"}</span>`; $("fxX").value = selFx.x; $("fxY").value = selFx.y; }
+    if (selFx) {
+      const f = frameOf("interior", selFx.sprite); $("fxInfo").innerHTML = `<b>${selFx.sprite}</b> <span class="dim">${f ? `${f.w}×${f.h}px` : "아틀라스에 없음 (빌드?)"}${animFrames(selFx.sprite) ? ` · ${animFrames(selFx.sprite)}프레임` : " · 정지 그림"}</span>`; $("fxX").value = selFx.x; $("fxY").value = selFx.y;
+      const known = (W.fx_when || []).map((w) => w.tag), cur = selFx.when || "";
+      $("fxWhen").innerHTML = `<option value="">항상</option>` + (W.fx_when || []).map((w) => `<option value="${w.tag}"${w.tag === cur ? " selected" : ""}>${w.tag} — ${w.desc}</option>`).join("") + (cur && !known.includes(cur) ? `<option value="${cur}" selected>${cur} (직접 적은 태그)</option>` : "");
+    }
   }
   for (const [id, k] of [["fxX", "x"], ["fxY", "y"]]) $(id).onchange = () => { if (!selFx) return; selFx[k] = Math.max(0, parseInt($(id).value, 10) || 0); touch(); renderSide(); draw(); };
+  $("fxWhen").onchange = () => { if (!selFx) return; const v = $("fxWhen").value; if (v) selFx.when = v; else delete selFx.when; touch(); renderSide(); draw(); };
   $("fxDel").onclick = () => { if (!selFx) return; room.fx.splice(room.fx.indexOf(selFx), 1); selFx = null; touch(); renderSide(); draw(); };
   /** Move an effect by whole pixels (arrows), clamped to the room's top/left. */
   function nudgeFx(f, dx, dy) { f.x = Math.max(0, f.x + dx); f.y = Math.max(0, f.y + dy); touch(); renderSide(); draw(); }
@@ -1026,9 +1032,12 @@
     // effects: on top of everything, animated by `tick` when the sprite has frames
     for (const f of room.fx) {
       const n = animFrames(f.sprite), key = n ? `${f.sprite}#${tick % n}` : f.sprite, fr = frameOf("interior", key);
+      if (f.when) g.globalAlpha = .55; // waits for a gimmick: shown faded with its tag
       if (fr) drawKey("interior", key, f.x * zoom, f.y * zoom); else { g.fillStyle = "rgba(255,0,255,.4)"; g.fillRect(f.x * zoom, f.y * zoom, cz, cz); }
+      g.globalAlpha = 1;
       const bw = fr ? fr.w * zoom : cz, bh = fr ? fr.h * zoom : cz;
       g.strokeStyle = f === selFx ? "#ffd35c" : "rgba(180,255,255,.45)"; g.lineWidth = f === selFx ? 2 : 1; g.setLineDash([3, 3]); g.strokeRect(f.x * zoom + .5, f.y * zoom + .5, bw - 1, bh - 1); g.setLineDash([]);
+      if (f.when) { g.fillStyle = "#9ff"; g.font = `${Math.max(8, 4 * zoom)}px sans-serif`; g.fillText(f.when, f.x * zoom + 2, f.y * zoom + bh - 2); }
     }
     if (tool === "fx" && palKey && hover) { const fr = frameOf("interior", palKey); if (fr) { g.globalAlpha = .5; drawKey("interior", palKey, hover.x * cz, hover.y * cz); g.globalAlpha = 1; } }
     if (room.__train) {

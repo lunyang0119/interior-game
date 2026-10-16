@@ -225,3 +225,30 @@ def test_anim_slice_packs_frames_and_manifest_lists_only_the_key(tmp_path: Path,
     Image.new("RGBA", (9, 8), (0, 0, 0, 255)).save(d / "steam_04.png")
     with pytest.raises(SystemExit):
         P.anim_frames(slices[0])
+
+
+def test_frames_anim_slice_reuses_other_slices_as_frames(tmp_path: Path):
+    """`frames` = keys of other slices of the same atlas (a lamp cut as on/off pieces): packed as key#i,
+    frame 0 is the key itself; an unknown or animated frame key aborts."""
+    sheet = tmp_path / "lamps.png"
+    im = Image.new("RGBA", (32, 16), (0, 0, 0, 0))
+    im.paste(Image.new("RGBA", (16, 16), (255, 200, 0, 255)), (0, 0))
+    im.paste(Image.new("RGBA", (16, 16), (40, 40, 40, 255)), (16, 0))
+    im.save(sheet)
+    slices = [
+        {"key": "lamp_on", "sheet": "lamps", "x": 0, "y": 0, "w": 16, "h": 16},
+        {"key": "lamp_off", "sheet": "lamps", "x": 16, "y": 0, "w": 16, "h": 16},
+        {"key": "fx_blink", "frames": ["lamp_on", "lamp_off", "lamp_on"], "fps": 3},
+    ]
+    atlas, js = P.pack_atlas(slices, sheet_paths={"lamps": sheet})
+    assert set(js["frames"]) == {"lamp_on", "lamp_off", "fx_blink", "fx_blink#0", "fx_blink#1", "fx_blink#2"}
+    f = js["frames"]["fx_blink#1"]["frame"]
+    assert atlas.getpixel((f["x"], f["y"])) == (40, 40, 40, 255)
+    f = js["frames"]["fx_blink"]["frame"]
+    assert atlas.getpixel((f["x"], f["y"])) == (255, 200, 0, 255)
+    keys = P.atlas_keys(js, slices)
+    assert keys["fx_blink"]["anim"] == {"frames": 3, "fps": 3} and "anim" not in keys["lamp_on"]
+    with pytest.raises(SystemExit):
+        P.pack_atlas(slices + [{"key": "bad", "frames": ["nope"]}], sheet_paths={"lamps": sheet})
+    with pytest.raises(SystemExit):
+        P.pack_atlas(slices + [{"key": "bad", "frames": ["fx_blink"]}], sheet_paths={"lamps": sheet})

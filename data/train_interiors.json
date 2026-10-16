@@ -151,7 +151,8 @@
     {
      "sprite": "fx_steam",
      "x": 80,
-     "y": 0
+     "y": 0,
+     "when": "steam"
     }
    ]
   },
@@ -275,18 +276,25 @@
      "item_id": "cybe_94",
      "x": 5,
      "y": 4
+    },
+    {
+     "item_id": "light_window_anim",
+     "x": 3,
+     "y": 0
     }
    ],
    "fx": [
     {
-     "sprite": "cybe_88_2",
+     "sprite": "light_window_animation_real",
      "x": 48,
-     "y": 0
+     "y": 0,
+     "when": "blackout"
     },
     {
-     "sprite": "cybe_88_2",
-     "x": 48,
-     "y": 0
+     "sprite": "new_88",
+     "x": 82,
+     "y": 49,
+     "when": "blackout"
     }
    ]
   },

@@ -1552,6 +1552,94 @@
   "h": 8
  },
  {
+  "key": "light_window_anim",
+  "sheet": "Interior/_16px/animationsprite.png",
+  "x": 1,
+  "y": 40,
+  "w": 46,
+  "h": 24
+ },
+ {
+  "key": "light_anim_3",
+  "sheet": "Interior/_16px/animationsprite.png",
+  "x": 89,
+  "y": 42,
+  "w": 12,
+  "h": 47
+ },
+ {
+  "key": "light_window_anim_2",
+  "sheet": "Interior/_16px/animationsprite.png",
+  "x": 1,
+  "y": 72,
+  "w": 46,
+  "h": 24
+ },
+ {
+  "key": "light_anim_2",
+  "sheet": "Interior/_16px/animationsprite.png",
+  "x": 91,
+  "y": 99,
+  "w": 12,
+  "h": 47
+ },
+ {
+  "key": "light_window_anim_3",
+  "sheet": "Interior/_16px/animationsprite.png",
+  "x": 1,
+  "y": 104,
+  "w": 46,
+  "h": 24
+ },
+ {
+  "key": "light_window_anim_4",
+  "sheet": "Interior/_16px/animationsprite.png",
+  "x": 1,
+  "y": 133,
+  "w": 46,
+  "h": 24
+ },
+ {
+  "key": "light_anim",
+  "sheet": "Interior/_16px/animationsprite.png",
+  "x": 92,
+  "y": 164,
+  "w": 12,
+  "h": 47
+ },
+ {
+  "key": "light_window_anim_5",
+  "sheet": "Interior/_16px/animationsprite.png",
+  "x": 1,
+  "y": 166,
+  "w": 46,
+  "h": 22
+ },
+ {
+  "key": "light_window_anim_6",
+  "sheet": "Interior/_16px/animationsprite.png",
+  "x": 2,
+  "y": 198,
+  "w": 45,
+  "h": 22
+ },
+ {
+  "key": "cyber_light_anime_light1",
+  "sheet": "Interior/_16px/cyberpunkCity_Props_light1.png",
+  "x": 112,
+  "y": 144,
+  "w": 16,
+  "h": 48
+ },
+ {
+  "key": "cyber_light_anime_light2",
+  "sheet": "Interior/_16px/cyberpunkCity_Props_light2.png",
+  "x": 112,
+  "y": 144,
+  "w": 16,
+  "h": 48
+ },
+ {
   "key": "cybe_90_3",
   "sheet": "Interior/_16px/cyberpunk__Cyberpunk_City_Ext_V1.0__Cyberpunk_City_Doors_Windows_Signs.png",
   "x": 33,
@@ -27896,8 +27984,65 @@
   ]
  },
  {
+  "key": "cyber_light_anime_light1_2",
+  "parts": [
+   {
+    "sheet": "Interior/_16px/cyberpunkCity_Props_light1.png",
+    "x": 128,
+    "y": 144,
+    "w": 16,
+    "h": 16
+   },
+   {
+    "sheet": "Interior/_16px/cyberpunkCity_Props_light1.png",
+    "x": 112,
+    "y": 160,
+    "w": 16,
+    "h": 32
+   }
+  ]
+ },
+ {
+  "key": "cyber_light_anime_light2_2",
+  "parts": [
+   {
+    "sheet": "Interior/_16px/cyberpunkCity_Props_light2.png",
+    "x": 128,
+    "y": 144,
+    "w": 16,
+    "h": 16
+   },
+   {
+    "sheet": "Interior/_16px/cyberpunkCity_Props_light2.png",
+    "x": 112,
+    "y": 160,
+    "w": 16,
+    "h": 32
+   }
+  ]
+ },
+ {
   "key": "floor_lamp_fa",
   "file": "Furniture Assets/Rooms/Living/Living PNG/Floor Lamp.png"
+ },
+ {
+  "key": "fuck",
+  "frames": [
+   "light_anim",
+   "light_window_anim_2",
+   "light_window_anim_3",
+   "light_anim",
+   "light_anim",
+   "light_window_anim_3",
+   "light_anim",
+   "light_anim",
+   "light_anim",
+   "light_anim",
+   "light_anim",
+   "light_anim",
+   "light_window_anim_2"
+  ],
+  "fps": 13
  },
  {
   "key": "fx_steam",
@@ -27915,6 +28060,20 @@
  {
   "key": "kitchen_workspace_fa",
   "file": "Furniture Assets/Rooms/Kitchen/Kitchen PNG/Kitchen Workspace.png"
+ },
+ {
+  "key": "light_window_animation_real",
+  "frames": [
+   "light_window_anim",
+   "light_window_anim",
+   "light_window_anim_4",
+   "light_window_anim_4",
+   "light_window_anim_4",
+   "light_window_anim_4",
+   "light_window_anim",
+   "light_window_anim_4"
+  ],
+  "fps": 8
  },
  {
   "key": "med_053",
@@ -27976,6 +28135,25 @@
     "h": 16
    }
   ]
+ },
+ {
+  "key": "new_88",
+  "frames": [
+   "light_anim",
+   "light_anim_2",
+   "light_anim_3",
+   "light_anim",
+   "light_anim",
+   "light_anim_3",
+   "light_anim",
+   "light_anim",
+   "light_anim",
+   "light_anim",
+   "light_anim",
+   "light_anim",
+   "light_anim_2"
+  ],
+  "fps": 13
  },
  {
   "key": "office_chair_fa",

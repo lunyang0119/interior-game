@@ -239,5 +239,16 @@ def test_room_fx_need_a_built_sprite_and_anims_are_served(env):
     cat = cm.load()
     assert [f.sprite for f in cat.rooms["house_a"].fx] == ["steam", "chair"]
     assert cat.public()["anims"] == {"steam": {"frames": 8, "fps": 8}}
-    assert next(r for r in cat.public()["rooms"] if r["id"] == "house_a")["fx"][0] == {"sprite": "steam", "x": 3, "y": 4}
+    assert next(r for r in cat.public()["rooms"] if r["id"] == "house_a")["fx"][0] == {"sprite": "steam", "x": 3, "y": 4, "when": None}
+    # `when` = a gimmick tag the train client switches on/off; anything but a plain tag is refused
+    room["fx"] = [{"sprite": "steam", "x": 3, "y": 4, "when": "steam"}]
+    p.write_text(json.dumps(room), encoding="utf-8")
+    assert cm.load().rooms["house_a"].fx[0].when == "steam"
+    room["fx"] = [{"sprite": "steam", "x": 3, "y": 4, "when": "Steam!"}]
+    p.write_text(json.dumps(room), encoding="utf-8")
+    try:
+        cm.load()
+        assert False, "expected ValueError"
+    except ValueError as e:
+        assert "when" in str(e)
     importlib.reload(sys.modules["app.catalog"])

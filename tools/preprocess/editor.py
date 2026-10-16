@@ -137,8 +137,14 @@ def sheet_image(name: str) -> Image.Image:
         return im
 
 
-def sheets_for(spec: dict) -> dict[str, Image.Image]:
-    names = {r.get("sheet") for r in spec.get("parts", [spec])}
+def slice_index() -> dict[str, dict]:
+    """Saved slices by key (interior + map): what a `frames` anim's preview resolves its frame keys against."""
+    return {s["key"]: s for s in P.load_slices() + P.load_slices(C.MAP_SLICES_FILE)}
+
+
+def sheets_for(spec: dict, index: dict[str, dict] | None = None) -> dict[str, Image.Image]:
+    specs = [spec] + [index[k] for k in spec.get("frames", []) if index and k in index]
+    names = {r.get("sheet") for sp in specs for r in sp.get("parts", [sp])}
     return {n: sheet_image(n) for n in names if n and sheet_path(n)}
 
 
@@ -218,7 +224,8 @@ def frozen_atlas():
 def crop_of(spec: dict) -> Image.Image:
     # the preview key must be the real key so a frozen frame can be found
     spec = {"key": "preview", **spec}
-    return P.slice_image(spec, sheets_for(spec), frozen=frozen_atlas())
+    index = slice_index() if "frames" in spec else None
+    return P.slice_image(spec, sheets_for(spec, index), frozen=frozen_atlas(), index=index)
 
 
 def png_bytes(im: Image.Image) -> bytes:
@@ -306,6 +313,10 @@ def seed_problem(s: dict, room: dict, items: dict[str, dict], others: list[dict]
 
 # Room kinds (mirror server catalog.RoomKind): "room" = decorated, "mine" = the ore room (data/mine.json names it).
 ROOM_KINDS = ("room", "mine")
+# Gimmick tags an effect may wait for (catalog.Fx.when; the train client switches them, see CarMap.setCondition).
+FX_WHEN_RE = re.compile(r"^[a-z][a-z0-9_]*$")
+FX_WHEN = [("steam", "☕ 과부하 증기 (커피포트 해킹, 그 라운드 동안)"), ("blackout", "💡 광학 재부팅 (조명 해킹, 깜빡이는 동안 모든 칸)"),
+           ("marker", "◎ 신호 감지된 칸")]
 
 
 def validate_room(rid: str, room: dict, all_ids: set[str], item_ids: set[str], tile_keys: set[str]) -> str | None:
@@ -372,6 +383,8 @@ def validate_room(rid: str, room: dict, all_ids: set[str], item_ids: set[str], t
             return f"{rid}: 효과에 모르는 슬라이스 '{fx.get('sprite')}' (빌드했나요?)"
         if not all(isinstance(fx.get(k), int) and not isinstance(fx.get(k), bool) and fx[k] >= 0 for k in ("x", "y")):
             return f"{rid}: 효과 좌표(px)가 0 이상 정수가 아니에요"
+        if fx.get("when") is not None and not (isinstance(fx["when"], str) and FX_WHEN_RE.match(fx["when"])):
+            return f"{rid}: 효과 조건(when)은 영문 소문자/숫자/_ 태그여야 해요"
     return None
 
 
@@ -536,6 +549,7 @@ def save_items(data: dict) -> None:
 def validate_slices(slices: list, seen: set[str] | None = None) -> str | None:
     seen = set() if seen is None else seen
     sheets = C.all_sheets()
+    by_key = {s.get("key"): s for s in slices if isinstance(s, dict)}  # `frames` anims point at slices of the same list
     for s in slices:
         key = s.get("key")
         if not key or not isinstance(key, str):
@@ -549,13 +563,24 @@ def validate_slices(slices: list, seen: set[str] | None = None) -> str | None:
             return f"{key}: step은 {' / '.join(P.TILE_STEPS)} 중 하나"
         if "walk" in s and s["walk"] is not False:
             return f"{key}: walk는 false만 쓸 수 있어요 (지우면 걸을 수 있음)"
-        if "anim" in s:
-            d = C.ASSETS / str(s["anim"])
-            if not isinstance(s["anim"], str) or not d.is_dir() or not any(d.glob("*.png")):
-                return f"{key}: anim 폴더에 PNG가 없어요 (assets/graphic/{s['anim']})"
+        if P.is_anim(s):
             fps = s.get("fps", P.ANIM_DEFAULT_FPS)
             if not isinstance(fps, (int, float)) or isinstance(fps, bool) or not 1 <= fps <= 60:
                 return f"{key}: fps는 1~60"
+            if "frames" in s:
+                fr = s["frames"]
+                if not isinstance(fr, list) or not fr or not all(isinstance(k, str) for k in fr):
+                    return f"{key}: frames는 슬라이스 key 목록이어야 해요"
+                for k in fr:
+                    ref = by_key.get(k)
+                    if ref is None:
+                        return f"{key}: frames의 '{k}'가 같은 아틀라스의 슬라이스가 아니에요"
+                    if P.is_anim(ref):
+                        return f"{key}: frames의 '{k}'는 애니 슬라이스라 프레임으로 못 써요"
+                continue
+            d = C.ASSETS / str(s["anim"])
+            if not isinstance(s["anim"], str) or not d.is_dir() or not any(d.glob("*.png")):
+                return f"{key}: anim 폴더에 PNG가 없어요 (assets/graphic/{s['anim']})"
             continue
         if "file" in s:
             continue
@@ -956,6 +981,7 @@ class Handler(BaseHTTPRequestHandler):
                               for s in P.load_slices() if s["key"].startswith(P.TILE_PREFIX) and ("step" in s or "walk" in s)},
                     "atlas": {"interior": (C.OUT_DIR / "interiors.json").exists(), "map": (C.OUT_DIR / "map.json").exists()},
                     "train": train_interiors_state(),
+                    "fx_when": [{"tag": t, "desc": d} for t, d in FX_WHEN],
                     "bgs": bg_names(), "bgs_built": sorted(p.stem for p in (C.OUT_DIR / "mapbg").glob("*.png")) if (C.OUT_DIR / "mapbg").exists() else [],
                 })
             elif u.path == "/api/dock":

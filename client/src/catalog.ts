@@ -98,8 +98,9 @@ export interface Room {
 export interface Seed { item_id: string; x: number; y: number; span?: number | null }
 
 /** A decoration at a pixel position in the room, drawn on top of everything (world editor "효과 놓기"); `sprite` is an
- *  interior atlas key, animated when `Catalog.anims` lists it. */
-export interface Fx { sprite: string; x: number; y: number }
+ *  interior atlas key, animated when `Catalog.anims` lists it. `when` = a gimmick tag (train: "steam" | "blackout" |
+ *  "marker"): shown only while that gimmick is active in the room; absent = always. */
+export interface Fx { sprite: string; x: number; y: number; when?: string | null }
 /** An interior atlas key built from an `anim` slice: its frames are `<key>#0` … `<key>#frames-1` in the atlas. */
 export interface AnimSpec { frames: number; fps: number }
 

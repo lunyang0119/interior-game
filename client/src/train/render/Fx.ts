@@ -17,6 +17,10 @@ export class Fx {
   private dark: Phaser.GameObjects.Rectangle;
   private objects: Phaser.GameObjects.GameObject[] = [];
 
+  /** Gimmick → rooms it is active in, for the compartment templates' conditional effects (CarMap.setCondition):
+   *  "steam" (coffeepot overload), "marker" (signal detected), "blackout" (every room while the view flickers). */
+  onCondition: ((tag: string, rooms: string[]) => void) | null = null;
+
   constructor(private scene: Phaser.Scene, private layout: Layout, private doorAt: (edge: string) => { x: number; y: number } | null) {
     this.highlight = scene.add.graphics().setDepth(TILE_DEPTH + 4);
     this.dark = scene.add.rectangle(0, 0, 10, 10, 0x000000, 0).setOrigin(0).setScrollFactor(0).setDepth(OVERLAY_DEPTH);
@@ -43,6 +47,7 @@ export class Fx {
 
   /** ◎ 신호 감지 on rooms (replaces the previous set). */
   setMarkers(rooms: string[]): void {
+    this.onCondition?.("marker", rooms);
     for (const [r, t] of this.markers) if (!rooms.includes(r)) { t.destroy(); this.markers.delete(r); }
     for (const r of rooms) {
       if (this.markers.has(r)) continue;
@@ -67,6 +72,7 @@ export class Fx {
 
   /** ☕ steam filling rooms (replaces the previous set). */
   setSteam(rooms: string[]): void {
+    this.onCondition?.("steam", rooms);
     for (const [r, objs] of this.steam) if (!rooms.includes(r)) { objs.forEach((o) => o.destroy()); this.steam.delete(r); }
     for (const r of rooms) {
       if (this.steam.has(r)) continue;
@@ -85,9 +91,10 @@ export class Fx {
   blackout(ms = 1800): Promise<void> {
     return new Promise((resolve) => {
       this.dark.setAlpha(0.92);
+      this.onCondition?.("blackout", [...this.layout.rooms.keys()]);
       this.scene.tweens.add({
         targets: this.dark, alpha: { from: 0.92, to: 0.6 }, duration: 90, yoyo: true, repeat: Math.floor(ms / 180),
-        onComplete: () => { this.dark.setAlpha(0); resolve(); },
+        onComplete: () => { this.dark.setAlpha(0); this.onCondition?.("blackout", []); resolve(); },
       });
     });
   }

@@ -37569,6 +37569,50 @@
    "layer": "furniture",
    "is_surface": false,
    "surface_offset_y": 0
+  },
+  {
+   "id": "cyber_light_anime_light2",
+   "name": "cyber light anime light2",
+   "price": 50,
+   "sprite": "cyber_light_anime_light2",
+   "w": 1,
+   "h": 2,
+   "layer": "furniture",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "cyber_light_anime_light2_2",
+   "name": "cyber light anime light2 2",
+   "price": 50,
+   "sprite": "cyber_light_anime_light2_2",
+   "w": 1,
+   "h": 2,
+   "layer": "furniture",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "light_window_anim",
+   "name": "light window anim",
+   "price": 50,
+   "sprite": "light_window_anim",
+   "w": 3,
+   "h": 2,
+   "layer": "wall",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "light_anim_3",
+   "name": "light anim 3",
+   "price": 50,
+   "sprite": "light_anim_3",
+   "w": 1,
+   "h": 2,
+   "layer": "furniture",
+   "is_surface": false,
+   "surface_offset_y": 0
   }
  ]
 }

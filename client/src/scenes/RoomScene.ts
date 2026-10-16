@@ -147,11 +147,12 @@ export class RoomScene extends Phaser.Scene {
   }
 
   /** Pixel-placed decorations from the room data (steam over the kettle…): static frames, or looping when the
-   *  sprite is an anim slice (frames `<key>#i`, speed from catalog.anims). Always above items and avatars. */
+   *  sprite is an anim slice (frames `<key>#i`, speed from catalog.anims). Always above items and avatars.
+   *  Effects tied to a gimmick (`when`) belong to the train page; rooms have no gimmick state, so they are skipped. */
   private drawFx(): void {
     const atlas = this.textures.get(ATLAS);
     for (const f of this.room.fx ?? []) {
-      if (!atlas.has(f.sprite)) continue; // placed with a newer build than this atlas: skip quietly
+      if (f.when || !atlas.has(f.sprite)) continue; // placed with a newer build than this atlas: skip quietly
       const s = this.add.sprite(f.x, f.y, ATLAS, f.sprite).setOrigin(0).setDepth(FX_DEPTH);
       const spec = this.cat.anims[f.sprite];
       if (!spec || spec.frames < 2) continue;

@@ -88,6 +88,7 @@ export class TrainScene extends Phaser.Scene {
       this.hunters = new Hunters(this, state.catalog.chars, layout);
       this.fugitive = new FugitiveSprite(this, state.catalog.chars, layout);
       this.fx = new Fx(this, layout, (edge) => this.doorPoint(edge));
+      this.fx.onCondition = (tag, rooms) => this.carMap.setCondition(tag, rooms); // template effects tied to gimmicks
       this.offs.push(tbus.on("scene:sync", () => void this.sync()));
       this.offs.push(tbus.on("playback:start", ({ report }) => void this.play(report)));
       this.offs.push(tbus.on("camera:home", () => this.home()));

@@ -5,7 +5,7 @@
 import Phaser from "phaser";
 import { CELL } from "../../room/grid";
 import { canHang, collisionLayer, floorKeyAt, onWall, Z_HUNG, Z_SCALE, type Item, type Room, type Seed } from "../../catalog";
-import { depthOf, sortRowFor, TILE_DEPTH } from "../../room/depth";
+import { depthOf, FX_DEPTH, sortRowFor, TILE_DEPTH } from "../../room/depth";
 import { cellKey } from "../../room/walk";
 import { DEVICE_KO } from "../strings";
 import { benchCells, deviceCell, type Door, type Layout, type RoomBox } from "./layout";
@@ -18,6 +18,8 @@ export class CarMap {
   private gridLayer: Phaser.GameObjects.Graphics | null = null;
   /** Door sprites by engine edge key (the lock marker and the fugitive's doorlock picker hang off them). */
   readonly doorSprites = new Map<string, Phaser.GameObjects.Image>();
+  /** Template effects that show only while a gimmick is active (`Fx.when`): tag → [{room, sprite}]. */
+  private condFx = new Map<string, { room: string; sprite: Phaser.GameObjects.Sprite }[]>();
 
   constructor(private scene: Phaser.Scene, readonly layout: Layout) {
     this.drawTiles();
@@ -108,6 +110,39 @@ export class CarMap {
     }
   }
 
+  /** A template's pixel-placed effects (steam over the coffeepot…), like RoomScene.drawFx: on top of everything,
+   *  looping when the sprite is an anim slice. Ones with `when` start hidden and follow setCondition(). */
+  private drawTemplateFx(b: RoomBox, t: Room): void {
+    const cat = this.layout.cat;
+    if (!cat) return;
+    const atlas = this.scene.textures.get(ATLAS);
+    for (const f of t.fx ?? []) {
+      if (!atlas.has(f.sprite)) continue;
+      const s = this.scene.add.sprite(b.x0 * CELL + f.x, b.wallY0 * CELL + f.y, ATLAS, f.sprite).setOrigin(0).setDepth(FX_DEPTH);
+      this.objects.push(s);
+      const spec = cat.anims[f.sprite];
+      if (spec && spec.frames >= 2) {
+        const key = `fx:${f.sprite}`;
+        if (!this.scene.anims.exists(key)) {
+          const frames = Array.from({ length: spec.frames }, (_, i) => ({ key: ATLAS, frame: `${f.sprite}#${i}` })).filter((fr) => atlas.has(fr.frame));
+          if (frames.length >= 2) this.scene.anims.create({ key, frames, frameRate: spec.fps, repeat: -1 });
+        }
+        if (this.scene.anims.exists(key)) s.play(key);
+      }
+      if (f.when) {
+        s.setVisible(false);
+        const list = this.condFx.get(f.when) ?? [];
+        list.push({ room: b.id, sprite: s });
+        this.condFx.set(f.when, list);
+      }
+    }
+  }
+
+  /** Show the effects tagged `tag` in exactly these rooms (e.g. "steam" → the rooms the public view lists as steamy). */
+  setCondition(tag: string, rooms: string[]): void {
+    for (const { room, sprite } of this.condFx.get(tag) ?? []) sprite.setVisible(rooms.includes(room));
+  }
+
   private drawPartitions(): void {
     const g = this.scene.add.graphics().setDepth(TILE_DEPTH + 1);
     this.objects.push(g);
@@ -149,7 +184,7 @@ export class CarMap {
   }
 
   private drawRoom(b: RoomBox): void {
-    if (b.tpl) this.drawTemplateItems(b, b.tpl);
+    if (b.tpl) { this.drawTemplateItems(b, b.tpl); this.drawTemplateFx(b, b.tpl); }
     else this.drawBuiltinFurniture(b);
     const label = this.scene.add.text((b.x0 + b.w) * CELL - 2, (b.y0 + b.h) * CELL - 2, `${b.id} · ${DEVICE_KO[b.device] ?? b.device}`, {
       fontFamily: '"Label", "Stardust", sans-serif', fontSize: "8px", color: "#f0f0f5", backgroundColor: "rgba(10,14,30,0.7)", padding: { x: 3, y: 1 }, resolution: 3,
@@ -190,6 +225,7 @@ export class CarMap {
     for (const o of this.objects) o.destroy();
     this.objects = [];
     this.doorSprites.clear();
+    this.condFx.clear();
     this.showGrid(false);
   }
 }
