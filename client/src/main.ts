@@ -16,7 +16,8 @@ import { initBoard } from "./ui/board";
 import { initContextMenu } from "./ui/contextMenu";
 import { initLog } from "./ui/log";
 import { initNote } from "./ui/note";
-import { $, initHud, renderIdentity, show } from "./ui/hud";
+import { $, show } from "./ui/dom";
+import { initHud, renderIdentity } from "./ui/hud";
 import { initShop } from "./ui/shop";
 import { socket } from "./ws";
 import { refreshThemeLink } from "./assets";
@@ -217,7 +218,7 @@ async function boot(): Promise<void> {
   socket.on("fish", (m) => {
     if (m.id === state.id) return; // my own result is shown by the dock scene
     if (active() === "Dock") bus.emit("loot:got", { ok: true, kind: "fish", id: m.loot, name: m.name, value: m.value, who: m.id });
-    else toast(`${m.id}가 부두에서 ${m.name}을(를) 낚았어요${m.value > 0 ? ` (+${m.value}💰)` : ""}`);
+    else toast(`${m.id}가 부두에서 ${m.name}을(를) 낚았어요${m.value > 0 ? ` (+${m.value}{coin})` : ""}`);
   });
 
   show("loading", false);

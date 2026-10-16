@@ -1,17 +1,8 @@
-/** Tiny DOM helpers shared by the train page's UI modules. */
+/** The train page's DOM helpers: the shared `$` / `el` / `show` (ui/dom.ts) plus panels, buttons and folds. */
 
-export const $ = <T extends HTMLElement = HTMLElement>(id: string): T => document.getElementById(id) as T;
+import { $, el, show } from "../../ui/dom";
 
-export function show(id: string, on = true): void {
-  $(id).classList.toggle("hidden", !on);
-}
-
-export function el<K extends keyof HTMLElementTagNameMap>(tag: K, cls = "", text = ""): HTMLElementTagNameMap[K] {
-  const e = document.createElement(tag);
-  if (cls) e.className = cls;
-  if (text) e.textContent = text;
-  return e;
-}
+export { $, el, show };
 
 export function button(label: string, onClick: () => void, cls = ""): HTMLButtonElement {
   const b = el("button", cls, label);

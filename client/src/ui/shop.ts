@@ -1,7 +1,9 @@
 import { bus, toast } from "../bus";
 import { forSale, priceOf, type Item, type Layer } from "../catalog";
 import { catalog, state } from "../state";
-import { $, closeAllPanels, show, togglePanel } from "./hud";
+import { $, el, show } from "./dom";
+import { richEl } from "./icons";
+import { closeAllPanels, togglePanel } from "./hud";
 import { assetUrl } from "../assets";
 
 const TABS: { key: Layer | "all"; label: string }[] = [
@@ -68,17 +70,16 @@ function build(): void {
   grid.innerHTML = "";
   for (const item of catalog().items) {
     if (!forSale(item)) continue; // junk and room fixtures are not in the shop
-    const el = document.createElement("div");
-    el.className = "shop-item";
-    el.appendChild(thumb(item));
-    const size = item.layer === "wallpaper" ? `${item.price}💰/칸 · 폭 조절` : `${item.price}💰 · ${item.w}×${item.h}`;
-    el.insertAdjacentHTML("beforeend", `<div class="n">${item.name}</div><div class="p">${size}</div>`);
-    el.addEventListener("click", () => {
+    const card = el("div", "shop-item");
+    card.appendChild(thumb(item));
+    const size = item.layer === "wallpaper" ? `${item.price}{coin}/칸 · 폭 조절` : `${item.price}{coin} · ${item.w}×${item.h}`;
+    card.append(el("div", "n", item.name), richEl("div", "p", size));
+    card.addEventListener("click", () => {
       if (priceOf(item, 1) > state.balance) { toast("돈이 부족해요"); return; }
       bus.emit("place:begin", { itemId: item.id });
     });
-    grid.appendChild(el);
-    cards.set(item.id, { item, el, key: norm(`${item.name} ${item.id}`) });
+    grid.appendChild(card);
+    cards.set(item.id, { item, el: card, key: norm(`${item.name} ${item.id}`) });
   }
   const tabs = $("shop-tabs");
   tabs.innerHTML = "";

@@ -240,7 +240,7 @@ export class MineFloor {
     const n = this.nodes.get(m.seq);
     if (!n) return;
     this.applyProgress(m.seq, m.hits_left, m.done);
-    if (m.done && m.loot && m.loot.value > 0) toast(`${m.by}가 ${m.loot.name}을(를) 캤어요 (+${m.loot.value}💰)`);
+    if (m.done && m.loot && m.loot.value > 0) toast(`${m.by}가 ${m.loot.name}을(를) 캤어요 (+${m.loot.value}{coin})`);
     if (m.ladder) this.uncover(m.ladder, false);
     this.emitLeft(m.left);
   }

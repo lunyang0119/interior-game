@@ -2,7 +2,8 @@ import { api, ApiError, msgFor } from "../api";
 import { bus, toast } from "../bus";
 import { state } from "../state";
 import * as storage from "../storage";
-import { $, closeAllPanels, guard, show, togglePanel } from "./hud";
+import { $, el, show } from "./dom";
+import { closeAllPanels, guard, togglePanel } from "./hud";
 
 export function initAccounts(): void {
   $("btn-accounts").addEventListener("click", () => { render(); togglePanel("panel-accounts"); });
@@ -73,13 +74,13 @@ function render(): void {
   list.innerHTML = "";
   const accounts = storage.accounts();
   if (accounts.length === 0) {
-    list.innerHTML = `<div class="small" style="color:var(--muted)">닉네임을 쓰고 들어와주세요. 이미 있는 계정이면 그 계정으로, 없으면 새로 만들어져요 (시트 닉네임의 일부만 써도 돼요).</div>`;
+    list.appendChild(el("div", "small muted", "닉네임을 쓰고 들어와주세요. 이미 있는 계정이면 그 계정으로, 없으면 새로 만들어져요 (시트 닉네임의 일부만 써도 돼요)."));
     return;
   }
   for (const a of accounts) {
     const row = document.createElement("div");
     row.className = "acct" + (a.id === state.id ? " active" : "");
-    row.innerHTML = `<span class="name">${a.id}</span>`;
+    row.appendChild(el("span", "name", a.id));
     if (a.id !== state.id) {
       const sw = document.createElement("button");
       sw.textContent = "전환";

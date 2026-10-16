@@ -29,7 +29,8 @@ Usage (from repo root):
 
     python tools/preprocess/preprocess.py ui
         Reads data/ui_theme.json, cuts the 9-slice frame PNGs into
-        client/public/media/ui/ and writes client/public/media/theme.css.
+        client/public/media/ui/ and writes client/public/media/theme.css. Also packs
+        data/ui_icons.json into media/ui/icons.png + the .icon-<name> classes (ui_icons.py).
 
     python tools/preprocess/preprocess.py editor
         Opens the browser slice/item editor (see editor.py).
@@ -1267,6 +1268,7 @@ def cmd_ui(_: argparse.Namespace) -> None:
     lines.append(f"    --preview-w: {mobile['preview']}px;")
     lines.append("  }")
     lines.append("}")
+    lines.extend(__import__("ui_icons").build(C.UI_ICONS_FILE, ui_out, scale))  # pixel icons in place of emoji
     (C.MEDIA_DIR / "theme.css").write_text("\n".join(lines) + "\n", encoding="utf-8")
     print(f"{len(frames)} frames → media/ui/, theme.css written")
 

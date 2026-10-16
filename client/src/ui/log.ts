@@ -9,7 +9,9 @@ import { bus, toast } from "../bus";
 import { placeName, SEED_PLAYER, unitName } from "../catalog";
 import { applyCat, applyComfort, applyProgress, CAT_MAX_AFFECTION, CAT_TAPS_PER_LEVEL, catalog, currentUnit, state } from "../state";
 import { socket } from "../ws";
-import { $, show, togglePanel } from "./hud";
+import { $, el, show } from "./dom";
+import { richEl, setRich } from "./icons";
+import { togglePanel } from "./hud";
 
 const MAX_ROWS = 5;
 
@@ -43,7 +45,7 @@ function oreName(id: string | null): string {
 
 function money(n: number | null): string {
   if (!n) return "";
-  return n > 0 ? ` (+${n}💰)` : ` (−${-n}💰)`;
+  return n > 0 ? ` (+${n}{coin})` : ` (−${-n}{coin})`;
 }
 
 function ago(ts: number): string {
@@ -66,11 +68,11 @@ export function describe(e: ActivityEvent): string {
     case "fish": return `${who(e.player_id)}가 ${fishName(e.item_id)}을(를) 낚았어요${money(e.amount)}`;
     case "mine": return `${who(e.player_id)}가 ${oreName(e.item_id)}을(를) 캤어요${money(e.amount)}`;
     case "deliver": return `${who(e.player_id)}가 ${(e.data?.kind === "mine" ? oreName : fishName)(e.item_id)}을(를) ${room || "어딘가"}에 납품했어요`;
-    case "earn": return `${who(e.player_id)}가 ${e.amount ?? 0}💰를 벌어왔어요`;
+    case "earn": return `${who(e.player_id)}가 ${e.amount ?? 0}{coin}를 벌어왔어요`;
     case "guest": {
       if (e.data?.skipped) return `${room}에는 손님이 아무도 안 왔어요`;
       const extra = e.data?.dog ? " 🐶 개를 좋아하는 손님도 묵었어요!" : e.data?.reserved ? " 예약 손님이 두 배를 냈어요!" : "";
-      return `${room}에 손님 ${e.data?.guests ?? 0}명이 묵고 ${e.amount ?? 0}💰를 냈어요${extra}`;
+      return `${room}에 손님 ${e.data?.guests ?? 0}명이 묵고 ${e.amount ?? 0}{coin}를 냈어요${extra}`;
     }
     case "reserve":
       return e.data?.dog
@@ -82,7 +84,7 @@ export function describe(e: ActivityEvent): string {
       : `${who(e.player_id)}가 고양이를 쓰다듬었어요`;
     case "stage": {
       const opened = (e.data?.unlocks ?? []).map((r) => placeName(cat, r));
-      return `🎉 ${room} '${e.data?.name ?? e.data?.stage ?? ""}' 완료!${opened.length ? ` ${opened.join(", ")}이(가) 열렸어요` : ""}`;
+      return `{star} ${room} '${e.data?.name ?? e.data?.stage ?? ""}' 완료!${opened.length ? ` ${opened.join(", ")}이(가) 열렸어요` : ""}`;
     }
     default: return `${who(e.player_id)}: ${e.kind}`;
   }
@@ -102,7 +104,7 @@ function renderRows(): void {
     const div = document.createElement("div");
     div.className = `ev ${e.kind}`;
     const text = document.createElement("span");
-    text.textContent = describe(e);
+    setRich(text, describe(e));
     const when = document.createElement("span");
     when.className = "when";
     when.textContent = ago(e.ts);
@@ -112,26 +114,19 @@ function renderRows(): void {
 }
 
 function renderSummary(): void {
-  const signed = (n: number) => (n < 0 ? `−${-n}` : `+${n}`) + "💰";
+  const signed = (n: number) => (n < 0 ? `−${-n}` : `+${n}`) + "{coin}";
   const parts = [`벌이 ${signed(today.earned)}`, `낚시 ${signed(today.fish)} (${today.fish_count}마리)`, `가구 ${signed(today.furniture)}`];
   if (today.mine_count) parts.push(`채광 ${signed(today.mine ?? 0)} (${today.mine_count}개)`);
   if (today.sold) parts.push(`판매 ${signed(today.sold)}`);
   if (today.deliver) parts.push(`납품 ${signed(today.deliver)}`);
   if (today.guests) parts.push(`숙박료 ${signed(today.guests)}`);
-  $("log-today").textContent = "오늘 · " + parts.join(" · ");
+  setRich($("log-today"), "오늘 · " + parts.join(" · "));
 }
 
 function needLine(n: NeedProgress): string {
   const label = n.label || NEED_LABEL[n.type];
-  if (n.type === "ruined_zero") return n.done ? `${label} ✓` : `${label} (${n.have}개 남음)`;
-  return `${label} ${n.have}/${n.want}${n.done ? " ✓" : ""}`;
-}
-
-function div(cls: string, text?: string): HTMLDivElement {
-  const d = document.createElement("div");
-  d.className = cls;
-  if (text !== undefined) d.textContent = text;
-  return d;
+  if (n.type === "ruined_zero") return n.done ? `${label} {check}` : `${label} (${n.have}개 남음)`;
+  return `${label} ${n.have}/${n.want}${n.done ? " {check}" : ""}`;
 }
 
 /** Every open room: comfort bar, what makes it up, tonight's guests and the open reservation. */
@@ -148,11 +143,11 @@ function renderGuests(): void {
   keys.sort((a, b) => rank(a) - rank(b) || a.localeCompare(b));
   for (const key of keys) {
     const c: ComfortView = state.comfort[key];
-    const card = div(`guest${key === here ? " here" : ""}`);
-    const head = div("guest-head");
-    head.append(document.createTextNode(unitName(cat, key)), Object.assign(document.createElement("span"), { textContent: `☕ ${c.score}` }));
+    const card = el("div", `guest${key === here ? " here" : ""}`);
+    const head = el("div", "guest-head");
+    head.append(document.createTextNode(unitName(cat, key)), richEl("span", "", `{heart} ${c.score}`));
     card.appendChild(head);
-    const bar = div("bar");
+    const bar = el("div", "bar");
     const fill = document.createElement("i");
     fill.style.width = `${c.score}%`;
     bar.appendChild(fill);
@@ -163,17 +158,17 @@ function renderGuests(): void {
     if (c.affection) parts.push(`🐱+${c.affection * 3}`);
     if (c.affection && c.affection < CAT_MAX_AFFECTION) parts.push(`쓰다듬기 ${state.cat.taps}/${(c.affection + 1) * CAT_TAPS_PER_LEVEL}`);
     parts.push(`침대 ${c.beds}개`);
-    card.appendChild(div("guest-sub", parts.join(" · ")));
+    card.appendChild(el("div", "guest-sub", parts.join(" · ")));
     let night: string;
     if (c.beds === 0) night = "침대가 없어서 손님을 못 받아요";
     else if (c.skipped) night = "오늘 밤은 손님이 안 와요 (예약을 못 지켰어요)";
     else if (c.guests === 0) night = "너무 허름해서 손님이 안 와요";
-    else night = `오늘 밤 손님 ${c.guests}명 · 숙박료 ${c.pay}💰 (1명당 ${c.per_guest}💰)`;
-    card.appendChild(div(`guest-night${c.beds === 0 || c.skipped || c.guests === 0 ? " guest-warn" : ""}`, night));
+    else night = `오늘 밤 손님 ${c.guests}명 · 숙박료 ${c.pay}{coin} (1명당 ${c.per_guest}{coin})`;
+    card.appendChild(richEl("div", `guest-night${c.beds === 0 || c.skipped || c.guests === 0 ? " guest-warn" : ""}`, night));
     if (c.reservation) {
       const r = c.reservation;
       const when = r.days_left <= 0 ? "오늘 밤" : `${r.days_left}일 뒤`;
-      card.appendChild(div("reserve", r.kind === "dog"
+      card.appendChild(el("div", "reserve", r.kind === "dog"
         ? `🐶 개를 좋아하는 손님이 ${when} 와요 — 개 장식이 있거나 안락도 70 이상이면 3배를 내요`
         : `📝 예약: ${when}까지 ${itemName(r.item_id)} 준비 (있으면 2배, 없으면 다음날 손님이 안 와요)`));
     }
@@ -202,7 +197,7 @@ function renderProgress(): void {
       for (const n of p.current.needs) {
         const li = document.createElement("div");
         li.className = `need${n.done ? " done" : ""}`;
-        li.textContent = needLine(n);
+        setRich(li, needLine(n));
         card.appendChild(li);
       }
       if (p.current.unlocks.length) {
@@ -265,7 +260,7 @@ export function initLog(): void {
     const cat = catalog();
     for (const c of completed) {
       const stage = cat.rooms.get(c.room)?.restore?.[c.to - 1];
-      toast(`🎉 ${placeName(cat, c.room)} '${stage?.name ?? c.to + "단계"}' 완료!`, 4000);
+      toast(`{star} ${placeName(cat, c.room)} '${stage?.name ?? c.to + "단계"}' 완료!`, 4000);
     }
   });
   socket.on("event", (m: { event: ActivityEvent }) => {
@@ -311,5 +306,5 @@ function renderChip(): void {
   const p = state.progress[state.roomId];
   const c = state.comfort[currentUnit()];
   const zone = c?.zone_name ? `${c.zone_name} ` : "";
-  $("hud-room-stage").textContent = (p ? ` · ${p.done ? "복구 완료" : `${p.stage}/${p.total}단계`}` : "") + (c ? ` · ${zone}☕${c.score}` : "");
+  setRich($("hud-room-stage"), (p ? ` · ${p.done ? "복구 완료" : `${p.stage}/${p.total}단계`}` : "") + (c ? ` · ${zone}{heart}${c.score}` : ""));
 }

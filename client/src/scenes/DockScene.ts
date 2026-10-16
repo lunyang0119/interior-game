@@ -323,7 +323,7 @@ export class DockScene extends Phaser.Scene {
       if (typeof r.balance === "number" && r.balance !== state.balance) { state.balance = r.balance; bus.emit("money", { balance: r.balance }); }
       bus.emit("loot:got", { ok: r.ok, kind: "fish", id: r.id, name: r.name, value: r.value, who: state.id ?? "", seq: r.seq, deliverable: r.deliverable });
       this.publishState(
-        r.ok ? `${r.name}을(를) 낚았어요! +${r.value}💰`
+        r.ok ? `${r.name}을(를) 낚았어요! +${r.value}{coin}`
           : r.escaped ? `놀라서 도망갔어요… ${r.name}이었는데`
           : `${cast.bites.length}번 중 ${r.pulls}번 낚아올렸지만 ${r.name}이(가) 도망쳤어요`,
         "idle",

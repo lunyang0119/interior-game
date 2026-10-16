@@ -8,7 +8,7 @@
  * remembered in localStorage.
  */
 
-import { $ } from "../ui/hud";
+import { $ } from "../ui/dom";
 import { bus } from "../bus";
 import { onUnlock } from "./unlock";
 import { assetUrl } from "../assets";

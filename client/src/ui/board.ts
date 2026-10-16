@@ -12,20 +12,15 @@ import { api, ApiError, msgFor, type ComfortView, type NeedProgress, type RoomPr
 import { bus, toast } from "../bus";
 import { placeName, unitName, type Stage } from "../catalog";
 import { applyCat, applyComfort, applyProgress, CAT_MAX_AFFECTION, CAT_TAPS_PER_LEVEL, catalog, state } from "../state";
-import { $, show, togglePanel } from "./hud";
+import { $, show, el } from "./dom";
+import { richEl, setRich } from "./icons";
+import { togglePanel } from "./hud";
 import { itemThumb } from "./shop";
 
 const NEED_LABEL: Record<NeedProgress["type"], string> = {
   ruined_zero: "부서진 물건 치우기", placed: "가구 놓기", deliver: "물고기 납품", pool: "공동 자금 모으기",
 };
 const DOG_COMFORT = 70; // mirrors data/guests.json dog.comfort_fallback (display only)
-
-function el<K extends keyof HTMLElementTagNameMap>(tag: K, cls: string, text?: string): HTMLElementTagNameMap[K] {
-  const e = document.createElement(tag);
-  e.className = cls;
-  if (text !== undefined) e.textContent = text;
-  return e;
-}
 
 function isOpen(): boolean {
   return !$("panel-board").classList.contains("hidden");
@@ -43,10 +38,10 @@ function renderSummary(): void {
   const guests = views.reduce((n, v) => n + v.guests, 0);
   const pay = views.reduce((n, v) => n + v.pay, 0);
   const beds = views.reduce((n, v) => n + v.beds, 0);
-  const parts = [guests ? `오늘 밤 손님 ${guests}명 · 숙박료 ${pay}💰 예상` : beds ? "오늘 밤은 손님이 없어요" : "침대가 없어서 손님을 못 받아요"];
+  const parts = [guests ? `오늘 밤 손님 ${guests}명 · 숙박료 ${pay}{coin} 예상` : beds ? "오늘 밤은 손님이 없어요" : "침대가 없어서 손님을 못 받아요"];
   parts.push(`객실 ${views.length}곳`);
   parts.push(catLine());
-  box.textContent = parts.join(" · ");
+  setRich(box, parts.join(" · "));
 }
 
 /** "🐱 호감도 1/3 · 쓰다듬기 137/300" — the cat loves the inn a little more every 100 taps, for good. */
@@ -56,6 +51,11 @@ function catLine(): string {
   return c.affection >= CAT_MAX_AFFECTION
     ? `🐱 호감도 ${c.affection}/${CAT_MAX_AFFECTION} (최고예요)`
     : `🐱 호감도 ${c.affection}/${CAT_MAX_AFFECTION} · 쓰다듬기 ${Math.min(c.taps, goal)}/${goal}`;
+}
+
+/** "✓ 준비됐어요" or why not. */
+function status(ready: boolean, miss: string): HTMLElement {
+  return richEl("div", `status ${ready ? "ok" : "miss"}`, ready ? "{check} 준비됐어요" : miss);
 }
 
 function reservationCard(key: string, c: ComfortView): HTMLElement {
@@ -68,16 +68,14 @@ function reservationCard(key: string, c: ComfortView): HTMLElement {
   if (r.kind === "dog") {
     card.appendChild(el("div", "emoji", "🐶"));
     body.appendChild(el("div", "what", `개를 좋아하는 손님이 ${when} 와요 — 개 장식이 있거나 안락도 ${DOG_COMFORT} 이상이면 3배를 내요`));
-    body.appendChild(el("div", `status ${r.ready ? "ok" : "miss"}`,
-      r.ready ? "✓ 준비됐어요" : c.beds === 0 ? "침대가 없어요" : `아직이에요 (안락도 ${c.score}/${DOG_COMFORT})`));
+    body.appendChild(status(r.ready, c.beds === 0 ? "침대가 없어요" : `아직이에요 (안락도 ${c.score}/${DOG_COMFORT})`));
   } else {
     const item = r.item_id ? cat.byId.get(r.item_id) : undefined;
     const slot = el("div", "emoji", "📦");
     card.appendChild(slot);
     if (item) void itemThumb(item).then((canvas) => slot.replaceWith(canvas));
     body.appendChild(el("div", "what", `${when}까지 ${itemName(r.item_id)} 준비 — 있으면 2배, 없으면 다음날 손님이 안 와요`));
-    body.appendChild(el("div", `status ${r.ready ? "ok" : "miss"}`,
-      r.ready ? "✓ 준비됐어요" : c.beds === 0 ? "침대도 없어요" : "아직 없어요"));
+    body.appendChild(status(r.ready, c.beds === 0 ? "침대도 없어요" : "아직 없어요"));
     if (!r.ready && item) {
       const btn = el("button", "", "상점에서 찾기");
       btn.addEventListener("click", () => bus.emit("shop:open", { itemId: item.id }));
@@ -124,7 +122,7 @@ function questCard(roomId: string, stages: Stage[], p: RoomProgress | undefined)
     el("span", "", p?.done ? "복구 완료" : `${done}/${stages.length}단계`));
   card.appendChild(head);
   stages.forEach((s, i) => {
-    if (i < done) { card.appendChild(el("div", "stage past", `✓ ${s.name}`)); return; }
+    if (i < done) { card.appendChild(richEl("div", "stage past", `{check} ${s.name}`)); return; }
     if (i > done) { card.appendChild(el("div", "stage next", `· ${s.name} (다음)`)); return; }
     const cur = el("div", "stage");
     cur.appendChild(el("span", "stage-name", `▶ ${s.name}`));

@@ -225,7 +225,7 @@ python tools/preprocess/preprocess.py media
 ## UI 스킨 바꾸기 (`data/ui_theme.json`)
 
 ```
-python tools/preprocess/preprocess.py ui      # → client/public/media/theme.css + media/ui/*.png
+python tools/preprocess/preprocess.py ui      # → client/public/media/theme.css + media/ui/*.png (data/ui_icons.json 아이콘 포함, docs/conventions/icons.md)
 ```
 
 1. 프레임 PNG를 구한다. 예: `assets/graphic/GUI/Pocket GUI/DIY_16x16.png`를 Aseprite/그림판으로 열어 원하는 박스의 **x, y, w, h**와 테두리 두께(**slice**, 모서리가 늘어나지 않는 픽셀 수)를 적는다.

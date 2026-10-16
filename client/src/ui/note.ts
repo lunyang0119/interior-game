@@ -8,7 +8,7 @@ import { api, ApiError, msgFor } from "../api";
 import { bus, toast } from "../bus";
 import { SEED_PLAYER, type RoomItem } from "../catalog";
 import { catalog } from "../state";
-import { $, show } from "./hud";
+import { $, show } from "./dom";
 
 export const NOTE_MAX = 200;
 

@@ -31,6 +31,7 @@ MAP_SLICES_FILE = Path(__file__).with_name("map_slices.json")
 CONTACT_SHEET = Path(__file__).with_name("contact_sheet.png")
 ITEMS_FILE = REPO_ROOT / "data" / "items.json"
 UI_THEME_FILE = REPO_ROOT / "data" / "ui_theme.json"
+UI_ICONS_FILE = REPO_ROOT / "data" / "ui_icons.json"
 
 BGM_DIR = ASSETS_ROOT / "BGM"          # BGM/day/*.mp3, BGM/night/*.mp3
 FONTS_DIR = ASSETS_ROOT / "fonts"      # *.ttf

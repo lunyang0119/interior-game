@@ -1,17 +1,10 @@
 import { api, ApiError, msgFor } from "../api";
-import { bus } from "../bus";
+import { bus, toast } from "../bus";
 import { state } from "../state";
 import { assetUrl } from "../assets";
+import { $, show } from "./dom";
+import { setRich } from "./icons";
 
-export function $(id: string): HTMLElement {
-  const el = document.getElementById(id);
-  if (!el) throw new Error(`#${id} missing`);
-  return el;
-}
-
-export function show(id: string, on: boolean): void {
-  $(id).classList.toggle("hidden", !on);
-}
 
 export function closeAllPanels(): void {
   // the door prompt is a panel too: closing it any other way than its buttons counts as "no" (else the map scene
@@ -72,7 +65,7 @@ export function initHud(): void {
   $("hud-room").addEventListener("click", () => bus.emit("log:open", { section: "progress" }));
   bus.on("toast", ({ text, ms }) => {
     const t = $("toast");
-    t.textContent = text;
+    setRich(t, text);
     t.classList.remove("hidden");
     if (toastTimer !== null) clearTimeout(toastTimer);
     toastTimer = window.setTimeout(() => t.classList.add("hidden"), ms ?? 2200);
@@ -82,7 +75,7 @@ export function initHud(): void {
     placing = active;
     show("placebar", active);
     show("bottombar", !active);
-    $("place-label").textContent = label;
+    setRich($("place-label"), label);
     $("place-confirm").classList.toggle("primary", ok);
     show("place-again", active && mode === "place"); // "one more" only makes sense for new items
     show("place-span", active && span != null); // wallpaper: pick how many columns it covers
@@ -215,7 +208,7 @@ export function initHud(): void {
   window.addEventListener("blur", up);
   const fishLabel: Record<string, string> = { idle: "🎣 낚시", wait: "🎣 낚시", bite: "🎣 낚아올리기", hold: "🎣 버티는 중…" };
   bus.on("fish:state", ({ status, mode }) => {
-    $("fish-status").textContent = status;
+    setRich($("fish-status"), status);
     $("fish-status").classList.toggle("real", mode === "bite" || mode === "hold");
     fishBtn.classList.toggle("waiting", mode === "wait");
     fishBtn.classList.toggle("bite", mode === "bite");
@@ -235,11 +228,11 @@ export function initHud(): void {
     const img = $("fish-catch-img") as HTMLImageElement;
     img.src = assetUrl(`/gen/${kind}/${id}.png`);
     img.style.visibility = ok ? "visible" : "hidden";
-    const gain = value > 0 ? ` +${value}💰` : ""; // duds are worth nothing
+    const gain = value > 0 ? ` +${value}{coin}` : ""; // duds are worth nothing
     const verb = kind === "mine" ? "캤어요" : "낚았어요";
-    $("fish-catch-text").textContent = ok
+    setRich($("fish-catch-text"), ok
       ? (who && who !== state.id ? `${who}가 ${name}을(를) ${verb}!${gain}` : `${name}을(를) ${verb}!${gain}`)
-      : `놓쳤어요… ${name}이(가) 도망쳤어요`;
+      : `놓쳤어요… ${name}이(가) 도망쳤어요`);
     const want = ok && seq != null && deliverable && deliverable.length ? deliverable[0] : null;
     deliverSeq = want ? seq! : null;
     deliverBtn.disabled = false;
@@ -257,11 +250,11 @@ export function initHud(): void {
       const r = await api.deliver(sent);
       state.balance = r.balance;
       bus.emit("money", { balance: r.balance });
-      bus.emit("toast", { text: `납품했어요 (${r.have}/${r.want})` });
+      toast(`납품했어요 (${r.have}/${r.want})`);
       // a newer catch may have replaced the overlay while this one was in flight: leave that one deliverable
       if (deliverSeq === sent) { deliverSeq = null; show("fish-catch", false); } else deliverBtn.disabled = false;
     } catch (e) {
-      bus.emit("toast", { text: e instanceof ApiError ? msgFor(e.code) : String(e) });
+      toast(e instanceof ApiError ? msgFor(e.code) : String(e));
       deliverBtn.disabled = false;
     }
   });
@@ -269,15 +262,15 @@ export function initHud(): void {
   $("place-span-inc").addEventListener("click", () => bus.emit("place:span", { delta: 1 }));
 
   guard($("btn-sync"), async () => {
-    if (!state.token) { bus.emit("toast", { text: "먼저 계정을 골라주세요" }); return; }
+    if (!state.token) { toast("먼저 계정을 골라주세요"); return; }
     try {
       const r = await api.sync();
       state.balance = r.balance;
       state.contributions = r.contributions;
       bus.emit("money", { balance: r.balance });
-      bus.emit("toast", { text: r.refreshed ? "시트 동기화 완료" : "잠시 뒤에 다시 시도해주세요" });
+      toast(r.refreshed ? "시트 동기화 완료" : "잠시 뒤에 다시 시도해주세요");
     } catch (e) {
-      bus.emit("toast", { text: e instanceof ApiError ? msgFor(e.code) : String(e) });
+      toast(e instanceof ApiError ? msgFor(e.code) : String(e));
     }
   });
 

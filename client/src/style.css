@@ -160,6 +160,7 @@ button.close { background: transparent; border: 0; border-image: none; font-size
 .row { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
 .row.small button { padding: 6px 10px; font-size: var(--fs-small); }
 .small { font-size: var(--fs-small); }
+.muted { color: var(--muted); }
 .credits { color: var(--muted); margin-top: 10px; font-size: 11px; }
 input {
   flex: 1; min-width: 0; border-radius: 10px; padding: var(--pad-input); font: inherit; background: var(--card); color: var(--text);

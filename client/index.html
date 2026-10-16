@@ -16,7 +16,7 @@
   <!-- top HUD -->
   <div id="hud" class="overlay">
     <button id="btn-accounts" class="chip" title="계정">👤 <span id="hud-id">…</span></button>
-    <div id="hud-balance" class="chip">💰 <span id="hud-balance-val">–</span></div>
+    <div id="hud-balance" class="chip"><i class="icon icon-coin"></i> <span id="hud-balance-val">–</span></div>
     <div id="hud-online" class="chip" title="이 방에 있는 사람">🟢 <span id="hud-online-val">0</span></div>
     <button id="hud-room" class="chip hidden" title="지금 있는 방 · 남은 부서진 물건 · 복구 단계 (누르면 자세히)">🏠 <span id="hud-room-val"></span><span id="hud-room-ruined"></span><span id="hud-room-stage"></span></button>
     <button id="btn-sync" class="chip" title="시트 동기화">🔄</button>
@@ -66,7 +66,7 @@
 
   <!-- panels -->
   <div id="panel-accounts" class="panel hidden">
-    <div class="panel-head"><span>계정</span><button class="close" data-close="panel-accounts">✕</button></div>
+    <div class="panel-head"><span>계정</span><button class="close" data-close="panel-accounts" title="닫기"><i class="icon icon-close"></i></button></div>
     <div id="accounts-list"></div>
     <div class="row">
       <input id="register-id" placeholder="닉네임 (시트 이름 일부만 써도 ok)" autocomplete="off" autocapitalize="off" />
@@ -82,14 +82,14 @@
   </div>
 
   <div id="panel-avatar" class="panel hidden">
-    <div class="panel-head"><span>아바타</span><button class="close" data-close="panel-avatar">✕</button></div>
+    <div class="panel-head"><span>아바타</span><button class="close" data-close="panel-avatar" title="닫기"><i class="icon icon-close"></i></button></div>
     <div class="preview-wrap"><canvas id="avatar-preview" width="96" height="128"></canvas></div>
     <div id="avatar-layers"></div>
     <div class="row"><button id="avatar-random">🎲 랜덤</button><button id="avatar-save" class="primary">저장</button></div>
   </div>
 
   <div id="panel-shop" class="panel hidden">
-    <div class="panel-head"><span>상점</span><button class="close" data-close="panel-shop">✕</button></div>
+    <div class="panel-head"><span>상점</span><button class="close" data-close="panel-shop" title="닫기"><i class="icon icon-close"></i></button></div>
     <div class="small" style="color:var(--muted)">놓인 가구를 <b>누르면</b> 이동 / 팔기(전액 환불) 메뉴가 떠요</div>
     <div id="shop-tabs" class="row small"></div>
     <div class="row"><input id="shop-search" type="search" placeholder="이름으로 찾기" autocomplete="off" autocapitalize="off" /></div>
@@ -99,7 +99,7 @@
 
   <!-- note items (tag `note`): read / rewrite the text. `.note-paper` takes the `note` theme frame (paper tile). -->
   <div id="panel-note" class="panel hidden">
-    <div class="panel-head"><span id="note-title">쪽지</span><button class="close" data-close="panel-note">✕</button></div>
+    <div class="panel-head"><span id="note-title">쪽지</span><button class="close" data-close="panel-note" title="닫기"><i class="icon icon-close"></i></button></div>
     <div class="note-paper">
       <textarea id="note-edit" rows="5" placeholder="여기에 쪽지를 남겨요" maxlength="200"></textarea>
       <div class="note-foot"><span id="note-by"></span><span id="note-count"></span></div>
@@ -109,7 +109,7 @@
 
   <!-- 📜 activity log (newest five only) + restoration checklists -->
   <div id="panel-log" class="panel hidden">
-    <div class="panel-head"><span>📜 기록</span><button class="close" data-close="panel-log">✕</button></div>
+    <div class="panel-head"><span>📜 기록</span><button class="close" data-close="panel-log" title="닫기"><i class="icon icon-close"></i></button></div>
     <div id="log-today" class="small log-today"></div>
     <div id="log-list"></div>
     <div class="panel-sub">🛏️ 손님</div>
@@ -120,7 +120,7 @@
 
   <!-- 📋 board (tag `board`, seeded on the inn wall): tonight's guests, restoration quests, open reservations -->
   <div id="panel-board" class="panel hidden">
-    <div class="panel-head"><span>📋 게시판</span><button class="close" data-close="panel-board">✕</button></div>
+    <div class="panel-head"><span>📋 게시판</span><button class="close" data-close="panel-board" title="닫기"><i class="icon icon-close"></i></button></div>
     <div id="board-summary" class="small board-summary"></div>
     <div class="panel-sub">📝 예약</div>
     <div id="board-reserve"></div>
@@ -135,7 +135,7 @@
   </div>
   <!-- the mine's entrance once more than one floor was reached: which floor to start on -->
   <div id="panel-floor" class="panel hidden">
-    <div class="panel-head"><span>광산 · 몇 층으로 갈까요?</span><button class="close" data-close="panel-floor">✕</button></div>
+    <div class="panel-head"><span>광산 · 몇 층으로 갈까요?</span><button class="close" data-close="panel-floor" title="닫기"><i class="icon icon-close"></i></button></div>
     <div id="floor-list" class="floor-grid"></div>
   </div>
 

@@ -125,7 +125,7 @@ export class PlacementController {
     const it = this.cat.byId.get(this.itemId);
     const price = it ? priceOf(it, this.span) : 0;
     const width = this.span !== null ? ` · 폭 ${this.span}칸` : "";
-    const label = this.moveUid !== null ? `${it?.name} 이동${width}` : `${it?.name} · ${price}💰${width}`;
+    const label = this.moveUid !== null ? `${it?.name} 이동${width}` : `${it?.name} · ${price}{coin}${width}`;
     const mode = this.moveUid !== null ? "move" : "place";
     const key = `${this.active}|${label}|${this.ok}|${mode}|${this.busy}|${this.span}`;
     if (key === this.lastState) return; // nothing changed → no DOM work

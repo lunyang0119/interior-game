@@ -2,7 +2,8 @@ import { api, ApiError, msgFor } from "../api";
 import { bus, toast } from "../bus";
 import { AVATAR_LAYERS, DEFAULT_LOOK, drawList, frameSize, type AvatarLook, type LayerSpec } from "../catalog";
 import { catalog, state } from "../state";
-import { $, guard, show, togglePanel } from "./hud";
+import { $, show } from "./dom";
+import { guard, togglePanel } from "./hud";
 import { assetUrl } from "../assets";
 
 const SCALE = 4;

@@ -329,7 +329,7 @@ export class RoomScene extends Phaser.Scene {
       bus.emit("money", { balance: r.balance });
       if (typeof r.ruined === "number" && r.room === this.room.id) this.setRuined(r.ruined);
       play(SFX.sell, { volume: SFX_VOL.ui });
-      toast(it && hasTag(it, "ruined") ? `팔았어요 (+${it.price}💰)` : "치웠어요 (환불됨)");
+      toast(it && hasTag(it, "ruined") ? `팔았어요 (+${it.price}{coin})` : "치웠어요 (환불됨)");
     } catch (e) {
       toast(e instanceof ApiError ? msgFor(e.code) : String(e));
     }

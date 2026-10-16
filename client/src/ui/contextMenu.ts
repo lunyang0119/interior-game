@@ -1,7 +1,8 @@
 import { bus } from "../bus";
 import { GUEST_PLAYER, hasTag, priceOf, SEED_PLAYER, TAG_NOTE, TAG_RUINED, type RoomItem } from "../catalog";
 import { catalog } from "../state";
-import { $, show } from "./hud";
+import { $, show } from "./dom";
+import { setRich } from "./icons";
 
 let current: RoomItem | null = null;
 
@@ -14,7 +15,7 @@ export function initContextMenu(): void {
     const guest = item.placed_by === GUEST_PLAYER;
     const who = item.placed_by === SEED_PLAYER ? "처음부터 있던 물건" : guest ? "손님이 두고 갔어요" : `${item.placed_by}가 놓음`;
     $("ctx-title").textContent = `${it?.name ?? item.item_id} · ${who}`;
-    $("ctx-remove").textContent = ruined ? `팔기 (+${it ? priceOf(it, item.span) : 0}💰)` : guest ? "치우기" : "팔기 (전액 환불)";
+    setRich($("ctx-remove"), ruined ? `팔기 (+${it ? priceOf(it, item.span) : 0}{coin})` : guest ? "치우기" : "팔기 (전액 환불)");
     const note = hasTag(it, TAG_NOTE);
     show("ctx-note", note);
     $("ctx-note").textContent = note && item.note ? "📝 쪽지 읽기" : "📝 쪽지 쓰기";
@@ -30,7 +31,7 @@ export function initContextMenu(): void {
     if (!current) return;
     const it = catalog().byId.get(current.item_id);
     const price = it ? priceOf(it, current.span) : 0;
-    const q = hasTag(it, TAG_RUINED) ? `${it?.name ?? current.item_id} 팔까요? ${price}💰 들어와요.` : `${it?.name ?? current.item_id} 치울까요? ${price}💰 환불되어요.`;
+    const q = hasTag(it, TAG_RUINED) ? `${it?.name ?? current.item_id} 팔까요? (+${price})` : `${it?.name ?? current.item_id} 치울까요? (${price} 환불)`;
     if (confirm(q)) bus.emit("item:remove", { uid: current.uid });
     close();
   });

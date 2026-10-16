@@ -1,6 +1,6 @@
 # 아이콘 규칙 (이모지 대체)
 
-2026-10-16 조사. 아직 적용 전 — 이 문서는 무엇을 무엇으로 바꿀지의 기준표다.
+2026-10-16 조사. 파이프라인과 1순위(💰 ✕ ✓ ☕ 🎉)는 적용됨, 나머지는 아래 표대로 차례로 바꾼다.
 
 ## 왜 바꾸나
 
@@ -68,9 +68,15 @@
 
 열차는 cyber 톤이라 룸 게임 아이콘을 쓰지 않는다. cyberpunk `icon.png` 후보: 🔍 → 돋보기, 📶 → 신호 막대, 📢 → 스피커, ⚠ → !, 🛠 → 톱니. ⛔(잠긴 문)·☕(증기)·💥·👁·🕶·🤖 는 대응 그림이 없어 별도 제작 또는 글자 태그(`[잠김]`)가 필요하다. 보고서 줄머리 이모지(`train/report.ts`)는 대부분 장식이라 지우는 쪽이 우선.
 
-## 구현 메모 (적용 시)
+## 구현 (적용됨)
 
-- `preprocess.py ui`(또는 새 `icons` 명령)가 `data/ui_icons.json`(이름 → 시트, x, y, w, h)을 읽어 `media/ui/icons.png` 아틀라스 + CSS(`.icon-coin` 등)를 생성. 게임 내 스프라이트 출처는 manifest 키로 지정.
-- 토스트/기록 문구에 아이콘이 들어가므로 `textContent` 대신 안전한 렌더러가 필요: 문자열 토큰(`{coin}`)만 `<i class="icon icon-coin">`로 바꾸고 나머지는 텍스트 노드로 넣는다(innerHTML 금지).
-- Phaser 쪽(`Placement.ts` 가격 라벨, 열차 `Fx.ts`)은 텍스트 옆에 이미지 오브젝트를 둔다.
-- 1순위: 💰 ✕ ✓ ☕ 🔒 (전체 이모지의 절반 가량, 화면에 늘 보임).
+- 출처 목록: `data/ui_icons.json` (이름 → `sheet` + x, y [+ w, h] 또는 gen 아틀라스 `key` [+ 정수 `down`]). 칸은 16px, 투명 여백을 깎아 가운데 정렬, 칸보다 크면 빌드 에러.
+- 빌드: `python tools/preprocess/preprocess.py ui` → `media/ui/icons.png` + `theme.css` 끝의 `.icon` / `.icon-<name>` (`tools/preprocess/ui_icons.py`). 테마 `scale`(2)로 그려서 16px 칸 = 32px, 음수 margin으로 글줄 높이는 그대로. `.icon.x2`는 그 두 배(큰 버튼).
+- 클라이언트: `client/src/ui/icons.ts`
+  - `icon("coin")` → `<i class="icon icon-coin">`
+  - 문구 안의 `{coin}` 토큰: `setRich(el, text)` / `richEl(tag, cls, text)`. 토큰만 아이콘이 되고 나머지는 텍스트 노드(innerHTML 아님).
+  - 토스트, 배치 라벨, 낚시 상태, 획득 알림, 기록, 게시판, 상점 가격, HUD 방 칩이 이미 `setRich`를 거친다. 새 문구에 `{coin}`을 쓰려면 그 문구가 들어가는 곳이 `setRich`/`richEl`인지 확인.
+  - `confirm()` 같은 네이티브 대화상자는 아이콘을 못 그린다 → 숫자만 (`(+12)`).
+- 정적 HTML은 `<i class="icon icon-close"></i>` 직접.
+- 아이콘 추가 순서: `ui_icons.json`에 한 줄 → `preprocess.py ui` → 코드에서 `{name}`. 열차 페이지는 `.ic-*`(train-ui, cyber)라 `.icon-*`와 섞지 않는다.
+- 남은 것: 매핑표의 나머지 이모지, Phaser 텍스트 안의 이모지(열차 `Fx.ts` 등)는 텍스트 옆 이미지 오브젝트로 따로.
