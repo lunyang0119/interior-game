@@ -1096,25 +1096,32 @@ def _bgm_title(f: Path) -> str:
     return stem[len(BGM_NIGHT_PREFIX):] if stem.lower().startswith(BGM_NIGHT_PREFIX) else stem
 
 
+BGM_EXTS = (".mp3", ".wav", ".ogg")  # copied as-is (extension kept); mp3 is the small one, wav loops gap-free
+
+
+def _bgm_files(folder: Path) -> list[Path]:
+    return sorted((f for f in folder.iterdir() if f.is_file() and f.suffix.lower() in BGM_EXTS), key=lambda f: f.name.lower()) if folder.exists() else []
+
+
 def _bgm_tracks(files: list[Path], dst: Path, rel: str, start: int = 1) -> list[dict]:
-    """Copy mp3s into dst (NN-slug.mp3, numbered from `start`) and return their manifest rows."""
+    """Copy tracks into dst (NN-slug.<ext>, numbered from `start`, name order) and return their manifest rows."""
     tracks: list[dict] = []
     if files:
         dst.mkdir(parents=True, exist_ok=True)
     for i, f in enumerate(files, start=start):
-        name = f"{i:02d}-{_ascii_slug(_bgm_title(f))[:40]}.mp3"
+        name = f"{i:02d}-{_ascii_slug(_bgm_title(f))[:40]}{f.suffix.lower()}"
         shutil.copyfile(f, dst / name)
         tracks.append({"file": f"{rel}/{name}", "title": _bgm_title(f)})
     return tracks
 
 
 def _period_lists(folder: Path) -> dict[str, list[Path]]:
-    """The mp3s that belong to each period of one location folder.
+    """The tracks (BGM_EXTS) that belong to each period of one location folder.
 
-    Loose files: `night_*.mp3` → night, anything else → day. Plus the optional day/ and night/ subfolders.
+    Loose files: `night_*` → night, anything else → day. Plus the optional day/ and night/ subfolders.
     """
-    loose = sorted(folder.glob("*.mp3")) if folder.exists() else []
-    out = {p: sorted((folder / p).glob("*.mp3")) if (folder / p).exists() else [] for p in BGM_PERIODS}
+    loose = _bgm_files(folder)
+    out = {p: _bgm_files(folder / p) for p in BGM_PERIODS}
     for f in loose:
         out["night" if f.name.lower().startswith(BGM_NIGHT_PREFIX) else "day"].append(f)
     return out

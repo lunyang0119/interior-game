@@ -179,6 +179,42 @@ class Zone(BaseModel):
 RoomKind = Literal["room", "mine"]
 
 
+class TrainSideDoor(BaseModel):
+    """A door opening on a compartment's left/right edge: template rows [y, y+h) (floor rows only)."""
+    y: int = Field(ge=0)
+    h: int = Field(ge=1)
+
+
+class TrainEndDoor(BaseModel):
+    """A door opening on a compartment's top (cut through the back wall) or bottom edge: template columns [x, x+w)."""
+    x: int = Field(ge=0)
+    w: int = Field(ge=1)
+
+
+class TrainDoors(BaseModel):
+    """Where a /train/ compartment template opens to its neighbours (world editor "열차 칸" → 문 위치). A missing
+    side = centred, 2 cells (the built-in rule). Two facing openings share the rows/columns they overlap on; if
+    they do not overlap the left/upper room's opening wins (client/src/train/render/layout.ts)."""
+    left: TrainSideDoor | None = None
+    right: TrainSideDoor | None = None
+    top: TrainEndDoor | None = None
+    bottom: TrainEndDoor | None = None
+
+
+class TrainTiles(BaseModel):
+    """Art of the corridor between compartments: atlas keys (None = the renderer's built-in placeholder)."""
+    partition: str | None = None   # the solid cells between compartments (None = flat dark fill)
+    corridor: str | None = None    # floor under every door gap
+    side_door: str | None = None   # sprite on a left/right opening
+    back_door: str | None = None   # sprite on a top opening (the back-wall cut)
+
+
+class TrainLayout(BaseModel):
+    """`layout` of data/train_interiors.json: corridor thickness and art shared by every compartment."""
+    gap: int = Field(ge=1, le=4, default=1)
+    tiles: TrainTiles = TrainTiles()
+
+
 class Room(BaseModel):
     id: str = DEFAULT_ROOM
     name: str = ""
@@ -201,6 +237,8 @@ class Room(BaseModel):
     zones: list[Zone] = []
     # Pixel-placed decorations / animations drawn on top (see Fx).
     fx: list[Fx] = []
+    # /train/ compartment templates only: where the doors open (see TrainDoors). None = centred doors.
+    doors: TrainDoors | None = None
 
     @model_validator(mode="after")
     def _zones(self) -> "Room":
@@ -309,6 +347,8 @@ class Catalog:
     # /train/ compartment interiors by engine device (data/train_interiors.json, world editor "열차 칸");
     # all share one size. Empty = the train page draws its built-in compartments.
     train: dict[str, Room] = field(default_factory=dict)
+    # corridor thickness/art of the train car (train_interiors.json `layout`); None = the client's built-in look
+    train_layout: TrainLayout | None = None
     # hash of the generated atlases + theme: the client appends it to /gen and /media URLs so a rebuild
     # bypasses the long browser/Caddy cache instead of serving a stale atlas for a day
     asset_version: str = ""
@@ -344,6 +384,7 @@ class Catalog:
                 "tiles": {atlas: {k: m.model_dump(exclude_none=True) for k, m in metas.items()}
                           for atlas, metas in self.tiles.items()},
                 "train": {d: r.model_dump() for d, r in self.train.items()} or None,
+                "train_layout": self.train_layout.model_dump() if self.train_layout else None,
                 # interior atlas keys built from an `anim` slice: {key: {frames, fps}} (frames are <key>#i)
                 "anims": {k: spec["anim"] for k, spec in self.manifest["interiors"]["keys"].items() if "anim" in spec},
                 "asset_version": self.asset_version,
@@ -441,8 +482,9 @@ def load(data_dir: Path | None = None, gen_dir: Path | None = None) -> Catalog:
 
     layer_counts = {name: spec["count"] for name, spec in manifest["chars"]["layers"].items()}
     tiles = {"interior": _tile_meta(keys), "map": _tile_meta(manifest.get("map", {}).get("keys", {}))}
+    train, train_layout = _load_train(data_dir, keys, items)
     return Catalog(items=items, rooms=rooms, manifest=manifest, layer_counts=layer_counts,
-                   map=_load_map(data_dir, rooms, manifest), tiles=tiles, train=_load_train(data_dir, keys, items),
+                   map=_load_map(data_dir, rooms, manifest), tiles=tiles, train=train, train_layout=train_layout,
                    asset_version=asset_version(gen_dir))
 
 
@@ -475,13 +517,29 @@ TRAIN_COLS = (4, 16)
 TRAIN_WALL_ROWS = (0, 4)
 
 
-def _load_train(data_dir: Path, keys: dict, items: dict[str, Item]) -> dict[str, Room]:
-    """data/train_interiors.json {"rooms": {device: Room-shaped}} (world editor). Optional."""
+def check_train_doors(room: Room, where: str = "") -> None:
+    """A template's door openings must lie on its floor rows (left/right) or inside its columns (top/bottom)."""
+    d = room.doors
+    if d is None:
+        return
+    for side in ("left", "right"):
+        s = getattr(d, side)
+        if s is not None and not (room.wall_rows <= s.y and s.y + s.h <= room.rows):
+            raise ValueError(f"{where}{side} door rows {s.y}..{s.y + s.h - 1} are not floor rows ({room.wall_rows}..{room.rows - 1})")
+    for side in ("top", "bottom"):
+        s = getattr(d, side)
+        if s is not None and not (s.x + s.w <= room.cols):
+            raise ValueError(f"{where}{side} door columns {s.x}..{s.x + s.w - 1} are outside the compartment (0..{room.cols - 1})")
+
+
+def _load_train(data_dir: Path, keys: dict, items: dict[str, Item]) -> tuple[dict[str, Room], TrainLayout | None]:
+    """data/train_interiors.json {"layout": TrainLayout, "rooms": {device: Room-shaped}} (world editor). Optional."""
     p = data_dir / "train_interiors.json"
     if not p.exists():
-        return {}
+        return {}, None
     from .train.config import DEVICES
-    raw = json.loads(p.read_text(encoding="utf-8")).get("rooms") or {}
+    data = json.loads(p.read_text(encoding="utf-8"))
+    raw = data.get("rooms") or {}
     out: dict[str, Room] = {}
     for dev, r in raw.items():
         if dev not in DEVICES:
@@ -492,10 +550,16 @@ def _load_train(data_dir: Path, keys: dict, items: dict[str, Item]) -> dict[str,
         if not (TRAIN_COLS[0] <= room.cols <= TRAIN_COLS[1] and TRAIN_FLOOR_ROWS[0] <= floor_rows <= TRAIN_FLOOR_ROWS[1]
                 and TRAIN_WALL_ROWS[0] <= room.wall_rows <= TRAIN_WALL_ROWS[1]):
             raise ValueError(f"train_interiors.json: {dev}: size {room.cols}x{floor_rows}+{room.wall_rows} out of range")
+        check_train_doors(room, f"train_interiors.json: {dev}: ")
         out[dev] = room
     if len({(r.cols, r.rows, r.wall_rows) for r in out.values()}) > 1:
         raise ValueError("train_interiors.json: every compartment must have the same cols/rows/wall_rows")
-    return out
+    layout = TrainLayout.model_validate(data["layout"]) if data.get("layout") else None
+    if layout:
+        for name, key in layout.tiles.model_dump().items():
+            if key is not None and key not in keys:
+                raise ValueError(f"train_interiors.json: layout tile '{name}' = '{key}' not in manifest (build?)")
+    return out, layout
 
 
 def _tile_meta(keys: dict) -> dict[str, TileMeta]:

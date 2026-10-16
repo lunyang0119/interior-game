@@ -71,6 +71,10 @@ Character strips: 24 frames = 6 per direction in order right, up, left, down. `r
 
 놓는 건 방 에디터(/world) 방 탭의 **✨ 효과 놓기**: 팔레트(움직이는 것 🎞 먼저, 그 뒤 실내 아틀라스 전부)에서 고르고 클릭하면 그 칸 왼쪽 위에 놓이고, 드래그(Shift=칸 스냅)나 방향키(1칸 / Shift=8px / Ctrl=1px)로 **픽셀 단위**로 옮긴다. `rooms/<id>.json`의 `fx: [{sprite, x, y}]`(px, 왼쪽 위 기준)로 저장되고 게임의 `RoomScene`이 가구·아바타보다 위에 그리며 `anim` 키면 반복 재생한다. 서버는 `/api/catalog`에 `anims: {키: {frames, fps}}`를 같이 내려준다.
 
+**열차 칸의 문·복도** (방 에디터 "열차 칸"을 열면 패널에 뜸, `data/train_interiors.json`):
+- **🚪 문 위치 (이 칸)**: 왼쪽/오른쪽은 `y`(템플릿 줄, 바닥 줄만)·높이, 위(뒷벽)/아래는 `x`·폭. 비우면 가운데 2칸(원래 규칙). 캔버스에 주황(문 앞 칸, 게임에서 항상 비움)·파랑(뒷벽이 잘리는 벽)으로 보이고 가장자리에 문 막대가 그려진다. `rooms[장치].doors = {left: {y, h}, right: {y, h}, top: {x, w}, bottom: {x, w}}`(없는 쪽은 기본). 이웃한 두 칸이 마주 보는 문(A의 right ↔ B의 left, 위 칸의 bottom ↔ 아래 칸의 top)은 **겹치는 줄/열만** 복도가 되고, 안 겹치면 왼쪽(위쪽) 칸 문 위치를 따른다 — 장치별 템플릿이 달라도 길이 끊기지 않게.
+- **🛤 복도 (전 칸 공통)**: `layout = {gap, tiles: {partition, corridor, side_door, back_door}}`. `gap` = 칸 사이 칸막이 두께(1~4칸, 2 이상이면 진짜 복도처럼 넓어짐), `partition` = 칸막이 칸에 깔 tile_ 슬라이스(비우면 어두운 단색), `corridor` = 문 틈 바닥(기본 `tile_floor_wood`), `side_door`/`back_door` = 옆문·뒷문 그림(실내 아틀라스 key, 기본은 `client/src/train/render/tiles.ts`의 자리표시 그림). 게임은 `catalog.train_layout`으로 받아 `layout.ts`(칸 배치·걷기)와 `CarMap.ts`(그리기)가 쓴다. 크기를 바꾸면 문 위치는 벽 줄 수에 맞춰 따라간다.
+
 **기믹 조건 (`when`)**: 효과 패널의 "조건"을 고르면 `fx[].when`에 태그가 저장되고, 그 기믹이 켜진 동안에만 보인다(에디터에선 반투명 + 태그 글자). 열차 칸(`train_interiors.json`, 에디터의 "열차 칸")에서 쓰라고 만든 것: `steam` = 커피포트 과부하(그 라운드 동안 공개 뷰 `steam`에 든 칸), `blackout` = 조명 해킹(화면이 깜빡이는 동안 모든 칸), `marker` = 신호 감지(◎)된 칸. 열차 페이지의 `CarMap.drawTemplateFx`가 그리고 `Fx.onCondition` → `CarMap.setCondition(tag, rooms)`로 켜고 끈다. 보통 방은 기믹 상태가 없어서 조건 있는 효과를 아예 안 그린다. 예: 커피포트 칸에 `fx_steam`을 포트 위에 놓고 조건을 `steam`으로.
 
 ## 동결(freeze): 소스 팩이 사라진 슬라이스

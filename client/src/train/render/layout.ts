@@ -1,22 +1,49 @@
 /** Data-driven train-car layout: engine rooms {id, col, row, device, neighbors} → cells.
  *
  * Every room becomes one compartment: a back-wall band (`wall` rows) over a floor block (`w` × `h`). Compartments
- * sit on a grid with a one-cell partition between them and around the outside. A door is a gap cut into the
+ * sit on a grid with a `gap`-cell partition between them and around the outside. A door is a gap cut into the
  * partition between two neighbouring rooms: on the vertical partition for side-by-side rooms, and through the
- * partition row plus the lower room's wall band for stacked rooms (so avatars can actually walk through it).
+ * partition row(s) plus the lower room's wall band for stacked rooms (so avatars can actually walk through it).
+ * Where a door opens comes from each template's `doors` (world editor "열차 칸" → 문 위치; default = centred,
+ * 2 cells): two facing openings share the rows/columns they overlap on, else the left/upper room's opening wins.
  *
  * The compartment size and furniture come from the catalog's `train` interiors (one Room-shaped template per engine
- * device, edited as "열차 칸" in the world editor, data/train_interiors.json). Without them every compartment is the
- * built-in 7×4 one with a bench and the device sprite. Pure functions, no Phaser: the walk grid and the renderer
- * both read the result.
+ * device, edited as "열차 칸" in the world editor, data/train_interiors.json); `trainLayout` gives the gap and the
+ * corridor art. Without them every compartment is the built-in 7×4 one with a bench and the device sprite. Pure
+ * functions, no Phaser: the walk grid and the renderer both read the result.
  */
 
-import { collisionLayer, floorKeyAt, hasTag, TAG_DOOR, type Catalog, type Room } from "../../catalog";
+import { collisionLayer, floorKeyAt, hasTag, TAG_DOOR, type Catalog, type Room, type TrainLayout } from "../../catalog";
 import { cellKey, type Cell } from "../../room/walk";
 
-export const GAP = 1;         // partition thickness
-const DOOR_H = 2;             // cells tall (side doors)
+export const DEFAULT_GAP = 1; // partition thickness
+const DOOR_H = 2;             // cells tall (side doors) when a template names no opening
 const DOOR_W = 2;             // cells wide (stacked doors)
+
+/** The rows (left/right) or columns (top/bottom) a compartment opens on, in world cells. */
+export function opening(b: RoomBox, side: "left" | "right" | "top" | "bottom"): number[] {
+  const d = b.tpl?.doors?.[side];
+  if (side === "left" || side === "right") {
+    const spec = d as { y: number; h: number } | null | undefined;
+    const y0 = spec ? b.wallY0 + spec.y : b.y0 + Math.floor((b.h - DOOR_H) / 2);
+    const h = spec ? spec.h : DOOR_H;
+    const out: number[] = [];
+    for (let y = Math.max(b.y0, y0); y < Math.min(b.y0 + b.h, y0 + h); y++) out.push(y);
+    return out.length ? out : [b.y0 + Math.floor((b.h - 1) / 2)];
+  }
+  const spec = d as { x: number; w: number } | null | undefined;
+  const x0 = spec ? b.x0 + spec.x : b.x0 + Math.floor((b.w - DOOR_W) / 2);
+  const w = spec ? spec.w : DOOR_W;
+  const out: number[] = [];
+  for (let x = Math.max(b.x0, x0); x < Math.min(b.x0 + b.w, x0 + w); x++) out.push(x);
+  return out.length ? out : [b.x0 + Math.floor((b.w - 1) / 2)];
+}
+
+/** The lines two facing openings share; when they do not overlap the first (left/upper room's) wins. */
+function shared(a: number[], b: number[]): number[] {
+  const both = a.filter((v) => b.includes(v));
+  return both.length ? both : a;
+}
 
 /** Compartment size: floor cells w × h under `wall` back-wall rows. */
 export interface Dims { w: number; h: number; wall: number }
@@ -52,6 +79,9 @@ export interface Layout {
   cols: number;
   rows: number;
   dims: Dims;
+  gap: number;
+  /** Corridor art from the catalog (train_interiors.json `layout`); null = CarMap's placeholders. */
+  art: TrainLayout | null;
   cat: Catalog | null;
   rooms: Map<string, RoomBox>;
   doors: Door[];
@@ -72,6 +102,8 @@ export function dimsOf(cat: Catalog | null): Dims {
 
 export function buildLayout(rooms: RoomSpec[], cat: Catalog | null = null): Layout {
   const dims = dimsOf(cat);
+  const art = cat?.trainLayout ?? null;
+  const GAP = Math.max(1, Math.min(4, art?.gap ?? DEFAULT_GAP));
   const pitchX = dims.w + GAP, pitchY = dims.wall + dims.h + GAP;
   const minC = Math.min(...rooms.map((r) => r.col));
   const minR = Math.min(...rooms.map((r) => r.row));
@@ -106,19 +138,20 @@ export function buildLayout(rooms: RoomSpec[], cat: Catalog | null = null): Layo
       const edge = edgeKey(r.id, nid);
       let door: Door | null = null;
       if (a.row === b.row && Math.abs(a.col - b.col) === 1) {
-        const left = a.col < b.col ? a : b;
-        const x = left.x0 + left.w;                       // the partition column between them
-        const y = left.y0 + Math.floor((left.h - DOOR_H) / 2);
+        const left = a.col < b.col ? a : b, right = left === a ? b : a;
+        const ys = shared(opening(left, "right"), opening(right, "left"));
         const cells: Cell[] = [];
-        for (let i = 0; i < DOOR_H; i++) cells.push({ cx: x, cy: y + i });
+        // the partition column(s) between them, walking order from a to b
+        for (let x = left.x0 + left.w; x < right.x0; x++) for (const y of ys) cells.push({ cx: x, cy: y });
+        if (a !== left) cells.reverse();
         door = { a: r.id, b: nid, edge, dir: "h", cells };
       } else if (a.col === b.col && Math.abs(a.row - b.row) === 1) {
         const upper = a.row < b.row ? a : b;
         const lower = upper === a ? b : a;
-        const x = upper.x0 + Math.floor((upper.w - DOOR_W) / 2);
+        const xs = shared(opening(upper, "bottom"), opening(lower, "top"));
         const cells: Cell[] = [];
-        // partition row below the upper room, then down through the lower room's wall band
-        for (let y = upper.y0 + upper.h; y < lower.y0; y++) for (let i = 0; i < DOOR_W; i++) cells.push({ cx: x + i, cy: y });
+        // partition row(s) below the upper room, then down through the lower room's wall band
+        for (let y = upper.y0 + upper.h; y < lower.y0; y++) for (const x of xs) cells.push({ cx: x, cy: y });
         door = { a: upper.id, b: lower.id, edge, dir: "v", cells };
       }
       if (!door) continue; // non-adjacent neighbours: app/train/maps.py refuses them; nothing to draw
@@ -157,7 +190,7 @@ export function buildLayout(rooms: RoomSpec[], cat: Catalog | null = null): Layo
   }
   for (const d of doors) for (const c of d.cells) walkable.add(cellKey(c.cx, c.cy));
 
-  return { cols, rows, dims, cat, rooms: boxes, doors, doorByEdge, partition, walkable };
+  return { cols, rows, dims, gap: GAP, art, cat, rooms: boxes, doors, doorByEdge, partition, walkable };
 }
 
 /** Floor cells a template blocks: furniture-group seeds (partitions too, unless tagged door), the editor's

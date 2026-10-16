@@ -39,8 +39,22 @@ export class CarMap {
     return this.scene.textures.get(ATLAS).has(frame);
   }
 
+  /** Atlas frame for a corridor part: the catalog's train layout art when it names one that is built, else the
+   *  placeholder of tiles.ts (null when neither exists). */
+  private art(part: "partition" | "corridor" | "side_door" | "back_door"): string | null {
+    const custom = this.layout.art?.tiles?.[part];
+    if (custom && this.hasFrame(custom)) return custom;
+    const fallback: Record<typeof part, TrainKey | null> = { partition: null, corridor: "train_floor_door", side_door: "train_side_door", back_door: "train_back_door" };
+    const k = fallback[part];
+    return k && this.has(k) ? TRAIN_FRAMES[k] : null;
+  }
+
   private image(x: number, y: number, key: TrainKey): Phaser.GameObjects.Image {
-    const img = this.scene.add.image(x, y, ATLAS, TRAIN_FRAMES[key]).setOrigin(0, 1);
+    return this.frameImage(x, y, TRAIN_FRAMES[key]);
+  }
+
+  private frameImage(x: number, y: number, frame: string): Phaser.GameObjects.Image {
+    const img = this.scene.add.image(x, y, ATLAS, frame).setOrigin(0, 1);
     this.objects.push(img);
     return img;
   }
@@ -50,6 +64,9 @@ export class CarMap {
     const rt = this.scene.add.renderTexture(0, 0, cols * CELL, rows * CELL).setOrigin(0).setDepth(TILE_DEPTH);
     this.objects.push(rt);
     const draw = (key: TrainKey, cx: number, cy: number) => rt.drawFrame(ATLAS, TRAIN_FRAMES[key], cx * CELL, cy * CELL);
+    // the partition as a tile when the layout names one (else drawPartitions paints it flat)
+    const part = this.art("partition");
+    if (part) for (const k of this.layout.partition) rt.drawFrame(ATLAS, part, (k % 10_000) * CELL, Math.floor(k / 10_000) * CELL);
     for (const b of this.layout.rooms.values()) {
       if (b.tpl) { this.drawTemplateTiles(rt, b, b.tpl); continue; }
       for (let x = b.x0; x < b.x0 + b.w; x++) {
@@ -59,7 +76,8 @@ export class CarMap {
       }
       if (this.has("train_window")) for (const wx of [b.x0 + 1, b.x0 + b.w - 3]) draw("train_window", wx, b.wallY0);
     }
-    for (const d of this.layout.doors) for (const c of d.cells) draw("train_floor_door", c.cx, c.cy);
+    const corridor = this.art("corridor");
+    if (corridor) for (const d of this.layout.doors) for (const c of d.cells) rt.drawFrame(ATLAS, corridor, c.cx * CELL, c.cy * CELL);
   }
 
   /** Wall rows (wall_left / wall_right on the edge columns) and the floor (painted grid, else tiles.floor),
@@ -144,6 +162,7 @@ export class CarMap {
   }
 
   private drawPartitions(): void {
+    if (this.art("partition")) return; // tiled in drawTiles
     const g = this.scene.add.graphics().setDepth(TILE_DEPTH + 1);
     this.objects.push(g);
     for (const k of this.layout.partition) {
@@ -154,29 +173,33 @@ export class CarMap {
     }
   }
 
-  /** Every door gap gets a door sprite (placeholder art, see tiles.ts) plus thin frame posts. */
+  /** Every door gap gets a door sprite (the layout's art, else the placeholders of tiles.ts) plus thin frame posts
+   *  along the gap's edges. The gap is a rectangle of corridor cells (gap columns × shared rows, or shared columns ×
+   *  partition rows + the lower wall band). */
   private drawDoor(d: Door): void {
     const g = this.scene.add.graphics().setDepth(TILE_DEPTH + 1);
     this.objects.push(g);
     g.fillStyle(DOOR_FRAME, 1);
-    const first = d.cells[0], last = d.cells[d.cells.length - 1];
+    const x0 = Math.min(...d.cells.map((c) => c.cx)), x1 = Math.max(...d.cells.map((c) => c.cx));
+    const y0 = Math.min(...d.cells.map((c) => c.cy)), y1 = Math.max(...d.cells.map((c) => c.cy));
     let img: Phaser.GameObjects.Image | null = null;
     if (d.dir === "h") {
-      g.fillRect(first.cx * CELL, first.cy * CELL - 2, CELL, 2);
-      g.fillRect(last.cx * CELL, (last.cy + 1) * CELL, CELL, 2);
-      if (this.has("train_side_door")) {
-        img = this.image(first.cx * CELL, (last.cy + 1) * CELL, "train_side_door").setAlpha(0.85);
+      g.fillRect(x0 * CELL, y0 * CELL - 2, (x1 - x0 + 1) * CELL, 2);
+      g.fillRect(x0 * CELL, (y1 + 1) * CELL, (x1 - x0 + 1) * CELL, 2);
+      const frame = this.art("side_door");
+      if (frame) {
+        img = this.frameImage(x0 * CELL, (y1 + 1) * CELL, frame).setAlpha(0.85);
         img.setDepth(TILE_DEPTH + 2); // avatars walk over it
       }
     } else {
-      const x0 = Math.min(...d.cells.map((c) => c.cx)), x1 = Math.max(...d.cells.map((c) => c.cx));
-      for (let y = first.cy; y <= last.cy; y++) {
+      for (let y = y0; y <= y1; y++) {
         g.fillRect(x0 * CELL - 2, y * CELL, 2, CELL);
         g.fillRect((x1 + 1) * CELL, y * CELL, 2, CELL);
       }
-      if (this.has("train_back_door")) {
-        // the two wall-band rows of the lower room carry the door picture; the partition row above stays a threshold
-        img = this.image(x0 * CELL, (last.cy + 1) * CELL, "train_back_door").setAlpha(0.85);
+      const frame = this.art("back_door");
+      if (frame) {
+        // the lower room's wall-band rows carry the door picture; the partition row(s) above stay a threshold
+        img = this.frameImage(x0 * CELL, (y1 + 1) * CELL, frame).setAlpha(0.85);
         img.setDepth(TILE_DEPTH + 2);
       }
     }

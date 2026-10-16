@@ -87,6 +87,8 @@ export interface Room {
   floor?: (string | null)[][] | null;
   exits: Exit[];
   fx?: Fx[];
+  /** /train/ compartment templates only: where the doors open (see TrainDoors). Absent = centred 2-cell doors. */
+  doors?: TrainDoors | null;
   /** Restoration stages (mirror server/app/restore.py); progress comes from /api/rooms and the ws `progress` message. */
   restore?: Stage[];
   /** Guest rooms inside this room (comfort/guests per zone, unit key `room:zone`). Empty = the whole room is one unit. */
@@ -96,6 +98,20 @@ export interface Room {
 }
 
 export interface Seed { item_id: string; x: number; y: number; span?: number | null }
+
+/** A train compartment's door openings in template cells: left/right = rows [y, y+h) on the floor, top (through the
+ *  back wall) / bottom = columns [x, x+w). A missing side = centred, 2 cells. */
+export interface TrainDoors {
+  left?: { y: number; h: number } | null;
+  right?: { y: number; h: number } | null;
+  top?: { x: number; w: number } | null;
+  bottom?: { x: number; w: number } | null;
+}
+/** Corridor between train compartments: thickness in cells and atlas keys for its art (null = built-in placeholder). */
+export interface TrainLayout {
+  gap: number;
+  tiles: { partition?: string | null; corridor?: string | null; side_door?: string | null; back_door?: string | null };
+}
 
 /** A decoration at a pixel position in the room, drawn on top of everything (world editor "효과 놓기"); `sprite` is an
  *  interior atlas key, animated when `Catalog.anims` lists it. `when` = a gimmick tag (train: "steam" | "blackout" |
@@ -221,6 +237,8 @@ export interface Catalog {
   tiles: { interior: Record<string, TileInfo>; map: Record<string, TileInfo> };
   /** /train/ compartment interiors by engine device (data/train_interiors.json); null = built-in compartments. */
   train: Record<string, Room> | null;
+  /** Corridor thickness/art of the train car (train_interiors.json `layout`); null = built-in. */
+  trainLayout: TrainLayout | null;
   /** Animated interior atlas keys (anim slices) → frame count and speed. */
   anims: Record<string, AnimSpec>;
   /** see assets.ts */
@@ -315,6 +333,7 @@ export interface RawCatalog {
   items: Item[]; room: Room; rooms?: Room[]; map?: MapData | null; chars: Chars; cat?: CatSpec | null;
   tiles?: { interior?: Record<string, TileInfo>; map?: Record<string, TileInfo> } | null;
   train?: Record<string, Room> | null;
+  train_layout?: TrainLayout | null;
   anims?: Record<string, AnimSpec> | null;
   /** hash of the generated atlases/theme on the server; appended to /gen and /media URLs (see assets.ts) */
   asset_version?: string;
@@ -326,5 +345,5 @@ export function makeCatalog(raw: RawCatalog): Catalog {
   const room = rooms.get(raw.room.id ?? "inn") ?? list[0];
   const tiles = { interior: raw.tiles?.interior ?? {}, map: raw.tiles?.map ?? {} };
   return { items: raw.items, byId: new Map(raw.items.map((i) => [i.id, i])), room, rooms, map: raw.map ?? null, chars: raw.chars, cat: raw.cat ?? null, tiles,
-    train: raw.train ?? null, anims: raw.anims ?? {}, assetVersion: raw.asset_version ?? "" };
+    train: raw.train ?? null, trainLayout: raw.train_layout ?? null, anims: raw.anims ?? {}, assetVersion: raw.asset_version ?? "" };
 }

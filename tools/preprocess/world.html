@@ -73,6 +73,21 @@
       주황 칸은 문 바로 앞이라 게임에서 항상 지나갈 수 있게 비워요. 파란 칸은 뒷문이 뚫리는 벽이에요.
       저장하면 <code>data/train_interiors.json</code>에 써져요 (게임 서버 재시작 필요).
     </div>
+    <div class="trainonly" style="border:1px solid var(--line);border-radius:4px;padding:6px;margin:4px 0">
+      <b>🚪 문 위치 (이 칸)</b> <span class="hint">비우면 가운데 2칸. 이웃 칸과 마주 보는 문이 겹치는 줄/열만 복도가 되고, 안 겹치면 왼쪽(위쪽) 칸 문을 따라요.</span>
+      <div class="row"><span class="dim" style="width:52px">왼쪽</span><label><span>y</span><input type="number" id="tdLY" min="0" style="width:52px"></label><label><span>높이</span><input type="number" id="tdLH" min="1" style="width:52px"></label></div>
+      <div class="row"><span class="dim" style="width:52px">오른쪽</span><label><span>y</span><input type="number" id="tdRY" min="0" style="width:52px"></label><label><span>높이</span><input type="number" id="tdRH" min="1" style="width:52px"></label></div>
+      <div class="row"><span class="dim" style="width:52px">위(뒷벽)</span><label><span>x</span><input type="number" id="tdTX" min="0" style="width:52px"></label><label><span>폭</span><input type="number" id="tdTW" min="1" style="width:52px"></label></div>
+      <div class="row"><span class="dim" style="width:52px">아래</span><label><span>x</span><input type="number" id="tdBX" min="0" style="width:52px"></label><label><span>폭</span><input type="number" id="tdBW" min="1" style="width:52px"></label></div>
+      <b>🛤 복도 (전 칸 공통)</b>
+      <div class="row"><label><span>복도 폭</span><input type="number" id="tlGap" min="1" max="4" style="width:52px"></label><span class="hint">칸 사이 칸막이 두께(칸). 1이면 문 하나, 2 이상이면 복도.</span></div>
+      <label><span>칸막이</span><select id="tlPartition"></select></label>
+      <label><span>복도 바닥</span><select id="tlCorridor"></select></label>
+      <label><span>옆문</span><input type="text" id="tlSideDoor" list="doorKeys" placeholder="(기본 그림)"></label>
+      <label><span>뒷문</span><input type="text" id="tlBackDoor" list="doorKeys" placeholder="(기본 그림)"></label>
+      <datalist id="doorKeys"></datalist>
+      <div class="hint">칸막이/바닥은 tile_ 슬라이스, 문은 실내 아틀라스 슬라이스 key(빌드된 것). 비우면 기본 그림. 옆문 그림은 문 칸의 왼쪽 아래에, 뒷문 그림은 뒷벽 자른 자리 아래에 맞춰 그려져요.</div>
+    </div>
     <label class="notrain"><span>id</span><input type="text" id="rId" placeholder="inn_2f"></label>
     <label class="notrain"><span>이름</span><input type="text" id="rName"></label>
     <label class="notrain"><span>종류</span><select id="rKind" title="room = 꾸미는 방 · mine = 광산(가구 배치 없음, 서버가 광석을 스폰 — data/mine.json의 room)"><option value="room">방</option><option value="mine">광산</option></select></label>
@@ -285,6 +300,19 @@
   const realIds = () => Object.keys(rooms).filter((id) => !rooms[id].__train);
   const trainRooms = () => Object.values(rooms).filter((r) => r.__train);
   const TRAIN_LIMITS = { cols: [4, 16], floor: [2, 12], wall: [0, 4] };   // mirrors server catalog.TRAIN_*
+  let trainLayout = { gap: 1, tiles: {} };   // train_interiors.json `layout`: corridor thickness + art (all compartments)
+  /** Door opening of a train template on one side, in template cells (mirrors client/src/train/render/layout.ts opening()). */
+  function trainOpening(rm, side) {
+    const d = (rm.doors || {})[side], floor0 = rm.wall_rows, floorH = rm.rows - rm.wall_rows;
+    if (side === "left" || side === "right") {
+      const y0 = d ? d.y : floor0 + Math.floor((floorH - 2) / 2), h = d ? d.h : 2, out = [];
+      for (let y = Math.max(floor0, y0); y < Math.min(rm.rows, y0 + h); y++) out.push(y);
+      return out.length ? out : [floor0 + Math.floor((floorH - 1) / 2)];
+    }
+    const x0 = d ? d.x : Math.floor((rm.cols - 2) / 2), w = d ? d.w : 2, out = [];
+    for (let x = Math.max(0, x0); x < Math.min(rm.cols, x0 + w); x++) out.push(x);
+    return out.length ? out : [Math.floor((rm.cols - 1) / 2)];
+  }
   let mode = "room", tool = "select", zoom = 2, showGrid = true, showChar = true;
   let roomId = "inn", room = null;    // current room object
   let selSeed = null, selExit = null, selPlace = null, selDeco = null, selFx = null;
@@ -416,6 +444,7 @@
       const ko = (W.train.devices.find((d) => d.id === dev) || {}).ko || dev;
       rooms[TRAIN_PREFIX + dev] = { ...r, id: TRAIN_PREFIX + dev, name: `열차 칸 · ${ko}`, __train: dev, exits: [], zones: [] };
     }
+    trainLayout = W.train.layout || { gap: 1, tiles: {} };
     if (!map.layers) map.layers = { ground: [], deco: [] };
     for (const l of ["ground", "deco"]) map.layers[l] = fitGrid(map.layers[l] || [], map.cols, map.rows);
     map.blocked = map.blocked || []; map.places = map.places || []; map.decos = map.decos || []; map.bg_zones = map.bg_zones || []; if (map.bg_default === undefined) map.bg_default = null;
@@ -449,7 +478,7 @@
     try {
       let r = await fetch("/api/rooms", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(real) });
       let j = await r.json(); if (j.error) throw new Error("방: " + j.error);
-      r = await fetch("/api/train-interiors", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ rooms: train }) });
+      r = await fetch("/api/train-interiors", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ rooms: train, layout: trainLayout }) });
       j = await r.json(); if (j.error) throw new Error("열차 칸: " + j.error);
       r = await fetch("/api/map", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(map) });
       j = await r.json(); if (j.error) throw new Error("맵: " + j.error);
@@ -674,6 +703,7 @@
     const roomOpt = (id) => `<option value="${id}"${id === roomId ? " selected" : ""}>${rooms[id].__train ? rooms[id].name : `${id} · ${rooms[id].name || ""}`}</option>`;
     const sel = $("roomSel"); sel.innerHTML = realIds().map(roomOpt).join("") + `<optgroup label="🚆 열차 칸 (/train/)">${trainRooms().map((r) => roomOpt(r.id)).join("")}</optgroup>`;
     $("rId").value = roomId; $("rName").value = room.name || ""; $("rCols").value = room.cols; $("rRows").value = room.rows; $("rWall").value = room.wall_rows; $("rZoom").value = room.zoom || 2; $("rKind").value = room.kind || "room";
+    if (room.__train) renderTrainSide();
     $("roomDel").disabled = roomId === "inn";
     const tiles = W.tile_keys;
     const opt = (cur) => tiles.map((k) => `<option${k === cur ? " selected" : ""}>${k}</option>`).join("");
@@ -801,6 +831,44 @@
     room.blocked = room.blocked.filter(([x, y]) => x < room.cols && y < room.rows);
     touch(); renderSide(); layout(); draw();
   };
+  // ---- train: door openings of this template + the corridor shared by every compartment
+  const TD_FIELDS = [["tdLY", "left", "y"], ["tdLH", "left", "h"], ["tdRY", "right", "y"], ["tdRH", "right", "h"], ["tdTX", "top", "x"], ["tdTW", "top", "w"], ["tdBX", "bottom", "x"], ["tdBW", "bottom", "w"]];
+  function renderTrainSide() {
+    const d = room.doors || {};
+    for (const [id, side, k] of TD_FIELDS) $(id).value = d[side] ? d[side][k] : "";
+    const L = trainLayout, T = L.tiles || {};
+    $("tlGap").value = L.gap || 1;
+    const tiles = W.tile_keys || [];
+    $("tlPartition").innerHTML = `<option value="">(기본: 어두운 칸막이)</option>` + tiles.map((k) => `<option${k === T.partition ? " selected" : ""}>${k}</option>`).join("");
+    $("tlCorridor").innerHTML = `<option value="">(기본 그림)</option>` + tiles.map((k) => `<option${k === T.corridor ? " selected" : ""}>${k}</option>`).join("");
+    $("tlSideDoor").value = T.side_door || ""; $("tlBackDoor").value = T.back_door || "";
+    const keys = Object.keys((atlas.interior || {}).frames || {}).filter((k) => /door|gate/i.test(k) && !k.includes("#"));
+    $("doorKeys").innerHTML = keys.map((k) => `<option value="${k}">`).join("");
+  }
+  for (const [id, side, k] of TD_FIELDS) $(id).onchange = () => {
+    if (!room.__train) return;
+    const isSide = side === "left" || side === "right", a = isSide ? "y" : "x", b = isSide ? "h" : "w";
+    const v = parseInt($(id).value, 10);
+    room.doors = room.doors || {};
+    if (isNaN(v)) { delete room.doors[side]; }
+    else {
+      const cur = room.doors[side] || (isSide ? { y: room.wall_rows + Math.floor((room.rows - room.wall_rows - 2) / 2), h: 2 } : { x: Math.floor((room.cols - 2) / 2), w: 2 });
+      cur[k] = Math.max(k === b ? 1 : 0, v);
+      // keep the opening inside the compartment: left/right on floor rows, top/bottom within the columns
+      if (isSide) { cur.y = Math.max(room.wall_rows, Math.min(room.rows - 1, cur.y)); cur.h = Math.max(1, Math.min(room.rows - cur.y, cur.h)); }
+      else { cur.x = Math.max(0, Math.min(room.cols - 1, cur.x)); cur.w = Math.max(1, Math.min(room.cols - cur.x, cur.w)); }
+      room.doors[side] = cur;
+    }
+    if (!Object.keys(room.doors).length) delete room.doors;
+    touch(); renderTrainSide(); draw();
+  };
+  $("tlGap").onchange = () => { trainLayout.gap = Math.max(1, Math.min(4, parseInt($("tlGap").value, 10) || 1)); touch(); renderTrainSide(); };
+  for (const [id, k] of [["tlPartition", "partition"], ["tlCorridor", "corridor"], ["tlSideDoor", "side_door"], ["tlBackDoor", "back_door"]]) $(id).onchange = () => {
+    trainLayout.tiles = trainLayout.tiles || {};
+    const v = $(id).value.trim();
+    if (v && !frameOf("interior", v)) { alert(`'${v}'는 빌드된 실내 슬라이스가 아니에요`); renderTrainSide(); return; }
+    trainLayout.tiles[k] = v || null; touch(); renderTrainSide();
+  };
   // every compartment shares one size: a change applies to all four. Floor contents move with the wall band so a
   // wall_rows change keeps the floor layout; whatever falls outside is dropped.
   function resizeTrain(f, v) {
@@ -823,6 +891,11 @@
         for (let y = 0; y < wall + floor; y++) { const src = old[y - dy] || []; r.floor.push([...Array(cols)].map((_, x) => (y >= wall ? src[x] ?? null : null))); }
       }
       r.cols = cols; r.wall_rows = wall; r.rows = wall + floor;
+      // door openings follow the wall band and stay inside the new size
+      if (r.doors) {
+        for (const side of ["left", "right"]) { const d = r.doors[side]; if (d) { d.y = Math.max(wall, Math.min(r.rows - 1, d.y + dy)); d.h = Math.max(1, Math.min(r.rows - d.y, d.h)); } }
+        for (const side of ["top", "bottom"]) { const d = r.doors[side]; if (d) { d.x = Math.max(0, Math.min(cols - 1, d.x)); d.w = Math.max(1, Math.min(cols - d.x, d.w)); } }
+      }
     }
     touch(); renderSide(); layout(); draw();
   }
@@ -1041,14 +1114,21 @@
     }
     if (tool === "fx" && palKey && hover) { const fr = frameOf("interior", palKey); if (fr) { g.globalAlpha = .5; drawKey("interior", palKey, hover.x * cz, hover.y * cz); g.globalAlpha = 1; } }
     if (room.__train) {
-      // mirrors client/src/train/render/layout.ts: side doors (2 tall) mid-height on both sides, back/front doors
-      // (2 wide) mid-width through the wall band; the floor cell inside each door is always kept free in the game
-      const W_ = room.cols, H_ = room.rows - room.wall_rows, WR = room.wall_rows;
-      const sy = WR + Math.floor((H_ - 2) / 2), sx = Math.floor((W_ - 2) / 2);
-      const entry = [];
-      for (let i = 0; i < 2; i++) entry.push([0, sy + i], [W_ - 1, sy + i], [sx + i, WR], [sx + i, room.rows - 1]);
+      // mirrors client/src/train/render/layout.ts: the template's door openings (default centred, 2 cells); the floor
+      // cell inside each door is always kept free in the game. Orange = entry cells, blue = the back-wall cut.
+      const WR = room.wall_rows, entry = [];
+      for (const y of trainOpening(room, "left")) entry.push([0, y]);
+      for (const y of trainOpening(room, "right")) entry.push([room.cols - 1, y]);
+      for (const x of trainOpening(room, "top")) entry.push([x, WR]);
+      for (const x of trainOpening(room, "bottom")) entry.push([x, room.rows - 1]);
       g.fillStyle = "rgba(255,150,40,.28)"; for (const [x, y] of entry) g.fillRect(x * cz, y * cz, cz, cz);
-      g.fillStyle = "rgba(90,160,255,.25)"; for (let y = 0; y < WR; y++) for (let i = 0; i < 2; i++) g.fillRect((sx + i) * cz, y * cz, cz, cz);
+      g.fillStyle = "rgba(90,160,255,.25)"; for (let y = 0; y < WR; y++) for (const x of trainOpening(room, "top")) g.fillRect(x * cz, y * cz, cz, cz);
+      // door bars on the edges so the opening reads even where furniture sits on the entry cell
+      g.fillStyle = "#ffa040";
+      for (const y of trainOpening(room, "left")) g.fillRect(0, y * cz, 3, cz);
+      for (const y of trainOpening(room, "right")) g.fillRect(room.cols * cz - 3, y * cz, 3, cz);
+      for (const x of trainOpening(room, "bottom")) g.fillRect(x * cz, room.rows * cz - 3, cz, 3);
+      g.fillStyle = "#5aa0ff"; for (const x of trainOpening(room, "top")) g.fillRect(x * cz, 0, cz, 3);
     }
     if (tool === "floor" && palTile && hover && hover.y >= room.wall_rows) { g.globalAlpha = .6; drawKey("interior", palTile, hover.x * cz, hover.y * cz, cz, cz); g.globalAlpha = 1; g.strokeStyle = "rgba(255,255,255,.6)"; g.strokeRect(hover.x * cz + .5, hover.y * cz + .5, cz - 1, cz - 1); }
     if (tool === "seed" && palKey && hover) { const it = itemById(palKey); if (it) { g.strokeStyle = "rgba(255,255,255,.6)"; g.setLineDash([3, 3]); g.strokeRect(hover.x * cz + .5, hover.y * cz + .5, it.w * cz, it.h * cz); g.setLineDash([]); } }

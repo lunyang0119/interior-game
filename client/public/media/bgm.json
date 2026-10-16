@@ -106,6 +106,27 @@
   ],
   "night": []
  },
+ "cyberpunk": {
+  "day": [
+   {
+    "file": "cyberpunk/day/01-phase1-cyberpunk-sci-fi-5-space-smuggler.mp3",
+    "title": "phase1_Cyberpunk Sci-Fi - 5 Space Smugglers (LOOP) 104BPM 2M"
+   },
+   {
+    "file": "cyberpunk/day/02-phase2-artemis.mp3",
+    "title": "phase2_Artemis"
+   },
+   {
+    "file": "cyberpunk/day/03-phase3-electric-sheep.mp3",
+    "title": "phase3_Electric Sheep"
+   },
+   {
+    "file": "cyberpunk/day/04-phase4-dream-cheater.mp3",
+    "title": "phase4_Dream Cheater"
+   }
+  ],
+  "night": []
+ },
  "dock": {
   "day": [
    {

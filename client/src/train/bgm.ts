@@ -14,11 +14,12 @@ export interface PhasePick { place: string; period: "day" | "night"; index: numb
 /** ONE place to tune: thresholds are the lower bounds of phases 1..3 (phase 0 = below the first). */
 export const TRAIN_BGM = {
   thresholds: [25, 50, 75],
+  // assets/BGM/cyberpunk/phase1_… phase4_… (name order = index) → media/bgm/cyberpunk/day/NN-… via `preprocess.py media`
   phases: [
-    { place: "room", period: "day", index: 0 },     // 0–24: calm
-    { place: "field", period: "day", index: 0 },    // 25–49
-    { place: "default", period: "night", index: 0 }, // 50–74
-    { place: "cave", period: "night", index: 0 },   // 75–100: the net closes
+    { place: "cyberpunk", period: "day", index: 0 }, // 0–24: Space Smugglers (loop)
+    { place: "cyberpunk", period: "day", index: 1 }, // 25–49: Artemis
+    { place: "cyberpunk", period: "day", index: 2 }, // 50–74: Electric Sheep
+    { place: "cyberpunk", period: "day", index: 3 }, // 75–100: Dream Cheater
   ] as PhasePick[],
   volume: 0.45,
   fadeMs: 1400,

@@ -688,10 +688,19 @@ def default_train_room(device: str, item_ids: set[str]) -> dict:
             "seed": [{"item_id": i, "x": x, "y": y} for i, x, y in seed if i in item_ids]}
 
 
+# corridor between compartments (train_interiors.json `layout`, mirrors server catalog.TrainLayout); the placeholder
+# art is what client/src/train/render/tiles.ts draws when a key is null
+TRAIN_LAYOUT_DEFAULT = {"gap": 1, "tiles": {"partition": None, "corridor": "tile_floor_wood",
+                                             "side_door": "mordgen_011_door_tan", "back_door": "mordernhospital_06_door"}}
+TRAIN_GAP = (1, 4)
+TRAIN_DOOR_SIDES = ("left", "right", "top", "bottom")
+
+
 def train_interiors_state() -> dict:
     devices = server_module("app.train.config").DEVICES
     ko = server_module("app.train.strings").DEVICE_KO
-    saved = json.loads(TRAIN_INTERIORS_FILE.read_text(encoding="utf-8")).get("rooms", {}) if TRAIN_INTERIORS_FILE.exists() else {}
+    data = json.loads(TRAIN_INTERIORS_FILE.read_text(encoding="utf-8")) if TRAIN_INTERIORS_FILE.exists() else {}
+    saved = data.get("rooms", {})
     item_ids = {it["id"] for it in load_items()["items"]}
     rooms = {}
     for d in devices:
@@ -702,7 +711,47 @@ def train_interiors_state() -> dict:
                      tiles={**r["tiles"], **{k: (r["tiles"]["wall"] * ref["wall_rows"])[:ref["wall_rows"]] for k in ("wall", "wall_left", "wall_right")}})
             r["seed"] = [s for s in r["seed"] if s["x"] < r["cols"] and s["y"] < r["rows"]]
         rooms[d] = r
-    return {"rooms": rooms, "devices": [{"id": d, "ko": ko.get(d, d)} for d in devices], "saved": bool(saved)}
+    layout = data.get("layout") or {}
+    layout = {"gap": layout.get("gap", TRAIN_LAYOUT_DEFAULT["gap"]), "tiles": {**TRAIN_LAYOUT_DEFAULT["tiles"], **(layout.get("tiles") or {})}}
+    return {"rooms": rooms, "layout": layout, "layout_default": TRAIN_LAYOUT_DEFAULT, "gap_range": list(TRAIN_GAP),
+            "devices": [{"id": d, "ko": ko.get(d, d)} for d in devices], "saved": bool(saved)}
+
+
+def validate_train_doors(d: str, r: dict) -> str | None:
+    """Door openings of a compartment template (mirrors server catalog.check_train_doors)."""
+    doors = r.get("doors")
+    if doors is None:
+        return None
+    if not isinstance(doors, dict):
+        return f"{d}: doors는 {{left, right, top, bottom}} 꼴이어야 해요"
+    for side, spec in doors.items():
+        if side not in TRAIN_DOOR_SIDES:
+            return f"{d}: 모르는 문 방향 '{side}'"
+        if spec is None:
+            continue
+        a, b = ("y", "h") if side in ("left", "right") else ("x", "w")
+        if not all(isinstance(spec.get(k), int) and not isinstance(spec.get(k), bool) for k in (a, b)) or spec[b] < 1 or spec[a] < 0:
+            return f"{d}: {side} 문의 {a}/{b}가 정수가 아니거나 0보다 작아요"
+        if side in ("left", "right") and not (r["wall_rows"] <= spec["y"] and spec["y"] + spec["h"] <= r["rows"]):
+            return f"{d}: {side} 문은 바닥 줄({r['wall_rows']}~{r['rows'] - 1}) 안에 있어야 해요"
+        if side in ("top", "bottom") and spec["x"] + spec["w"] > r["cols"]:
+            return f"{d}: {side} 문이 칸 밖으로 나가요 (0~{r['cols'] - 1})"
+    return None
+
+
+def validate_train_layout(layout: dict) -> str | None:
+    if not isinstance(layout, dict):
+        return "layout이 이상해요"
+    gap = layout.get("gap", 1)
+    if not isinstance(gap, int) or isinstance(gap, bool) or not TRAIN_GAP[0] <= gap <= TRAIN_GAP[1]:
+        return f"복도 폭(gap)은 {TRAIN_GAP[0]}~{TRAIN_GAP[1]}"
+    built = _atlas_frames()
+    for name, key in (layout.get("tiles") or {}).items():
+        if name not in TRAIN_LAYOUT_DEFAULT["tiles"]:
+            return f"모르는 복도 타일 자리 '{name}'"
+        if key is not None and (not isinstance(key, str) or (built and key not in built)):
+            return f"복도 {name}: 모르는 슬라이스 '{key}' (빌드했나요?)"
+    return None
 
 
 def save_train_interiors(body: dict) -> str | None:
@@ -717,7 +766,7 @@ def save_train_interiors(body: dict) -> str | None:
         if d not in devices:
             return f"모르는 장치 '{d}'"
         r.update(exits=[], spawn={"x": 0, "y": r.get("wall_rows", 0)})
-        err = validate_room(f"train_{d}", r, set(), item_ids, tile_keys)
+        err = validate_room(f"train_{d}", r, set(), item_ids, tile_keys) or validate_train_doors(d, r)
         if err:
             return err
         floor = r["rows"] - r["wall_rows"]
@@ -727,10 +776,21 @@ def save_train_interiors(body: dict) -> str | None:
                     f"벽 {TRAIN_WALL_ROWS[0]}~{TRAIN_WALL_ROWS[1]}줄이어야 해요")
         sizes.add((r["cols"], r["rows"], r["wall_rows"]))
         r.pop("exits")
+        if r.get("doors") is not None:
+            r["doors"] = {s: v for s, v in r["doors"].items() if v is not None} or None
+            if r["doors"] is None:
+                r.pop("doors")
     if len(sizes) > 1:
         return "열차 칸은 네 개 모두 크기가 같아야 해요"
+    layout = body.get("layout")
+    if layout is not None:
+        err = validate_train_layout(layout)
+        if err:
+            return err
+        layout = {"gap": layout.get("gap", 1), "tiles": {k: (layout.get("tiles") or {}).get(k) for k in TRAIN_LAYOUT_DEFAULT["tiles"]}}
     out = {"_comment": "열차 추적(/train/) 칸 인테리어. 장치마다 하나, 방 에디터(/world)의 '열차 칸'에서 고쳐요. 크기는 전부 같아야 해요. "
-                       "저장 후 게임 서버 재시작.",
+                       "doors = 문이 뚫리는 자리(없으면 가운데 2칸), layout = 복도 폭·타일(전 칸 공통). 저장 후 게임 서버 재시작.",
+           **({"layout": layout} if layout is not None else {}),
            "rooms": {d: rooms[d] for d in devices if d in rooms}}
     TRAIN_INTERIORS_FILE.write_text(json.dumps(out, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
     return None
