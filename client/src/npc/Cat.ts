@@ -36,6 +36,7 @@ type Idle = "sit" | "look" | "lay";
 const DIRS: Dir[] = ["down", "right", "up", "left"];
 // what the cat does while idle: looking around loops, sitting/lying hold their last frame
 const IDLE_WEIGHTS: [Idle, number][] = [["look", 0.5], ["sit", 0.3], ["lay", 0.2]];
+// speed/looping for an older manifest whose anims are plain [first, last] ranges (now data/cat_anims.json decides)
 const FRAME_RATE: Record<string, number> = { walk: 8, run: 10, look: 4, sit: 6, lay: 6 };
 const LOOPS = new Set(["walk", "run", "look"]);
 
@@ -45,16 +46,14 @@ export function catTexKey(spec: CatSpec): string {
 
 function registerAnims(scene: Phaser.Scene, spec: CatSpec): void {
   const tex = catTexKey(spec);
-  for (const [name, [start, end]] of Object.entries(spec.anims)) {
+  for (const [name, a] of Object.entries(spec.anims)) {
     const key = `${tex}:${name}`;
     if (scene.anims.exists(key)) continue;
     const kind = name.split("_")[0];
-    scene.anims.create({
-      key,
-      frames: scene.anims.generateFrameNumbers(tex, { start, end }),
-      frameRate: FRAME_RATE[kind] ?? 6,
-      repeat: LOOPS.has(kind) ? -1 : 0,
-    });
+    const anim = Array.isArray(a)
+      ? { frames: scene.anims.generateFrameNumbers(tex, { start: a[0], end: a[1] }), fps: FRAME_RATE[kind] ?? 6, loop: LOOPS.has(kind) }
+      : { frames: scene.anims.generateFrameNumbers(tex, { frames: a.frames }), fps: a.fps, loop: a.loop };
+    scene.anims.create({ key, frames: anim.frames, frameRate: anim.fps, repeat: anim.loop ? -1 : 0 });
   }
 }
 

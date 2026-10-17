@@ -6,16 +6,16 @@ import { api, type HelpText } from "../api";
 import { tbus, toast } from "../bus";
 import { isFugitive, tstate } from "../state";
 import { DEVICE_KO, HACK_KO } from "../strings";
-import { $, el, openPanel } from "./dom";
+import { $, el, openPanel, richEl } from "./dom";
 
 const KEY_SEEN = "train_help_seen";
 let text: HelpText | null = null;
 
 export const LEGEND: [string, string][] = [
   ["◎", "마지막으로 잡힌 신호 위치 또는 교란 미끼. 둘을 구별할 방법은 없어요"],
-  ["⛔", "지난 라운드에 잠겨 있던 문. 이번 라운드에도 잠길지는 정산 때 알 수 있어요"],
-  ["☕", "증기가 찬 구역. 들어가면 다음 라운드 행동 불가, 수색도 실패해요"],
-  ["👁 목격", "침입자와 같은 구역에서 라운드를 마치면 그 구역이 공개돼요. 체포는 아니에요 (은신·증기 중엔 목격 안 됨)"],
+  ["{close}", "지난 라운드에 잠겨 있던 문. 이번 라운드에도 잠길지는 정산 때 알 수 있어요"],
+  ["{power}", "증기가 찬 구역. 들어가면 다음 라운드 행동 불가, 수색도 실패해요"],
+  ["{camera} 목격", "침입자와 같은 구역에서 라운드를 마치면 그 구역이 공개돼요. 체포는 아니에요 (은신·증기 중엔 목격 안 됨)"],
   ["신호 강도", "가장 가까운 승무원과 침입자의 거리. 강 = 바로 옆까지, 중 = 몇 칸 안, 약 = 멀리, 판독 불가 = 광학 재부팅"],
   ["시그니처", "침입자가 퀵핵을 쓴 장치 계열(커튼·커피포트·조명·스피커). 역탐지 = 핑을 썼다는 뜻"],
   ["추적률·경계도", "추적률은 라운드마다 오르고 퀵핵을 쓸수록 더 올라요. 경계도가 오르면 ◎ 표식이 더 최신 위치를 가리켜요 (1 = 2라운드 지연 → 2 = 1라운드 → 3 = 실시간)"],
@@ -80,6 +80,6 @@ export async function openHelp(): Promise<void> {
 
 function row(k: string, v: string): HTMLElement {
   const r = el("div", "help-row");
-  r.append(el("b", "", k), el("span", "small", v));
+  r.append(richEl("b", "", k), el("span", "small", v));
   return r;
 }

@@ -191,7 +191,15 @@ export interface CatSpec {
   frameH: number;
   variant: string;
   file: string;
-  anims: Record<string, [number, number]>;
+  /** "<section>_<dir>" → strip frame indices + speed (data/cat_anims.json, editor /cat); an older manifest has
+   *  `[first, last]` ranges instead, played with the client's default speed. */
+  anims: Record<string, CatAnim | [number, number]>;
+}
+
+export interface CatAnim {
+  frames: number[];
+  fps: number;
+  loop: boolean;
 }
 
 /** Overworld from data/map.json (world editor). Coordinates are map cells; sprites live in the map atlas. */

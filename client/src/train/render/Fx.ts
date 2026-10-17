@@ -5,13 +5,17 @@ import { CELL } from "../../room/grid";
 import { TILE_DEPTH } from "../../room/depth";
 import type { Layout } from "./layout";
 
+/** The cyber icon sprite (loaded by TrainBoot) and its name → [x, y] table. */
+export const IC = "train-ic";
+export const IC_MAP = "train-ic-map";
+
 const FX_DEPTH = 900_000;       // above furniture and avatars
 const OVERLAY_DEPTH = 950_000;  // full-screen effects
 const BUBBLE_DEPTH = 990_000;
 
 export class Fx {
   private markers = new Map<string, Phaser.GameObjects.Text>();
-  private locks = new Map<string, Phaser.GameObjects.Text>();
+  private locks = new Map<string, Phaser.GameObjects.Image>();
   private steam = new Map<string, Phaser.GameObjects.GameObject[]>();
   private highlight: Phaser.GameObjects.Graphics;
   private dark: Phaser.GameObjects.Rectangle;
@@ -38,6 +42,16 @@ export class Fx {
     return b ? { x: (b.x0 + b.w / 2) * CELL, y: (b.y0 + b.h / 2) * CELL } : null;
   }
 
+  /** A cyber icon (media/train/icons.png) standing on (x, y), at half size: a 28 px cell ≈ the 14 px marker text. */
+  private icon(x: number, y: number, name: string, tint: number): Phaser.GameObjects.Image {
+    const at = (this.scene.cache.json.get(IC_MAP) as Record<string, [number, number]> | undefined)?.[name];
+    const cols = this.scene.textures.get(IC).getSourceImage().width / 28;
+    const frame = at ? (at[1] / 28) * cols + at[0] / 28 : 0;
+    const i = this.scene.add.image(x, y, IC, frame).setOrigin(0.5, 1).setScale(0.5).setTint(tint).setDepth(FX_DEPTH);
+    this.objects.push(i);
+    return i;
+  }
+
   private text(x: number, y: number, s: string, size = 12, color = "#ffd54a"): Phaser.GameObjects.Text {
     const t = this.scene.add.text(x, y, s, { fontFamily: '"Label", sans-serif', fontSize: `${size}px`, color, stroke: "#000", strokeThickness: 3, resolution: 3 })
       .setOrigin(0.5, 1).setDepth(FX_DEPTH);
@@ -59,18 +73,18 @@ export class Fx {
     }
   }
 
-  /** ⛔ on locked doors (replaces the previous set). */
+  /** A lock (cyber close icon, red) on locked doors (replaces the previous set). */
   setLocks(edges: string[]): void {
     for (const [e, t] of this.locks) if (!edges.includes(e)) { t.destroy(); this.locks.delete(e); }
     for (const e of edges) {
       if (this.locks.has(e)) continue;
       const p = this.doorAt(e);
       if (!p) continue;
-      this.locks.set(e, this.text(p.x, p.y, "⛔", 14, "#ff6b6b"));
+      this.locks.set(e, this.icon(p.x, p.y, "close", 0xff6b6b));
     }
   }
 
-  /** ☕ steam filling rooms (replaces the previous set). */
+  /** Steam filling rooms (replaces the previous set): a pulsing white wash + the power icon (the 과부하 that caused it). */
   setSteam(rooms: string[]): void {
     this.onCondition?.("steam", rooms);
     for (const [r, objs] of this.steam) if (!rooms.includes(r)) { objs.forEach((o) => o.destroy()); this.steam.delete(r); }
@@ -81,7 +95,7 @@ export class Fx {
       const rect = this.scene.add.rectangle(b.x0 * CELL, b.y0 * CELL, b.w * CELL, b.h * CELL, 0xffffff, 0.35).setOrigin(0).setDepth(FX_DEPTH - 1);
       this.scene.tweens.add({ targets: rect, alpha: { from: 0.25, to: 0.5 }, duration: 900, yoyo: true, repeat: -1 });
       const c = this.roomCenter(r)!;
-      const t = this.text(c.x, c.y + CELL, "☕", 16, "#ffffff");
+      const t = this.icon(c.x, c.y + CELL, "power", 0xffffff);
       this.objects.push(rect);
       this.steam.set(r, [rect, t]);
     }
@@ -155,7 +169,7 @@ export class Fx {
     }
     if (capture) {
       const c = this.roomCenter(capture);
-      if (c) this.route.push(this.text(c.x, c.y - CELL * 1.6, "★ 체포", 14, "#ffd54a"));
+      if (c) this.route.push(this.text(c.x, c.y - CELL * 1.6, "체포", 14, "#ffd54a"));
     }
   }
 

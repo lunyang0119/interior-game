@@ -58,7 +58,7 @@ export async function playRound(ctx: PlaybackCtx, rep: Report): Promise<void> {
       const door = layout.doorByEdge.get(h.blocked_edge);
       if (door) await hunters.bump(h.id, h.from, door);
       const p = hunters.position(h.id);
-      if (p) fx.bubble(p.x, p.y, "🚪 잠겨 있다");
+      if (p) fx.bubble(p.x, p.y, "잠겨 있다");
       return;
     }
     await hunters.walk(h.id, h.to);
@@ -85,9 +85,9 @@ export async function playRound(ctx: PlaybackCtx, rep: Report): Promise<void> {
   const glimpses = [...new Set(rep.events.filter((e) => e.type === "glimpse").map((e) => e.room!))];
   for (const r of glimpses) if (!ctx.skipped()) await fugitive.glimpse(r);
   if (!rep.blackout) fx.setMarkers(rep.markers);
-  for (const ev of rep.events) if (ev.type === "contact_miss" && ev.room) fx.roomBubble(ev.room, "💥 접촉!");
-  if (rep.frozen) ctx.toast("‼ 침입자 신호가 한 지점에 고정되었다");
-  else if (rep.traced) ctx.toast("‼ 추적률 100% — 실시간 추적 중");
+  for (const ev of rep.events) if (ev.type === "contact_miss" && ev.room) fx.roomBubble(ev.room, "접촉!");
+  if (rep.frozen) ctx.toast("{alert} 침입자 신호가 한 지점에 고정되었다");
+  else if (rep.traced) ctx.toast("{alert} 추적률 100% — 실시간 추적 중");
 
   // 5. capture: the silhouette appears where it was caught, the tint lifts, then everything freezes
   if (rep.captured_by) {

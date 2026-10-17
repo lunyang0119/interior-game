@@ -27092,86 +27092,240 @@
   "variant": "orange_0",
   "file": "gen/cat/orange_0.png",
   "anims": {
-   "sit_down": [
-    0,
-    6
-   ],
-   "sit_right": [
-    7,
-    12
-   ],
-   "sit_up": [
-    13,
-    19
-   ],
-   "sit_left": [
-    20,
-    25
-   ],
-   "look_down": [
-    26,
-    30
-   ],
-   "look_right": [
-    31,
-    35
-   ],
-   "look_up": [
-    36,
-    40
-   ],
-   "look_left": [
-    41,
-    45
-   ],
-   "lay_down": [
-    46,
-    53
-   ],
-   "lay_right": [
-    54,
-    61
-   ],
-   "lay_up": [
-    62,
-    69
-   ],
-   "lay_left": [
-    70,
-    77
-   ],
-   "walk_down": [
-    78,
-    81
-   ],
-   "walk_right": [
-    82,
-    85
-   ],
-   "walk_up": [
-    86,
-    89
-   ],
-   "walk_left": [
-    90,
-    93
-   ],
-   "run_down": [
-    94,
-    98
-   ],
-   "run_right": [
-    99,
-    103
-   ],
-   "run_up": [
-    104,
-    108
-   ],
-   "run_left": [
-    109,
-    113
-   ]
+   "sit_down": {
+    "frames": [
+     0,
+     1,
+     2,
+     3,
+     4,
+     5,
+     6
+    ],
+    "fps": 6,
+    "loop": false
+   },
+   "sit_right": {
+    "frames": [
+     7,
+     8,
+     9,
+     10,
+     11,
+     12
+    ],
+    "fps": 6,
+    "loop": false
+   },
+   "sit_up": {
+    "frames": [
+     13,
+     14,
+     15,
+     16,
+     17,
+     18,
+     19
+    ],
+    "fps": 6,
+    "loop": false
+   },
+   "sit_left": {
+    "frames": [
+     20,
+     21,
+     22,
+     23,
+     24,
+     25
+    ],
+    "fps": 6,
+    "loop": false
+   },
+   "look_down": {
+    "frames": [
+     26,
+     27,
+     28,
+     29,
+     30
+    ],
+    "fps": 4,
+    "loop": false
+   },
+   "look_right": {
+    "frames": [
+     31,
+     32,
+     33,
+     34,
+     35
+    ],
+    "fps": 4,
+    "loop": false
+   },
+   "look_up": {
+    "frames": [
+     36,
+     37,
+     38,
+     39,
+     40
+    ],
+    "fps": 4,
+    "loop": false
+   },
+   "look_left": {
+    "frames": [
+     41,
+     42,
+     43,
+     44,
+     45
+    ],
+    "fps": 4,
+    "loop": false
+   },
+   "lay_down": {
+    "frames": [
+     46,
+     47,
+     48,
+     49,
+     50,
+     51,
+     52,
+     53
+    ],
+    "fps": 6,
+    "loop": false
+   },
+   "lay_right": {
+    "frames": [
+     54,
+     55,
+     56,
+     57,
+     58,
+     59,
+     60,
+     61
+    ],
+    "fps": 6,
+    "loop": false
+   },
+   "lay_up": {
+    "frames": [
+     62,
+     63,
+     64,
+     65,
+     66,
+     67,
+     68,
+     69
+    ],
+    "fps": 6,
+    "loop": false
+   },
+   "lay_left": {
+    "frames": [
+     70,
+     71,
+     72,
+     73,
+     74,
+     75,
+     76,
+     77
+    ],
+    "fps": 6,
+    "loop": false
+   },
+   "walk_down": {
+    "frames": [
+     78,
+     79,
+     80,
+     81
+    ],
+    "fps": 8,
+    "loop": true
+   },
+   "walk_right": {
+    "frames": [
+     82,
+     83,
+     84,
+     85
+    ],
+    "fps": 8,
+    "loop": true
+   },
+   "walk_up": {
+    "frames": [
+     86,
+     87,
+     88,
+     89
+    ],
+    "fps": 8,
+    "loop": true
+   },
+   "walk_left": {
+    "frames": [
+     90,
+     91,
+     92,
+     93
+    ],
+    "fps": 8,
+    "loop": true
+   },
+   "run_down": {
+    "frames": [
+     94,
+     95,
+     96,
+     97,
+     98
+    ],
+    "fps": 10,
+    "loop": true
+   },
+   "run_right": {
+    "frames": [
+     99,
+     100,
+     101,
+     102,
+     103
+    ],
+    "fps": 10,
+    "loop": true
+   },
+   "run_up": {
+    "frames": [
+     104,
+     105,
+     106,
+     107,
+     108
+    ],
+    "fps": 10,
+    "loop": true
+   },
+   "run_left": {
+    "frames": [
+     109,
+     110,
+     111,
+     112,
+     113
+    ],
+    "fps": 10,
+    "loop": true
+   }
   }
  }
 }

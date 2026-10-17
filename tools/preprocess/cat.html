@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>cat animation editor</title>
+<style>
+  :root { color-scheme: dark; --bg: #1e1e26; --panel: #272733; --line: #3a3a4a; --fg: #e8e8f0; --dim: #9a9ab0;
+          --green: #6fd36f; --blue: #6fb3ff; --sel: #ffd35c; --red: #ff6b6b; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 13px/1.4 system-ui, sans-serif; background: var(--bg); color: var(--fg);
+         display: grid; grid-template-columns: 230px 1fr 330px; grid-template-rows: 1fr auto; height: 100vh; }
+  #left, #right { background: var(--panel); overflow: auto; padding: 8px; }
+  #left { border-right: 1px solid var(--line); } #right { border-left: 1px solid var(--line); }
+  #center { overflow: auto; padding: 16px; background: #15151c; }
+  #bottom { grid-column: 1 / -1; border-top: 1px solid var(--line); background: var(--panel); padding: 6px 8px; display: flex; gap: 8px; align-items: center; }
+  #status { flex: 1; color: var(--dim); font-size: 12px; } #status.err { color: var(--red); } #status.ok { color: var(--green); }
+  h3 { margin: 10px 0 4px; font-size: 12px; color: var(--dim); text-transform: uppercase; letter-spacing: .05em; }
+  label { display: flex; align-items: center; gap: 6px; margin: 3px 0; }
+  label span { width: 60px; color: var(--dim); flex-shrink: 0; }
+  input, select, button { font: inherit; color: var(--fg); background: #1a1a22; border: 1px solid var(--line); border-radius: 4px; padding: 3px 6px; }
+  input[type=number] { width: 70px; }
+  button { cursor: pointer; background: #33334a; } button:hover { background: #40405a; }
+  button.primary { background: #2f6f3f; } button.danger { background: #6f2f2f; }
+  button:disabled { opacity: .5; cursor: default; }
+  a { color: var(--blue); }
+  .row { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin: 4px 0; }
+  .hint { color: var(--dim); font-size: 11px; }
+  #animList .sec { margin-top: 6px; color: var(--dim); font-size: 11px; }
+  #animList div.a { padding: 2px 6px; border-radius: 4px; cursor: pointer; display: flex; gap: 6px; }
+  #animList div.a:hover { background: #33334a; } #animList div.a.on { background: #4a4a2a; color: var(--sel); }
+  #animList .n { margin-left: auto; color: var(--dim); font-size: 11px; } #animList .mod { color: var(--green); }
+  canvas { image-rendering: pixelated; }
+  #sheet { cursor: copy; display: block; }
+  #frames { display: flex; flex-wrap: wrap; gap: 4px; }
+  .fr { border: 1px solid var(--line); border-radius: 4px; padding: 2px; text-align: center; cursor: pointer; background: #1a1a22; }
+  .fr.on { border-color: var(--sel); }
+  .fr canvas { display: block; background: #2d2d3a; }
+  .fr .i { font-size: 10px; color: var(--dim); }
+  #dirs { display: flex; gap: 6px; }
+  #dirs div { text-align: center; font-size: 11px; color: var(--dim); }
+  #dirs canvas, #preview { background: #2d2d3a; border-radius: 4px; }
+</style>
+</head>
+<body>
+<div id="left">
+  <div class="row"><a href="/">← 슬라이스 에디터</a> <a href="/world">방·맵 에디터</a></div>
+  <h3>미리보기 색</h3>
+  <select id="variant"></select>
+  <p class="hint">애니메이션은 모든 색이 같이 써요. 게임에 들어가는 색은 <b id="builtVariant"></b> (config.CAT_VARIANT).</p>
+  <h3>애니메이션</h3>
+  <div id="animList"></div>
+</div>
+<div id="center">
+  <canvas id="sheet"></canvas>
+  <p class="hint">칸을 누르면 지금 애니메이션에 프레임으로 들어가요(선택한 프레임 뒤, 없으면 끝). 오른쪽 클릭은 그 칸의 마지막 프레임을 빼요.
+    노란 숫자 = 지금 애니메이션에서의 순서. 0행은 제목 줄이라 못 골라요. 빗금 = 빈 칸.</p>
+</div>
+<div id="right">
+  <h3 id="animTitle">–</h3>
+  <canvas id="preview" width="128" height="128"></canvas>
+  <div class="row">
+    <label><span>fps</span><input type="number" id="fps" min="1" max="30" step="1"></label>
+    <label><input type="checkbox" id="loop"> 반복</label>
+  </div>
+  <p class="hint">반복을 끄면 게임에서는 한 번 재생하고 마지막 프레임에 멈춰요(앉기·눕기). 여기 미리보기는 잠깐 쉬었다 다시 보여줘요.</p>
+  <h3>프레임</h3>
+  <div id="frames"></div>
+  <div class="row">
+    <button id="left1" title="←">◀ 앞으로</button><button id="right1" title="→">뒤로 ▶</button>
+    <button id="dup">복제</button><button id="del" class="danger" title="Delete">빼기</button>
+  </div>
+  <div class="row"><button id="reset">이 애니메이션 기본값으로</button><button id="clear" class="danger">비우기</button></div>
+  <h3>같은 동작, 네 방향</h3>
+  <div id="dirs"></div>
+  <p class="hint">방향이 맞는지(오른쪽으로 걸을 때 오른쪽을 보는지) 여기서 한눈에 봐요.</p>
+</div>
+<div id="bottom">
+  <span id="status">불러오는 중…</span>
+  <button id="save" class="primary">저장</button>
+  <button id="build">저장 + 고양이만 빌드</button>
+</div>
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+const S = 2;          // sheet zoom
+const P = 4;          // preview zoom
+let st = null;        // GET /api/cat
+let anims = {};       // name → {frames: [[c, r]...], fps, loop}
+let saved = "";       // JSON of what is on disk, for the "changed" marks
+let cur = null;       // current animation name
+let sel = -1;         // selected frame index in the current animation
+const img = new Image();
+let empty = new Set();
+
+function status(text, cls = "") { const s = $("status"); s.textContent = text; s.className = cls; }
+const key = (c, r) => c + "," + r;
+const clone = (o) => JSON.parse(JSON.stringify(o));
+
+async function load(variant) {
+  const r = await fetch("/api/cat" + (variant ? "?variant=" + encodeURIComponent(variant) : ""));
+  const s = await r.json();
+  if (s.error) { status(s.error, "err"); return; }
+  const first = !st;
+  st = s;
+  if (first) { anims = clone(s.anims); saved = JSON.stringify(s.anims); cur = Object.keys(anims)[0]; }
+  empty = new Set(s.empty.map(([c, r]) => key(c, r)));
+  $("builtVariant").textContent = s.built_variant;
+  const v = $("variant");
+  if (!v.options.length) for (const n of s.variants) v.add(new Option(n, n));
+  v.value = s.variant;
+  await new Promise((ok) => { img.onload = ok; img.src = "/cats/" + encodeURIComponent(s.variant) + ".png"; });
+  renderAll();
+  status(s.saved ? "data/cat_anims.json 을 불러왔어요" : "아직 저장된 파일이 없어 시트 배치 기본값이에요");
+}
+
+function renderAll() { renderList(); renderSheet(); renderSide(); }
+
+function renderList() {
+  const box = $("animList");
+  box.replaceChildren();
+  const disk = JSON.parse(saved);
+  for (const sec of st.sections) {
+    const h = document.createElement("div"); h.className = "sec"; h.textContent = sec; box.appendChild(h);
+    for (const d of st.dirs) {
+      const name = sec + "_" + d;
+      const a = anims[name];
+      const row = document.createElement("div");
+      row.className = "a" + (name === cur ? " on" : "");
+      const mod = JSON.stringify(a) !== JSON.stringify(disk[name]);
+      row.append(d, Object.assign(document.createElement("span"), { className: "n" + (mod ? " mod" : ""), textContent: (mod ? "● " : "") + a.frames.length + "장" }));
+      row.onclick = () => { cur = name; sel = -1; renderAll(); };
+      box.appendChild(row);
+    }
+  }
+}
+
+function renderSheet() {
+  const c = $("sheet"), cell = st.cell;
+  c.width = img.width * S; c.height = img.height * S;
+  const g = c.getContext("2d");
+  g.imageSmoothingEnabled = false;
+  g.fillStyle = "#2d2d3a"; g.fillRect(0, 0, c.width, c.height);
+  g.drawImage(img, 0, 0, c.width, c.height);
+  g.fillStyle = "#0008"; g.fillRect(0, 0, c.width, cell * S);   // title row
+  for (const k of empty) {
+    const [x, y] = k.split(",").map(Number);
+    g.strokeStyle = "#ffffff14";
+    for (let i = -cell; i < cell; i += 6) { g.beginPath(); g.moveTo(x * cell * S + Math.max(0, i) * S, y * cell * S + Math.max(0, -i) * S); g.lineTo(x * cell * S + Math.min(cell, cell + i) * S, y * cell * S + Math.min(cell, cell - i) * S); g.stroke(); }
+  }
+  g.strokeStyle = "#ffffff22"; g.lineWidth = 1;
+  for (let x = 0; x <= st.cols; x++) { g.beginPath(); g.moveTo(x * cell * S + .5, 0); g.lineTo(x * cell * S + .5, c.height); g.stroke(); }
+  for (let y = 0; y <= st.rows; y++) { g.beginPath(); g.moveTo(0, y * cell * S + .5); g.lineTo(c.width, y * cell * S + .5); g.stroke(); }
+  // section columns: thicker every 4 cells
+  g.strokeStyle = "#ffffff55";
+  for (let x = 0; x <= st.cols; x += 4) { g.beginPath(); g.moveTo(x * cell * S + .5, 0); g.lineTo(x * cell * S + .5, c.height); g.stroke(); }
+  // the current animation's cells with their order
+  const order = new Map();
+  anims[cur].frames.forEach(([x, y], i) => { const k = key(x, y); order.set(k, [...(order.get(k) || []), i + 1]); });
+  g.font = "bold 13px system-ui"; g.textBaseline = "top";
+  for (const [k, ns] of order) {
+    const [x, y] = k.split(",").map(Number);
+    const isSel = sel >= 0 && key(...anims[cur].frames[sel]) === k;
+    g.strokeStyle = isSel ? "#ffffff" : "#ffd35c"; g.lineWidth = isSel ? 3 : 2;
+    g.strokeRect(x * cell * S + 1.5, y * cell * S + 1.5, cell * S - 3, cell * S - 3);
+    const label = ns.join(",");
+    g.fillStyle = "#000c"; g.fillRect(x * cell * S + 3, y * cell * S + 3, g.measureText(label).width + 6, 16);
+    g.fillStyle = "#ffd35c"; g.fillText(label, x * cell * S + 6, y * cell * S + 4);
+  }
+  g.lineWidth = 1;
+}
+
+function cellAt(ev) {
+  const r = $("sheet").getBoundingClientRect();
+  return [Math.floor((ev.clientX - r.left) / (st.cell * S)), Math.floor((ev.clientY - r.top) / (st.cell * S))];
+}
+
+$("sheet").addEventListener("click", (ev) => {
+  const [x, y] = cellAt(ev);
+  if (y < 1) { status("0행은 제목 줄이에요", "err"); return; }
+  if (empty.has(key(x, y))) { status(`(${x}, ${y})는 빈 칸이에요`, "err"); return; }
+  const f = anims[cur].frames;
+  const at = sel >= 0 ? sel + 1 : f.length;
+  f.splice(at, 0, [x, y]);
+  sel = at;
+  changed();
+});
+$("sheet").addEventListener("contextmenu", (ev) => {
+  ev.preventDefault();
+  const [x, y] = cellAt(ev);
+  const f = anims[cur].frames;
+  for (let i = f.length - 1; i >= 0; i--) if (f[i][0] === x && f[i][1] === y) { f.splice(i, 1); sel = Math.min(sel, f.length - 1); changed(); return; }
+});
+
+function frameCanvas([x, y], z) {
+  const c = document.createElement("canvas");
+  c.width = st.cell * z; c.height = st.cell * z;
+  const g = c.getContext("2d"); g.imageSmoothingEnabled = false;
+  g.drawImage(img, x * st.cell, y * st.cell, st.cell, st.cell, 0, 0, c.width, c.height);
+  return c;
+}
+
+function renderSide() {
+  const a = anims[cur];
+  $("animTitle").textContent = cur + (a.loop ? " · 반복" : " · 한 번");
+  $("fps").value = a.fps; $("loop").checked = a.loop;
+  const box = $("frames");
+  box.replaceChildren();
+  a.frames.forEach((f, i) => {
+    const d = document.createElement("div");
+    d.className = "fr" + (i === sel ? " on" : "");
+    d.append(frameCanvas(f, 2), Object.assign(document.createElement("div"), { className: "i", textContent: `${i + 1} · ${f[0]},${f[1]}` }));
+    d.onclick = () => { sel = sel === i ? -1 : i; renderSheet(); renderSide(); };
+    box.appendChild(d);
+  });
+  if (!a.frames.length) box.append(Object.assign(document.createElement("span"), { className: "hint", textContent: "프레임이 없어요. 왼쪽 시트에서 칸을 눌러요" }));
+  const dirs = $("dirs");
+  dirs.replaceChildren();
+  const sec = cur.split("_")[0];
+  for (const d of st.dirs) {
+    const w = document.createElement("div");
+    const c = document.createElement("canvas"); c.width = st.cell * 2; c.height = st.cell * 2; c.dataset.anim = sec + "_" + d;
+    w.append(c, Object.assign(document.createElement("div"), { textContent: d }));
+    dirs.appendChild(w);
+  }
+}
+
+function changed() { renderAll(); status("바뀐 게 있어요 (저장 안 됨)"); }
+
+function move(delta) {
+  const f = anims[cur].frames;
+  if (sel < 0 || sel + delta < 0 || sel + delta >= f.length) return;
+  [f[sel], f[sel + delta]] = [f[sel + delta], f[sel]];
+  sel += delta;
+  changed();
+}
+$("left1").onclick = () => move(-1);
+$("right1").onclick = () => move(1);
+$("dup").onclick = () => { if (sel < 0) return; const f = anims[cur].frames; f.splice(sel + 1, 0, [...f[sel]]); sel++; changed(); };
+function removeSel() { if (sel < 0) return; const f = anims[cur].frames; f.splice(sel, 1); sel = Math.min(sel, f.length - 1); changed(); }
+$("del").onclick = removeSel;
+$("reset").onclick = () => { anims[cur] = clone(st.defaults[cur]); sel = -1; changed(); };
+$("clear").onclick = () => { anims[cur].frames = []; sel = -1; changed(); };
+$("fps").onchange = () => { const v = Math.round(Number($("fps").value)); if (v >= 1 && v <= 30) { anims[cur].fps = v; changed(); } };
+$("loop").onchange = () => { anims[cur].loop = $("loop").checked; changed(); };
+$("variant").onchange = () => load($("variant").value);
+document.addEventListener("keydown", (e) => {
+  if (e.target instanceof HTMLInputElement) return;
+  if (e.key === "Delete" || e.key === "Backspace") { removeSel(); e.preventDefault(); }
+  else if (e.key === "ArrowLeft") { if (e.altKey) move(-1); else if (sel > 0) { sel--; renderSheet(); renderSide(); } }
+  else if (e.key === "ArrowRight") { if (e.altKey) move(1); else if (sel < anims[cur].frames.length - 1) { sel++; renderSheet(); renderSide(); } }
+});
+
+async function save() {
+  for (const [n, a] of Object.entries(anims)) if (!a.frames.length) { status(`${n}: 프레임이 하나도 없어요`, "err"); return false; }
+  const r = await fetch("/api/cat", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ anims }) });
+  const j = await r.json();
+  if (j.error) { status(j.error, "err"); return false; }
+  saved = JSON.stringify(anims);
+  renderList();
+  status("저장했어요 → data/cat_anims.json", "ok");
+  return true;
+}
+$("save").onclick = save;
+$("build").onclick = async () => {
+  if (!(await save())) return;
+  status("빌드 중…");
+  const r = await fetch("/api/cat/build", { method: "POST" });
+  const j = await r.json();
+  if (j.error) { status(j.error, "err"); return; }
+  status(`빌드했어요: ${j.frames}장 → gen/cat/, manifest.json. 게임을 새로고침하면 보여요 (VM은 배포 필요)`, "ok");
+};
+window.addEventListener("beforeunload", (e) => { if (JSON.stringify(anims) !== saved) { e.preventDefault(); e.returnValue = ""; } });
+
+// previews: the current animation big, the four directions small; non-looping ones pause on the last frame
+const t0 = performance.now();
+function frameNow(a, t) {
+  const n = a.frames.length;
+  if (!n) return -1;
+  const i = Math.floor((t / 1000) * a.fps);
+  if (a.loop) return i % n;
+  const cycle = n + Math.ceil(a.fps); // hold the last frame ~1 s, then replay
+  return Math.min(i % cycle, n - 1);
+}
+function draw(c, a, z) {
+  const g = c.getContext("2d"); g.imageSmoothingEnabled = false;
+  g.clearRect(0, 0, c.width, c.height);
+  const i = frameNow(a, performance.now() - t0);
+  if (i < 0) return;
+  const [x, y] = a.frames[i];
+  g.drawImage(img, x * st.cell, y * st.cell, st.cell, st.cell, 0, 0, st.cell * z, st.cell * z);
+}
+function tick() {
+  if (st && img.complete && cur) {
+    draw($("preview"), anims[cur], P);
+    for (const c of $("dirs").querySelectorAll("canvas")) draw(c, anims[c.dataset.anim], 2);
+  }
+  requestAnimationFrame(tick);
+}
+requestAnimationFrame(tick);
+load();
+</script>
+</body>
+</html>

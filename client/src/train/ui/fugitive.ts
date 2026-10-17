@@ -4,7 +4,7 @@ import { api, msgFor, type Hack } from "../api";
 import { tbus, toast } from "../bus";
 import { describeFugitiveOrder, isFugitive, tstate } from "../state";
 import { HACK_KO, ORDER_KO } from "../strings";
-import { $, el, show } from "./dom";
+import { $, el, setRich, show } from "./dom";
 
 const HACKS: Hack[] = ["doorlock", "distract", "blackout", "hide", "overload"];
 
@@ -56,7 +56,7 @@ async function ping(): Promise<void> {
     const r = await api.ping();
     tstate.pingOrders = r.orders;
     const lines = Object.entries(r.orders).map(([id, o]) => `${id}: ${o ? (o.type === "move" ? `이동 → ${o.target}` : ORDER_KO[o.type]) : "미제출"}`);
-    toast(`📡 핑 — ${lines.join(" · ")}`, 6000);
+    toast(`{signal} 핑 — ${lines.join(" · ")}`, 6000);
     render();
   } catch (e) {
     toast(msgFor(e), 4000);
@@ -77,9 +77,9 @@ function render(): void {
   show("btn-fug-cancel", submitted);
   $("btn-fug-confirm-val").textContent = submitted ? "바꾼 행동으로 확정" : "이번 라운드 행동 확정";
   const pickText = `${describeFugitiveOrder(tstate.fpick)}${tstate.fpick.hack === "doorlock" && !tstate.fpick.target ? " — 잠글 문을 눌러요" : ""}${tstate.fpick.hack === "distract" && !tstate.fpick.target ? " — 교란할 구역을 눌러요" : ""}`;
-  status.textContent = submitted
-    ? `✅ ${describeFugitiveOrder(f.order)} · 바꾸기: ${pickText}`
-    : `${f.room}에 있어요 · ${pickText}`;
+  setRich(status, submitted
+    ? `{save} ${describeFugitiveOrder(f.order)} · 바꾸기: ${pickText}`
+    : `${f.room}에 있어요 · ${pickText}`);
 
   const hacks = $("fug-hacks");
   hacks.innerHTML = "";

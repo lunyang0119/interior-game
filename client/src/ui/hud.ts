@@ -57,7 +57,7 @@ export function initHud(): void {
   };
   bus.on("room:changed", ({ name, id, ruined, kind, floor }) => {
     $("hud-room-val").textContent = (name || id) + (kind === "mine" && floor ? ` ${floor}층` : "");
-    setRich($("hud-room-ruined"), ruined > 0 ? ` · {repair}${ruined}` : "");
+    setRich($("hud-room-ruined"), ruined > 0 ? ` · {broom}${ruined}` : "");
     show("hud-room", true);
     roomKind = kind === "mine" ? "mine" : "room";
     applyBars();

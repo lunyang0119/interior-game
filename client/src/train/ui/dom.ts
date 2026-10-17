@@ -1,8 +1,27 @@
 /** The train page's DOM helpers: the shared `$` / `el` / `show` (ui/dom.ts) plus panels, buttons and folds. */
 
 import { $, el, show } from "../../ui/dom";
+import { richEl as roomRichEl, setRich as roomSetRich } from "../../ui/icons";
 
 export { $, el, show };
+
+/** A cyber icon from media/train/icons.png (`preprocess.py train-ui`) sized for a line of text. */
+export function ic(name: string): HTMLElement {
+  const i = document.createElement("i");
+  i.className = `ic ic-${name} ic-in`;
+  i.setAttribute("aria-hidden", "true");
+  return i;
+}
+
+/** `target.textContent = text` with `{name}` tokens as cyber icons (ui/icons.ts rich text, train flavour). */
+export function setRich(target: HTMLElement, text: string): void {
+  roomSetRich(target, text, ic);
+}
+
+/** `el(tag, cls, text)` with `{name}` tokens as cyber icons. */
+export function richEl<K extends keyof HTMLElementTagNameMap>(tag: K, cls: string, text: string): HTMLElementTagNameMap[K] {
+  return roomRichEl(tag, cls, text, ic);
+}
 
 export function button(label: string, onClick: () => void, cls = ""): HTMLButtonElement {
   const b = el("button", cls, label);

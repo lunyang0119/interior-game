@@ -301,7 +301,7 @@ export function initLog(): void {
   show("panel-log", false);
 }
 
-/** `2층 · {repair}3 · 1/2단계 · 1호실 {heart}42` (after the home icon) — the HUD chip; tapping it opens the checklist. */
+/** `2층 · {broom}3 · 1/2단계 · 1호실 {heart}42` (after the home icon) — the HUD chip; tapping it opens the checklist. */
 function renderChip(): void {
   const p = state.progress[state.roomId];
   const c = state.comfort[currentUnit()];

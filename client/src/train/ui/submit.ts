@@ -4,7 +4,7 @@ import { api, msgFor, type OrderType } from "../api";
 import { tbus, toast } from "../bus";
 import { isHunter, tstate } from "../state";
 import { ORDER_KO } from "../strings";
-import { $, show } from "./dom";
+import { $, setRich, show } from "./dom";
 
 function describe(o: { type: OrderType; target: string | null } | null): string {
   if (!o) return "";
@@ -26,7 +26,7 @@ export function initSubmit(): void {
       pick("move", room);
       // last round's locks are information only: a lock lasts the round it was cast, hunters learn it at resolution
       const edge = [p.you.room, room].sort().join("-");
-      if ((p.view?.locks ?? []).includes(edge)) toast("⛔ 지난 라운드에 잠겨 있던 문이에요. 이번에도 잠길지는 정산 때 알 수 있어요", 3000);
+      if ((p.view?.locks ?? []).includes(edge)) toast("{close} 지난 라운드에 잠겨 있던 문이에요. 이번에도 잠길지는 정산 때 알 수 있어요", 3000);
     } else toast("바로 갈 수 없는 구역이에요 (옆 구역만)", 1500);
   });
   tbus.on("state:changed", render);
@@ -80,9 +80,9 @@ function render(): void {
   show("btn-order-cancel", !!you.order);
   const confirmBtn = $("btn-order-confirm");
   $("btn-order-confirm-val").textContent = you.order ? "바꾼 행동으로 확정" : "이번 라운드 행동 확정";
-  if (you.dazed) status.textContent = "☕ 증기에 휩싸여 이번 라운드는 행동할 수 없어요";
-  else if (you.order && tstate.pick) status.textContent = `✅ ${describe(you.order)} → 바꾸기: ${describe(tstate.pick)}`;
-  else if (you.order) status.textContent = `✅ 제출함: ${describe(you.order)} · 마감 전까지 바꿀 수 있어요`;
+  if (you.dazed) setRich(status, "{power} 증기에 휩싸여 이번 라운드는 행동할 수 없어요");
+  else if (you.order && tstate.pick) setRich(status, `{save} ${describe(you.order)} → 바꾸기: ${describe(tstate.pick)}`);
+  else if (you.order) setRich(status, `{save} 제출함: ${describe(you.order)} · 마감 전까지 바꿀 수 있어요`);
   else if (tstate.pick) status.textContent = `선택: ${describe(tstate.pick)}`;
   else status.textContent = `${you.room}에 있어요 · 옆 구역을 누르면 이동, 지금 구역을 누르면 수색`;
   confirmBtn.toggleAttribute("disabled", !tstate.pick);

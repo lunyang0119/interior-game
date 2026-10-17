@@ -40,6 +40,8 @@ a.chip { text-decoration: none; color: var(--text); }
 /* icons inside chips/buttons */
 button, .chip { display: inline-flex; align-items: center; justify-content: center; gap: 4px; min-height: 30px; line-height: 1; padding-left: 8px; padding-right: 12px; }
 .chip .ic, button .ic { width: 28px; height: 28px; }
+/* cyber icons inside a line of text ({name} tokens, ui/dom.ts ic()): 1:1 with the 28 px sprite cells, negative margins keep the line height */
+.ic.ic-in { width: 28px; height: 28px; margin: -8px -2px; }
 .panel-head .ic { margin-right: 6px; }
 #hud .chip, #hud button { font-size: 13px; }
 #hud-status { font-weight: 700; }

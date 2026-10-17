@@ -704,11 +704,85 @@ def build_char_layer(layer: str, variants: list[dict], out_dir: Path) -> dict:
     return entry
 
 
-def build_cat(variant: str | None = None, out_dir: Path | None = None, src: Path | None = None) -> dict | None:
-    """gen/cat/<variant>.png: one horizontal strip of the cat's real frames (see config.CATS_DIR for the
-    source layout) + the manifest entry {frameW, frameH, variant, file, anims: {"<section>_<dir>": [s, e]}}.
-    Empty cells are skipped, so sections may have a different frame count per direction. None when the
-    variant PNG is missing (the cat is optional)."""
+def cat_cell_empty(im: Image.Image, col: int, row: int) -> bool:
+    cell = C.CAT_CELL
+    return not im.crop((col * cell, row * cell, (col + 1) * cell, (row + 1) * cell)).getchannel("A").getbbox()
+
+
+def cat_default_anims(im: Image.Image) -> dict[str, dict]:
+    """The animations cut straight from the sheet layout (config.CAT_*): every non-empty cell of a section's two
+    rows for that direction, in reading order. What build uses without data/cat_anims.json, and the editor's start."""
+    anims: dict[str, dict] = {}
+    for si, section in enumerate(C.CAT_SECTIONS):
+        for d, block in C.CAT_DIR_BLOCKS.items():
+            cells = [[col, row] for row in (1 + block * 2, 2 + block * 2) for col in range(si * 4, si * 4 + 4)
+                     if not cat_cell_empty(im, col, row)]
+            if not cells:
+                raise SystemExit(f"cat: no frames for {section}_{d} (layout changed?)")
+            anims[f"{section}_{d}"] = {"frames": cells, "fps": C.CAT_FPS.get(section, 6), "loop": section in C.CAT_LOOPS}
+    return anims
+
+
+def validate_cat_anims(anims: object, im: Image.Image) -> str | None:
+    """None when `anims` is usable with this sheet: exactly the default animation names, each a non-empty list of
+    [col, row] cells below the title row that hold pixels, fps 1..30, loop a bool."""
+    if not isinstance(anims, dict):
+        return "anims가 객체가 아니에요"
+    cell = C.CAT_CELL
+    cols, rows = im.width // cell, im.height // cell
+    want = {f"{s}_{d}" for s in C.CAT_SECTIONS for d in C.CAT_DIR_BLOCKS}
+    if set(anims) != want:
+        missing, extra = sorted(want - set(anims)), sorted(set(anims) - want)
+        return f"애니메이션 이름이 달라요 (빠짐: {missing}, 모름: {extra})"
+    for name, a in anims.items():
+        frames = a.get("frames") if isinstance(a, dict) else None
+        if not isinstance(frames, list) or not frames:
+            return f"{name}: 프레임이 하나도 없어요"
+        for f in frames:
+            if not (isinstance(f, list) and len(f) == 2 and all(isinstance(v, int) for v in f)):
+                return f"{name}: 프레임은 [열, 행] 이어야 해요 ({f})"
+            col, row = f
+            if not (0 <= col < cols and 1 <= row < rows):
+                return f"{name}: 시트 밖이거나 제목 줄인 칸이에요 ({col}, {row})"
+            if cat_cell_empty(im, col, row):
+                return f"{name}: 빈 칸이에요 ({col}, {row})"
+        fps = a.get("fps")
+        if not isinstance(fps, (int, float)) or not 1 <= fps <= 30:
+            return f"{name}: fps는 1~30 이어야 해요"
+        if not isinstance(a.get("loop"), bool):
+            return f"{name}: loop는 true/false 여야 해요"
+    return None
+
+
+def load_cat_anims(im: Image.Image) -> dict[str, dict]:
+    """data/cat_anims.json `anims` (checked against the sheet), else the layout default."""
+    if not C.CAT_ANIMS_FILE.exists():
+        return cat_default_anims(im)
+    anims = json.loads(C.CAT_ANIMS_FILE.read_text(encoding="utf-8")).get("anims")
+    err = validate_cat_anims(anims, im)
+    if err:
+        raise SystemExit(f"{C.CAT_ANIMS_FILE.name}: {err}")
+    return anims
+
+
+CAT_ANIMS_HELP = ("여관 고양이 애니메이션. 에디터 /cat 에서 고쳐요. frames = 원본 시트(assets/graphic/Map/Cats/<variant>.png, "
+                  "32px 칸)의 [열, 행] 순서, fps = 초당 프레임, loop = 반복(false면 한 번 재생 후 마지막 프레임 유지). "
+                  "적용: 에디터 \"고양이만 빌드\" 또는 preprocess.py build")
+
+
+def save_cat_anims(anims: dict[str, dict]) -> None:
+    """data/cat_anims.json, one animation per line (readable diffs)."""
+    rows = [f'  "{k}": {json.dumps(v, ensure_ascii=False, separators=(", ", ": "))}' for k, v in anims.items()]
+    text = "{\n" + f' "_help": {json.dumps(CAT_ANIMS_HELP, ensure_ascii=False)},\n' + ' "anims": {\n' + ",\n".join(rows) + "\n }\n}\n"
+    C.CAT_ANIMS_FILE.write_text(text, encoding="utf-8", newline="\n")
+
+
+def build_cat(variant: str | None = None, out_dir: Path | None = None, src: Path | None = None,
+              anims: dict[str, dict] | None = None) -> dict | None:
+    """gen/cat/<variant>.png: one horizontal strip of every cell the animations use (each once, in first-use
+    order) + the manifest entry {frameW, frameH, variant, file, anims: {"<section>_<dir>": {frames: [strip
+    index...], fps, loop}}}. The cells come from `anims` / data/cat_anims.json / the layout default (see
+    load_cat_anims). None when the variant PNG is missing (the cat is optional)."""
     variant = variant or C.CAT_VARIANT
     src = src or (C.CATS_DIR / f"{variant}.png")
     if not src.exists():
@@ -717,27 +791,33 @@ def build_cat(variant: str | None = None, out_dir: Path | None = None, src: Path
     out_dir = out_dir or (C.OUT_DIR / "cat")
     cell = C.CAT_CELL
     im = Image.open(src).convert("RGBA")
-    frames: list[Image.Image] = []
-    anims: dict[str, list[int]] = {}
-    for si, section in enumerate(C.CAT_SECTIONS):
-        for d, block in C.CAT_DIR_BLOCKS.items():
-            start = len(frames)
-            for row in (1 + block * 2, 2 + block * 2):
-                for col in range(si * 4, si * 4 + 4):
-                    fr = im.crop((col * cell, row * cell, (col + 1) * cell, (row + 1) * cell))
-                    if fr.getchannel("A").getbbox():
-                        frames.append(fr)
-            if len(frames) == start:
-                raise SystemExit(f"cat {variant}: no frames for {section}_{d} (layout changed?)")
-            anims[f"{section}_{d}"] = [start, len(frames) - 1]
-    strip = Image.new("RGBA", (cell * len(frames), cell), (0, 0, 0, 0))
-    for i, fr in enumerate(frames):
-        strip.paste(fr, (i * cell, 0))
+    spec = anims if anims is not None else load_cat_anims(im)
+    index: dict[tuple[int, int], int] = {}
+    out: dict[str, dict] = {}
+    for name, a in spec.items():
+        ids = []
+        for col, row in a["frames"]:
+            ids.append(index.setdefault((col, row), len(index)))
+        out[name] = {"frames": ids, "fps": a["fps"], "loop": a["loop"]}
+    strip = Image.new("RGBA", (cell * len(index), cell), (0, 0, 0, 0))
+    for (col, row), i in index.items():
+        strip.paste(im.crop((col * cell, row * cell, (col + 1) * cell, (row + 1) * cell)), (i * cell, 0))
     out_dir.mkdir(parents=True, exist_ok=True)
     for stale in out_dir.glob("*.png"):
         stale.unlink()
     strip.save(out_dir / f"{variant}.png", optimize=True)
-    return {"frameW": cell, "frameH": cell, "variant": variant, "file": f"gen/cat/{variant}.png", "anims": anims}
+    return {"frameW": cell, "frameH": cell, "variant": variant, "file": f"gen/cat/{variant}.png", "anims": out}
+
+
+def rebuild_cat() -> dict | None:
+    """Rebuilds only the cat (gen/cat + manifest.json `cat`), for the editor's 고양이 page."""
+    entry = build_cat()
+    manifest_path = C.OUT_DIR / "manifest.json"
+    if entry and manifest_path.exists():
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["cat"] = entry
+        manifest_path.write_text(json.dumps(manifest, indent=1), encoding="utf-8")
+    return entry
 
 
 def anim_table() -> dict:
@@ -989,7 +1069,8 @@ def cmd_build(args: argparse.Namespace) -> None:
     cat_entry = build_cat()
     if cat_entry:
         manifest["cat"] = cat_entry
-        print(f"cat/{cat_entry['variant']}: {max(e for _, e in cat_entry['anims'].values()) + 1} frames → gen/cat/")
+        frames = 1 + max(i for a in cat_entry["anims"].values() for i in a["frames"])
+        print(f"cat/{cat_entry['variant']}: {frames} frames → gen/cat/")
     (C.OUT_DIR / "manifest.json").write_text(json.dumps(manifest, indent=1), encoding="utf-8")
     print("manifest → gen/manifest.json")
 

@@ -159,6 +159,12 @@ python tools/preprocess/preprocess.py build                        # map_slices.
 - **낱개**: 정식 팩 `Theme_Sorter_Singles`의 낱개 PNG를 테마별 썸네일로 보고 클릭하면 `file` 슬라이스가 생긴다.
 - **캐릭터**: 전과 같음.
 - **방·맵 에디터** (`/world`): 아래 참고.
+- **고양이** (`/cat`, 상단 "고양이 →"): 여관 고양이 애니메이션 20개(`sit/look/lay/walk/run` × `down/right/up/left`)를 고친다.
+  가운데 원본 시트(`assets/graphic/Map/Cats/<색>.png`, 32px 칸)에서 칸을 누르면 지금 애니메이션에 프레임으로 들어가고(선택한 프레임 뒤, 없으면 끝),
+  오른쪽 클릭은 그 칸을 뺀다. 오른쪽에서 프레임 순서 바꾸기(◀ ▶ 또는 Alt+←/→)·복제·빼기(Delete)·fps·반복을 고치고, 같은 동작의 네 방향을 나란히
+  재생해 방향이 맞는지 본다. **저장** → `data/cat_anims.json`, **저장 + 고양이만 빌드** → `gen/cat/<색>.png` + `manifest.json`의 `cat`만 다시 만든다
+  (전체 build 없이; 게임은 새로고침하면 보이고, VM은 gen/data 배포). 애니메이션은 모든 색이 같이 쓰고, 게임에 들어가는 색은 `config.CAT_VARIANT`.
+  원본 시트는 아래 방향부터 **반시계방향**(아래, 왼아래, 왼쪽, …, 오른쪽, 오른아래)이라 5–6행이 왼쪽, 13–14행이 오른쪽을 본다.
 
 ## 방·맵 에디터 (`python tools/preprocess/preprocess.py editor` → 상단 "방·맵 에디터 →")
 

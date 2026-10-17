@@ -13,13 +13,14 @@ export function icon(name: string, big = false): HTMLElement {
 
 const TOKEN = /\{([a-z_]+)\}/g;
 
-/** Text with `{name}` tokens turned into icons; everything else stays a text node (never parsed as HTML). */
-export function rich(text: string): DocumentFragment {
+/** Text with `{name}` tokens turned into icons by `make` (the train page passes its cyber `.ic`); everything else
+ *  stays a text node (never parsed as HTML). */
+export function rich(text: string, make: (name: string) => HTMLElement = icon): DocumentFragment {
   const out = document.createDocumentFragment();
   let at = 0;
   for (const m of text.matchAll(TOKEN)) {
     if (m.index! > at) out.append(text.slice(at, m.index));
-    out.append(icon(m[1]));
+    out.append(make(m[1]));
     at = m.index! + m[0].length;
   }
   if (at < text.length) out.append(text.slice(at));
@@ -27,13 +28,13 @@ export function rich(text: string): DocumentFragment {
 }
 
 /** `el.textContent = text`, but with `{name}` tokens as icons. */
-export function setRich(target: HTMLElement, text: string): void {
-  target.replaceChildren(rich(text));
+export function setRich(target: HTMLElement, text: string, make?: (name: string) => HTMLElement): void {
+  target.replaceChildren(rich(text, make));
 }
 
 /** `el(tag, cls, text)` (ui/dom.ts) with `{name}` tokens as icons. */
-export function richEl<K extends keyof HTMLElementTagNameMap>(tag: K, cls: string, text: string): HTMLElementTagNameMap[K] {
+export function richEl<K extends keyof HTMLElementTagNameMap>(tag: K, cls: string, text: string, make?: (name: string) => HTMLElement): HTMLElementTagNameMap[K] {
   const e = el(tag, cls);
-  e.append(rich(text));
+  e.append(rich(text, make));
   return e;
 }

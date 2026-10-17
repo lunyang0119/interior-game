@@ -42,6 +42,7 @@ import preprocess as P  # noqa: E402
 HTML_FILE = Path(__file__).with_name("editor.html")
 WORLD_FILE = Path(__file__).with_name("world.html")
 TRAIN_FILE = Path(__file__).with_name("train.html")
+CAT_FILE = Path(__file__).with_name("cat.html")
 ROOM_FILE = C.REPO_ROOT / "data" / "room.json"          # legacy single room the game server still reads (mirror of rooms/inn.json)
 ROOMS_DIR = C.REPO_ROOT / "data" / "rooms"
 MAP_FILE = C.REPO_ROOT / "data" / "map.json"
@@ -852,6 +853,34 @@ def _git_bash() -> str | None:
     return shutil.which("bash")
 
 
+def cat_sheet(variant: str) -> Path | None:
+    """assets/graphic/Map/Cats/<variant>.png, or None (also for names that try to leave the folder)."""
+    p = (C.CATS_DIR / f"{variant}.png").resolve()
+    return p if p.parent == C.CATS_DIR.resolve() and p.exists() else None
+
+
+def cat_state(variant: str = "") -> dict:
+    """The 고양이 page: the sheet grid, every variant to preview with, and the animations (data/cat_anims.json, else
+    the layout default). Animations are shared by every variant; only config.CAT_VARIANT is built."""
+    variant = variant if cat_sheet(variant) else C.CAT_VARIANT
+    p = cat_sheet(variant)
+    if not p:
+        return {"error": f"{C.CATS_DIR} 에 {variant}.png 가 없어요"}
+    im = Image.open(p).convert("RGBA")
+    cell = C.CAT_CELL
+    built = cat_sheet(C.CAT_VARIANT)
+    return {
+        "variant": variant, "built_variant": C.CAT_VARIANT,
+        "variants": sorted(x.stem for x in C.CATS_DIR.glob("*.png")),
+        "cell": cell, "cols": im.width // cell, "rows": im.height // cell,
+        "sections": C.CAT_SECTIONS, "dirs": list(C.CAT_DIR_BLOCKS),
+        "anims": P.load_cat_anims(Image.open(built).convert("RGBA")) if built else P.cat_default_anims(im),
+        "defaults": P.cat_default_anims(im),
+        "saved": C.CAT_ANIMS_FILE.exists(),
+        "empty": [[c, r] for r in range(1, im.height // cell) for c in range(im.width // cell) if P.cat_cell_empty(im, c, r)],
+    }
+
+
 class DeployJob:
     """One 🚀 run, in a thread: build the bundle if client/src is newer, then send ONLY the files deploy.changes()
     lists (tar | ssh), delete on the VM what was deleted here, restart when a restart-file was among them, mark.
@@ -1014,6 +1043,16 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_bytes(TRAIN_FILE.read_bytes(), "text/html; charset=utf-8")
             elif u.path == "/api/train-maps":
                 self.send_json(train_maps_state())
+            elif u.path == "/cat":
+                self.send_bytes(CAT_FILE.read_bytes(), "text/html; charset=utf-8")
+            elif u.path == "/api/cat":
+                self.send_json(cat_state(q.get("variant", [""])[0]))
+            elif u.path.startswith("/cats/"):
+                p = cat_sheet(unquote(u.path[len("/cats/"):]).removesuffix(".png"))
+                if not p:
+                    self.send_error(HTTPStatus.NOT_FOUND)
+                    return
+                self.send_bytes(p.read_bytes(), "image/png")
             elif u.path == "/api/deploy":
                 self.send_json(D.status())
             elif u.path == "/api/deploy/log":
@@ -1149,6 +1188,19 @@ class Handler(BaseHTTPRequestHandler):
                     self.send_json({"error": err}, 400)
                     return
                 self.send_json({"ok": True})
+            elif u.path == "/api/cat":
+                # {anims} → data/cat_anims.json, checked against the built variant's sheet
+                p = cat_sheet(C.CAT_VARIANT)
+                if not p:
+                    self.send_json({"error": "고양이 시트가 없어요"}, 400)
+                    return
+                anims = (body or {}).get("anims")
+                err = P.validate_cat_anims(anims, Image.open(p).convert("RGBA"))
+                if err:
+                    self.send_json({"error": err}, 400)
+                    return
+                P.save_cat_anims(anims)
+                self.send_json({"ok": True})
             elif u.path == "/api/train-maps":
                 err = save_train_maps(body)
                 if err:
@@ -1216,6 +1268,13 @@ class Handler(BaseHTTPRequestHandler):
         try:
             if u.path == "/api/build":
                 self.send_json({"ok": True, "log": run_build()})
+            elif u.path == "/api/cat/build":
+                # only gen/cat + manifest.json `cat` (a full build takes much longer); the game picks it up on reload
+                entry = P.rebuild_cat()
+                if not entry:
+                    self.send_json({"error": "고양이 시트가 없어요"}, 400)
+                    return
+                self.send_json({"ok": True, "frames": 1 + max(i for a in entry["anims"].values() for i in a["frames"])})
             elif u.path == "/api/shrink":
                 # {sheet, method?, scale?} → 16px copy under <Root>/_16px/ (scale = 16 / source grid; >1 enlarges),
                 # then the sheet list is rescanned

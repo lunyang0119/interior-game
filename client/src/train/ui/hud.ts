@@ -5,7 +5,7 @@ import { fmtRemain } from "../report";
 import { isAdmin, isFugitive, isHunter, label, tstate } from "../state";
 import { ORDER_KO } from "../strings";
 import { setTitleBadge } from "../cues";
-import { $, openPanel, show } from "./dom";
+import { $, openPanel, setRich, show } from "./dom";
 
 let timer: number | null = null;
 
@@ -61,10 +61,10 @@ function render(): void {
   const pending = pendingHunters();
   const total = v?.hunters.length ?? 0;
   const sub = $("hud-sub-val");
-  const fug = p?.status === "ROUND_OPEN" ? (p.fugitive_submitted ? " · 도주자 ✓" : tstate.thinking.has("fugitive") ? " · 도주자 판단 중" : " · 도주자 미제출") : "";
+  const fug = p?.status === "ROUND_OPEN" ? (p.fugitive_submitted ? " · 도주자 {save}" : tstate.thinking.has("fugitive") ? " · 도주자 판단 중" : " · 도주자 미제출") : "";
   if (!total) sub.textContent = "–";
-  else if (!pending.length) sub.textContent = `승무원 전원 제출${fug}`;
-  else sub.textContent = `미제출 ${pending.length}: ${pending.map((n) => label(n) + (tstate.thinking.has(n) ? "(판단 중)" : "")).join(", ")}${fug}`;
+  else if (!pending.length) setRich(sub, `승무원 전원 제출${fug}`);
+  else setRich(sub, `미제출 ${pending.length}: ${pending.map((n) => label(n) + (tstate.thinking.has(n) ? "(판단 중)" : "")).join(", ")}${fug}`);
   const st = p?.status ?? "IDLE";
   const spectator = p?.role === "spectator" && st !== "IDLE" && st !== "LOBBY";
   const [icon, lbl] = st === "LOBBY" ? ["exit", "모집 중"] : st === "PAUSED" ? ["pause", `${round} 일시정지`] : st === "CAPTURED" ? ["trophy", `${round} 체포`]

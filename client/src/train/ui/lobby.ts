@@ -3,7 +3,7 @@
 import { api, msgFor, type MapSummary } from "../api";
 import { tbus, toast } from "../bus";
 import { isAdmin, isBot, label, me, tstate } from "../state";
-import { $, button, el, openPanel, show } from "./dom";
+import { $, button, el, openPanel, richEl, show } from "./dom";
 
 let maps: MapSummary[] = [];
 let countdown: number | null = null;
@@ -56,9 +56,9 @@ function render(): void {
   }
 
   const lobby = p?.lobby ?? [];
-  info.textContent = `맵 ${p?.map_id} · 승무원 ${lobby.length}/${p?.hunter_count}명 · 도주자: ${p?.fugitive_ai ? "🤖 AI" : "관제"}`;
+  info.textContent = `맵 ${p?.map_id} · 승무원 ${lobby.length}/${p?.hunter_count}명 · 도주자: ${p?.fugitive_ai ? "AI" : "관제"}`;
   for (const id of lobby) {
-    const row = el("div", "lobby-row", `${isBot(id) ? "🤖" : "🚃"} ${label(id)}${id === me() ? " (나)" : ""}`);
+    const row = richEl("div", "lobby-row", `${isBot(id) ? "{chat}" : "{gamepad}"} ${label(id)}${id === me() ? " (나)" : ""}`);
     list.appendChild(row);
   }
   const bots = lobby.filter(isBot).length;

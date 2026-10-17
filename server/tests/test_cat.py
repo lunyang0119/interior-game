@@ -91,8 +91,8 @@ def test_catalog_exposes_the_cat_strip_when_built(env):
     assert cm.load().public()["cat"] is None
     m = json.loads((env["gen"] / "manifest.json").read_text(encoding="utf-8"))
     m["cat"] = {"frameW": 32, "frameH": 32, "variant": "orange_0", "file": "gen/cat/orange_0.png",
-                "anims": {"walk_down": [0, 3]}}
+                "anims": {"walk_down": {"frames": [0, 1, 2, 3], "fps": 8, "loop": True}}}
     (env["gen"] / "manifest.json").write_text(json.dumps(m), encoding="utf-8")
     pub = cm.load().public()
-    assert pub["cat"]["variant"] == "orange_0" and pub["cat"]["anims"]["walk_down"] == [0, 3]
+    assert pub["cat"]["variant"] == "orange_0" and pub["cat"]["anims"]["walk_down"]["frames"] == [0, 1, 2, 3]
     assert "sheet" not in json.dumps(pub)

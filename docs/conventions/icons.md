@@ -1,6 +1,6 @@
 # 아이콘 규칙 (이모지 대체)
 
-2026-10-16 조사·적용. 룸 게임 UI(DOM)의 이모지는 모두 바꿨다. 남은 것은 열차 페이지(아래 '열차')와 코드 주석.
+2026-10-16 조사·적용. 룸 게임과 열차 페이지 UI의 이모지는 모두 바꿨다. 남은 것은 코드 주석, 그리고 Discord 엔진에서 그대로 복사한 `server/app/train/{render,strings}.py`(수정 금지 파일, 웹 UI에는 안 나옴).
 
 ## 왜 바꾸나
 
@@ -30,6 +30,7 @@
 | `GUI/cyberpunk GUI/icon.png` | ~32 (격자 어긋남, 자를 때 확인) | 파란 UI 아이콘: 돋보기, 신호 막대, 스피커, 메일, X, ?, !, 톱니, 휴지통, 재생/정지 — **열차 전용** |
 | `GUI/UI assets pack 2/UI books & more.png` | 16 (아이콘 묶음은 x 464, y 176부터) | 책·펼친 책·공책·편지·편지함·느낌표 말풍선·지도 핀·해골·모루·화살 하트·열쇠 구멍·자물쇠, 휘어진 화살표, 체크/X. 행마다 테두리(없음 / 흰 / 금색) |
 | `GUI/Sprout Lands …/Icons/special icons/Small Happines-Sadness icons.png` | 16 | 표정 6종(웃음 → 해골). 1행은 흰 테두리 |
+| `GUI/HackerNoon Pixel Icon Library/broom-solid.svg` | 24 격자 SVG | 빗자루. npm `@hackernoon/pixel-icon-library`에서 가져옴. 아이콘은 **CC BY 4.0 — 출처 표기 필수**(계정 패널 크레딧 줄), 색 변경함. 같은 라이브러리에 다른 아이콘도 많음 |
 | `GUI/Map Legend Icons/Icons/*.png` | 16×24 | 지도 핀 모양 — UI 아이콘으로는 부적합, 쓰지 않음 |
 
 ## 매핑표 (룸 게임) — 적용됨
@@ -53,9 +54,9 @@
 | 🐶 | 개 손님 | 게시판 카드: `dog` 태그 아이템 썸네일(`itemThumb`). 문구 속 🐶 는 지움 |
 | 📦 | 예약 카드 자리 | 빈 칸 → 아이템 썸네일 |
 | 📝 | 쪽지 메뉴 | `letter`. 예약 문구 속 📝 는 지움 |
-| 🧹 | 부서진 물건 수 (HUD 칩) | `repair` (books 모루) |
+| 🧹 | 부서진 물건 수 (HUD 칩) | `broom` (HackerNoon 빗자루 SVG, `px: 1`). 처음엔 books 모루였는데 청소로 안 읽혀서 바꿈 |
 | 🔌 | 연결 끊김 | `offline` (All Icons 갈색 금지) |
-| 🔄 | 시트 동기화 | `sync` (books 휘어진 화살표) |
+| 🔄 | 시트 동기화 | `sync` (books 휘어진 화살표) + 글자 "시트 동기화". 화살표만으로는 뜻이 안 읽혔음 |
 | 🔊 / 🔇 | 소리 칩 | 글자 "소리" / "소리 꺼짐" (열차 페이지와 같음). 줄여도 알아볼 스피커 그림이 없었음 |
 | 🟢 | 접속 인원 | CSS `.dot` (`--ok`) |
 | ✓ ✗ | 접속 기록(`<pre>`) | 글자 "성공" / "실패" |
@@ -65,9 +66,14 @@
 
 시도했다가 뺀 것: 개(`pet_bed_fa` ÷3), 거울(÷2), Emoji 시트 음표(32px ÷2) — 정수로 줄여도 뭉개져서 알아보기 어려웠다.
 
-## 열차 (`/train/`)
+## 열차 (`/train/`) — 적용됨
 
-열차는 cyber 톤이라 룸 게임 아이콘을 쓰지 않는다. cyberpunk `icon.png` 후보: 🔍 → 돋보기, 📶 → 신호 막대, 📢 → 스피커, ⚠ → !, 🛠 → 톱니. ⛔(잠긴 문)·☕(증기)·💥·👁·🕶·🤖 는 대응 그림이 없어 별도 제작 또는 글자 태그(`[잠김]`)가 필요하다. 보고서 줄머리 이모지(`train/report.ts`)는 대부분 장식이라 지우는 쪽이 우선.
+열차는 cyber 톤이라 룸 게임 아이콘(`.icon-*`)을 쓰지 않고 `preprocess.py train-ui`의 `.ic-*`(`media/train/icons.png`, 28px 칸)을 쓴다.
+
+- 문구 안 토큰: `train/ui/dom.ts`의 `setRich` / `richEl` (= `ui/icons.ts`에 `ic()` 를 넘긴 것). `.ic-in` = 글줄용 28px.
+- 매핑: ⚠ 💥 ‼ → `alert`, 🕶 → `target`, 🚪 → `exit`, ☕ → `power`(과부하·증기), 📡 📶 → `signal`, 📢 → `speaker`, 🔍 → `search`, 👁 → `camera`, ★ → `trophy`, ⛔ → `close`, 🤖 → `chat`, 🚃 → `gamepad`, ✅ ✓ → `save`, 🛠 → `gear`(관제 패널 머리 아이콘과 같음). 패널 닫기 ✕ → `ic-close`.
+- Phaser 지도 표식(`render/Fx.ts`): 잠긴 문 = `close`(빨강 틴트), 증기 = `power`(흰색), 0.5배. `TrainBoot`가 `icons.png`를 28px 스프라이트시트로, `icons.json`(이름 → 좌표)을 같이 읽는다. 말풍선(`Playback.ts`)과 "체포" 라벨은 글자만.
+- ◎(신호 표식)은 이모지가 아닌 게임 기호라 그대로 둔다.
 
 ## 구현 (적용됨)
 

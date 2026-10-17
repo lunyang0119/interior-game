@@ -100,16 +100,17 @@ def test_atlas_keys_carry_sets_only_for_interiors():
     assert "set" not in P.atlas_keys(atlas, sl)["a"]
 
 
-def test_build_cat_cuts_only_real_frames_and_skips_the_title_row(tmp_path: Path):
-    # a fake Cats/<variant>.png: 6 sections × 4 cells, title row 0, 8 directions × 2 rows below it
+def _fake_cat_sheet(tmp_path: Path) -> Path:
+    """A fake Cats/<variant>.png: 6 sections × 4 cells, title row 0, 8 directions × 2 rows below it."""
     cell = P.C.CAT_CELL
     im = Image.new("RGBA", (32 * cell, 17 * cell), (0, 0, 0, 0))
     for col in range(24):  # title text across every section: must never become a frame
         im.putpixel((col * cell + 1, 1), (255, 255, 255, 255))
     # section 0 (sit): 5 frames facing down (4 on the first row + 1 on the second), 4 facing right
+    right = 1 + P.C.CAT_DIR_BLOCKS["right"] * 2
     for col in range(4):
         im.putpixel((col * cell + 5, 1 * cell + 5), (200, 100, 0, 255))
-        im.putpixel((col * cell + 5, 5 * cell + 5), (200, 100, 0, 255))
+        im.putpixel((col * cell + 5, right * cell + 5), (200, 100, 0, 255))
     im.putpixel((5, 2 * cell + 5), (200, 100, 0, 255))
     # every other (section, cardinal direction): one frame
     for si in range(1, len(P.C.CAT_SECTIONS)):
@@ -120,20 +121,52 @@ def test_build_cat_cuts_only_real_frames_and_skips_the_title_row(tmp_path: Path)
             im.putpixel((5, (1 + block * 2) * cell + 5), (200, 100, 0, 255))
     src = tmp_path / "ginger_0.png"
     im.save(src)
+    return src
+
+
+def test_cat_directions_follow_the_sheet():
+    # the sheet goes counter-clockwise from down: rows 5-6 face left, rows 13-14 face right
+    assert P.C.CAT_DIR_BLOCKS == {"down": 0, "right": 6, "up": 4, "left": 2}
+
+
+def test_build_cat_default_cuts_only_real_frames_and_skips_the_title_row(tmp_path: Path, monkeypatch):
+    monkeypatch.setattr(P.C, "CAT_ANIMS_FILE", tmp_path / "none.json")
+    src = _fake_cat_sheet(tmp_path)
+    cell = P.C.CAT_CELL
     out = tmp_path / "cat"
     entry = P.build_cat("ginger_0", out, src)
     assert entry is not None
     assert entry["variant"] == "ginger_0" and entry["file"] == "gen/cat/ginger_0.png"
     assert entry["frameW"] == cell and entry["frameH"] == cell
-    assert entry["anims"]["sit_down"] == [0, 4]
-    assert entry["anims"]["sit_right"] == [5, 8]
-    assert entry["anims"]["sit_up"] == [9, 9] and entry["anims"]["sit_left"] == [10, 10]
-    assert entry["anims"]["look_down"] == [11, 11] and entry["anims"]["walk_down"] == [19, 19]
-    total = max(e for _, e in entry["anims"].values()) + 1
+    a = entry["anims"]
+    assert a["sit_down"] == {"frames": [0, 1, 2, 3, 4], "fps": 6, "loop": False}
+    assert a["sit_right"]["frames"] == [5, 6, 7, 8]
+    assert a["walk_down"]["loop"] is True and a["walk_down"]["fps"] == 8
+    total = 1 + max(i for v in a.values() for i in v["frames"])
     strip = Image.open(out / "ginger_0.png")
     assert strip.size == (total * cell, cell)
     assert strip.getpixel((5, 5)) == (200, 100, 0, 255)   # first frame = sit_down frame 0
     assert P.build_cat("nope", out, tmp_path / "nope.png") is None
+
+
+def test_build_cat_from_edited_anims_reuses_cells_and_keeps_order(tmp_path: Path, monkeypatch):
+    monkeypatch.setattr(P.C, "CAT_ANIMS_FILE", tmp_path / "none.json")
+    src = _fake_cat_sheet(tmp_path)
+    im = Image.open(src).convert("RGBA")
+    anims = P.cat_default_anims(im)
+    anims["sit_down"] = {"frames": [[2, 1], [0, 1], [2, 1]], "fps": 3, "loop": True}  # reordered, a cell twice
+    assert P.validate_cat_anims(anims, im) is None
+    entry = P.build_cat("ginger_0", tmp_path / "cat", src, anims)
+    assert entry["anims"]["sit_down"] == {"frames": [0, 1, 0], "fps": 3, "loop": True}
+    # bad edits are refused with a reason
+    bad = dict(anims, sit_down={"frames": [[3, 2]], "fps": 6, "loop": False})  # an empty cell
+    assert "빈 칸" in P.validate_cat_anims(bad, im)
+    bad = dict(anims, sit_down={"frames": [[0, 0]], "fps": 6, "loop": False})  # the title row
+    assert "제목" in P.validate_cat_anims(bad, im)
+    bad = dict(anims, sit_down={"frames": [], "fps": 6, "loop": False})
+    assert "하나도" in P.validate_cat_anims(bad, im)
+    bad = {k: v for k, v in anims.items() if k != "run_left"}
+    assert "빠짐" in P.validate_cat_anims(bad, im)
 
 
 def test_loot_icons_from_slice_keys_paths_and_frame_lists(tmp_path: Path, monkeypatch):

@@ -1,0 +1,25 @@
+{
+ "_help": "여관 고양이 애니메이션. 에디터 /cat 에서 고쳐요. frames = 원본 시트(assets/graphic/Map/Cats/<variant>.png, 32px 칸)의 [열, 행] 순서, fps = 초당 프레임, loop = 반복(false면 한 번 재생 후 마지막 프레임 유지). 적용: 에디터 \"고양이만 빌드\" 또는 preprocess.py build",
+ "anims": {
+  "sit_down": {"frames": [[0, 1], [1, 1], [2, 1], [3, 1], [0, 2], [1, 2], [2, 2]], "fps": 6, "loop": false},
+  "sit_right": {"frames": [[0, 13], [1, 13], [2, 13], [3, 13], [0, 14], [1, 14]], "fps": 6, "loop": false},
+  "sit_up": {"frames": [[0, 9], [1, 9], [2, 9], [3, 9], [0, 10], [1, 10], [2, 10]], "fps": 6, "loop": false},
+  "sit_left": {"frames": [[0, 5], [1, 5], [2, 5], [3, 5], [0, 6], [1, 6]], "fps": 6, "loop": false},
+  "look_down": {"frames": [[4, 1], [5, 1], [6, 1], [7, 1], [4, 2]], "fps": 4, "loop": false},
+  "look_right": {"frames": [[4, 13], [5, 13], [6, 13], [7, 13], [4, 14]], "fps": 4, "loop": false},
+  "look_up": {"frames": [[4, 9], [5, 9], [6, 9], [7, 9], [4, 10]], "fps": 4, "loop": false},
+  "look_left": {"frames": [[4, 5], [5, 5], [6, 5], [7, 5], [4, 6]], "fps": 4, "loop": false},
+  "lay_down": {"frames": [[8, 1], [9, 1], [10, 1], [11, 1], [8, 2], [9, 2], [10, 2], [11, 2]], "fps": 6, "loop": false},
+  "lay_right": {"frames": [[8, 13], [9, 13], [10, 13], [11, 13], [8, 14], [9, 14], [10, 14], [11, 14]], "fps": 6, "loop": false},
+  "lay_up": {"frames": [[8, 9], [9, 9], [10, 9], [11, 9], [8, 10], [9, 10], [10, 10], [11, 10]], "fps": 6, "loop": false},
+  "lay_left": {"frames": [[8, 5], [9, 5], [10, 5], [11, 5], [8, 6], [9, 6], [10, 6], [11, 6]], "fps": 6, "loop": false},
+  "walk_down": {"frames": [[12, 1], [13, 1], [14, 1], [15, 1]], "fps": 8, "loop": true},
+  "walk_right": {"frames": [[12, 13], [13, 13], [14, 13], [15, 13]], "fps": 8, "loop": true},
+  "walk_up": {"frames": [[12, 9], [13, 9], [14, 9], [15, 9]], "fps": 8, "loop": true},
+  "walk_left": {"frames": [[12, 5], [13, 5], [14, 5], [15, 5]], "fps": 8, "loop": true},
+  "run_down": {"frames": [[16, 1], [17, 1], [18, 1], [19, 1], [16, 2]], "fps": 10, "loop": true},
+  "run_right": {"frames": [[16, 13], [17, 13], [18, 13], [19, 13], [16, 14]], "fps": 10, "loop": true},
+  "run_up": {"frames": [[16, 9], [17, 9], [18, 9], [19, 9], [16, 10]], "fps": 10, "loop": true},
+  "run_left": {"frames": [[16, 5], [17, 5], [18, 5], [19, 5], [16, 6]], "fps": 10, "loop": true}
+ }
+}

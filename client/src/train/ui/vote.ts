@@ -4,7 +4,7 @@ import { api, msgFor } from "../api";
 import { fmtRemain } from "../report";
 import { tbus, toast } from "../bus";
 import { isHunter, label, me, tstate } from "../state";
-import { $, button, el } from "./dom";
+import { $, button, el, setRich } from "./dom";
 
 export function initVote(): void {
   tbus.on("state:changed", render);
@@ -20,9 +20,9 @@ function render(): void {
   if (!p || !p.view) return;
   const now = Date.now() / 1000;
   const open = p.status === "ROUND_OPEN" && p.vote_after_ts != null && now >= p.vote_after_ts;
-  $("vote-info").textContent = open
+  setRich($("vote-info"), open
     ? `아직 제출하지 않은 승무원을 "대기"로 넘길 수 있어요. 그 사람을 뺀 승무원의 과반(${p.need ?? 1}명)이 찬성하면 통과되고, 전원 제출이 되면 바로 다음 라운드로 넘어가요.`
-    : `라운드가 열리고 ${Math.round(Number(p.config?.vote_skip_after_sec ?? 600) / 60)}분이 지나면 미제출자를 건너뛰는 투표를 열 수 있어요. 관제는 🛠 패널의 vote_skip_after_sec 로 이 시간을 바꿀 수 있어요.`;
+    : `라운드가 열리고 ${Math.round(Number(p.config?.vote_skip_after_sec ?? 600) / 60)}분이 지나면 미제출자를 건너뛰는 투표를 열 수 있어요. 관제는 {gear} 패널의 vote_skip_after_sec 로 이 시간을 바꿀 수 있어요.`);
   for (const h of p.view.hunters) {
     if (h.submitted || h.dazed) continue;
     const voters = p.votes?.[h.name] ?? [];

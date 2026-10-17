@@ -5,7 +5,7 @@ import type { Report } from "../api";
 import { tbus } from "../bus";
 import { reportLines } from "../report";
 import { label, tstate } from "../state";
-import { $, el, show } from "./dom";
+import { $, el, richEl, show } from "./dom";
 
 export function initRoundLog(): void {
   $("btn-log-skip").onclick = () => tbus.emit("playback:skip", {});
@@ -46,8 +46,8 @@ function render(): void {
     const playing = rep.round === tstate.playing?.round;
     const sec = el("div", "log-round" + (playing ? " playing" : ""));
     const lines = reportLines(rep, (uid) => label(uid));
-    sec.appendChild(el("div", "log-head", lines[0] + (playing ? " · 재생 중" : "")));
-    for (const l of lines.slice(1)) sec.appendChild(el("div", "small", l));
+    sec.appendChild(richEl("div", "log-head", lines[0] + (playing ? " · 재생 중" : "")));
+    for (const l of lines.slice(1)) sec.appendChild(richEl("div", "small", l));
     box.appendChild(sec);
   }
 }

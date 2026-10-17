@@ -4,11 +4,11 @@ import { tbus } from "../bus";
 import { isBot, isFugitive, label, tstate } from "../state";
 import { HACK_KO, ORDER_KO } from "../strings";
 import type { BotReason } from "../api";
-import { $, el } from "./dom";
+import { $, el, richEl } from "./dom";
 
 /** "R3 🕶 도주자-AI: 이동 → B2 + hide — 이유" / "R3 🤖 제미나이-1: 수색 — 이유" */
 export function reasonLine(r: BotReason): string {
-  const who = r.uid === "fugitive" ? "🕶 도주자-AI" : `🤖 ${label(r.uid)}`;
+  const who = r.uid === "fugitive" ? "{target} 도주자-AI" : `{chat} ${label(r.uid)}`;
   const order = r.uid === "fugitive"
     ? `${r.target ? `이동 → ${r.target}` : "대기"}${r.order && r.order !== "stay" ? ` + ${HACK_KO[r.order] ?? r.order}${r.hack_target ? ` ${r.hack_target}` : ""}` : ""}`
     : `${ORDER_KO[r.order as keyof typeof ORDER_KO] ?? r.order}${r.target ? ` → ${r.target}` : ""}`;
@@ -28,12 +28,12 @@ function render(): void {
   const orders = isFugitive() ? (p.fugitive?.pinged ? (tstate.pingOrders ?? p.orders ?? {}) : null) : (p.orders ?? {});
   for (const h of p.view.hunters) {
     const o = orders ? orders[h.name] : undefined;
-    let txt = `${h.tag}. ${isBot(h.name) ? "🤖 " : ""}${label(h.name)} — ${h.room}`;
-    if (h.dazed) txt += " · ☕ 행동 불가";
+    let txt = `${h.tag}. ${isBot(h.name) ? "{chat} " : ""}${label(h.name)} — ${h.room}`;
+    if (h.dazed) txt += " · {power} 행동 불가";
     else if (orders === null) txt += h.submitted ? " · 제출함" : " · 미제출";
     else if (o) txt += ` · ${o.type === "move" ? `이동 → ${o.target}` : ORDER_KO[o.type]}`;
     else txt += " · 미제출";
-    const row = el("div", "crew-row", txt);
+    const row = richEl("div", "crew-row", txt);
     if (h.color) row.style.borderLeft = `4px solid ${h.color}`;
     crew.appendChild(row);
   }
@@ -43,6 +43,6 @@ function render(): void {
   const log = p.status === "CAPTURED" ? p.ai_log : isFugitive() ? p.bot_reasons : undefined;
   if (log?.length) {
     crew.appendChild(el("div", "panel-sub", "AI의 판단"));
-    for (const r of [...log].reverse()) crew.appendChild(el("div", "small", reasonLine(r)));
+    for (const r of [...log].reverse()) crew.appendChild(richEl("div", "small", reasonLine(r)));
   }
 }

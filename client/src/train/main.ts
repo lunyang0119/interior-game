@@ -14,7 +14,7 @@ import { TrainScene, type TrainSceneData } from "./scenes/TrainScene";
 import { label, lastPlayed, markPlayed, tstate, type Phase } from "./state";
 import { S } from "./strings";
 import { initAdmin } from "./ui/admin";
-import { $, closePanels, initFolds, show } from "./ui/dom";
+import { $, closePanels, initFolds, setRich, show } from "./ui/dom";
 import { initFugitiveBar } from "./ui/fugitive";
 import { initHud } from "./ui/hud";
 import { initLobby } from "./ui/lobby";
@@ -30,7 +30,7 @@ import { tsocket } from "./ws";
 let toastTimer: number | null = null;
 function toast(text: string, ms = 2600): void {
   const el = $("toast");
-  el.textContent = text;
+  setRich(el, text);
   el.classList.remove("hidden");
   if (toastTimer !== null) clearTimeout(toastTimer);
   toastTimer = window.setTimeout(() => el.classList.add("hidden"), ms);
@@ -378,7 +378,7 @@ function wireSocket(): void {
   tsocket.on("bot_thinking", (m: { id: string; round: number }) => {
     tstate.thinking.add(m.id);
     tbus.emit("state:changed", {});
-    toast(`${m.id === "fugitive" ? "🕶" : "🤖"} ${label(m.id)} — R${m.round} 판단 중…`, 2500);
+    toast(`${m.id === "fugitive" ? "{target}" : "{chat}"} ${label(m.id)} — R${m.round} 판단 중…`, 2500);
   });
   tsocket.on("bot_reason", (m: { reason: BotReason }) => {
     const p = tstate.payload;
