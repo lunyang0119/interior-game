@@ -8,7 +8,8 @@ export const HACK_KO: Record<string, string> = {
 
 export const S = {
   loading: "불러오는 중…",
-  needLogin: "먼저 방 게임에서 닉네임으로 들어와 주세요",
+  needLogin: "닉네임으로 들어와 주세요",
+  loginLost: (id: string) => `${id} 로그인이 풀렸어요 (다른 기기에서 들어왔을 수 있어요). 닉네임을 다시 입력해서 들어와주세요.`,
   previewNeedsAdmin: "미리보기는 관제만 볼 수 있어요. 비밀문구를 입력해 주세요",
   claimed: "이 계정이 관제가 됐어요",
   badSecret: "비밀문구가 틀렸어요",

@@ -30,7 +30,7 @@
 | 파일 | 내용 |
 |---|---|
 | `train/index.html` | 캔버스 + DOM 오버레이(HUD, 제출 패널, 투표, 보고, 로비, 관리자 패널, 토스트) |
-| `src/train/main.ts` | 부팅: `storage.ts` 의 공용 계정/토큰 → `/api/train/state` → `?preview=<map_id>` 면 미리보기 모드 → Phaser.Game + WS |
+| `src/train/main.ts` | 부팅: `storage.ts` 의 공용 계정/토큰(없으면 계정 패널 `ui/account.ts`: 닉네임 로그인·전환·복구 링크, 방 게임과 같은 `/api/register`) → `?preview=<map_id>` 면 미리보기 모드 → Phaser.Game + WS |
 | `src/train/bus.ts` `state.ts` `strings.ts` | 자체 이벤트 버스, 상태, 한국어 문자열(해요체) |
 | `src/train/api.ts` | `call()` 복사(엔드포인트 /api/train/*, 에러 코드 → 한국어) |
 | `src/train/ws.ts` | `GameSocket` 복사 + 엔드포인트 인자(`/ws/train`) |

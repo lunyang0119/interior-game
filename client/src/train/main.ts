@@ -13,6 +13,7 @@ import { TrainBoot } from "./scenes/TrainBoot";
 import { TrainScene, type TrainSceneData } from "./scenes/TrainScene";
 import { isFugitive, isHunter, isOver, label, lastPlayed, markPlayed, tstate, type Phase } from "./state";
 import { ORDER_KO, S } from "./strings";
+import { initAccount, openAccount } from "./ui/account";
 import { initAdmin } from "./ui/admin";
 import { $, closePanels, initFolds, setRich, show } from "./ui/dom";
 import { initFugitiveBar } from "./ui/fugitive";
@@ -379,7 +380,16 @@ type OrderMsg = { type: "move" | "search" | "scan" | "stay"; target: string | nu
 
 function wireSocket(): void {
   tsocket.on("open", () => show("hud-conn", false));
-  tsocket.on("close", (m: { code: number }) => { show("hud-conn", true); if (m.code === 4401) toast(S.needLogin, 6000); });
+  tsocket.on("close", (m: { code: number }) => {
+    if (m.code === 4401) {
+      // the stored token is dead (logged in elsewhere / token rotated): no retry, ask for the nickname again
+      show("hud-conn", false);
+      toast(S.loginLost(state.id ?? ""), 7000);
+      openAccount();
+      return;
+    }
+    show("hud-conn", !!state.token); // a deliberate close (account switch) is not a lost connection
+  });
   tsocket.on("hello", (m: { role: string; state: TrainState }) => { applyState(m.state); maybeReplay(m.state); });
   tsocket.on("state", (m: { state: TrainState }) => { applyState(m.state); maybeReplay(m.state); });
   tsocket.on("round_open", (m: { round: number; deadline_ts: number; vote_after_ts: number | null }) => {
@@ -501,16 +511,41 @@ function wireSocket(): void {
   });
 }
 
-async function boot(): Promise<void> {
-  const acct = storage.activeAccount();
+/** Switch the page to the stored account `id` (null = none): token, HUD chip, socket. Whatever the previous account
+ *  saw of the game is dropped; the server's hello on the new socket rebuilds lobby / round / scene for the new role. */
+async function loadAccount(id: string | null): Promise<void> {
+  const acct = id ? storage.accounts().find((a) => a.id === id) ?? null : null;
+  tsocket.close();
+  state.token = acct?.token ?? null;
+  state.id = acct?.id ?? null;
   $("hud-id-val").textContent = acct?.id ?? "–";
+  if (tstate.payload) applyState({ game_id: null, status: "IDLE", role: "spectator", you: null });
   if (!acct) {
     show("loading", false);
     toast(S.needLogin, 6000);
+    openAccount();
     return;
   }
-  state.token = acct.token;
-  state.id = acct.id;
+  if (previewMode) { location.reload(); return; } // the preview is wired once at boot; start over as the new account
+  tsocket.connect(acct.token);
+}
+
+async function boot(): Promise<void> {
+  // a recovery link ?t=TOKEN (same as the room game): verify → store → strip from the URL
+  const recovered = storage.takeRecoveryToken();
+  if (recovered) {
+    try {
+      const who = await roomApi.meWith(recovered);
+      storage.addAccount({ id: who.id, token: recovered });
+      toast(`${who.id} 계정으로 들어왔어요`);
+    } catch {
+      toast("복구 링크가 유효하지 않아요");
+    }
+  }
+  const acct = storage.activeAccount();
+  $("hud-id-val").textContent = acct?.id ?? "–";
+  state.token = acct?.token ?? null;
+  state.id = acct?.id ?? null;
   try {
     state.catalog = makeCatalog(await roomApi.catalog()); // asset version (cache-busting) + character sheets
     refreshThemeLink();
@@ -523,11 +558,15 @@ async function boot(): Promise<void> {
   const params = new URLSearchParams(location.search);
   const pv = params.get("preview");
   if (pv) {
+    previewMode = true;
+    initAccount({ onSwitch: loadAccount });
+    if (!acct) { await loadAccount(null); return; }
     await preview(pv);
     return;
   }
 
   initFolds();
+  initAccount({ onSwitch: loadAccount });
   initHud();
   initLobby();
   initSubmit();
@@ -543,8 +582,8 @@ async function boot(): Promise<void> {
   const bgmBtn = () => { $("btn-bgm-val").textContent = isMuted() ? "소리 꺼짐" : "소리"; };
   $("btn-bgm").onclick = () => { toggleMute(); bgmBtn(); };
   bgmBtn();
-  // the claim panel is reachable from the account chip for the admin-to-be
-  $("hud-id").onclick = () => { show("panel-claim"); $<HTMLInputElement>("claim-secret").focus(); };
+  // the account chip: log in / switch (the claim panel for the admin-to-be hangs off that panel)
+  $("hud-id").onclick = () => openAccount();
   $("btn-claim").onclick = async () => {
     const secret = $<HTMLInputElement>("claim-secret").value.trim();
     if (!secret) return;
@@ -556,7 +595,7 @@ async function boot(): Promise<void> {
     } catch (e) { toast(msgFor(e)); }
   };
   wireSocket();
-  tsocket.connect(acct.token);
+  await loadAccount(acct?.id ?? null);
 }
 
 void boot();

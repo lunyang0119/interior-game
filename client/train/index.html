@@ -18,7 +18,7 @@
   <!-- top HUD -->
   <div id="hud" class="overlay">
     <a id="btn-home" class="chip" href="/" title="방으로 돌아가기"><i class="ic ic-home"></i><span>홈</span></a>
-    <div id="hud-id" class="chip"><i class="ic ic-gamepad"></i><span id="hud-id-val">…</span></div>
+    <button id="hud-id" class="chip" title="계정 (닉네임으로 들어오기 · 전환)"><i class="ic ic-gamepad"></i><span id="hud-id-val">…</span></button>
     <div id="hud-status" class="chip" title="추적 상태">대기</div>
     <div id="hud-order" class="chip hidden" title="이번 라운드에 제출한 내 행동"><i class="ic ic-play"></i><span id="hud-order-val"></span><button id="btn-order-change" class="small">바꾸기</button></div>
     <span id="hud-game" class="hud-group hidden">
@@ -88,6 +88,21 @@
   <div id="banner" class="hidden"><div id="banner-text"></div></div>
 
   <!-- panels -->
+  <!-- the same accounts as the room game (storage.ts); ui/account.ts -->
+  <div id="panel-account" class="panel hidden">
+    <div class="panel-head"><span><i class="ic ic-gamepad"></i><span>계정</span></span><button class="close" data-close="panel-account" title="닫기"><i class="ic ic-close"></i></button></div>
+    <div id="accounts-list"></div>
+    <div class="row">
+      <input id="register-id" placeholder="닉네임 (시트 이름 일부만 써도 돼요)" autocomplete="off" autocapitalize="off" />
+      <button id="btn-register" class="primary">들어가기</button>
+    </div>
+    <div class="row small">
+      <button id="btn-recovery">복구 링크 복사</button>
+      <button id="btn-account-claim"><i class="ic ic-crown"></i><span>관제 권한</span></button>
+    </div>
+    <div class="small muted" style="margin-top:8px">방 게임과 같은 계정이에요. 여기서 들어오면 방에서도 그 계정으로 들어가요.</div>
+  </div>
+
   <div id="panel-claim" class="panel hidden">
     <div class="panel-head"><span><i class="ic ic-crown"></i><span>관제 권한</span></span><button class="close" data-close="panel-claim" title="닫기"><i class="ic ic-close"></i></button></div>
     <div class="small muted">관제 비밀문구를 입력하면 이 계정이 관제가 돼요.</div>
