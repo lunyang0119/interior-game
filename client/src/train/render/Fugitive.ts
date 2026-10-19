@@ -4,7 +4,7 @@
 
 import Phaser from "phaser";
 import { Avatar } from "../../avatar/Avatar";
-import { ensureAvatarTextures } from "../../avatar/AvatarLoader";
+import { ensureAvatarTextures, registerAnims } from "../../avatar/AvatarLoader";
 import { DEFAULT_LOOK, type AvatarLook, type Chars } from "../../catalog";
 import { CELL } from "../../room/grid";
 import { cellKey, pathToward, type Cell } from "../../room/walk";
@@ -12,6 +12,8 @@ import { nearestFree, type Layout } from "./layout";
 import { walkGrid } from "./Hunters";
 
 const SILHOUETTE: AvatarLook = { ...DEFAULT_LOOK, preset: 0, skin: 0, outfit: 0, hair: 0 };
+/** media/train/fugitive.png (TrainBoot): the fugitive's own 48-frame sheet in the gen/chars layout. */
+export const FUGITIVE_TEX = "train_fugitive";
 const TINT = 0x000000;
 
 export class FugitiveSprite {
@@ -29,6 +31,10 @@ export class FugitiveSprite {
     this.ready = ensureAvatarTextures(scene, SILHOUETTE, chars).then(() => {
       if (!this.scene.sys.isActive() && !this.scene.sys.isVisible()) return;
       this.avatar = new Avatar(scene, chars, SILHOUETTE, 0, 0, "", true);
+      if (scene.textures.exists(FUGITIVE_TEX)) {
+        registerAnims(scene, FUGITIVE_TEX, chars);
+        this.avatar.setSheet(FUGITIVE_TEX);
+      }
       this.avatar.onStep = () => { /* facing follows the movement (see Hunters.ts) */ };
       this.avatar.setVisible(false);
       this.tint();

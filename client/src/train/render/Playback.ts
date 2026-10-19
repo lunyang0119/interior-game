@@ -5,6 +5,7 @@
 import Phaser from "phaser";
 import type { Report } from "../api";
 import { HACK_NOTICE_MS, hackNotice, resultBubble } from "../report";
+import { DEVICE_KO } from "../strings";
 import type { Fx } from "./Fx";
 import type { Hunters } from "./Hunters";
 import type { Layout } from "./layout";
@@ -20,10 +21,33 @@ export interface PlaybackCtx {
   /** this client is the fugitive: also walk the silhouette along fugitive_path */
   fugitiveView: boolean;
   toast: (s: string, ms?: number) => void;
+  /** display name of a hunter id (state.label) */
+  label?: (uid: string) => string;
   /** 건너뛰기 pressed: skip the waits and walks, just land everything where the round ends */
   skipped: () => boolean;
   /** where the fugitive was caught as the server told everyone (ws captured.room / view.capture_room) */
   captureRoom?: () => string | null;
+}
+
+/** the scan/glimpse toast: base time plus extra per additional line */
+const FINDINGS_MS = 9000;
+const FINDINGS_LINE_MS = 3000;
+
+/** One line per scan result and glimpse of the round: who, what signal, where it can be. */
+function findings(rep: Report, ctx: PlaybackCtx): string[] {
+  const name = (uid: string) => ctx.label?.(uid) ?? uid;
+  const roomsOf = (device: string) => [...ctx.layout.rooms.values()].filter((r) => r.device === device).map((r) => r.id).sort();
+  const out: string[] = [];
+  for (const ev of rep.events) {
+    if (ev.type === "scan" && ev.device) {
+      const dev = DEVICE_KO[ev.device] ?? ev.device;
+      const rooms = roomsOf(ev.device);
+      out.push(`{signal} ${name(ev.uid)}의 추적: ${dev} 계열 신호 — ${rooms.length ? `${rooms.join(" · ")} 중 한 곳` : "위치 불명"}`);
+    } else if (ev.type === "scan_noise") out.push(`{signal} ${name(ev.uid)}의 추적: 노이즈 — 판독 실패`);
+    else if (ev.type === "scan_busy") out.push(`{signal} ${name(ev.uid)}의 추적: 채널 혼선 — 이번 라운드는 실패`);
+    else if (ev.type === "glimpse" && ev.room) out.push(`{camera} ${name(ev.uid)}: ${ev.room}에서 침입자를 목격!`);
+  }
+  return out;
 }
 
 /** how long a result bubble stays over a hunter */
@@ -89,6 +113,9 @@ export async function playRound(ctx: PlaybackCtx, rep: Report): Promise<void> {
   // 4. what the tracker shows after the round
   const glimpses = [...new Set(rep.events.filter((e) => e.type === "glimpse").map((e) => e.room!))];
   for (const r of glimpses) if (!ctx.skipped()) await fugitive.glimpse(r);
+  // what the scans and glimpses found, as one toast under the HUD (tap to dismiss; longer with more lines)
+  const found = findings(rep, ctx);
+  if (found.length) ctx.toast(found.join("\n"), FINDINGS_MS + FINDINGS_LINE_MS * (found.length - 1));
   if (!rep.blackout) fx.setMarkers(rep.markers);
   for (const ev of rep.events) if (ev.type === "contact_miss" && ev.room) fx.roomBubble(ev.room, "접촉!");
   if (rep.frozen) ctx.toast("{alert} 침입자 신호가 한 지점에 고정되었다");

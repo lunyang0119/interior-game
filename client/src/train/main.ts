@@ -59,6 +59,8 @@ function toast(text: string, ms = 2600): void {
   if (toastTimer === null) nextToast();
 }
 tbus.on("toast", ({ text, ms }) => toast(text, ms));
+// a tap closes the toast early and shows the next queued one
+$("toast").onclick = () => { if (toastTimer !== null) window.clearTimeout(toastTimer); nextToast(); };
 
 let bannerTimer: number | null = null;
 function banner(text: string, ms = 4000): void {

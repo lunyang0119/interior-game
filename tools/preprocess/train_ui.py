@@ -5,6 +5,7 @@ Reads assets/graphic/GUI/cyberpunk GUI/{status_button,activity_box,alert,icon}.p
   client/public/media/train/activity_box.png    the foldable action bars (9-slice)
   client/public/media/train/alert.png           toasts                   (9-slice)
   client/public/media/train/icons.png           icon sprite (fixed cells)
+  client/public/media/train/fugitive.png        the fugitive's character (config.TRAIN_FUGITIVE_SHEET, gen/chars layout)
   client/src/train/cyber.css                    the train page's frame variables + .ic-<name> classes (tracked)
 
 The frames arrive with transparent margins and are not sliced: each is cropped to its drawing and gets hand-set
@@ -94,7 +95,28 @@ def build() -> None:
     sprite.save(OUT / "icons.png")
     (OUT / "icons.json").write_text(json.dumps(table), encoding="utf-8")
     CSS_OUT.write_text(render_css(sizes, sprite.size, table), encoding="utf-8")
+    build_fugitive()
     print(f"train-ui: {len(SLICES)} frames + {len(table)} icons → {OUT}, {CSS_OUT.relative_to(C.REPO_ROOT)}")
+
+
+def build_fugitive() -> None:
+    """config.TRAIN_FUGITIVE_SHEET (a Character Generator sheet: row 1 idle, row 2 run, 24 frames of 16x32 each)
+    → media/train/fugitive.png in the gen/chars layout (ANIM_STRIPS side by side) so the client animates it like an avatar."""
+    src = C.TRAIN_FUGITIVE_SHEET
+    out = OUT / "fugitive.png"
+    if not src.exists():
+        if out.exists():
+            out.unlink()
+        print(f"train-ui: no fugitive sheet at {src} (layered silhouette will be used)")
+        return
+    im = Image.open(src).convert("RGBA")
+    w = C.FRAME_W * C.FRAMES_PER_DIR * len(C.DIRS)
+    strips = [im.crop((0, C.GEN_ROWS[a] * C.FRAME_H, w, (C.GEN_ROWS[a] + 1) * C.FRAME_H)) for a in C.ANIM_STRIPS]
+    sheet = Image.new("RGBA", (w * len(strips), C.FRAME_H), (0, 0, 0, 0))
+    for i, st in enumerate(strips):
+        sheet.paste(st, (i * w, 0))
+    sheet.save(out, optimize=True)
+    print(f"train-ui: fugitive sheet {src.name} → {out.relative_to(C.REPO_ROOT)} ({sheet.width}x{sheet.height})")
 
 
 def render_css(sizes: dict[str, tuple[int, int]], sprite_size: tuple[int, int], icons: dict[str, list[int]]) -> str:

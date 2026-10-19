@@ -198,6 +198,9 @@ ANIM_STRIPS = ["run", "idle"]  # concatenated in this order → 48 frames total
 GEN_DIR = FULL / "2_Characters" / "Character_Generator"
 CUSTOM_DIR = ASSETS_ROOT / "custom"  # assets/custom/Hairstyles/Hairstyle_30_01.png etc.
 GEN_ROWS = {"idle": 1, "run": 2}
+# The train fugitive's own character: a generator-layout sheet cut by `preprocess.py train-ui` into
+# client/public/media/train/fugitive.png (ANIM_STRIPS concatenated, 768x32). Missing file → the layered silhouette.
+TRAIN_FUGITIVE_SHEET = GEN_DIR / "0_Premade_Characters" / "16x16" / "bonwa1.png"
 
 _STYLE_COLOR = re.compile(r"_(\d+)(?:_[A-Za-z_]+?)?_(\d+)\.png$")  # Outfit_03_02 / Accessory_04_Snapback_02
 _STYLE_ONLY = re.compile(r"_(\d+)\.png$")                          # Body_05 / Eyes_02

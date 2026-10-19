@@ -33,7 +33,8 @@ export function ensureAvatarTextures(scene: Phaser.Scene, look: AvatarLook, char
   });
 }
 
-function registerAnims(scene: Phaser.Scene, tex: string, chars: Chars): void {
+/** Register the idle/run animations of one character sheet (`gen/chars` layout) under `tex`. */
+export function registerAnims(scene: Phaser.Scene, tex: string, chars: Chars): void {
   for (const [name, [start, end]] of Object.entries(chars.anims)) {
     const key = animKey(tex, name);
     if (scene.anims.exists(key)) continue;

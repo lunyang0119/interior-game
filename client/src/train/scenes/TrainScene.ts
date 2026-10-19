@@ -12,7 +12,7 @@ import { Fx } from "../render/Fx";
 import { Hunters } from "../render/Hunters";
 import { buildLayout, roomAt, type Layout } from "../render/layout";
 import { playRound } from "../render/Playback";
-import { isFugitive, isOver, me, tstate } from "../state";
+import { isFugitive, isOver, label, me, tstate } from "../state";
 
 export interface TrainSceneData {
   rooms: MapRoom[];
@@ -198,7 +198,7 @@ export class TrainScene extends Phaser.Scene {
       for (const h of report.playback.hunters) rooms[h.id] = h.from;
       await this.hunters.sync(ids, tstate.payload?.avatars ?? {}, rooms, true);
       await playRound({ scene: this, layout: this.layout, hunters: this.hunters, fugitive: this.fugitive, fx: this.fx,
-        fugitiveView: isFugitive(), toast: (s, ms) => tbus.emit("toast", { text: s, ms: ms ?? 2600 }), skipped: () => tstate.skipping,
+        fugitiveView: isFugitive(), toast: (s, ms) => tbus.emit("toast", { text: s, ms: ms ?? 2600 }), label, skipped: () => tstate.skipping,
         captureRoom: () => tstate.payload?.view?.capture_room ?? null }, report);
     } catch (e) {
       console.error("train: playback failed", e);

@@ -96,3 +96,6 @@ button.armed { outline: 2px solid var(--danger); }
 .fug-desc { text-align: center; margin-top: 4px; }
 .fug-warn { text-align: center; color: #e07070; font-weight: 700; }
 #lobby-summary { background: var(--card); border-radius: 10px; padding: 8px 10px; margin-bottom: 6px; line-height: 1.5; }
+
+/* round findings arrive as one multi-line toast; a tap closes it */
+#toast { white-space: pre-line; cursor: pointer; text-align: left; }

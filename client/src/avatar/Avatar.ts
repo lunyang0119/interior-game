@@ -88,6 +88,18 @@ export class Avatar extends Phaser.GameObjects.Container {
     this.syncLabel();
   }
 
+  /** Draw one ready-made sheet instead of the layered look (the train's fugitive silhouette). The texture must be
+   *  loaded in the `gen/chars` frame layout and its animations registered (AvatarLoader.registerAnims). */
+  setSheet(tex: string, frameH = this.chars.frameH): void {
+    for (const s of this.sprites) s.destroy();
+    this.sprites = [this.scene.add.sprite(0, 0, tex).setOrigin(0.5, 1)];
+    this.add(this.sprites[0]);
+    this.lastFrame = null;
+    this.frameH = frameH;
+    this.playAnim();
+    this.syncLabel();
+  }
+
   get cellX(): number { return this.x / CELL; }
   get cellY(): number { return this.y / CELL; }
   /** The cell the feet are in (y is the bottom edge, so look half a cell up). */
