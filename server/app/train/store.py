@@ -1,4 +1,9 @@
-"""SQLite side of the train game: one JSON snapshot per transition (migration 016) + the admin binding."""
+"""SQLite side of the train game: one JSON snapshot per transition (migration 016) + the admin binding.
+
+`train_games.status` is the manager status: LOBBY | ROUND_OPEN | PAUSED | CAPTURED | ESCAPED | ENDED. Every row that
+is not ENDED is the active game on boot (Manager.start restores it; a CAPTURED/ESCAPED game whose webhook line never
+went out sends it again).
+"""
 
 from __future__ import annotations
 
@@ -9,6 +14,7 @@ from typing import Any
 from ..db import connect, now, transaction
 
 ENDED = "ENDED"
+ESCAPED = "ESCAPED"   # the fugitive outlasted the chase (safety freeze with escape_on_freeze); restored like CAPTURED
 
 
 def save_snapshot(row_id: int | None, status: str, snapshot: dict[str, Any]) -> int:

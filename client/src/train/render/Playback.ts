@@ -22,7 +22,12 @@ export interface PlaybackCtx {
   toast: (s: string, ms?: number) => void;
   /** 건너뛰기 pressed: skip the waits and walks, just land everything where the round ends */
   skipped: () => boolean;
+  /** where the fugitive was caught as the server told everyone (ws captured.room / view.capture_room) */
+  captureRoom?: () => string | null;
 }
+
+/** how long a result bubble stays over a hunter */
+const BUBBLE_MS = 4000;
 
 function wait(scene: Phaser.Scene, ms: number, ctx?: PlaybackCtx): Promise<void> {
   if (ctx?.skipped()) return Promise.resolve();
@@ -58,7 +63,7 @@ export async function playRound(ctx: PlaybackCtx, rep: Report): Promise<void> {
       const door = layout.doorByEdge.get(h.blocked_edge);
       if (door) await hunters.bump(h.id, h.from, door);
       const p = hunters.position(h.id);
-      if (p) fx.bubble(p.x, p.y, "잠겨 있다");
+      if (p) fx.bubble(p.x, p.y, "잠겨 있다", BUBBLE_MS);
       return;
     }
     await hunters.walk(h.id, h.to);
@@ -78,7 +83,7 @@ export async function playRound(ctx: PlaybackCtx, rep: Report): Promise<void> {
   for (const h of pb) {
     const text = resultBubble(h.result, h.action, scanDevice.get(h.id));
     const p = hunters.position(h.id);
-    if (text && p) fx.bubble(p.x, p.y, text, 2200);
+    if (text && p) fx.bubble(p.x, p.y, text, BUBBLE_MS);
   }
 
   // 4. what the tracker shows after the round
@@ -91,7 +96,9 @@ export async function playRound(ctx: PlaybackCtx, rep: Report): Promise<void> {
 
   // 5. capture: the silhouette appears where it was caught, the tint lifts, then everything freezes
   if (rep.captured_by) {
-    const room = rep.hunters[rep.captured_by]?.room;
+    // a door-encounter (swap) capture happens between two rooms: the capturer's room is not where the fugitive
+    // stands, so hunters use the room the server announced
+    const room = ctx.captureRoom?.() ?? rep.hunters[rep.captured_by]?.room;
     const capRoom = ctx.fugitiveView && path?.length ? path[path.length - 1] : room;
     if (capRoom) {
       await fugitive.show(capRoom);

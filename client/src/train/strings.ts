@@ -43,4 +43,19 @@ export const MESSAGES: Record<string, string> = {
   bad_config: "설정 값이 이상해요",
   ai_unavailable: "서버에 Gemini 키가 없어서 AI를 부를 수 없어요",
   fugitive_is_ai: "이 판의 도주자는 AI가 맡고 있어요",
+  grace_active: "유예 중에는 마감을 늘릴 수 없어요",
+  game_running: "추적이 진행 중일 땐 관제를 바꿀 수 없어요",
+  ping_breaks_hack: "핑을 쓰면 확정한 퀵핵의 RAM이 모자라요. 퀵핵을 먼저 바꿔 주세요",
+  hide_no_move: "은신 중엔 이동할 수 없어요",
+  voted_stay: "투표로 대기 처리된 라운드예요",
+};
+
+/** What each quickhack does, for the fugitive's buttons and the help panel (the engine rules under capture_mode=search). */
+export const HACK_DESC: Record<string, string> = {
+  ping: "지금까지 제출된 승무원 명령을 이동 목적지까지 바로 보여줘요. 승무원 보고에는 역탐지 시그니처가 남아요",
+  doorlock: "고른 문 하나를 이번 라운드 동안 잠가요. 승무원도 나도 못 지나가고, 잠긴 문은 정산 때 모두에게 공개돼요",
+  distract: "고른 구역에 가짜 ◎ 표식을 띄워요. 진짜 표식과 같은 구역이면 하나로 합쳐져요",
+  blackout: "이번 라운드 승무원 보고를 잡음으로 덮어요. 표식·신호 강도·추적 결과가 모두 판독 불가가 돼요",
+  hide: "이번 라운드는 이동하지 않고 숨어요. 같은 구역에 온 승무원에게 목격되지 않지만, 수색과 문 조우에는 그대로 잡혀요",
+  overload: "지금 구역에 증기를 채워요. 여기서 라운드를 마친 승무원은 다음 라운드 행동 불가, 여기 수색도 실패해요. 증기는 모두에게 보여요",
 };

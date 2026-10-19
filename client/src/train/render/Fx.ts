@@ -20,6 +20,9 @@ export class Fx {
   private highlight: Phaser.GameObjects.Graphics;
   private dark: Phaser.GameObjects.Rectangle;
   private objects: Phaser.GameObjects.GameObject[] = [];
+  /** endless pulses (markers, steam): the only tweens paused in the idle (battery) mode */
+  private pulses = new Set<Phaser.Tweens.Tween>();
+  private pulsesPaused = false;
 
   /** Gimmick → rooms it is active in, for the compartment templates' conditional effects (CarMap.setCondition):
    *  "steam" (coffeepot overload), "marker" (signal detected), "blackout" (every room while the view flickers). */
@@ -30,6 +33,22 @@ export class Fx {
     this.dark = scene.add.rectangle(0, 0, 10, 10, 0x000000, 0).setOrigin(0).setScrollFactor(0).setDepth(OVERLAY_DEPTH);
     this.resizeDark();
     scene.scale.on(Phaser.Scale.Events.RESIZE, this.resizeDark, this);
+  }
+
+  private pulse(config: Phaser.Types.Tweens.TweenBuilderConfig): void {
+    const tw = this.scene.tweens.add(config);
+    this.pulses.add(tw);
+    tw.once(Phaser.Tweens.Events.TWEEN_STOP, () => this.pulses.delete(tw));
+    if (this.pulsesPaused) tw.pause();
+  }
+
+  /** Idle mode: pause / resume the endless pulses only (one-shot tweens such as bubbles keep running). */
+  setPulsesPaused(on: boolean): void {
+    this.pulsesPaused = on;
+    for (const tw of this.pulses) {
+      if (tw.isDestroyed() || tw.isRemoved() || tw.isPendingRemove()) { this.pulses.delete(tw); continue; }   // killed with its target
+      if (on) tw.pause(); else tw.resume();
+    }
   }
 
   private resizeDark = (): void => {
@@ -68,7 +87,7 @@ export class Fx {
       const c = this.roomCenter(r);
       if (!c) continue;
       const t = this.text(c.x, c.y - CELL, "◎", 20);
-      this.scene.tweens.add({ targets: t, alpha: { from: 1, to: 0.35 }, duration: 700, yoyo: true, repeat: -1 });
+      this.pulse({ targets: t, alpha: { from: 1, to: 0.35 }, duration: 700, yoyo: true, repeat: -1 });
       this.markers.set(r, t);
     }
   }
@@ -93,7 +112,7 @@ export class Fx {
       const b = this.layout.rooms.get(r);
       if (!b) continue;
       const rect = this.scene.add.rectangle(b.x0 * CELL, b.y0 * CELL, b.w * CELL, b.h * CELL, 0xffffff, 0.35).setOrigin(0).setDepth(FX_DEPTH - 1);
-      this.scene.tweens.add({ targets: rect, alpha: { from: 0.25, to: 0.5 }, duration: 900, yoyo: true, repeat: -1 });
+      this.pulse({ targets: rect, alpha: { from: 0.25, to: 0.5 }, duration: 900, yoyo: true, repeat: -1 });
       const c = this.roomCenter(r)!;
       const t = this.icon(c.x, c.y + CELL, "power", 0xffffff);
       this.objects.push(rect);

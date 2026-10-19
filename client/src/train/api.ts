@@ -90,7 +90,7 @@ export interface FugitiveState {
 
 export interface TrainState {
   game_id: number | null;
-  status: "IDLE" | "LOBBY" | "ROUND_OPEN" | "PAUSED" | "CAPTURED" | "ENDED";
+  status: "IDLE" | "LOBBY" | "ROUND_OPEN" | "PAUSED" | "CAPTURED" | "ESCAPED" | "ENDED";
   role: Role;
   hunter_count?: number;
   map_id?: string;
@@ -101,6 +101,7 @@ export interface TrainState {
   vote_after_ts?: number | null;
   votes?: Record<string, string[]>;
   need?: number;
+  vote_need?: Record<string, number>;
   you: { id: string; room: string | null; order: Order | null; dazed: boolean } | null;
   avatars?: Record<string, AvatarLook>;
   round_no?: number;
@@ -129,6 +130,10 @@ export interface TrainState {
   log?: LogEntry[];
   position_history?: string[];
   overrides?: Record<string, unknown>;
+  /** names of the config keys the admin overrode at runtime (everyone sees the names, never the values) */
+  override_keys?: string[];
+  /** hunter count the map and balance were built for */
+  scaled_for?: number;
 }
 
 export interface BotReason {
@@ -166,7 +171,7 @@ export const api = {
   cancelOrder: () => call<{ order: null }>("DELETE", "/api/train/order"),
   fugitiveOrder: (o: Partial<FugitiveOrder>) => call<{ order: FugitiveOrder; resolved: boolean }>("POST", "/api/train/fugitive/order", o),
   cancelFugitiveOrder: () => call<{ order: null }>("DELETE", "/api/train/fugitive/order"),
-  ping: () => call<{ orders: Record<string, Order | null>; ram: number; trace: number }>("POST", "/api/train/fugitive/ping", {}),
+  ping: () => call<{ orders: Record<string, Order | null>; ram: number; trace: number; pinged?: boolean }>("POST", "/api/train/fugitive/ping", {}),
   vote: (target: string) => call<{ votes: string[]; need: number; passed: boolean }>("POST", "/api/train/vote", { target }),
   getConfig: () => call<ConfigResponse>("GET", "/api/train/config"),
   setConfig: (set: Record<string, unknown>, map_id?: string) => call<ConfigResponse>("PUT", "/api/train/config", { set, map_id }),

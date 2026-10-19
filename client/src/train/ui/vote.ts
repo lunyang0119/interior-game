@@ -27,7 +27,7 @@ function render(): void {
     if (h.submitted || h.dazed) continue;
     const voters = p.votes?.[h.name] ?? [];
     const row = el("div", "vote-row");
-    row.appendChild(el("span", "", `${label(h.name)}${tstate.thinking.has(h.name) ? " (판단 중…)" : ""} — ${voters.length}/${p.need ?? 1}표${voters.length ? ` (${voters.map(label).join(", ")})` : ""}`));
+    row.appendChild(el("span", "", `${label(h.name)}${tstate.thinking.has(h.name) ? " (판단 중…)" : ""} — ${voters.length}/${p.vote_need?.[h.name] ?? p.need ?? 1}표${voters.length ? ` (${voters.map(label).join(", ")})` : ""}`));
     if (!open && isHunter() && h.name !== me() && p.status === "ROUND_OPEN" && p.vote_after_ts != null) {
       const b = button(`투표 가능까지 ${fmtRemain(p.vote_after_ts - now).replace(" 남음", "")}`, () => undefined);
       b.disabled = true;

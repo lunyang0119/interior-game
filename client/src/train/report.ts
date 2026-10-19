@@ -1,10 +1,10 @@
 /** Korean text of a round report (the bot's strings.py REPORT_* lines, minus Discord markdown). */
 
-import type { Hack, Report, ReportEvent } from "./api";
-import { DEVICE_KO, HACK_KO } from "./strings";
+import type { Hack, PlaybackHunter, Report, ReportEvent } from "./api";
+import { DEVICE_KO, HACK_KO, ORDER_KO } from "./strings";
 
 export const SIGNAL_KO: Record<string, string> = { strong: "강", medium: "중", weak: "약", none: "없음", noise: "판독 불가" };
-export const CAPTURE_HOW_KO: Record<string, string> = { search: "수색", swap: "문에서 조우", colocate: "같은 구역" };
+export const CAPTURE_HOW_KO: Record<string, string> = { search: "수색", swap: "같은 문 통과", colocate: "같은 구역" };
 /** device signature → the quickhack bound to it (strings.py HACK_DEVICE; the help panel shows the same table) */
 const HACK_OF_DEVICE: Record<string, Hack> = { speaker: "distract", light: "blackout", curtain: "hide", coffeepot: "overload" };
 /** how long the quickhack notice stays on screen while a round plays back */
@@ -36,7 +36,7 @@ export function hackNotice(rep: Report, fugitiveView: boolean): string | null {
   else if (rep.signature) {
     const hk = HACK_OF_DEVICE[rep.signature];
     const dev = DEVICE_KO[rep.signature] ?? rep.signature;
-    if (hk === "distract") parts.push(`{speaker} 교란: ${dev} 장치 비정상 접근 — 감지된 신호 중 하나는 가짜예요`);
+    if (hk === "distract") parts.push(`{speaker} 교란: ${dev} 장치 비정상 접근 · 가짜 표식이 섞여 있어요 (진짜와 겹치면 하나로 보여요)`);
     else if (hk === "hide") parts.push(`{target} 은신: ${dev} 장치 비정상 접근 — 침입자가 몸을 숨겼어요`);
     else if (!(hk === "blackout" && rep.blackout) && !(hk === "overload" && rep.steam.length)) parts.push(`{alert} ${dev} 계열 장치에서 비정상 접근 감지`);
   }
@@ -50,7 +50,7 @@ export function eventLine(ev: ReportEvent, name: (uid: string) => string): strin
     case "dazed": return `{power} ${n}: 커피포트가 과부하로 터졌다. 증기에 휩싸여 다음 라운드 행동 불가`;
     case "search_steam": return `{power} ${n}: 증기 때문에 ${ev.room} 수색 실패`;
     case "search_empty": return `{search} ${n}: ${ev.room} 수색 — 이상 없음`;
-    case "scan": return `{signal} ${n}: 침입자 신호가 ${DEVICE_KO[ev.device ?? ""] ?? ev.device} 계열 장치 근처에서 잡힌다`;
+    case "scan": return `{signal} ${n}: 추적 결과 · 침입자가 지금 있는 구역의 장치는 ${DEVICE_KO[ev.device ?? ""] ?? ev.device} 계열`;
     case "scan_noise": return `{signal} ${n}: 노이즈 — 판독 실패`;
     case "scan_busy": return `{signal} ${n}: 채널 혼선 — 이번 라운드 추적 채널이 이미 사용 중`;
     case "contact_miss": return `{alert} ${n}: ${ev.room} 에서 접촉! 그러나 신호가 손끝을 스쳐 빠져나갔다`;
@@ -59,24 +59,65 @@ export function eventLine(ev: ReportEvent, name: (uid: string) => string): strin
   }
 }
 
-/** Short bubble over a hunter after the walk (playback). */
-export function resultBubble(result: string | null, action: string, device?: string): string | null {
+/** Short bubble over a hunter after the walk (playback). Plain text: Phaser draws it, `{icon}` tokens would show raw. */
+export function resultBubble(result: string | null, _action: string, device?: string): string | null {
   switch (result) {
     case "captured": return "체포!";
-    case "search_empty": return "{search} 이상 없음";
-    case "search_steam": return "{power} 수색 실패";
-    case "dazed": return "{power} 증기…";
-    case "scan_ok": return `{signal} ${DEVICE_KO[device ?? ""] ?? "?"}`;
-    case "scan_noise": return "{signal} 노이즈";
-    case "scan_busy": return "{signal} 혼선";
-    default: return action === "stay" ? null : null;
+    case "search_empty": return "이상 없음";
+    case "search_steam": return "수색 실패";
+    case "dazed": return "증기…";
+    case "scan_ok": return `추적: ${DEVICE_KO[device ?? ""] ?? "?"}`;
+    case "scan_noise": return "노이즈";
+    case "scan_busy": return "혼선";
+    default: return null;
   }
+}
+
+/** "이동 → B2" / "수색 (A1)" / "추적" / "대기": what a crew member did this round (round card, crew list). */
+export function actionText(h: PlaybackHunter): string {
+  if (h.action === "move") return `이동 → ${h.to}`;
+  if (h.action === "search") return `수색 (${h.from})`;
+  return ORDER_KO[h.action] ?? h.action;
+}
+
+/** What came of it, in words (DOM text, may carry `{icon}` tokens). */
+export function resultText(h: PlaybackHunter, rep: Report): string {
+  const glimpse = rep.events.find((e) => e.type === "glimpse" && e.uid === h.id);
+  const extra = glimpse ? ` · {camera} ${glimpse.room}에서 침입자 목격` : "";
+  if (h.result === "captured") return "{trophy} 체포!";
+  if (h.blocked_edge) return `{close} 문이 잠겨 있었어요 (${h.blocked_edge})${extra}`;
+  switch (h.result) {
+    case "search_empty": return `{search} 이상 없음${extra}`;
+    case "search_steam": return `{power} 증기로 수색 실패${extra}`;
+    case "dazed": return `{power} 증기에 휩싸임 (다음 라운드 행동 불가)${extra}`;
+    case "scan_ok": {
+      const dev = rep.events.find((e) => e.type === "scan" && e.uid === h.id)?.device;
+      return `{signal} 추적: ${DEVICE_KO[dev ?? ""] ?? dev ?? "?"}${extra}`;
+    }
+    case "scan_noise": return `{signal} 노이즈${extra}`;
+    case "scan_busy": return `{signal} 혼선 (추적 채널이 이미 다 쓰임)${extra}`;
+  }
+  if (glimpse) return extra.slice(3);
+  return h.action === "move" ? "도착" : "–";
+}
+
+/** The round's public headline: trace, signal, markers, locked doors, steam. */
+export function headline(rep: Report): string[] {
+  const out = [`{target} 추적률 ${rep.trace}%`];
+  if (rep.blackout) out.push("▒ 판독 불가 (광학 재부팅)");
+  else {
+    out.push(`{signal} 신호 강도 ${SIGNAL_KO[rep.signal] ?? rep.signal}`);
+    out.push(rep.markers.length ? `◎ 표식 ${rep.markers.join(", ")}` : "◎ 표식 없음");
+  }
+  if (rep.locks.length) out.push(`{close} 잠긴 문 ${rep.locks.join(", ")}`);
+  if (rep.steam.length) out.push(`{power} 증기 ${rep.steam.join(", ")}`);
+  return out;
 }
 
 export function reportLines(rep: Report, name: (uid: string) => string): string[] {
   const out: string[] = [];
   out.push(`{signal} 라운드 ${rep.round} 판독 결과`);
-  if (rep.timed_out) out.push("⏱ 제출 시간 종료 — 미제출자는 대기 처리");
+  if (rep.timed_out) out.push("{clock} 제출 시간 종료 · 미제출자는 대기 처리");
   if (rep.blackout) out.push("▒▒▒ 신호 소실 — 이번 라운드 판독 불가 ▒▒▒");
   out.push(`추적률 ${rep.bar} ${rep.trace}%`);
   out.push(rep.distance !== null && rep.distance !== undefined

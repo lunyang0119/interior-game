@@ -12,6 +12,7 @@ import copy
 from dataclasses import asdict
 from typing import TYPE_CHECKING, Any
 
+from . import bot_player as B
 from . import engine as E
 from . import settings
 
@@ -20,6 +21,14 @@ if TYPE_CHECKING:
 
 FUGITIVE, HUNTER, SPECTATOR = "fugitive", "hunter", "spectator"
 REPLAY_ROUNDS = 8   # how many recent public reports every payload carries (`reports`)
+FINISHED = ("CAPTURED", "ESCAPED")   # the chase is over (caught / the fugitive got away at the freeze)
+
+
+def label_of(pid: str) -> str:
+    """Display name of a hunter id: engine names stay uids; AI hunters ("bot:N") read as "제미나이-N"."""
+    if B.is_bot(pid):
+        return f"제미나이-{pid[len(B.BOT_PREFIX):]}"
+    return pid
 
 
 def order_dict(o: E.HunterOrder | None) -> dict[str, Any] | None:
@@ -53,7 +62,9 @@ def _base(game: "TrainGame", role: str, pid: str | None) -> dict[str, Any]:
         "role": role,
         "hunter_count": p.hunter_count,
         "fugitive_ai": p.fugitive_ai,
-        "map_id": p.map_id,
+        "map_id": game.current_map_id(),
+        "scaled_for": game.scale_n(),          # the hunter count the balance/map is scaled for (boarding count)
+        "override_keys": sorted(p.overrides),  # which tunables the admin overrode (names only, never values)
         "lobby": list(p.lobby),
         "deadline_ts": p.deadline_ts,
         "grace_until": p.grace_until,
@@ -61,11 +72,14 @@ def _base(game: "TrainGame", role: str, pid: str | None) -> dict[str, Any]:
         "vote_after_ts": game.vote_after_ts(),
         "votes": {k: list(v) for k, v in p.votes.items()},
         "need": game.votes_needed(),
+        "vote_need": game.vote_needs(),
         # always identifies the caller; room/order only once they are a hunter in a running game
         "you": {"id": pid, "room": None, "order": None, "dazed": False} if pid is not None else None,
         "avatars": {pid: look for pid, look in game.avatars.items() if pid in p.lobby or (st_h := game.engine) and pid in st_h.hunters},
     }
     st = game.engine
+    ids = list(st.hunters) if st is not None else list(p.lobby)
+    out["labels"] = {uid: label_of(uid) for uid in ids}
     if st is None:
         out["round_no"] = 0
         out["view"] = None
@@ -87,7 +101,7 @@ def _base(game: "TrainGame", role: str, pid: str | None) -> dict[str, Any]:
         h = st.hunters[pid]
         out["you"] = {"id": pid, "room": h.room, "order": order_dict(h.order), "dazed": h.dazed_until >= st.round_no}
     # the fugitive's route is public only once the chase is over AND the admin switched the reveal on
-    if game.status == "CAPTURED" and p.reveal_path:
+    if game.status in FINISHED and p.reveal_path:
         out["route"] = [{"round": e["round"], "path": list(e.get("fugitive_path") or [])} for e in st.log]
     return out
 

@@ -2,8 +2,18 @@
 
   C→S {"type":"auth","token"}     first message, within 5s (4401 otherwise)
   S→C {"type":"hello","role","state"}
-  S→C {"type":"state","state"}    the whole role payload again (lobby/config changes, cancelled orders …)
-  S→C round_open | submitted | hunter_order | deadline | vote | round_resolved | captured | started | paused | resumed | ended
+  S→C {"type":"state","state"}    the whole role payload again (lobby/config changes, after a ping to the fugitive …)
+  S→C started {line} | round_open {round, deadline_ts, vote_after_ts} | paused | resumed | ended
+  S→C submitted {id, submitted, round, order?}   order is omitted for the fugitive; after their ping the fugitive
+                                                gets hunter_order {id, submitted, round, order} instead
+  S→C fugitive_submitted {submitted, round}     to everyone: whether the fugitive is in, never what
+  S→C deadline {deadline_ts, reason: grace | grace_cancel | extend, grace_until?, paused_remaining?}
+  S→C vote {target, voters, need, passed, void?}
+  S→C bot_thinking {id, round}                  to everyone: an AI hunter ("bot:N") or the AI fugitive ("fugitive") is deciding
+  S→C bot_reason {reason}                       fugitive only: the AI's decision + reason
+  S→C round_resolved {report, state, log_entry?}   log_entry (and the report's fugitive_path) fugitive only
+  S→C captured {by, how, room, line}            the chase ended: status CAPTURED
+  S→C escaped {round, line}                     the chase ended at the safety freeze: status ESCAPED (the fugitive won)
   C→S {"type":"ping"} → S→C {"type":"pong"}
 Nothing else is accepted from the client: positions change only through round resolution.
 """

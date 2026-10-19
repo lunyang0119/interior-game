@@ -30,7 +30,14 @@ export const tstate = {
   thinking: new Set<string>(),
   /** a result arrived while the tab was hidden / not yet played (tab-title badge) */
   unseenResult: false,
+  /** ws `escaped`: the fugitive got away in this round (banner after that round's playback) */
+  escape: null as { round: number; line: string } | null,
 };
+
+/** The chase is over (caught or escaped): lobby / new-game buttons, AI log, route reveal, no order bar. */
+export function isOver(status: string | undefined): boolean {
+  return status === "CAPTURED" || status === "ESCAPED";
+}
 
 export function me(): string | null {
   return tstate.payload?.you?.id ?? state.id ?? null;

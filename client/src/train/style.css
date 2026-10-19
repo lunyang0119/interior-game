@@ -74,3 +74,25 @@ button.armed { outline: 2px solid var(--danger); }
 .bar.folded .bar-status { display: none !important; }
 .bar.folded .bar-head { justify-content: flex-end; }
 .bar.folded { padding-top: 2px; padding-bottom: 2px; }
+
+/* round result card over the map (ui/roundcard.ts): tap to dismiss */
+#roundcard { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 35; width: min(460px, calc(100vw - 32px));
+  max-height: 60vh; overflow-y: auto; background: var(--panel); border: 1px solid var(--primary); border-radius: 12px; padding: 10px 12px;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.6); cursor: pointer; font-size: var(--fs-small); line-height: 1.4; }
+.rc-head { font-weight: 700; color: var(--primary); font-size: 14px; margin-bottom: 4px; display: flex; align-items: center; gap: 4px; }
+.rc-headline { display: flex; flex-wrap: wrap; gap: 2px 12px; margin-bottom: 6px; }
+.rc-note { margin-bottom: 4px; }
+.rc-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.5fr); gap: 6px; align-items: center;
+  padding: 6px 8px; background: var(--card); border-radius: 8px; margin-bottom: 4px; }
+.rc-row.me { outline: 1px solid var(--primary); }
+.rc-name { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rc-foot { text-align: center; color: var(--muted); font-size: 11px; margin-top: 4px; }
+@media (max-width: 480px) {
+  .rc-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); }
+  .rc-res { grid-column: 1 / -1; }
+}
+
+.crew-row.stacked { flex-direction: column; align-items: stretch; gap: 2px; }
+.fug-desc { text-align: center; margin-top: 4px; }
+.fug-warn { text-align: center; color: #e07070; font-weight: 700; }
+#lobby-summary { background: var(--card); border-radius: 10px; padding: 8px 10px; margin-bottom: 6px; line-height: 1.5; }

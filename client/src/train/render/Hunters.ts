@@ -36,6 +36,9 @@ export class Hunters {
 
   /** Create/destroy avatars to match `ids` (in tag order) and stand them in `rooms` (unless `keepPositions`). */
   async sync(ids: string[], looks: Record<string, AvatarLook>, rooms: Record<string, string>, keepPositions = false): Promise<void> {
+    // one slot order whoever calls (playback: the shuffled report order; sync: the HUD order), or avatars would
+    // jump to another cell of their room at every playback start / end
+    ids = [...ids].sort();
     this.order = ids;
     for (const id of [...this.avatars.keys()]) if (!ids.includes(id)) { this.avatars.get(id)!.destroy(); this.avatars.delete(id); }
     for (const id of ids) {

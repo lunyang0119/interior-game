@@ -12,7 +12,7 @@ import { Fx } from "../render/Fx";
 import { Hunters } from "../render/Hunters";
 import { buildLayout, roomAt, type Layout } from "../render/layout";
 import { playRound } from "../render/Playback";
-import { isFugitive, me, tstate } from "../state";
+import { isFugitive, isOver, me, tstate } from "../state";
 
 export interface TrainSceneData {
   rooms: MapRoom[];
@@ -96,7 +96,8 @@ export class TrainScene extends Phaser.Scene {
       this.offs.push(tbus.on("playback:abort", () => { this.busy = false; void this.sync(); }));
       this.offs.push(tbus.on("camera:home", () => this.home()));
       this.offs.push(tbus.on("pick:changed", () => this.showPicks()));
-      this.offs.push(tbus.on("throttle", ({ on }) => { if (on) this.tweens.pauseAll(); else this.tweens.resumeAll(); }));
+      // idle (battery) mode pauses only the endless pulses: result bubbles must still fade out on time
+      this.offs.push(tbus.on("throttle", ({ on }) => this.fx?.setPulsesPaused(on)));
       void this.sync().then(() => this.home());
     }
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
@@ -146,8 +147,8 @@ export class TrainScene extends Phaser.Scene {
     this.fx.setMarkers(view.markers);
     this.fx.setLocks(view.locks);
     this.fx.setSteam(view.steam);
-    // post-game route reveal (server sends `route` only while CAPTURED and the admin switched it on)
-    const route = p.status === "CAPTURED" && p.route ? p.route : [];
+    // post-game route reveal (server sends `route` only once the chase is over and the admin switched it on)
+    const route = isOver(p.status) && p.route ? p.route : [];
     const stops: { round: number; room: string }[] = [];
     for (const r of route) for (const room of r.path) if (!stops.length || stops[stops.length - 1].room !== room) stops.push({ round: r.round, room });
     this.fx.drawRoute(stops, stops.length ? view.capture_room : null);
@@ -171,7 +172,7 @@ export class TrainScene extends Phaser.Scene {
     if (p.status !== "ROUND_OPEN") { this.fx.highlightRooms([]); return; }
     if (isFugitive() && p.fugitive) {
       const sel = tstate.fpick;
-      const rooms = sel.hack === "distract" ? [...this.layout.rooms.keys()] : (p.reachable ?? []);
+      const rooms = sel.hack === "distract" ? [...this.layout.rooms.keys()] : sel.hack === "hide" ? [] : (p.reachable ?? []);
       const selected = sel.hack === "distract" ? sel.target : sel.move;
       const doors = sel.hack === "doorlock" ? (p.lockable_edges ?? []).map((e) => this.doorPoint(e)).filter((x): x is { x: number; y: number } => !!x) : [];
       this.fx.highlightRooms(rooms, sel.hack === "distract" ? 0xc792ea : 0x4f8cff, doors, selected);
@@ -197,7 +198,8 @@ export class TrainScene extends Phaser.Scene {
       for (const h of report.playback.hunters) rooms[h.id] = h.from;
       await this.hunters.sync(ids, tstate.payload?.avatars ?? {}, rooms, true);
       await playRound({ scene: this, layout: this.layout, hunters: this.hunters, fugitive: this.fugitive, fx: this.fx,
-        fugitiveView: isFugitive(), toast: (s, ms) => tbus.emit("toast", { text: s, ms: ms ?? 2600 }), skipped: () => tstate.skipping }, report);
+        fugitiveView: isFugitive(), toast: (s, ms) => tbus.emit("toast", { text: s, ms: ms ?? 2600 }), skipped: () => tstate.skipping,
+        captureRoom: () => tstate.payload?.view?.capture_room ?? null }, report);
     } catch (e) {
       console.error("train: playback failed", e);
     } finally {

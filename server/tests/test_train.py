@@ -45,7 +45,8 @@ def ws_auth(client, token, path="/ws/train"):
         yield ws
 
 
-def recv(ws, kind, skip=("state", "submitted", "vote", "deadline", "round_open", "hunter_order", "fugitive_submitted")):
+def recv(ws, kind, skip=("state", "submitted", "vote", "deadline", "round_open", "hunter_order", "fugitive_submitted",
+                          "bot_thinking")):
     kinds = (kind,) if isinstance(kind, str) else kind
     while True:
         m = ws.receive_json()
@@ -293,7 +294,7 @@ def test_restore_resolves_expired_round_on_boot(env):
     from app.main import create_app
 
     with TestClient(create_app()) as c:
-        tok = setup(c, overrides={"round_timer_sec": 50})
+        tok = setup(c, overrides={"round_timer_sec": 60})
         rid = mgr(c).game.row_id
     # the server went down and the deadline passed meanwhile
     conn = sqlite3.connect(env["data"].parent / "test.db")
@@ -415,11 +416,15 @@ def test_vote_rules_two_hunters(client):
     assert client.post("/api/train/vote", json={"target": "h1"}, headers=auth(tok["h1"])).json()["error"] == "vote_bad_target"
     assert client.post("/api/train/vote", json={"target": "adm"}, headers=auth(tok["h1"])).json()["error"] == "vote_bad_target"
     assert client.post("/api/train/vote", json={"target": "h2"}, headers=auth(tok["adm"])).json()["error"] == "not_hunter"
-    # 2 hunters → 1 vote passes, the target is submitted as "stay" and (fugitive frozen? no) grace starts
+    # 2 hunters → 1 vote passes and the target is submitted as "stay" (the voter h1 has not submitted: no grace yet)
     r = client.post("/api/train/vote", json={"target": "h2"}, headers=auth(tok["h1"]))
     assert r.json() == {"votes": ["h1"], "need": 1, "passed": True}
-    assert g.engine.hunters["h2"].order.type == "stay"
+    assert g.engine.hunters["h2"].order.type == "stay" and g.policy.grace_until is None
     assert client.post("/api/train/vote", json={"target": "h2"}, headers=auth(tok["h1"])).json()["error"] == "vote_bad_target"
+    # the voted hunter cannot take the stay back or overwrite it this round (F40)
+    assert client.delete("/api/train/order", headers=auth(tok["h2"])).json()["error"] == "voted_stay"
+    assert client.post("/api/train/order", json={"type": "search"}, headers=auth(tok["h2"])).json()["error"] == "voted_stay"
+    assert g.engine.hunters["h2"].order.type == "stay"
 
 
 def test_vote_majority_void_and_reset(client, stack):
@@ -681,3 +686,370 @@ def test_engine_files_copied_unchanged():
         assert copied[0].startswith(b"# Copied unchanged") and b"2182a11" in copied[0]
         assert hashlib.sha256(copied[1]).hexdigest() == hashlib.sha256(src).hexdigest(), name
     assert (dst / "scaling_web.json").read_bytes() == (ref / "scaling_web.json").read_bytes()
+
+
+# ---------------------------------------------------------------------------
+# review 2026-10-18 fixes (train_review_261018.md)
+# ---------------------------------------------------------------------------
+def put_fugitive(g, room):
+    """Test-only state poke: move the fugitive (and the start of its history) to `room`."""
+    g.engine.fugitive.room = room
+    g.engine.position_history[-1] = room
+
+
+def test_cancel_order_during_grace_drops_grace(client, stack):
+    """F03: a hunter taking their order back ends the fugitive's grace; the round deadline rules again."""
+    tok = setup(client, overrides={"fugitive_grace_sec": 100, "round_timer_sec": 1000})
+    m = mgr(client)
+    g = m.game
+    h1 = stack.enter_context(ws_auth(client, tok["h1"]))
+    recv(h1, "hello")
+    for h in ("h1", "h2"):
+        client.post("/api/train/order", json={"type": "stay"}, headers=auth(tok[h]))
+    grace = g.policy.grace_until
+    assert grace is not None and g.effective_deadline() == grace
+    assert recv(h1, "deadline", skip=("submitted",))["reason"] == "grace"
+    r = client.delete("/api/train/order", headers=auth(tok["h2"]))
+    assert r.status_code == 200 and r.json() == {"order": None}
+    assert g.policy.grace_until is None and g.effective_deadline() == g.policy.deadline_ts
+    d = recv(h1, "deadline", skip=("submitted",))
+    assert d["reason"] == "grace_cancel" and d["deadline_ts"] == g.policy.deadline_ts
+    m.now = lambda: grace + 1
+    assert client.portal.call(m.check_deadline) is False and g.engine.round_no == 1   # no timed-out resolve at the old grace
+    # the fugitive cancelling their own order is allowed and keeps the round open
+    client.post("/api/train/fugitive/order", json={}, headers=auth(tok["adm"]))
+    assert client.delete("/api/train/fugitive/order", headers=auth(tok["adm"])).json() == {"order": None}
+
+
+def test_extend_during_grace_moves_grace(client):
+    """F08: +time while the fugitive's grace runs moves the effective deadline too."""
+    tok = setup(client, overrides={"fugitive_grace_sec": 100, "round_timer_sec": 1000})
+    g = mgr(client).game
+    for h in ("h1", "h2"):
+        client.post("/api/train/order", json={"type": "stay"}, headers=auth(tok[h]))
+    grace, deadline = g.policy.grace_until, g.policy.deadline_ts
+    r = client.post("/api/train/extend", json={"sec": 600}, headers=auth(tok["adm"]))
+    assert r.json()["grace_until"] == grace + 600 and r.json()["deadline_ts"] == deadline + 600
+    assert g.effective_deadline() == grace + 600
+
+
+def test_claim_refused_while_a_chase_runs(client):
+    """F11: /claim during a running game would leave the claimer as hunter AND fugitive."""
+    tok = setup(client)
+    r = client.post("/api/train/claim", json={"secret": SECRET}, headers=auth(tok["h1"]))
+    assert r.status_code == 400 and r.json()["error"] == "game_running"
+    assert mgr(client).admin_id == "adm"
+    client.post("/api/train/pause", headers=auth(tok["adm"]))
+    assert client.post("/api/train/claim", json={"secret": SECRET}, headers=auth(tok["h1"])).json()["error"] == "game_running"
+    client.post("/api/train/game/end", headers=auth(tok["adm"]))
+    assert client.post("/api/train/claim", json={"secret": SECRET}, headers=auth(tok["h1"])).status_code == 200
+
+
+@pytest.mark.parametrize("key,value", [
+    ("signal_bands", "1;3"), ("signal_bands", "3,1"), ("signal_bands", "2"), ("round_timer_sec", 0),
+    ("round_timer_sec", 59), ("fugitive_grace_sec", -1), ("vote_skip_after_sec", -5), ("trace_passive", -50),
+    ("scan_trace", -1), ("hide_trace", -10), ("doorlock_cost", -1), ("ram_max", 0), ("max_rounds", 0),
+    ("overheat_rounds", -1), ("fugitive_start", "Z9"), ("hunter_spawn_rooms", "A1,Z9"), ("escape_on_freeze", "maybe"),
+])
+def test_bad_config_values_rejected(client, key, value):
+    """F19/F20: nothing the engine or the timer cannot run with gets into a running game (or a lobby)."""
+    tok = setup(client)
+    g = mgr(client).game
+    before = dict(g.engine.config)
+    r = client.put("/api/train/config", json={"set": {key: value}}, headers=auth(tok["adm"]))
+    assert r.status_code == 400 and r.json()["error"] == "bad_config", r.text
+    assert g.engine.config == before and g.policy.overrides == {}
+    client.post("/api/train/game/end", headers=auth(tok["adm"]))
+    r = client.post("/api/train/game", json={"hunter_count": 2, "overrides": {key: value}}, headers=auth(tok["adm"]))
+    assert r.status_code == 400 and r.json()["error"] == "bad_config"
+
+
+def test_good_config_values_and_placement_keys_accepted(client):
+    tok = setup(client)
+    r = client.put("/api/train/config", json={"set": {"signal_bands": "1,2", "round_timer_sec": 60, "fugitive_start": "B2",
+                                                      "hunter_spawn_rooms": "A1,C3", "escape_on_freeze": "off"}},
+                   headers=auth(tok["adm"]))
+    assert r.status_code == 200, r.text
+    assert r.json()["config"]["escape_on_freeze"] is False and r.json()["defaults"]["escape_on_freeze"] is True
+
+
+def test_ping_response_state_push_and_hack_guards(client, stack):
+    """F28 ping refreshes the fugitive; F24 a ping that would starve a confirmed hack is refused; F23 hide + move is
+    refused; F21 the order response carries the order."""
+    tok = setup(client)
+    g = mgr(client).game
+    put_fugitive(g, "A3")   # light → blackout
+    adm = stack.enter_context(ws_auth(client, tok["adm"]))
+    recv(adm, "hello")
+    r = client.post("/api/train/fugitive/order", json={"move": "A2", "hack": "hide"}, headers=auth(tok["adm"]))
+    assert r.status_code == 400 and r.json()["error"] == "hide_no_move"
+    r = client.post("/api/train/fugitive/order", json={"move": "A2", "hack": "blackout"}, headers=auth(tok["adm"]))
+    assert r.status_code == 200 and r.json()["order"] == {"move": "A2", "hack": "blackout", "target": None}
+    g.engine.fugitive.ram = int(g.engine.config["blackout_cost"])   # exactly enough for the hack, not for a ping too
+    r = client.post("/api/train/fugitive/ping", headers=auth(tok["adm"]))
+    assert r.status_code == 400 and r.json()["error"] == "ping_breaks_hack"
+    assert g.engine.fugitive.ping_round != g.engine.round_no
+    g.engine.fugitive.ram = int(g.engine.config["blackout_cost"]) + int(g.engine.config["ping_cost"])
+    trace0 = g.engine.fugitive.trace
+    r = client.post("/api/train/fugitive/ping", headers=auth(tok["adm"]))
+    assert r.status_code == 200, r.text
+    body = r.json()
+    assert body["pinged"] is True and body["ram"] == int(g.engine.config["blackout_cost"])
+    assert body["trace"] == trace0 + int(g.engine.config["ping_trace"]) and set(body["orders"]) == {"h1", "h2"}
+    st = recv(adm, "state", skip=("fugitive_submitted",))["state"]
+    assert st["fugitive"]["pinged"] is True and st["fugitive"]["ram"] == body["ram"] and st["fugitive"]["trace"] == body["trace"]
+
+
+def test_votes_need_counts_only_humans_awake(client):
+    """F22: AI hunters never vote and dazed hunters are not counted; the need never drops below 1."""
+    from app.train import engine as E
+    tok = setup(client, hunters=("h1", "h2", "h3", "h4"))
+    g = mgr(client).game
+    assert g.votes_needed("h4") == 2 and g.votes_needed() == 2
+    g.engine.hunters["h3"].dazed_until = g.engine.round_no
+    assert g.votes_needed("h4") == 2      # h1, h2 → 2//2+1
+    g.engine.hunters["h2"].dazed_until = g.engine.round_no
+    assert g.votes_needed("h4") == 1
+    # two humans + two bots: one awake human against the other is enough
+    for uid in ("bot:1", "bot:2"):
+        g.engine.hunters[uid] = E.Hunter(user_id=uid, name=uid, room="A1")
+    del g.engine.hunters["h3"], g.engine.hunters["h4"]
+    g.engine.hunters["h2"].dazed_until = -1
+    assert g.votes_needed("h2") == 1 and g.votes_needed("bot:1") == 2
+    s = state(client, tok["h1"])
+    assert s["vote_need"] == {"h1": 1, "h2": 1, "bot:1": 2, "bot:2": 2}
+    assert s["labels"]["bot:1"] == "제미나이-1" and s["labels"]["h1"] == "h1"
+
+
+def test_escape_on_freeze_ends_the_chase(client, stack):
+    """F05: the safety freeze without a capture is the fugitive's win (status ESCAPED)."""
+    tok = setup(client, overrides={"overheat_rounds": 0})
+    m = mgr(client)
+    lines = []
+
+    async def fake_hook(line):
+        lines.append(line)
+
+    m.webhook = fake_hook
+    g = m.game
+    g.engine.fugitive.trace = 100   # traced this round; overheat 0 → frozen at once
+    g.engine.bot_reasons.append({"round": 1, "uid": "fugitive", "name": "x", "order": "stay", "target": None,
+                                 "reason": "Gemini 호출 실패로 대기: Traceback secret", "accepted": True, "note": "",
+                                 "error": "api_error"})
+    h2 = stack.enter_context(ws_auth(client, tok["h2"]))
+    recv(h2, "hello")
+    for h in ("h1", "h2"):
+        client.post("/api/train/order", json={"type": "stay"}, headers=auth(tok[h]))
+    client.post("/api/train/fugitive/order", json={}, headers=auth(tok["adm"]))
+    rr = recv(h2, "round_resolved")
+    assert rr["report"]["frozen"] is True and rr["report"]["captured_by"] is None and rr["state"]["status"] == "ESCAPED"
+    assert_hunter_safe(rr)
+    esc = recv(h2, "escaped")
+    assert esc["round"] == 1 and "빠져나갔어요" in esc["line"]
+    wait_for(lambda: lines == [esc["line"]])
+    wait_for(lambda: g.policy.webhook_sent is True)
+    assert g.status == "ESCAPED" and m._timer is None and g.policy.grace_until is None
+    s = state(client, tok["h1"])
+    assert s["status"] == "ESCAPED" and s["view"]["capture_room"] is None and "ai_log" not in s
+    assert_hunter_safe(s)
+    assert client.post("/api/train/order", json={"type": "stay"}, headers=auth(tok["h1"])).status_code == 409
+    assert client.put("/api/train/config", json={"set": {"scan_budget": 1}}, headers=auth(tok["adm"])).status_code == 409
+    # the route and the AI log open together after the chase, the log without raw error text (F64)
+    assert client.post("/api/train/reveal", json={"on": True}, headers=auth(tok["adm"])).status_code == 200
+    s = state(client, tok["h1"])
+    assert [x["round"] for x in s["route"]] == [1]
+    assert s["ai_log"][0]["reason"] == "AI 응답을 받지 못해 이번 라운드는 대기했어요" and "Traceback" not in json.dumps(s)
+    # anyone may open the next chase (F56 kept), and the snapshot keeps ESCAPED
+    from app.train import store
+    assert store.load_active_game()[1] == "ESCAPED"
+    r = client.post("/api/train/game", json={"hunter_count": 2}, headers=auth(tok["h1"]))
+    assert r.json()["status"] == "LOBBY" and mgr(client).admin_id == "h1"
+
+
+def test_escape_restored_and_webhook_resent(env):
+    from fastapi.testclient import TestClient
+    from app.main import create_app
+
+    with TestClient(create_app()) as c:
+        tok = setup(c, overrides={"max_rounds": 1})
+        m = mgr(c)
+
+        async def broken(_line):
+            return False
+
+        m.webhook = broken
+        for h in ("h1", "h2"):
+            c.post("/api/train/order", json={"type": "stay"}, headers=auth(tok[h]))
+        c.post("/api/train/fugitive/order", json={}, headers=auth(tok["adm"]))
+        assert m.game.status == "ESCAPED" and m.game.policy.webhook_sent is False
+    sent = []
+
+    async def hook(line):
+        sent.append(line)
+        return True
+
+    from app.train import game as G
+    orig = G.post_webhook
+    G.post_webhook = hook
+    try:
+        with TestClient(create_app()) as c:
+            m = mgr(c)
+            assert m.game.status == "ESCAPED"
+            wait_for(lambda: sent == [G.ESCAPE_LINE])
+            wait_for(lambda: m.game.policy.webhook_sent is True)
+            assert state(c, tok["h1"])["status"] == "ESCAPED"
+    finally:
+        G.post_webhook = orig
+
+
+def test_start_scales_by_boarding_count(client, monkeypatch, env):
+    """F09: a 6-seat lobby that leaves with 2 hunters plays the 2-hunter map and balance; an admin-picked map stays."""
+    from app import config
+    from app.train import settings
+    path = env["data"] / "train_config.json"
+    path.write_text(json.dumps({"_comment": "x", "scan_budget": 1, "2": {"trace_passive": 3}, "6": {"trace_passive": 9}}),
+                    encoding="utf-8")
+    monkeypatch.setattr(config, "TRAIN_CONFIG_PATH", path)
+    adm, h1, h2 = (register(client, x) for x in ("adm", "h1", "h2"))
+    r = client.post("/api/train/game", json={"hunter_count": 6}, headers=auth(adm)).json()
+    assert r["scaled_for"] == 2 and r["map_id"] == "car2077_9"   # an empty lobby would scale for 2
+    client.post("/api/train/join", headers=auth(h1))
+    client.post("/api/train/join", headers=auth(h2))
+    st = client.post("/api/train/start", headers=auth(adm)).json()
+    g = mgr(client).game
+    assert st["scaled_for"] == 2 and st["map_id"] == "car2077_9" and g.engine.map_id == "car2077_9"
+    assert g.engine.config["trace_passive"] == 3 and g.engine.config["scan_budget"] == 1   # per-seat section after flat keys
+    assert g.engine.config["ping_signature"] is True and g.engine.config["escape_on_freeze"] is True
+    assert settings.build(6)[0]["trace_passive"] == 9
+    # the randomised placement went into the engine config, and stays out of hunter payloads
+    assert g.engine.config["fugitive_start"] == g.engine.position_history[0]
+    assert "fugitive_start" not in json.dumps(state(client, h1))
+    client.post("/api/train/game/end", headers=auth(adm))
+    # an explicitly chosen map is kept
+    client.post("/api/train/game", json={"hunter_count": 6}, headers=auth(adm))
+    assert client.put("/api/train/config", json={"map_id": "car2077_12"}, headers=auth(adm)).json()["map_chosen"] is True
+    client.post("/api/train/join", headers=auth(h1))
+    client.post("/api/train/join", headers=auth(h2))
+    assert client.post("/api/train/start", headers=auth(adm)).json()["map_id"] == "car2077_12"
+
+
+def test_placement_is_random_and_central():
+    """F12: the start room varies among the near-central rooms; spawns are the farthest rooms, shuffled."""
+    import random
+    from app.train import engine as E, settings
+    gmap = E.GameMap.builtin("car2077_12")
+    ecc = {r: max(gmap.distance(r, o) for o in gmap.rooms) for r in gmap.rooms}
+    starts, firsts = set(), set()
+    for seed in range(40):
+        start, spawns = settings.placement(gmap, 4, {"fugitive_start": "auto", "hunter_spawn_rooms": "auto"},
+                                           random.Random(seed))
+        pool = spawns.split(",")
+        assert ecc[start] <= min(ecc.values()) + 1 and len(pool) == 4 and start not in pool
+        starts.add(start)
+        firsts.add(pool[0])
+    assert len(starts) > 2 and len(firsts) > 2
+    assert settings.placement(gmap, 4, {"fugitive_start": "C4", "hunter_spawn_rooms": "A1"}, random.Random(1)) == ("C4", "A1")
+
+
+def test_lobby_member_may_end_lobby(client):
+    """F10: a lobby whose opener vanished can be closed by anyone waiting in it; a running game stays admin-only."""
+    adm, h1, h2, spec = (register(client, x) for x in ("adm", "h1", "h2", "spec"))
+    client.post("/api/train/game", json={"hunter_count": 2}, headers=auth(adm))
+    client.post("/api/train/join", headers=auth(h1))
+    assert client.post("/api/train/game/end", headers=auth(spec)).json()["error"] == "not_admin"
+    assert client.post("/api/train/game/end", headers=auth(h1)).json() == {"status": "IDLE"}
+
+
+def test_running_game_end_stays_admin_only(client):
+    tok = setup(client)
+    assert client.post("/api/train/game/end", headers=auth(tok["h1"])).json()["error"] == "not_admin"
+    assert client.post("/api/train/game/end", headers=auth(tok["adm"])).json() == {"status": "IDLE"}
+
+
+def test_override_keys_public_without_values(client):
+    """F32: hunters see which tunables the admin overrode, never the values of private ones."""
+    tok = setup(client)
+    client.put("/api/train/config", json={"set": {"trace_passive": 3, "scan_budget": 1}}, headers=auth(tok["adm"]))
+    s = state(client, tok["h1"])
+    assert s["override_keys"] == ["scan_budget", "trace_passive"]
+    assert "trace_passive" not in s["config"]
+    assert_hunter_safe(s)
+
+
+class GatedGemini(FakeGemini):
+    """generate_content blocks until `gate` is set (the AI decides last / times out)."""
+
+    def __init__(self, text: str):
+        import threading
+        super().__init__(text)
+        self.gate = threading.Event()
+
+    def generate_content(self, model, contents, config=None):
+        self.gate.wait(5)
+        return super().generate_content(model, contents, config)
+
+
+def test_ai_last_submitter_resolves_and_everyone_sees_it(client, stack):
+    """F02: the AI's submit resolves the round inside its own task; the next round's scheduling must not cancel that
+    task before round_resolved/round_open went out. F52: hunters get bot_thinking."""
+    from app.train import bot_player as B
+    adm, h1 = register(client, "adm"), register(client, "h1")
+    client.post("/api/train/game", json={"hunter_count": 3}, headers=auth(adm))
+    fake = GatedGemini('{"order": "stay", "reason": "봇 대기"}')
+    mgr(client).bot_player = B.GeminiPlayer(client=fake)
+    client.post("/api/train/join", headers=auth(h1))
+    client.post("/api/train/bots", json={"target_count": 3}, headers=auth(adm))
+    ws = stack.enter_context(ws_auth(client, h1))
+    recv(ws, "hello")
+    client.post("/api/train/start", headers=auth(adm))
+    assert recv(ws, "bot_thinking", skip=("state", "started", "round_open"))["id"] == "bot:1"
+    client.post("/api/train/order", json={"type": "stay"}, headers=auth(h1))
+    client.post("/api/train/fugitive/order", json={}, headers=auth(adm))
+    eng = mgr(client).game.engine
+    assert eng.round_no == 1
+    fake.gate.set()   # both bots answer; the second one completes the crew → resolve inside the bot task
+    rr = recv(ws, "round_resolved")
+    assert rr["report"]["round"] == 1
+    assert recv(ws, "round_open")["round"] == 2
+    wait_for(lambda: all(h.order is not None for uid, h in eng.hunters.items() if uid.startswith("bot:")))
+    assert eng.round_no == 2
+
+
+def test_ai_timeout_waits(client, monkeypatch):
+    """F39: a Gemini call that hangs makes the bot wait this round instead of stalling every later bot."""
+    from app.train import bot_player as B, game as G
+    monkeypatch.setattr(G, "AI_TIMEOUT_S", 0.2)
+    adm, h1 = register(client, "adm"), register(client, "h1")
+    client.post("/api/train/game", json={"hunter_count": 3}, headers=auth(adm))
+    fake = GatedGemini('{"order": "search", "reason": "늦은 답"}')
+    mgr(client).bot_player = B.GeminiPlayer(client=fake)
+    client.post("/api/train/join", headers=auth(h1))
+    client.post("/api/train/bots", json={"target_count": 3}, headers=auth(adm))
+    client.post("/api/train/start", headers=auth(adm))
+    eng = mgr(client).game.engine
+    try:
+        wait_for(lambda: len(eng.bot_reasons) == 2, timeout=3.0)
+    finally:
+        fake.gate.set()
+    for r in eng.bot_reasons:
+        assert r["order"] == "stay" and r["error"] == "timeout" and r["note"] == "시간 초과 → 대기"
+    assert all(eng.hunters[u].order.type == "stay" for u in ("bot:1", "bot:2"))
+
+
+def test_bot_capture_line_uses_label():
+    """F15: engine names stay uids; texts the server builds read "제미나이-N" for AI hunters."""
+    from app.train import game as G, views
+    from types import SimpleNamespace
+    assert views.label_of("bot:2") == "제미나이-2" and views.label_of("h1") == "h1"
+    line = G.Manager._capture_line(SimpleNamespace(captured_by="bot:2"))
+    assert line.startswith("**수수께끼의 인영을 제미나이-2가 잡았다!**")
+
+
+def test_map_room_ids_must_be_uppercase():
+    """F51: the AI fugitive's parser upper-cases room ids, so a lowercase map would never let it move."""
+    from app.train import maps
+    rows = [{"room": "a1", "device": "curtain", "neighbors": "a2", "col": 1, "row": 1},
+            {"room": "a2", "device": "light", "neighbors": "a1", "col": 2, "row": 1}]
+    assert "대문자" in maps.validate("lower", rows)
+    up = [{**r, "room": r["room"].upper(), "neighbors": r["neighbors"].upper()} for r in rows]
+    assert maps.validate("upper", up) is None

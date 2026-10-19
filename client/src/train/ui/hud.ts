@@ -2,7 +2,7 @@
 
 import { tbus } from "../bus";
 import { fmtRemain } from "../report";
-import { isAdmin, isFugitive, isHunter, label, tstate } from "../state";
+import { isAdmin, isFugitive, isHunter, isOver, label, tstate } from "../state";
 import { ORDER_KO } from "../strings";
 import { setTitleBadge } from "../cues";
 import { $, openPanel, setRich, show } from "./dom";
@@ -35,9 +35,17 @@ function tick(): void {
   if (!p || p.status !== "ROUND_OPEN" || !p.deadline_ts) {
     el.textContent = p?.status === "PAUSED" ? (p.paused_remaining != null ? `일시정지 · ${fmtRemain(p.paused_remaining)}` : "일시정지") : "–";
   } else {
-    const grace = p.grace_until != null && p.grace_until < p.deadline_ts;
-    el.textContent = (grace ? "도주자 대기 " : "") + fmtRemain((grace ? p.grace_until! : p.deadline_ts) - now);
+    // the fugitive's grace: kept while grace_until is set (also after a resume moved the deadline onto it)
+    const grace = p.grace_until != null;
+    const end = grace ? Math.min(p.grace_until!, p.deadline_ts) : p.deadline_ts;
+    const me = isFugitive() && !p.fugitive_ai;
+    el.textContent = (grace ? (me ? "내 제출 대기 " : "도주자 대기 ") : "") + fmtRemain(end - now);
   }
+  const clock = $("hud-clock");
+  clock.title = p?.status === "ROUND_OPEN" && p.grace_until != null
+    ? (isFugitive() && !p.fugitive_ai ? "승무원이 모두 제출했어요. 유예가 끝나기 전에 내 행동을 확정해요" : "승무원이 모두 제출했어요. 도주자가 확정하거나 유예가 끝나면 정산돼요")
+    : p?.fugitive_ai ? "제출 마감까지 남은 시간. 모두 확정하면 바로 정산돼요"
+      : "제출 마감까지 남은 시간. 승무원이 모두 확정하면 도주자 유예 뒤 정산돼요";
   // the vote chip: once the window opens; before that it counts down to it
   const pending = pendingHunters().filter((n) => n !== p?.you?.id);
   const open = p?.vote_after_ts != null && now >= p.vote_after_ts;
@@ -53,7 +61,8 @@ function tick(): void {
 function render(): void {
   const p = tstate.payload;
   const v = p?.view;
-  const round = p && v && p.status !== "LOBBY" && p.status !== "IDLE" ? `R${p.round_no ?? v.round_no}` : "";
+  // while a round plays back, the chip names that round (the payload already moved on to the next one)
+  const round = p && v && p.status !== "LOBBY" && p.status !== "IDLE" ? `R${tstate.playing?.round ?? p.round_no ?? v.round_no}` : "";
   const trace = p?.fugitive ? p.fugitive.trace : (p?.report?.trace ?? v?.trace ?? 0);
   const tier = p?.fugitive ? p.fugitive.tier : (p?.report?.tier ?? 0);
   $("hud-trace-val").textContent = p && v ? `${trace}% · 경계도 ${tier}` : "–";
@@ -67,7 +76,7 @@ function render(): void {
   else setRich(sub, `미제출 ${pending.length}: ${pending.map((n) => label(n) + (tstate.thinking.has(n) ? "(판단 중)" : "")).join(", ")}${fug}`);
   const st = p?.status ?? "IDLE";
   const spectator = p?.role === "spectator" && st !== "IDLE" && st !== "LOBBY";
-  const [icon, lbl] = st === "LOBBY" ? ["exit", "모집 중"] : st === "PAUSED" ? ["pause", `${round} 일시정지`] : st === "CAPTURED" ? ["trophy", `${round} 체포`]
+  const [icon, lbl] = st === "LOBBY" ? ["exit", "모집 중"] : st === "PAUSED" ? ["pause", `${round} 일시정지`] : st === "CAPTURED" ? ["trophy", `${round} 체포`] : st === "ESCAPED" ? ["exit", `${round} 탈출`]
     : st === "IDLE" ? ["power", "대기"] : tstate.phase === "playback" ? ["play", `${round} 재생`] : spectator ? ["camera", `${round} 관전 중`] : ["signal", `${round} 진행 중`];
   $("hud-status").innerHTML = `<i class="ic ic-${icon}"></i><span>${lbl}</span>`;
   $("hud-status").title = spectator ? "이 추적의 참가자가 아니라 지켜보는 중이에요. 다음 판에 로비에서 탑승하세요" : "추적 상태";
@@ -77,7 +86,9 @@ function render(): void {
   show("hud-order", mine);
   if (mine && o) $("hud-order-val").textContent = o.type === "move" ? `이동 → ${o.target}` : `${ORDER_KO[o.type]}${o.type === "search" ? ` (${p?.you?.room})` : ""}`;
   show("btn-admin", isAdmin());
-  show("btn-lobby", st === "LOBBY" || st === "IDLE");
+  show("btn-lobby", st === "LOBBY" || st === "IDLE" || isOver(st));
+  // spectators have no avatar to centre on
+  show("btn-home-cam", !!p && p.role !== "spectator");
   show("hud-game", st !== "IDLE" && st !== "LOBBY");
   tick();
 }

@@ -86,4 +86,12 @@ function render(): void {
   else if (tstate.pick) status.textContent = `선택: ${describe(tstate.pick)}`;
   else status.textContent = `${you.room}에 있어요 · 옆 구역을 누르면 이동, 지금 구역을 누르면 수색`;
   confirmBtn.toggleAttribute("disabled", !tstate.pick);
+  // one confirm hint; "바로 정산" only holds when no human fugitive gets a grace period after the crew
+  const hint = $("order-hint");
+  if (defaultHint === null) defaultHint = hint.textContent ?? "";
+  hint.textContent = p.fugitive_ai ? AI_HINT : defaultHint;
+  confirmBtn.title = p.fugitive_ai ? "모두 확정하면 바로 정산돼요" : "승무원이 모두 확정하면 도주자에게 유예 시간이 주어지고, 도주자까지 확정하면 정산돼요";
 }
+
+let defaultHint: string | null = null;
+const AI_HINT = "확정하면 행동이 제출돼요. 마감 전엔 다른 행동을 골라 다시 확정하면 덮어써요. 모두 확정하면 바로 정산돼요.";

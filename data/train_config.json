@@ -1,6 +1,22 @@
 {
-  "_comment": "열차 추적(/train/) 엔진 튠값 오버라이드. 키는 server/app/train/config.py DEFAULTS 와 같다. 비어 있으면 기본값·scaling_web.json 만 쓴다. 관리자 패널의 런타임 값이 이 파일보다 우선한다.",
+  "_comment": "열차 추적(/train/) 튠값 오버라이드. 키는 server/app/train/config.py DEFAULTS (+ settings.WEB_ONLY: escape_on_freeze) 와 같다. 층 순서(뒤가 이김): DEFAULTS → scaling_web.json[인원] → settings.WEB_DEFAULTS → 이 파일의 평평한 키(모든 판) → 이 파일의 \"2\"~\"6\" 구역(출발 때 탑승한 승무원 수, 범위 밖이면 가장 가까운 구역) → 관제 런타임 값. map_id 는 여기서 못 바꾼다(scaling_web.json 또는 관제의 맵 선택).",
+  "_tuning": "2026-10-19 동결 = 도주자 승리(escape_on_freeze) 기준. 재현: server 에서 scratchpad escape_sim.py (settings.build + 무작위 시작 배치, 체포 또는 동결에서 끝). 봇 승무원 기준 동결 전 체포율 3~6명 hacker 26~34% / stealth 53~66%, p50 10~13 라운드. 2명은 car2077_9 고리 구조에서 봇이 협공을 못 해 1~10%. 사람 승무원은 더 잘 잡으므로 승무원 쪽으로 기울였다.",
   "round_timer_sec": 3600,
   "fugitive_grace_sec": 1800,
-  "vote_skip_after_sec": 600
+  "vote_skip_after_sec": 600,
+  "scan_budget": 1,
+  "scan_lag": 0,
+  "signal_bands": "1,2",
+  "hide_cost": 2,
+  "hide_trace": 10,
+  "doorlock_cost": 3,
+  "doorlock_trace": 10,
+  "distract_trace": 10,
+  "blackout_trace": 10,
+  "overload_trace": 10,
+  "2": {"trace_passive": 7, "overheat_rounds": 4, "max_rounds": 14},
+  "3": {"trace_passive": 8, "overheat_rounds": 4, "max_rounds": 14},
+  "4": {"trace_passive": 8, "overheat_rounds": 4, "max_rounds": 14},
+  "5": {"trace_passive": 8, "overheat_rounds": 4, "max_rounds": 14},
+  "6": {"trace_passive": 8, "overheat_rounds": 4, "max_rounds": 14}
 }

@@ -11,8 +11,8 @@ import { api, ApiError, mapRooms, msgFor, type BotReason, type LogEntry, type Ma
 import { tbus } from "./bus";
 import { TrainBoot } from "./scenes/TrainBoot";
 import { TrainScene, type TrainSceneData } from "./scenes/TrainScene";
-import { label, lastPlayed, markPlayed, tstate, type Phase } from "./state";
-import { S } from "./strings";
+import { isFugitive, isHunter, isOver, label, lastPlayed, markPlayed, tstate, type Phase } from "./state";
+import { ORDER_KO, S } from "./strings";
 import { initAdmin } from "./ui/admin";
 import { $, closePanels, initFolds, setRich, show } from "./ui/dom";
 import { initFugitiveBar } from "./ui/fugitive";
@@ -21,26 +21,79 @@ import { initLobby } from "./ui/lobby";
 import { initReport, reasonLine } from "./ui/report";
 import { initHelp } from "./ui/help";
 import { initRoundLog, remember } from "./ui/roundlog";
+import { hideRoundCard, initRoundCard, showRoundCard } from "./ui/roundcard";
 import { initTrainBgm, isMuted, setTrace, stop as stopBgm, toggleMute } from "./bgm";
 import { initCues, roundCue } from "./cues";
 import { initSubmit } from "./ui/submit";
 import { initVote } from "./ui/vote";
 import { tsocket } from "./ws";
 
+// toasts queue up (at most 3 waiting) so a burst of messages (bot reasons, hack notices) is not overwritten
+const TOAST_QUEUE_MAX = 3;
+const toastQueue: { text: string; ms: number }[] = [];
 let toastTimer: number | null = null;
-function toast(text: string, ms = 2600): void {
+let toastShown = "";
+
+/** Below the HUD's real bottom edge: on phones the HUD wraps to several lines. */
+function placeToast(el: HTMLElement): void {
+  const hud = document.getElementById("hud");
+  const bottom = hud && !hud.classList.contains("hidden") ? hud.getBoundingClientRect().bottom : 0;
+  el.style.top = bottom > 0 ? `${Math.round(bottom + 6)}px` : "";
+}
+
+function nextToast(): void {
   const el = $("toast");
-  setRich(el, text);
+  const t = toastQueue.shift();
+  if (!t) { el.classList.add("hidden"); toastTimer = null; toastShown = ""; return; }
+  toastShown = t.text;
+  setRich(el, t.text);
+  placeToast(el);
   el.classList.remove("hidden");
-  if (toastTimer !== null) clearTimeout(toastTimer);
-  toastTimer = window.setTimeout(() => el.classList.add("hidden"), ms);
+  toastTimer = window.setTimeout(nextToast, t.ms);
+}
+
+function toast(text: string, ms = 2600): void {
+  if (text === toastShown || toastQueue.some((t) => t.text === text)) return;
+  toastQueue.push({ text, ms });
+  while (toastQueue.length > TOAST_QUEUE_MAX) toastQueue.shift();
+  if (toastTimer === null) nextToast();
 }
 tbus.on("toast", ({ text, ms }) => toast(text, ms));
 
+let bannerTimer: number | null = null;
 function banner(text: string, ms = 4000): void {
   $("banner-text").textContent = text;
   show("banner");
-  window.setTimeout(() => show("banner", false), ms);
+  if (bannerTimer !== null) window.clearTimeout(bannerTimer);
+  bannerTimer = window.setTimeout(() => { bannerTimer = null; show("banner", false); }, ms);
+}
+
+/** "가" / "이" after a Korean name (the last syllable's final consonant). */
+function particle(name: string): string {
+  return /[가-힣]$/.test(name) && (name.charCodeAt(name.length - 1) - 0xac00) % 28 !== 0 ? "이" : "가";
+}
+
+/** Capture / escape banners already shown, per game and round (a replay or a re-sent state never repeats them). */
+const endBanners = new Set<string>();
+const END_BANNER_MS = 7000;
+
+/** The end-of-chase banner for `report` once its playback is over; true when one was shown. */
+function endBanner(report: Report, gameId: number | null): boolean {
+  const p = tstate.payload;
+  const key = `${gameId}:${report.round}`;
+  if (endBanners.has(key) || !isOver(p?.status)) return false;
+  if (report.captured_by && p?.status === "CAPTURED") {
+    const name = label(report.captured_by);
+    endBanners.add(key);
+    banner(`수수께끼의 인영을 ${name}${particle(name)} 잡았다!\nConflict Resolved.`, END_BANNER_MS);
+    return true;
+  }
+  if (p?.status === "ESCAPED" && tstate.escape && tstate.escape.round === report.round) {
+    endBanners.add(key);
+    banner(tstate.escape.line, END_BANNER_MS);
+    return true;
+  }
+  return false;
 }
 
 // ---------------------------------------------------------------------------
@@ -48,6 +101,8 @@ function banner(text: string, ms = 4000): void {
 // ---------------------------------------------------------------------------
 let game: Phaser.Game | null = null;
 let sceneMap = ""; // map id currently built in the scene
+/** ?preview=: the admin pans around a map, no idle throttling */
+let previewMode = false;
 
 function startGame(data: TrainSceneData, key: string): void {
   sceneMap = key;
@@ -102,6 +157,7 @@ async function ensureAdmin(): Promise<boolean> {
 }
 
 async function preview(mapId: string): Promise<void> {
+  previewMode = true;
   if (!(await ensureAdmin())) return;
   let maps: MapSummary[] = [];
   try { maps = (await api.maps()).maps; } catch (e) { toast(msgFor(e)); }
@@ -143,7 +199,7 @@ function phaseFor(p: TrainState): Phase {
     case "LOBBY": return "lobby";
     case "ROUND_OPEN": return "submit";
     case "PAUSED": return "paused";
-    case "CAPTURED": return "captured";
+    case "CAPTURED": case "ESCAPED": return "captured";
     default: return "idle";
   }
 }
@@ -162,8 +218,12 @@ function applyState(p: TrainState): void {
     // a new game: whatever the old one was still playing back is over
     pendingPlays.length = 0;
     abortPlayback();
-    tstate.history.length = 0; tstate.thinking.clear(); tbus.emit("history:changed", {});
+    tstate.history.length = 0; tstate.thinking.clear(); tstate.escape = null; tbus.emit("history:changed", {});
+    hideRoundCard();
   }
+  // the round log: every report the payload carries (a new device / refresh sees more than the newest round)
+  if (p.log?.length) for (const e of p.log) remember(withEntry(e.report, e));
+  else if (p.reports?.length) for (const r of p.reports) remember(r);
   if (p.report) remember(p.report);
   if (p.view && p.status !== "LOBBY" && p.status !== "IDLE") setTrace(p.report?.trace ?? p.view.trace ?? 0); else stopBgm();
   const rooms: MapRoom[] | null = p.view ? mapRooms(p.view.map_rows) : null;
@@ -208,6 +268,8 @@ function play(report: Report, gameId: number | null): Promise<void> {
       tstate.skipping = false;
       draining = false;
       throttle();
+      // "내 차례": the cue of a round that opened during the playback fires now, when the order bar shows up
+      if (cueAfterPlayback) { cueAfterPlayback = false; if (myTurn()) roundCue(); }
     })();
   }
   return playQueue;
@@ -219,6 +281,7 @@ function playOne(report: Report, gameId: number | null): Promise<void> {
     tstate.playing = report;
     tstate.unseenResult = false;
     closePanels();
+    hideRoundCard();
     throttle();
     tbus.emit("state:changed", {});
     let finished = false;
@@ -235,11 +298,9 @@ function playOne(report: Report, gameId: number | null): Promise<void> {
       tstate.playing = null;
       if (tstate.payload) tstate.phase = phaseFor(tstate.payload);
       tbus.emit("state:changed", {});
-      if (report.captured_by && tstate.payload?.status === "CAPTURED") {
-        const name = report.captured_by;
-        const particle = /[가-힣]$/.test(name) && (name.charCodeAt(name.length - 1) - 0xac00) % 28 !== 0 ? "이" : "가";
-        banner(`수수께끼의 인영을 ${name}${particle} 잡았다!\nConflict Resolved.`, 7000);
-      }
+      const ended = endBanner(report, gameId);
+      // the round result card for the last queued round (earlier ones are in the round log); after the end banner
+      if (pendingPlays.length === 0) showRoundCard(report, ended ? END_BANNER_MS : 0);
       resolve();
     };
     const off = tbus.on("playback:done", ({ report: r }) => { if (r.round === report.round) finish(); });
@@ -271,7 +332,7 @@ function playOne(report: Report, gameId: number | null): Promise<void> {
 const IDLE_FPS = 10;
 let throttled = false;
 function throttle(): void {
-  if (!game) return;
+  if (!game || previewMode) return;
   const want = tstate.phase !== "playback";
   if (want === throttled) return;
   throttled = want;
@@ -279,8 +340,20 @@ function throttle(): void {
   loop.fpsLimit = want ? IDLE_FPS : 0;
   loop.hasFpsLimit = want;
   loop._limitRate = want ? 1000 / IDLE_FPS : 0;
+  // Phaser binds step / stepLimitFPS only in start()/wake(): re-bind now so the limit applies without a tab switch
+  if (!document.hidden && game.loop.running) { game.loop.sleep(); game.loop.wake(true); }
   tbus.emit("throttle", { on: want });
 }
+tbus.on("scene:ready", () => throttle());
+
+/** It is my move right now: the order bar is (or is about to be) open and I have not submitted. */
+function myTurn(): boolean {
+  const p = tstate.payload;
+  if (!p || p.status !== "ROUND_OPEN") return false;
+  if (isHunter()) return !!p.you && !p.you.order && !p.you.dazed;
+  return isFugitive() && !p.fugitive_ai && !p.fugitive_submitted;
+}
+let cueAfterPlayback = false;
 document.addEventListener("visibilitychange", () => {
   if (!game) return;
   if (document.hidden) game.loop.sleep(); else game.loop.wake(true);
@@ -295,7 +368,9 @@ function maybeReplay(p: TrainState): void {
     : p.reports?.length ? p.reports
       : p.report ? [p.report] : [];
   if (seen === 0) reps = reps.slice(-1);   // a browser that never watched this game only needs the newest round
-  for (const rep of reps) if (rep.round > seen) void play(rep, p.game_id);
+  // the round on screen right now is not "unseen" (a state push mid-playback must not queue it a second time)
+  const playing = tstate.playing?.round ?? 0;
+  for (const rep of reps) if (rep.round > seen && rep.round !== playing) void play(rep, p.game_id);
 }
 
 type OrderMsg = { type: "move" | "search" | "scan" | "stay"; target: string | null } | null;
@@ -311,7 +386,9 @@ function wireSocket(): void {
     p.status = "ROUND_OPEN"; p.deadline_ts = m.deadline_ts; p.grace_until = null; p.paused_remaining = null; p.vote_after_ts = m.vote_after_ts; p.votes = {};
     tstate.thinking.clear();
     applyState(p);
-    if ((p.role === "hunter" && p.you && !p.you.dazed) || (p.role === "fugitive" && !p.fugitive_ai)) roundCue();
+    // round_open lands right after round_resolved: while the previous round still plays, wait for the order bar
+    if (draining || tstate.phase === "playback") cueAfterPlayback = true;
+    else if (myTurn()) roundCue();
   });
   tsocket.on("submitted", (m: { id: string; submitted: boolean; order?: OrderMsg }) => {
     const p = tstate.payload;
@@ -333,22 +410,35 @@ function wireSocket(): void {
     if (!tstate.pingOrders) tstate.pingOrders = {};
     tstate.pingOrders[m.id] = m.order;
     if (p.hunters_full?.[m.id]) { p.hunters_full[m.id].order = m.order; p.hunters_full[m.id].submitted = m.order !== null; }
-    toast(`${m.id}: ${m.order ? (m.order.type === "move" ? `이동 → ${m.order.target}` : m.order.type) : "제출 취소"}`, 2500);
+    toast(`${label(m.id)}: ${m.order ? (m.order.type === "move" ? `이동 → ${m.order.target}` : ORDER_KO[m.order.type] ?? m.order.type) : "제출 취소"}`, 2500);
     applyState(p);
   });
   tsocket.on("fugitive_submitted", (m: { submitted: boolean; round: number }) => {
     const p = tstate.payload;
     if (!p || (p.round_no ?? m.round) !== m.round) return;
     p.fugitive_submitted = m.submitted;
-    if (p.fugitive) p.fugitive.order = m.submitted ? (p.fugitive.order ?? { move: null, hack: null, target: null }) : null;
+    // the message carries no order: the fugitive's own REST response fills p.fugitive.order (fugitive.ts)
+    if (p.fugitive && !m.submitted) p.fugitive.order = null;
     tstate.thinking.delete("fugitive");
     applyState(p);
   });
-  tsocket.on("deadline", (m: { deadline_ts: number; reason: string; paused_remaining?: number | null }) => {
+  tsocket.on("deadline", (m: { deadline_ts: number; reason: string; paused_remaining?: number | null; grace_until?: number | null }) => {
     const p = tstate.payload;
     if (!p) return;
-    if (m.reason === "grace") { p.grace_until = m.deadline_ts; toast("승무원 전원 제출 — 침입자에게 유예 시간이 주어졌어요"); }
-    else { p.deadline_ts = m.deadline_ts; if (m.paused_remaining != null) p.paused_remaining = m.paused_remaining; toast("마감이 연장됐어요"); }
+    if (m.reason === "grace") {
+      p.grace_until = m.deadline_ts;
+      const min = Math.max(1, Math.round((m.deadline_ts - Date.now() / 1000) / 60));
+      toast(isFugitive() && !p.fugitive_ai
+        ? `승무원 전원 제출 · 내 제출을 기다리는 중 · 유예 ${min}분`
+        : `승무원 전원 제출 · 도주자 제출을 기다리는 중 · 유예 ${min}분`, 4000);
+    }
+    else if (m.reason === "grace_cancel") { p.grace_until = null; p.deadline_ts = m.deadline_ts; toast("제출이 취소되어 유예가 풀렸어요"); }
+    else {
+      if (m.grace_until !== undefined) p.grace_until = m.grace_until;
+      p.deadline_ts = m.grace_until != null ? Math.max(m.deadline_ts, p.deadline_ts ?? 0) : m.deadline_ts;
+      if (m.paused_remaining != null) p.paused_remaining = m.paused_remaining;
+      toast(p.grace_until != null ? "유예가 연장됐어요" : "마감이 연장됐어요");
+    }
     applyState(p);
   });
   tsocket.on("vote", (m: { target: string; voters: string[]; need: number; passed: boolean; void?: boolean }) => {
@@ -357,7 +447,7 @@ function wireSocket(): void {
     p.votes = p.votes ?? {};
     if (m.passed || m.void) delete p.votes[m.target]; else p.votes[m.target] = m.voters;
     p.need = m.need;
-    if (m.passed) toast(`${m.target}은(는) 투표로 이번 라운드 대기 처리됐어요`);
+    if (m.passed) toast(`${label(m.target)}은(는) 투표로 이번 라운드 대기 처리됐어요`);
     applyState(p);
   });
   tsocket.on("round_resolved", (m: { report: Report; state: TrainState; log_entry?: LogEntry }) => {
@@ -374,11 +464,21 @@ function wireSocket(): void {
     if (p) { p.status = "CAPTURED"; if (p.view) p.view.capture_room = m.room; }
     // the capture line itself is shown when the playback finishes (play())
   });
+  tsocket.on("escaped", (m: { round: number; line: string }) => {
+    const p = tstate.payload;
+    tstate.escape = { round: m.round, line: m.line };
+    if (p) { p.status = "ESCAPED"; applyState(p); }
+    // normally that round is still playing back (the banner follows it); otherwise show it now
+    const queued = pendingPlays.some((x) => x.report.round === m.round);
+    const key = `${p?.game_id ?? null}:${m.round}`;
+    if (tstate.playing?.round !== m.round && !queued && !endBanners.has(key)) { endBanners.add(key); banner(m.line, END_BANNER_MS); }
+  });
   tsocket.on("started", (m: { line: string }) => banner(m.line, 3500));
   tsocket.on("bot_thinking", (m: { id: string; round: number }) => {
     tstate.thinking.add(m.id);
     tbus.emit("state:changed", {});
-    toast(`${m.id === "fugitive" ? "{target}" : "{chat}"} ${label(m.id)} — R${m.round} 판단 중…`, 2500);
+    // everyone sees "(판단 중)" on the HUD; the toast is for the controls (admin) and the fugitive only
+    if (isFugitive() || tstate.payload?.admin) toast(`${m.id === "fugitive" ? "{target}" : "{chat}"} ${label(m.id)} · R${m.round} 판단 중…`, 2500);
   });
   tsocket.on("bot_reason", (m: { reason: BotReason }) => {
     const p = tstate.payload;
@@ -434,6 +534,7 @@ async function boot(): Promise<void> {
   initReport();
   initAdmin();
   initRoundLog();
+  initRoundCard();
   initHelp();
   initCues();
   void initTrainBgm();

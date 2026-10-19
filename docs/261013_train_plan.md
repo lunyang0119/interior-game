@@ -13,7 +13,7 @@
 | `engine.py` `config.py` `strings.py` `sim.py` | 원본 그대로 복사. 첫 줄에 `# Copied unchanged from <discord bot repo> commit 2182a11` 주석만 추가. `config.load_sheet_data` 는 호출하지 않는다(gspread 는 지연 import 라 설치 불필요). `cd server && python -m app.train.sim --all --scaling app/train/scaling_web.json` 으로 시뮬 실행 |
 | `scaling_web.json` | 원본 그대로 복사 (pyproject `package-data` 에 등록) |
 | `utils.py` | 원본 `utils.py` 에서 `get_korean_particle`, `ends_with_hangul` 두 함수만 (같은 헤더 주석) |
-| `settings.py` | 설정 합성: `DEFAULTS` → 웹 기본값 `{round_timer_sec: 3600, early_resolve: True}` → `scaling_web.json[hunter_count]`(`map_id` 포함) → `data/train_config.json`(선택) → 관리자 런타임 오버라이드. 전부 `config.coerce` 로 타입 강제. `vote_skip_after_sec`, `fugitive_grace_sec`, `round_timer_sec`, `early_resolve` 는 서버 정책 키 |
+| `settings.py` | 설정 합성: `DEFAULTS` → `scaling_web.json[좌석 수]`(`map_id` 포함) → `WEB_DEFAULTS`(`round_timer_sec 3600`, `early_resolve` 등) → `data/train_config.json`(선택; 평평한 키 다음에 좌석 수별 섹션 `"2"`..`"6"`) → 관리자 런타임 오버라이드. 맵·밸런스는 좌석 수가 아니라 실제로 탑승한 인원 수로 고른다. 전부 `config.coerce` 로 타입 강제. `vote_skip_after_sec`, `fugitive_grace_sec`, `round_timer_sec`, `early_resolve` 는 서버 정책 키 |
 | `views.py` | 역할별 투영(순수 함수): `hunter_payload(game)`, `fugitive_payload(game)`, `public_report(report)`. 테스트가 직접 호출 |
 | `store.py` | SQLite 스냅샷/복원: `save(conn, game)`, `load_active(conn)`, `train_meta` (admin_id) |
 | `game.py` | `TrainGame`(엔진 상태 + 정책 상태) 과 `Manager`(이벤트 루프 소유 단일 인스턴스): 생성/로비/시작/제출/핑/투표/정산/일시정지/타이머 태스크/재시작 복원/웹훅. 모든 변경은 `async with self.lock` 안에서 → `store.save` → 브로드캐스트 |
@@ -22,7 +22,7 @@
 
 기존 파일 수정: `server/app/config.py`(+`TRAIN_ADMIN_SECRET`, `TRAIN_WEBHOOK_URL`, `TRAIN_CONFIG_PATH`), `server/app/main.py`(라우터 2개 include, lifespan 에서 `manager.start()/stop()`), `server/pyproject.toml`(`app.train` 패키지, json package-data), `server/migrations/016_train.sql`, `README.md`(env 2개, /train/ 설명), `tools/preprocess/deploy.py TARGETS`(`data/train_config.json`, `server/app/train/*.json`, `server/static/train/index.html`), `deploy/sync.sh` 는 server/app 전체를 보내므로 변경 없음.
 
-테스트 `server/tests/test_train.py`(+ `test_train_ws.py`): §5.
+테스트 `server/tests/test_train.py`(ws 테스트도 같은 파일): §5.
 
 ### 클라이언트
 `client/train/index.html` + `client/src/train/` (Vite multipage: `vite.config.ts` 의 `rolldownOptions.input = { main: "index.html", train: "train/index.html" }` → `server/static/train/index.html`, FastAPI `StaticFiles(html=True)` 가 `/train/` 을 그대로 서빙. Caddy 변경 없음).
@@ -59,14 +59,14 @@
 | `POST /order` | 헌터 | `{type: move\|search\|scan\|stay, target?: room}` → `{order}`. 엔진 `RuleError` 코드 → 400 `not_open/not_hunter/dazed/unknown_room/not_adjacent` |
 | `POST /fugitive/order` | fugitive | `{move?: room, hack?: doorlock\|distract\|blackout\|hide\|overload, target?: edge\|room}` → `{order}` |
 | `POST /fugitive/ping` | fugitive | `{}` → `{orders: {id: {type,target}\|null}, ram, trace}` |
-| `DELETE /fugitive/order` `DELETE /order` | 각자 | 제출 취소(ROUND_OPEN 중, 정산 전까지). 취소 시 조기 정산 조건 재평가·투표 대상 가능해짐 |
+| `DELETE /fugitive/order` `DELETE /order` | 각자 | 제출 취소(ROUND_OPEN 중, 정산 전까지). 취소 시 조기 정산 조건과 유예를 다시 평가(유예 중 취소하면 유예 해제)하고 투표 대상이 다시 가능해짐 |
 | `POST /vote` | 헌터 | `{target: hunter_id}` → `{votes, need, passed}` (§3 규칙) |
 | `GET /config` `PUT /config` | admin | `{config, overrides, map_id}` / `{set: {key: value}}` → coerce 후 현재 게임 `st.config` 에 즉시 반영, `map_id` 는 LOBBY 에서만 |
 | `POST /pause` `POST /resume` | admin | |
 | `POST /extend` | admin | `{sec: 1..604800}` → 마감 연장(PAUSED 면 `paused_remaining` 에 더함) |
 | `POST /round/end` | admin | 지금 정산(`timed_out=True` 의미: 미제출자 대기) |
 | `POST /game/end` | admin | 상태 ENDED, 게임 해제 |
-| `GET /maps` `GET /maps/{id}` | admin | `[{id, rooms: n, cols, rows}]` / `{id, rooms: [{id,col,row,device,neighbors}]}` (미리보기용) |
+| `GET /maps` `GET /maps/{id}` | 공개 | `[{id, rooms: n, cols, rows}]` / `{id, rooms: [{id,col,row,device,neighbors}]}` (미리보기용) |
 
 ### WS `/ws/train`
 첫 메시지 `{"type":"auth","token"}`(5초, 실패 4401). 이후 서버→클라이언트만, 예외는 `ping/pong`. 클라이언트의 `move` 류 메시지는 전부 무시(위치는 정산으로만 바뀜). 모든 수신 메시지는 pydantic 모델로 검증, 불일치는 drop.
@@ -80,18 +80,18 @@
 | `hunter_order` | fugitive | 핑 이후 같은 라운드의 헌터 제출 `{id, order}` |
 | `deadline` | 모두 | `{deadline_ts, reason: grace\|extend}` |
 | `vote` | 모두 | `{target, voters: [id], need, passed}` |
-| `round_resolved` | 역할별 | 헌터: `{report: public_report, view: PublicView}` / fugitive: `{report: 전체(fugitive_path 포함), log_entry, state}` |
+| `round_resolved` | 역할별 | 헌터·관전자: `{report: public_report, state}` / fugitive: `{report: 전체(fugitive_path 포함), state, log_entry}` |
+| `escaped` | 모두 | `{round}` 신호 동결 전에 못 잡아 도주자 탈출(`ESCAPED`, 정책 `escape_on_freeze`) |
 | `captured` | 모두 | `{by, how, room, line: CAPTURE_LINE 포맷 결과}` |
 | `paused` `resumed` | 모두 | `{paused_remaining}` / `{deadline_ts}` |
 | `ended` | 모두 | `{}` |
-| `error` | 본인 | `{code}` |
 
 ### 마이그레이션 `016_train.sql`
 ```sql
 -- 열차 추적 미니게임 (server/app/train). 한 번에 한 판; 상태 전환마다 엔진 상태 + 서버 정책을 통째로 스냅샷.
 CREATE TABLE train_games (
   id         INTEGER PRIMARY KEY AUTOINCREMENT,
-  status     TEXT NOT NULL,          -- LOBBY | ROUND_OPEN | PAUSED | CAPTURED | ENDED
+  status     TEXT NOT NULL,          -- LOBBY | ROUND_OPEN | PAUSED | CAPTURED | ESCAPED | ENDED
   state_json TEXT NOT NULL,          -- {"engine": GameState.to_dict() | null(로비), "policy": {...}}
   created_at INTEGER NOT NULL,
   updated_at INTEGER NOT NULL
@@ -110,6 +110,7 @@ IDLE ──admin POST /game──▶ LOBBY ──admin /start (n≥2)──▶ R
                               └─/game/end──▶ ENDED           │  └─/resume──PAUSED │
                                                              │        ▲           │
                                                              └─/pause─┘           └─체포──▶ CAPTURED ──/game/end 또는 새 /game──▶ ENDED
+                                                                                       (동결 전 미체포: ESCAPED, 이후 동일)
 ```
 - **ROUND_OPEN 진입**: `round_open_ts = now`, `deadline_ts = now + round_timer_sec`, `grace_until = None`, `votes = {}`. 타이머 태스크 재무장(아래). `round_open` 브로드캐스트.
 - **제출**: 헌터 → `engine.submit_hunter_order`; 도주자 → `engine.submit_fugitive_order`; 핑 → `engine.cast_ping`. 제출/취소 후마다 **조기 정산 평가**: `early_resolve` 이고 `st.all_hunters_submitted()` 이면 → 도주자 `order` 가 있거나 `frozen` 이면 즉시 정산, 아니면 `grace_until = min(deadline_ts, now + fugitive_grace_sec)` 를 한 번 세우고 `deadline` 브로드캐스트. 그 뒤 도주자가 제출하면 즉시 정산.

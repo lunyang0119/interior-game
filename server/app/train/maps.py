@@ -24,7 +24,8 @@ from . import engine as E
 log = logging.getLogger("train.maps")
 
 MAP_ID_RE = re.compile(r"^[a-z0-9_]{1,32}$")
-ROOM_ID_RE = re.compile(r"^[A-Za-z0-9_]{1,8}$")   # edge keys are "A1-A2", so no '-' or ','
+# edge keys are "A1-A2", so no '-' or ','; uppercase only: the AI fugitive's answer parser upper-cases room ids
+ROOM_ID_RE = re.compile(r"^[A-Z0-9_]{1,8}$")
 MAX_GRID = 8
 
 _cache: dict[str, Any] = {}
@@ -50,7 +51,7 @@ def validate(map_id: str, rows: list[dict[str, Any]]) -> str | None:
     for r in rows:
         rid = r["room"]
         if not ROOM_ID_RE.match(rid):
-            return f"{map_id}: 방 id '{rid}'는 영문/숫자/_ 8자 이하여야 해요"
+            return f"{map_id}: 방 id '{rid}'는 영문 대문자/숫자/_ 8자 이하여야 해요"
         if rid in seen:
             return f"{map_id}: 방 id {rid}가 겹쳐요"
         seen.add(rid)
