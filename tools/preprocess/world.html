@@ -247,7 +247,7 @@
   <h3>도구</h3>
   <div class="tools room-only">
     <button data-tool="select" class="on">선택/이동</button><button data-tool="seed">시드 놓기</button><button data-tool="floor">바닥 칠하기</button><button data-tool="exit" class="notrain">출구 그리기</button><button data-tool="zone" class="notrain">구역 그리기</button>
-    <button data-tool="blocked">막힌 칸</button><button data-tool="spawn" class="notrain">스폰</button><button data-tool="fx" title="증기·빛 같은 효과를 픽셀 단위로 놓아요 (게임에선 가구·아바타 위에 그려짐)">✨ 효과 놓기</button>
+    <button data-tool="blocked">막힌 칸</button><button data-tool="paper" title="바닥 줄에 벽지를 바를 수 있는 칸 (칸막이 벽면 등). 열마다 세로로 칠한 칸 수만큼 벽지 높이가 돼요">벽지 칸</button><button data-tool="spawn" class="notrain">스폰</button><button data-tool="fx" title="증기·빛 같은 효과를 픽셀 단위로 놓아요 (게임에선 가구·아바타 위에 그려짐)">✨ 효과 놓기</button>
   </div>
   <div class="room-only" id="fxProps" style="display:none">
     <h3>선택한 효과</h3>
@@ -343,10 +343,25 @@
     for (let cy = s.y; cy < s.y + it.h; cy++) for (let cx = s.x; cx < s.x + seedW(s, it); cx++) if (!faces.has(cx + "," + cy)) return null;
     return first;
   }
+  /** Wallpaper footprint on 벽지 칸: per column the painted run through row y, capped at h (mirrors placement.paper_cells). */
+  function paperCells(rm, x, y, w, h) {
+    const painted = new Set((rm.paper || []).map(([cx, cy]) => cx + "," + cy)), has = (cx, cy) => painted.has(cx + "," + cy), out = [];
+    for (let cx = x; cx < x + w; cx++) {
+      if (!has(cx, y)) return null;
+      let top = y, bottom = y;
+      while (has(cx, top - 1)) top--;
+      while (has(cx, bottom + 1)) bottom++;
+      top = Math.max(top, bottom - h + 1);
+      for (let cy = top; cy <= bottom; cy++) out.push([cx, cy]);
+    }
+    return out;
+  }
   /** Why the game server would skip this seed (null = fine). Mirrors server/app/placement.py. */
   function seedProblem(s, rm) {
     const it = itemById(s.item_id); if (!it) return "items.json에 없는 아이템";
     const w = seedW(s, it), h = it.h;
+    // wallpaper on the floor rows goes only on the painted 벽지 칸 (mirrors placement.paper_cells)
+    if (it.layer === "wallpaper" && s.y >= rm.wall_rows) return paperCells(rm, s.x, s.y, w, h) ? null : "칠한 벽지 칸 위에만 놓을 수 있어요 (열마다 시작 줄이 칠해져 있어야 해요)";
     if (onWall(it) ? s.y + h > rm.wall_rows : s.y < rm.wall_rows) {
       // wall decor may hang on a partition's face instead of the wall rows
       if (onWall(it) && it.layer === "wall" && s.y >= rm.wall_rows) return hangerOf(s, it, rm) ? null : "벽 칸이나 partition 벽면 위에만 걸 수 있어요";
@@ -500,7 +515,7 @@
     $("tabRoom").classList.toggle("on", m === "room"); $("tabMap").classList.toggle("on", m === "map"); $("tabDock").classList.toggle("on", m === "dock");
     setTool("select"); renderPalette(); layout(); draw(); renderSide();
     $("stageHint").textContent = m === "room"
-      ? "선택: 시드/출구/효과 클릭·드래그 이동 · 시드 놓기: 팔레트 아이템 고르고 클릭 · 바닥 칠하기: 타일 고르고 클릭/드래그, 우클릭=기본 바닥으로 · 출구/구역: 드래그로 사각형 · 효과 놓기: 픽셀 단위(드래그, 방향키=1칸/Shift=8px/Ctrl=1px) · Delete=삭제"
+      ? "선택: 시드/출구/효과 클릭·드래그 이동 · 시드 놓기: 팔레트 아이템 고르고 클릭 · 바닥 칠하기: 타일 고르고 클릭/드래그, 우클릭=기본 바닥으로 · 벽지 칸: 클릭/드래그로 칠하기, 우클릭=지우기 (열마다 세로로 칠한 칸 수 = 벽지 높이) · 출구/구역: 드래그로 사각형 · 효과 놓기: 픽셀 단위(드래그, 방향키=1칸/Shift=8px/Ctrl=1px) · Delete=삭제"
       : m === "map"
       ? "칠하기: 클릭/드래그 · 우클릭=지우개 · 장소/데코 놓기: 팔레트에서 고르고 클릭 · 선택: 드래그 이동 · 방향키=1칸, Shift=8px, Ctrl=1px · R=회전 · F=반전 · Delete=삭제"
       : "레이어 클릭=선택 · 드래그=이동(픽셀 단위, Shift=16px 스냅) · 팔레트 클릭=슬라이스 레이어 추가 · Delete=삭제";
@@ -612,7 +627,7 @@
     roomId = id; room = rooms[id]; selSeed = selExit = selRZone = null;
     if (room.__train) document.body.dataset.train = "1"; else delete document.body.dataset.train;
     if (room.__train && ["exit", "zone", "spawn"].includes(tool)) setTool("select");
-    room.exits = room.exits || []; room.seed = room.seed || []; room.blocked = room.blocked || []; room.zones = room.zones || []; room.fx = room.fx || []; selFx = null;
+    room.exits = room.exits || []; room.seed = room.seed || []; room.blocked = room.blocked || []; room.paper = room.paper || []; room.zones = room.zones || []; room.fx = room.fx || []; selFx = null;
     room.tiles = room.tiles || { wall: [], wall_left: [], wall_right: [], floor: "" };
     if (room.floor) room.floor = fitGrid(room.floor, room.cols, room.rows);
     renderSide(); layout(); draw();
@@ -829,6 +844,7 @@
     room.spawn.x = Math.min(room.spawn.x, room.cols - 1); room.spawn.y = Math.max(room.wall_rows, Math.min(room.spawn.y, room.rows - 1));
     if (room.floor) room.floor = fitGrid(room.floor, room.cols, room.rows);
     room.blocked = room.blocked.filter(([x, y]) => x < room.cols && y < room.rows);
+    room.paper = room.paper.filter(([x, y]) => x < room.cols && y >= room.wall_rows && y < room.rows);
     touch(); renderSide(); layout(); draw();
   };
   // ---- train: door openings of this template + the corridor shared by every compartment
@@ -886,6 +902,7 @@
         return s.x < cols && s.y >= 0 && s.y < wall + floor;
       });
       r.blocked = r.blocked.map(([x, y]) => [x, y + dy]).filter(([x, y]) => x < cols && y >= wall && y < wall + floor);
+      r.paper = (r.paper || []).map(([x, y]) => [x, y + dy]).filter(([x, y]) => x < cols && y >= wall && y < wall + floor);
       if (r.floor) {
         const old = r.floor; r.floor = [];
         for (let y = 0; y < wall + floor; y++) { const src = old[y - dy] || []; r.floor.push([...Array(cols)].map((_, x) => (y >= wall ? src[x] ?? null : null))); }
@@ -1065,6 +1082,8 @@
       if (key) drawKey("interior", key, x * cz, y * cz, cz, cz);
     }
     for (const [bx, by] of room.blocked) { g.fillStyle = "rgba(255,60,60,.35)"; g.fillRect(bx * cz, by * cz, cz, cz); }
+    // 벽지 칸: violet cells (strong while the tool is on, a faint outline otherwise, drawn again over the seeds below)
+    if (tool === "paper") for (const [px, py] of room.paper) { g.fillStyle = "rgba(190,120,255,.4)"; g.fillRect(px * cz, py * cz, cz, cz); }
     // seeds sorted like the game: wall layers and floor first (row -1, rugs over floor patterns), then by bottom row;
     // wall decor hung on a partition sorts with the partition's feet, just above it
     const order = { wallpaper: 0, wall: 1, floor: 2, rug: 2.5, furniture: 3, hung: 3.5, surface_item: 4 };
@@ -1072,16 +1091,18 @@
     for (const o of seeds) {
       const hanger = onWall(o.it) && o.s.y >= room.wall_rows ? hangerOf(o.s, o.it, room) : null;
       const hit = hanger && itemById(hanger.item_id);
-      o.row = hit ? hanger.y + hit.h : onWall(o.it) || o.it.layer === "floor" ? -1 : o.s.y + o.it.h;
-      o.ord = hit ? order.hung : o.it.layer === "floor" && tagsOf(o.it).includes("rug") ? order.rug : order[o.it.layer];
+      o.cells = o.it.layer === "wallpaper" && o.s.y >= room.wall_rows ? paperCells(room, o.s.x, o.s.y, seedW(o.s, o.it), o.it.h) : null;
+      o.row = o.cells ? Math.max(...o.cells.map((c) => c[1])) + 1 : hit ? hanger.y + hit.h : onWall(o.it) || o.it.layer === "floor" ? -1 : o.s.y + o.it.h;
+      o.ord = o.cells ? order.hung - 0.25 : hit ? order.hung : o.it.layer === "floor" && tagsOf(o.it).includes("rug") ? order.rug : order[o.it.layer];
     }
     seeds.sort((a, b) => a.row - b.row || a.ord - b.ord);
-    for (const { s, it } of seeds) {
+    for (const { s, it, cells } of seeds) {
       const f = frameOf("interior", it.sprite);
       const w = (it.layer === "wallpaper" ? (s.span || it.w) : it.w);
       // a surface item is lifted onto its table by the table's surface_offset_y (mirrors client ItemLayer)
       const under = surfaceUnder(s, it, room), lift = under ? (itemById(under.item_id).surface_offset_y || 0) : 0;
-      if (it.layer === "wallpaper" && f) { for (let ox = 0; ox < w * CELL; ox += f.w) drawKey("interior", it.sprite, (s.x * CELL + ox) * zoom, s.y * cz + (it.offset_y || 0) * zoom, Math.min(f.w, w * CELL - ox) * zoom, f.h * zoom); }
+      if (cells && f) drawPaperStrips(it, s, cells, f, cz);
+      else if (it.layer === "wallpaper" && f) { for (let ox = 0; ox < w * CELL; ox += f.w) drawKey("interior", it.sprite, (s.x * CELL + ox) * zoom, s.y * cz + (it.offset_y || 0) * zoom, Math.min(f.w, w * CELL - ox) * zoom, f.h * zoom); }
       else if (onWall(it)) drawKey("interior", it.sprite, s.x * cz, s.y * cz + (it.offset_y || 0) * zoom);
       else drawKey("interior", it.sprite, s.x * cz, (s.y + it.h) * cz - (f ? f.h * zoom : cz) + ((it.offset_y || 0) - lift) * zoom);
       const bad = seedProblem(s, room);
@@ -1089,6 +1110,7 @@
       g.strokeRect(s.x * cz + .5, s.y * cz + .5, w * cz - 1, it.h * cz - 1);
       if (bad) { g.fillStyle = "rgba(255,59,59,.25)"; g.fillRect(s.x * cz, s.y * cz, w * cz, it.h * cz); g.fillStyle = "#ff3b3b"; g.font = `bold ${Math.max(10, 6 * zoom)}px sans-serif`; g.fillText("!", s.x * cz + 3, s.y * cz + 6 * zoom + 2); }
     }
+    if (tool !== "paper") { g.strokeStyle = "rgba(190,120,255,.55)"; g.lineWidth = 1; for (const [px, py] of room.paper) g.strokeRect(px * cz + 1.5, py * cz + 1.5, cz - 3, cz - 3); }
     for (const z of room.zones) {
       const bad = zoneProblem(z, room);
       g.fillStyle = z === selRZone ? "rgba(255,211,92,.18)" : bad ? "rgba(255,59,59,.18)" : "rgba(150,255,170,.12)"; g.fillRect(z.x * cz, z.y * cz, z.w * cz, z.h * cz);
@@ -1188,6 +1210,22 @@
     const v = erase ? null : palTile;
     if (room.floor[c.y][c.x] !== v) { room.floor[c.y][c.x] = v; touch(); }
   }
+  // 벽지 칸: floor-row cells only; on = paint, off = erase
+  function setPaper(c, on) {
+    if (c.y < room.wall_rows) return;
+    const i = room.paper.findIndex(([x, y]) => x === c.x && y === c.y);
+    if (on && i < 0) { room.paper.push([c.x, c.y]); touch(); } else if (!on && i >= 0) { room.paper.splice(i, 1); touch(); }
+  }
+  /** A wallpaper seed on 벽지 칸: per column a strip as tall as its painted run, showing the sprite's lower rows (mirrors ItemLayer.makePaperStrips). */
+  function drawPaperStrips(it, s, cells, f, cz) {
+    const img = atlas.interior && atlas.interior.img; if (!img) return;
+    const runs = new Map();
+    for (const [cx, cy] of cells) { const r = runs.get(cx); runs.set(cx, r ? [Math.min(r[0], cy), Math.max(r[1], cy)] : [cy, cy]); }
+    for (const [cx, [top, bottom]] of runs) {
+      const h = Math.min((bottom - top + 1) * CELL, f.h), sx = ((cx - s.x) * CELL) % f.w;
+      g.drawImage(img, f.x + sx, f.y + f.h - h, CELL, h, cx * cz, (bottom + 1) * cz - h * zoom, cz, h * zoom);
+    }
+  }
   const floorKeyAt = (rm, x, y) => (rm.floor && rm.floor[y] && rm.floor[y][x]) || rm.tiles.floor;
 
   cv.addEventListener("contextmenu", (e) => e.preventDefault());
@@ -1206,6 +1244,7 @@
     if (mode === "room") {
       if (tool === "spawn") { room.spawn = { x: c.x, y: Math.max(room.wall_rows, c.y) }; touch(); draw(); return; }
       if (tool === "blocked") { toggleBlocked(room.blocked, c); drag = { mode: "blocked", last: c }; touch(); draw(); return; }
+      if (tool === "paper") { setPaper(c, !right); drag = { mode: "paper", on: !right }; draw(); return; }
       if (tool === "floor") { if (!palTile && !right) { alert("팔레트에서 바닥 타일을 고르세요"); return; } paintFloor(c, right); drag = { mode: "floor", erase: right }; draw(); return; }
       if (tool === "seed" && palKey && !right) {
         const it = itemById(palKey); const s = { item_id: it.id, x: c.x, y: c.y }; if (it.layer === "wallpaper") s.span = it.w;
@@ -1284,6 +1323,7 @@
         const x0 = Math.min(drag.ox, c.x), y0 = Math.min(drag.oy, c.y); drag.rect = { x: x0, y: y0, w: Math.abs(c.x - drag.ox) + 1, h: Math.abs(c.y - drag.oy) + 1 };
       } else if (drag.mode === "paint" && hover) paint(c, drag.erase);
       else if (drag.mode === "floor" && hover) paintFloor(c, drag.erase);
+      else if (drag.mode === "paper" && hover) setPaper(c, drag.on);
       else if (drag.mode === "door" && hover && selPlace && (c.x !== drag.last.x || c.y !== drag.last.y)) { setDoor(selPlace, c, drag.on); drag.last = c; }
       else if (drag.mode === "blocked" && hover && (c.x !== drag.last.x || c.y !== drag.last.y)) { toggleBlocked(mode === "room" ? room.blocked : map.blocked, c); drag.last = c; touch(); }
     }

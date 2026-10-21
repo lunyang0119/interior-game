@@ -85,7 +85,8 @@ export class RoomScene extends Phaser.Scene {
 
   create(): void {
     this.drawRoom();
-    this.cam = new CameraController(this, { worldW: this.room.cols * CELL, worldH: this.room.rows * CELL, zoomHint: this.room.zoom });
+    // minZoom 1: zoom out as far as the room still fills the view; overscroll: drag a corner out from under the UI
+    this.cam = new CameraController(this, { worldW: this.room.cols * CELL, worldH: this.room.rows * CELL, zoomHint: this.room.zoom, minZoom: 1, overscroll: 0.4 });
     this.items = new ItemLayer(this, this.cat);
     this.placement = new PlacementController(this, this.cat, this.room, this.items);
     this.placement.onRestart = () => { this.hoverFollow = true; }; // "+1": the fresh ghost follows the mouse again

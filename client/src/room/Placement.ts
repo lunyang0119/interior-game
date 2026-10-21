@@ -1,11 +1,11 @@
 import Phaser from "phaser";
 import { api, ApiError, msgFor } from "../api";
 import { bus, toast } from "../bus";
-import { Z_HUNG, Z_HUNG_PAPER, Z_SCALE, canHang, collisionLayer, heightOf, onWall, priceOf, widthOf, type Catalog, type Room, type RoomItem } from "../catalog";
+import { Z_HUNG, Z_HUNG_PAPER, Z_SCALE, canHang, collisionLayer, isFloorPaper, onWall, paperCells, priceOf, widthOf, type Catalog, type Room, type RoomItem } from "../catalog";
 import { state } from "../state";
 import { depthOf, sortRowFor } from "./depth";
 import { anchorUnderPointer, CELL } from "./grid";
-import { fitPaper, makeItemSprite, type ItemLayer } from "./ItemLayer";
+import { makeItemSprite, tintSprite, type ItemLayer, type ItemSprite, type Pasted } from "./ItemLayer";
 import { checkPlace } from "./rules";
 
 const TINT_OK = 0x7cff7c;
@@ -15,7 +15,9 @@ const FOOTPRINT_ALPHA = 0.28;
 
 /** Ghost-preview placement / move mode. Pointer input is fed in by RoomScene. */
 export class PlacementController {
-  private ghost: Phaser.GameObjects.Image | Phaser.GameObjects.TileSprite | null = null;
+  private ghost: ItemSprite | null = null;
+  /** What the ghost sprite was built for (wallpaper: span, and where it is pasted); a change rebuilds it. */
+  private ghostShape = "";
   private footprint: Phaser.GameObjects.Graphics | null = null;
   private itemId = "";
   private moveUid: number | null = null;
@@ -74,6 +76,7 @@ export class PlacementController {
   private makeGhost(): void {
     const it = this.cat.byId.get(this.itemId)!;
     this.ghost = makeItemSprite(this.scene, it, this.span).setAlpha(0.75);
+    this.ghostShape = `${this.span ?? ""}`;
     // the cells a w×h item will occupy: makes "why is it red" obvious for big furniture
     this.footprint = this.scene.add.graphics().setDepth(FOOTPRINT_DEPTH);
   }
@@ -98,9 +101,15 @@ export class PlacementController {
     const others = this.items.rows.filter((r) => r.uid !== this.moveUid);
     const check = checkPlace(this.cat, this.room, others, this.itemId, cx, cy, this.span);
     this.ok = check.ok;
-    const hung = it.layer === "wallpaper" && cy >= this.room.wall_rows; // pasted on a partition: lower rows only
-    const h = heightOf(it, hung);
-    fitPaper(this.scene, this.ghost, it, this.span, hung);
+    // wallpaper on the floor rows: strips over the painted 벽지 칸 (a plain red strip where nothing is painted)
+    const cells = isFloorPaper(it, this.room, cy) ? paperCells(this.room, cx, cy, this.width(), it.h) : null;
+    const pasted: Pasted | null = cells ? { x: cx, y: cy, cells } : null;
+    const shape = pasted ? `${this.span ?? ""}@${cx},${cy}` : `${this.span ?? ""}`;
+    if (shape !== this.ghostShape) {
+      this.ghost.destroy();
+      this.ghost = makeItemSprite(this.scene, it, this.span, pasted).setAlpha(0.75);
+      this.ghostShape = shape;
+    }
     let y = (onWall(it) ? cy * CELL : (cy + it.h) * CELL) + (it.offset_y ?? 0);
     let sortRow = sortRowFor(collisionLayer(it), cy + it.h - 1);
     let z = Z_SCALE[collisionLayer(it)];
@@ -109,17 +118,26 @@ export class PlacementController {
       const pit = parent && this.cat.byId.get(parent.item_id);
       if (parent && pit) {
         sortRow = parent.y + pit.h - 1;
-        if (canHang(it)) z = it.layer === "wallpaper" ? Z_HUNG_PAPER : Z_HUNG; // hung on a partition
+        if (canHang(it)) z = Z_HUNG; // hung on a partition
         else y -= pit.surface_offset_y; // on a table
       }
     }
-    this.ghost.setPosition(cx * CELL, y).setDepth(depthOf(sortRow, z) + 5).setTint(check.ok ? TINT_OK : TINT_BAD);
+    if (cells) {
+      sortRow = Math.max(...cells.map((c) => c[1]));
+      z = Z_HUNG_PAPER;
+    }
+    this.ghost.setPosition(cx * CELL, y).setDepth(depthOf(sortRow, z) + 5);
+    tintSprite(this.ghost, check.ok ? TINT_OK : TINT_BAD);
     if (this.footprint) {
       const color = check.ok ? TINT_OK : TINT_BAD;
-      const w = this.width();
-      this.footprint.clear()
-        .fillStyle(color, FOOTPRINT_ALPHA).fillRect(cx * CELL, cy * CELL, w * CELL, h * CELL)
-        .lineStyle(1, color, 0.9).strokeRect(cx * CELL + 0.5, cy * CELL + 0.5, w * CELL - 1, h * CELL - 1);
+      this.footprint.clear().fillStyle(color, FOOTPRINT_ALPHA).lineStyle(1, color, 0.9);
+      if (cells) {
+        for (const [x, yy] of cells) this.footprint.fillRect(x * CELL, yy * CELL, CELL, CELL);
+      } else {
+        const w = this.width();
+        this.footprint.fillRect(cx * CELL, cy * CELL, w * CELL, it.h * CELL)
+          .strokeRect(cx * CELL + 0.5, cy * CELL + 0.5, w * CELL - 1, it.h * CELL - 1);
+      }
     }
   }
 

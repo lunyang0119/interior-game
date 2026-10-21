@@ -5,7 +5,8 @@ import { CELL } from "../room/grid";
  *
  * Zoom never drops below the "cover" zoom (the world fills the whole view, so no black margins); the automatic
  * and wheel zooms are integers (crisp pixel art), a pinch may leave any zoom in range and keeps it. The camera is
- * clamped to the world's edges (centred only when the world exactly fits an axis). Following is manual (Phaser's
+ * clamped to the world's edges (centred only when the world exactly fits an axis); after a manual pan it may go
+ * `overscroll` past them, so a corner can be dragged out from under the placement bar / sidebar. Following is manual (Phaser's
  * startFollow + setBounds left-aligns small worlds). Pan gestures switch following off; the next `follow()` call
  * switches it back on.
  *
@@ -23,6 +24,8 @@ export interface CameraOpts {
   maxZoom?: number;
   /** How many cells the short axis of the screen should show. */
   targetRows?: number;
+  /** While panned by hand (not following), how far past the world's edges the view may go, as a fraction of the view. */
+  overscroll?: number;
 }
 
 export class CameraController {
@@ -150,10 +153,13 @@ export class CameraController {
     if (this.following && this.target) this.center = { x: this.target.x, y: this.target.y - CELL };
     const z = this.zoom;
     const half = { x: this.viewW / (2 * z), y: this.viewH / (2 * z) };
-    const cx = this.opts.worldW * z <= this.viewW ? this.opts.worldW / 2
-      : Phaser.Math.Clamp(this.center.x, half.x, this.opts.worldW - half.x);
-    const cy = this.opts.worldH * z <= this.viewH ? this.opts.worldH / 2
-      : Phaser.Math.Clamp(this.center.y, half.y, this.opts.worldH - half.y);
+    // margin past the edges (world units): only while panned by hand, so following never shows the outside
+    const over = this.following ? 0 : this.opts.overscroll ?? 0;
+    const mx = (this.viewW * over) / z, my = (this.viewH * over) / z;
+    const axis = (c: number, world: number, view: number, h: number, m: number): number =>
+      world * z <= view ? Phaser.Math.Clamp(c, world / 2 - m, world / 2 + m) : Phaser.Math.Clamp(c, h - m, world - h + m);
+    const cx = axis(this.center.x, this.opts.worldW, this.viewW, half.x, mx);
+    const cy = axis(this.center.y, this.opts.worldH, this.viewH, half.y, my);
     if (!this.following) this.center = { x: cx, y: cy };
     // keep world→screen on whole device pixels: the view's top-left must be a multiple of 1/zoom
     const sx = Math.round((cx - this.viewW / 2) * z) / z, sy = Math.round((cy - this.viewH / 2) * z) / z;

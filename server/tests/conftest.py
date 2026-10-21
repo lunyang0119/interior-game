@@ -39,7 +39,6 @@ def env(tmp_path, monkeypatch):
         {"id": "bed", "name": "bed", "price": 60, "sprite": "bed", "w": 2, "h": 2, "layer": "furniture", "tags": ["bed"]},
         {"id": "divider", "name": "divider", "price": 20, "sprite": "divider", "w": 2, "h": 1, "layer": "wall", "tags": ["partition"]},
         {"id": "gate", "name": "gate", "price": 25, "sprite": "gate", "w": 2, "h": 1, "layer": "wall", "tags": ["partition", "door"]},
-        {"id": "screen", "name": "screen", "price": 20, "sprite": "screen", "w": 2, "h": 1, "layer": "wall", "tags": ["partition"]},
         {"id": "tallpaper", "name": "tallpaper", "price": 5, "sprite": "tallpaper", "w": 2, "h": 3, "layer": "wallpaper"},
     ]}), encoding="utf-8")
     rooms = data / "rooms"
@@ -56,6 +55,8 @@ def env(tmp_path, monkeypatch):
         # painted floor: a pond tile at (4,3) — unwalkable, nothing can be placed on it
         "floor": [[None] * 6 for _ in range(3)] + [[None, None, None, None, "tile_water", None], [None] * 6],
         "exits": [{"x": 0, "y": 4, "w": 1, "h": 1, "to": "inn", "spawn": {"x": 6, "y": 4}}],
+        # 벽지 칸: column 1 painted 2 tall (rows 2-3), column 2 one cell (row 3), column 3 three tall (rows 1-3)
+        "paper": [[1, 2], [1, 3], [2, 3], [3, 1], [3, 2], [3, 3]],
         "seed": [{"item_id": "junk", "x": 3, "y": 2}, {"item_id": "stairs", "x": 5, "y": 1}, {"item_id": "junk", "x": 9, "y": 9},
                  {"item_id": "junk", "x": 3, "y": 2}, {"item_id": "junk", "x": 1, "y": 0}],
     }, ensure_ascii=False), encoding="utf-8")
@@ -84,7 +85,6 @@ def env(tmp_path, monkeypatch):
                              "outfit": {"count": 0}, "acc": {"count": 0}}},
         "interiors": {"atlas": "gen/interiors.json",
                       "keys": {**{k: {} for k in ["chair", "rug", "pattern", "frame", "banner", "paper", "junk", "stairs", "memo", "tile_wall", "gate", "scrap", "tallpaper"]},
-                               "screen": {"ch": 3},  # a 3-row face like the medieval partitions
                                "divider": {"ch": 2},  # the divider's picture is 2 rows tall on a 1-row footprint
                                "table": {"set": "oak"}, "bed": {"set": "oak"}, "tray": {"set": "oak"}, "cup": {"set": "pine"},
                                "tile_floor": {"step": "wood"}, "tile_water": {"step": "water", "walk": False}}},

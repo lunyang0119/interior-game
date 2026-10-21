@@ -4,9 +4,9 @@
 
 import Phaser from "phaser";
 import { CELL } from "../../room/grid";
-import { canHang, collisionLayer, floorKeyAt, onWall, Z_HUNG, Z_HUNG_PAPER, Z_SCALE, type Item, type Room, type Seed } from "../../catalog";
+import { canHang, collisionLayer, floorKeyAt, isFloorPaper, onWall, paperCells, Z_HUNG, Z_HUNG_PAPER, Z_SCALE, type Item, type Room, type Seed } from "../../catalog";
 import { depthOf, FX_DEPTH, sortRowFor, TILE_DEPTH } from "../../room/depth";
-import { fitPaper } from "../../room/ItemLayer";
+import { makePaperStrips } from "../../room/ItemLayer";
 import { cellKey } from "../../room/walk";
 import { DEVICE_KO } from "../strings";
 import { benchCells, deviceCell, type Door, type Layout, type RoomBox } from "./layout";
@@ -114,14 +114,22 @@ export class CarMap {
         const p = seeds.find((o) => o.it.is_surface && s.x >= o.s.x && s.x < o.s.x + o.it.w && by >= o.s.y && by < o.s.y + o.it.h);
         if (p) { y = (row + it.h) * CELL - p.it.surface_offset_y + (it.offset_y ?? 0); sortRow = b.wallY0 + p.s.y + p.it.h - 1; }
       } else if (canHang(it) && s.y >= t.wall_rows) {
-        z = it.layer === "wallpaper" ? Z_HUNG_PAPER : Z_HUNG; // hung on a partition's face
+        z = Z_HUNG; // hung on a partition's face
+      }
+      // wallpaper pasted on the template's painted 벽지 칸 (the server skips such a seed when nothing is painted)
+      const cells = isFloorPaper(it, t, s.y) ? paperCells(t, s.x, s.y, s.span || it.w, it.h) : null;
+      if (isFloorPaper(it, t, s.y) && !cells) continue;
+      if (cells) {
+        sortRow = b.wallY0 + Math.max(...cells.map((c) => c[1]));
+        z = Z_HUNG_PAPER;
       }
       const x = (b.x0 + s.x) * CELL;
       const depth = depthOf(sortRow, z);
-      if (it.layer === "wallpaper") {
+      if (cells) {
+        this.objects.push(makePaperStrips(this.scene, it, { x: s.x, y: s.y, cells }).setPosition(x, y).setDepth(depth));
+      } else if (it.layer === "wallpaper") {
         const ts = this.scene.add.tileSprite(x, y, (s.span || it.w) * CELL, this.scene.textures.getFrame(ATLAS, it.sprite).height, ATLAS, it.sprite)
           .setOrigin(0, 0).setDepth(depth);
-        fitPaper(this.scene, ts, it, s.span, s.y >= t.wall_rows);
         this.objects.push(ts);
       } else {
         const img = this.scene.add.image(x, y, ATLAS, it.sprite).setOrigin(0, onWall(it) ? 0 : 1).setDepth(depth);

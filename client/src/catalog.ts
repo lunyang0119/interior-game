@@ -35,9 +35,9 @@ export function isPartition(it: Item | undefined): boolean {
   return (it?.layer === "wall" || it?.layer === "wallpaper") && hasTag(it, TAG_PARTITION);
 }
 
-/** Wall decor or wallpaper that may hang on a partition's face as well as on the wall rows (mirrors Item.can_hang). */
+/** Wall decor that may hang on a partition's face as well as on the wall rows (mirrors Item.can_hang). */
 export function canHang(it: Item | undefined): boolean {
-  return (it?.layer === "wall" || it?.layer === "wallpaper") && !hasTag(it, TAG_PARTITION);
+  return it?.layer === "wall" && !hasTag(it, TAG_PARTITION);
 }
 
 /** Rows of a partition's visible face, counted up from the bottom of its footprint (mirrors Item.face_rows). */
@@ -96,6 +96,8 @@ export interface Room {
   zones?: Zone[];
   /** Items the server places once (owner $seed); the train page draws its compartment interiors straight from these. */
   seed?: Seed[];
+  /** Floor-row cells where wallpaper may be pasted (world editor "벽지 칸"), see paperCells. */
+  paper?: [number, number][];
 }
 
 export interface Seed { item_id: string; x: number; y: number; span?: number | null }
@@ -303,14 +305,29 @@ export const Z_SCALE: Record<CollisionLayer, number> = { wallpaper: 0, wall: 1, 
 export const Z_AVATAR = 15;
 /** Wall decor hanging on a partition: sorted with the partition's bottom row, just above it and below avatars there. */
 export const Z_HUNG = Z_SCALE.furniture + 2;
-/** Wallpaper pasted on a partition's face: over the partition, under the decor hung on it. */
+/** Wallpaper pasted on the floor rows (a partition's face): over the partition, under the decor hung on it. */
 export const Z_HUNG_PAPER = Z_SCALE.furniture + 1;
-/** Rows a wallpaper pasted on a partition leaves bare at the top (the partition's rim); mirrors placement.PAPER_TRIM. */
-export const PAPER_TRIM = 1;
 
-/** Footprint height: wallpaper pasted on a partition's face loses its top PAPER_TRIM rows (mirrors placement.height_of). */
-export function heightOf(it: Item, hung: boolean): number {
-  return hung && it.layer === "wallpaper" ? Math.max(1, it.h - PAPER_TRIM) : it.h;
+/** Wallpaper anchored on a floor row: it can only be pasted on the room's painted 벽지 칸 (mirrors placement.is_floor_paper). */
+export function isFloorPaper(it: Item | undefined, room: Pick<Room, "wall_rows"> | undefined, y: number): boolean {
+  return it?.layer === "wallpaper" && !!room && y >= room.wall_rows;
+}
+
+/** Footprint of a wallpaper pasted on the floor rows at (x, y): per column the vertical run of painted 벽지 칸
+ *  through row y, capped at h (lower rows kept); null when any column is unpainted at row y. Mirrors placement.paper_cells. */
+export function paperCells(room: Pick<Room, "paper">, x: number, y: number, w: number, h: number): [number, number][] | null {
+  const painted = new Set((room.paper ?? []).map(([cx, cy]) => cy * 10_000 + cx));
+  const has = (cx: number, cy: number): boolean => painted.has(cy * 10_000 + cx);
+  const out: [number, number][] = [];
+  for (let cx = x; cx < x + w; cx++) {
+    if (!has(cx, y)) return null;
+    let top = y, bottom = y;
+    while (has(cx, top - 1)) top--;
+    while (has(cx, bottom + 1)) bottom++;
+    top = Math.max(top, bottom - h + 1);
+    for (let cy = top; cy <= bottom; cy++) out.push([cx, cy]);
+  }
+  return out;
 }
 
 export function hasTag(it: Item | undefined, tag: string): boolean {

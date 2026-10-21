@@ -104,8 +104,8 @@ class Item(BaseModel):
 
     @property
     def can_hang(self) -> bool:
-        """Wall decor or wallpaper that may hang on a partition's face as well as on the wall rows."""
-        return self.layer in WALL_LAYERS and not self.has_tag(TAG_PARTITION)
+        """Wall decor that may hang on a partition's face as well as on the wall rows."""
+        return self.layer == "wall" and not self.has_tag(TAG_PARTITION)
 
     @property
     def face_rows(self) -> int:
@@ -239,8 +239,18 @@ class Room(BaseModel):
     guests: bool = True
     # Pixel-placed decorations / animations drawn on top (see Fx).
     fx: list[Fx] = []
+    # Floor-row cells where wallpaper may be pasted (world editor "벽지 칸", e.g. a partition's face), [[x, y], ...].
+    # A pasted wallpaper fills, per column, the vertical run of painted cells through its anchor row (placement.paper_cells).
+    paper: list[list[int]] = []
     # /train/ compartment templates only: where the doors open (see TrainDoors). None = centred doors.
     doors: TrainDoors | None = None
+
+    @model_validator(mode="after")
+    def _paper(self) -> "Room":
+        for c in self.paper:
+            if len(c) != 2 or not (0 <= c[0] < self.cols and self.wall_rows <= c[1] < self.rows):
+                raise ValueError(f"room {self.id}: 벽지 칸 {c} must be a floor-row cell inside the room")
+        return self
 
     @model_validator(mode="after")
     def _zones(self) -> "Room":
@@ -273,6 +283,10 @@ class Room(BaseModel):
     @property
     def blocked_set(self) -> set[tuple[int, int]]:
         return {(b[0], b[1]) for b in self.blocked}
+
+    @property
+    def paper_set(self) -> set[tuple[int, int]]:
+        return {(c[0], c[1]) for c in self.paper}
 
     def in_bounds(self, x: int, y: int) -> bool:
         return 0 <= x < self.cols and 0 <= y < self.rows

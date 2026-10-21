@@ -297,17 +297,19 @@ def seed_problem(s: dict, room: dict, items: dict[str, dict], others: list[dict]
     w = (s.get("span") or it["w"]) if it["layer"] == "wallpaper" else it["w"]
     h = it["h"]
     x, y = s["x"], s["y"]
+    if it["layer"] == "wallpaper" and y >= room["wall_rows"]:
+        # wallpaper on the floor rows goes only on the painted 벽지 칸 (placement.paper_cells)
+        painted = {(c[0], c[1]) for c in room.get("paper") or []}
+        if all((cx, y) in painted for cx in range(x, x + w)):
+            return None
+        return "칠한 벽지 칸 위에만 (열마다 시작 줄이 칠해져 있어야 해요)"
     if (y + h > room["wall_rows"]) if wall else (y < room["wall_rows"]):
         if wall and y >= room["wall_rows"]:
-            # wall decor / wallpaper on the floor rows is fine when every cell lies on a partition seed's face
-            # (wallpaper skips doors; the per-column rule of placement.hanger_of is not mirrored here)
-            paper = it["layer"] == "wallpaper"
-            if paper:
-                h = max(1, h - 1)  # pasted on a face it leaves the partition's rim bare (placement.PAPER_TRIM)
+            # wall decor on the floor rows is fine when every cell lies on a partition seed's face
             faces: set[tuple[int, int]] = set()
             for o in others:
                 oi = items.get(o.get("item_id"))
-                if o is not s and oi and not (paper and "door" in (oi.get("tags") or [])):
+                if o is not s and oi:
                     faces |= partition_face(o, oi)
             if all((cx, cy) in faces for cy in range(y, y + h) for cx in range(x, x + w)):
                 return None
@@ -347,6 +349,9 @@ def validate_room(rid: str, room: dict, all_ids: set[str], item_ids: set[str], t
                 return f"{rid}: 모르는 타일 '{t}' ({k})"
     if tiles.get("floor") not in tile_keys:
         return f"{rid}: 모르는 바닥 타일 '{tiles.get('floor')}'"
+    for c in room.get("paper") or []:
+        if not (isinstance(c, list) and len(c) == 2 and 0 <= c[0] < room["cols"] and room["wall_rows"] <= c[1] < room["rows"]):
+            return f"{rid}: 벽지 칸 {c}는 방 안의 바닥 줄이어야 해요"
     fl = room.get("floor")
     if fl is not None:
         if not isinstance(fl, list) or len(fl) != room["rows"] or any(not isinstance(r, list) or len(r) != room["cols"] for r in fl):
@@ -409,7 +414,7 @@ def save_rooms(rooms: dict[str, dict]) -> None:
         if stale.stem not in rooms:
             stale.unlink()
     for rid, room in rooms.items():
-        room = {"id": rid, **{k: v for k, v in room.items() if k != "id" and not (k == "fx" and not v)}}
+        room = {"id": rid, **{k: v for k, v in room.items() if k != "id" and not (k in ("fx", "paper") and not v)}}
         (ROOMS_DIR / f"{rid}.json").write_text(json.dumps(room, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
     # the game server (until the multi-room phase) reads data/room.json: keep it equal to the inn
     if "inn" in rooms:
