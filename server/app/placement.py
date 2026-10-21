@@ -6,7 +6,9 @@ Rules (see plan §3):
 2. every footprint cell has the right type for the layer (wallpaper/wall ↔ wall rows, else floor);
    a `partition`-tagged wall sprite is the exception: it stands on floor rows — and `wall` decor may instead
    hang on a partition's face (floor cells covered by a partition's sprite, see partition_face); the partition
-   under its first cell becomes its parent (so it goes when the partition goes), z = "hung"
+   under its first cell becomes its parent (so it goes when the partition goes), z = "hung". Wallpaper may be
+   pasted on a face too (its lower rows: PAPER_TRIM rows shorter, down to the face bottom, not on doors; see
+   hanger_of / height_of)
 3. wallpaper/wall/floor/furniture only collide with items of the same collision layer
    (so frames, doors and chalkboards can hang over wallpaper; partitions collide with furniture;
    `rug`-tagged floor items lie over untagged floor patterns)
@@ -24,7 +26,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from .catalog import DEFAULT_ROOM, Catalog, Item, Z_OF_LAYER
+from .catalog import DEFAULT_ROOM, TAG_DOOR, Catalog, Item, Z_OF_LAYER
 from .errors import ApiError
 
 
@@ -72,9 +74,17 @@ def price_of(it: Item, span: int | None) -> int:
     return it.price * width_of(it, span) if it.layer == "wallpaper" else it.price
 
 
+PAPER_TRIM = 1  # rows a wallpaper pasted on a partition leaves bare at the top (the partition's rim)
+
+
+def height_of(it: Item, hung: bool) -> int:
+    """Footprint height: wallpaper pasted on a partition's face loses its top PAPER_TRIM rows."""
+    return max(1, it.h - PAPER_TRIM) if hung and it.layer == "wallpaper" else it.h
+
+
 def footprint_of(catalog: Catalog, row: ItemRow) -> list[Cell]:
     it = catalog.items[row.item_id]
-    return footprint(row.x, row.y, width_of(it, row.span), it.h)
+    return footprint(row.x, row.y, width_of(it, row.span), height_of(it, row.parent_uid is not None))
 
 
 def partition_face(catalog: Catalog, row: ItemRow) -> set[Cell]:
@@ -87,19 +97,34 @@ def partition_face(catalog: Catalog, row: ItemRow) -> set[Cell]:
     return set(footprint(row.x, bottom - it.face_rows + 1, it.w, it.face_rows))
 
 
-def hanger_of(catalog: Catalog, others: list[ItemRow], cells: list[Cell]) -> ItemRow | None:
+def hanger_of(catalog: Catalog, others: list[ItemRow], cells: list[Cell], paper: bool = False) -> ItemRow | None:
     """The partition a wall decor with this footprint hangs on: every cell must lie on some partition's face;
-    the one under the first cell is returned (it becomes the parent)."""
+    the one under the first cell is returned (it becomes the parent).
+
+    Wallpaper (`paper`) is stricter: doors take none, and each of its columns must lie on a single partition's
+    face down to that face's bottom row (so it covers the lower face, never a stack of thin vertical pieces)."""
     first: ItemRow | None = None
     covered: set[Cell] = set()
+    faces: list[set[Cell]] = []
     for o in others:
         face = partition_face(catalog, o)
-        if not face:
+        if not face or (paper and catalog.items[o.item_id].has_tag(TAG_DOOR)):
             continue
         if first is None and cells[0] in face:
             first = o
         covered |= face
-    return first if first is not None and all(c in covered for c in cells) else None
+        faces.append(face)
+    if first is None or not all(c in covered for c in cells):
+        return None
+    if paper:
+        columns: dict[int, list[Cell]] = {}
+        for c in cells:
+            columns.setdefault(c[0], []).append(c)
+        def on_face(col: list[Cell], f: set[Cell]) -> bool:
+            return all(c in f for c in col) and max(c[1] for c in col) == max(c[1] for c in f)
+        if not all(any(on_face(col, f) for f in faces) for col in columns.values()):
+            return None
+    return first
 
 
 def validate_place(catalog: Catalog, others: list[ItemRow], item_id: str, x: int, y: int,
@@ -112,7 +137,9 @@ def validate_place(catalog: Catalog, others: list[ItemRow], item_id: str, x: int
         raise ApiError(404, "unknown_room")
     if span is not None and (it.layer != "wallpaper" or not 1 <= span <= room.cols):
         raise fail("bad_span")
-    cells = footprint(x, y, width_of(it, span), it.h)
+    # wallpaper starting on a floor row can only be pasted on a partition: shorter by PAPER_TRIM
+    hung_paper = it.layer == "wallpaper" and room.cell_type(x, y) == "floor"
+    cells = footprint(x, y, width_of(it, span), height_of(it, hung_paper))
     blocked = room.blocked_set
     if not relaxed and any(not room.in_bounds(cx, cy) or (cx, cy) in blocked for cx, cy in cells):
         raise fail("out_of_bounds")
@@ -124,7 +151,7 @@ def validate_place(catalog: Catalog, others: list[ItemRow], item_id: str, x: int
     hanger: ItemRow | None = None  # the partition a wall decor hangs on when it is not on the wall rows
     if any(room.cell_type(cx, cy) != want for cx, cy in cells):
         if it.can_hang and all(room.cell_type(cx, cy) == "floor" for cx, cy in cells):
-            hanger = hanger_of(catalog, others, cells)
+            hanger = hanger_of(catalog, others, cells, paper=it.layer == "wallpaper")
         if hanger is None:
             raise fail("bad_cell_type")
 

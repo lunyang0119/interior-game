@@ -2,13 +2,13 @@
  *
  * A WalkGrid answers "can I stand on this cell". Rooms: floor rows only, not `room.blocked`, not a tile
  * with walk:false (water…), not under furniture a player placed (rugs, wallpaper, wall decor and surface items
- * never block; stairs sit on exits so they stay enterable). Designer seeds ($seed) and ruined junk do not block
- * either: seeds are placed "relaxed" — overlapping and off-grid for perspective — and a ruined inn is packed
+ * never block; stairs sit on exits so they stay enterable). Designer seeds ($seed) — other than partition walls —
+ * and ruined junk do not block either: seeds are placed "relaxed" — overlapping and off-grid for perspective — and a ruined inn is packed
  * with junk wall to wall, so treating them as solid would leave nowhere to stand. The map: not `blocked`
  * (map cells + building footprints minus doors) and not an unwalkable ground/deco tile.
  */
 
-import { collisionLayer, exitAt, floorKeyAt, GUEST_PLAYER, hasTag, SEED_PLAYER, TAG_DOOR, TAG_RUINED, TAG_STAIRS, type Catalog, type MapData, type Room, type RoomItem } from "../catalog";
+import { collisionLayer, exitAt, floorKeyAt, GUEST_PLAYER, hasTag, isPartition, SEED_PLAYER, TAG_DOOR, TAG_RUINED, TAG_STAIRS, type Catalog, type MapData, type Room, type RoomItem } from "../catalog";
 import { footprintOf } from "./rules";
 
 export interface Cell { cx: number; cy: number }
@@ -30,7 +30,8 @@ export function buildOccupancy(cat: Catalog, rows: RoomItem[]): Set<number> {
     if (!it || hasTag(it, TAG_STAIRS) || hasTag(it, TAG_RUINED)) continue;
     // furniture and partition walls block; a `door` partition is walked through
     if (collisionLayer(it) !== "furniture" || hasTag(it, TAG_DOOR)) continue;
-    if (row.placed_by === SEED_PLAYER || row.placed_by === GUEST_PLAYER) continue;
+    // seeds don't block (designer overlap) — except partitions: a seeded wall is still a wall
+    if ((row.placed_by === SEED_PLAYER && !isPartition(it)) || row.placed_by === GUEST_PLAYER) continue;
     for (const [x, y] of footprintOf(cat, row)) occ.add(cellKey(x, y));
   }
   return occ;

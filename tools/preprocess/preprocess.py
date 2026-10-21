@@ -39,9 +39,11 @@ Usage (from repo root):
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 import shutil
+import subprocess
 import sys
 from collections import deque
 from pathlib import Path
@@ -1185,6 +1187,43 @@ def _bgm_files(folder: Path) -> list[Path]:
     return sorted((f for f in folder.iterdir() if f.is_file() and f.suffix.lower() in BGM_EXTS), key=lambda f: f.name.lower()) if folder.exists() else []
 
 
+BGM_KBPS = 128  # mp3s above this are re-encoded (sources go up to 320 kbps, 3-12 MB a track)
+BGM_CACHE = C.ASSETS_ROOT / ".cache" / "bgm"  # encoded copies keyed by source path/size/mtime, so reruns skip ffmpeg
+
+
+def _mp3_kbps(f: Path) -> int | None:
+    try:
+        r = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=bit_rate", "-of", "csv=p=0", str(f)],
+                           capture_output=True, text=True, timeout=30)
+        return int(r.stdout.strip()) // 1000 if r.returncode == 0 else None
+    except (OSError, ValueError, subprocess.TimeoutExpired):
+        return None
+
+
+def _copy_bgm(f: Path, out: Path) -> None:
+    """Copy one track, re-encoding an mp3 above BGM_KBPS (cover art and tags dropped). Without ffmpeg, or for
+    a file ffprobe can't read, the source is copied as-is."""
+    kbps = _mp3_kbps(f) if f.suffix.lower() == ".mp3" else None
+    if kbps is None or kbps <= BGM_KBPS:
+        shutil.copyfile(f, out)
+        return
+    st = f.stat()
+    key = hashlib.sha1(f"{f.resolve()}|{st.st_size}|{st.st_mtime_ns}|{BGM_KBPS}".encode()).hexdigest()[:16]
+    cached = BGM_CACHE / f"{key}.mp3"
+    if not cached.exists():
+        BGM_CACHE.mkdir(parents=True, exist_ok=True)
+        tmp = cached.with_suffix(".tmp.mp3")
+        r = subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", str(f), "-vn", "-map_metadata", "-1",
+                            "-codec:a", "libmp3lame", "-b:a", f"{BGM_KBPS}k", str(tmp)], capture_output=True, text=True)
+        if r.returncode != 0:
+            print(f"  ffmpeg failed on {f.name}, copying as-is: {r.stderr.strip()[:200]}")
+            tmp.unlink(missing_ok=True)
+            shutil.copyfile(f, out)
+            return
+        tmp.replace(cached)
+    shutil.copyfile(cached, out)
+
+
 def _bgm_tracks(files: list[Path], dst: Path, rel: str, start: int = 1) -> list[dict]:
     """Copy tracks into dst (NN-slug.<ext>, numbered from `start`, name order) and return their manifest rows."""
     tracks: list[dict] = []
@@ -1192,7 +1231,7 @@ def _bgm_tracks(files: list[Path], dst: Path, rel: str, start: int = 1) -> list[
         dst.mkdir(parents=True, exist_ok=True)
     for i, f in enumerate(files, start=start):
         name = f"{i:02d}-{_ascii_slug(_bgm_title(f))[:40]}{f.suffix.lower()}"
-        shutil.copyfile(f, dst / name)
+        _copy_bgm(f, dst / name)
         tracks.append({"file": f"{rel}/{name}", "title": _bgm_title(f)})
     return tracks
 

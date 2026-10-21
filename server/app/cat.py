@@ -2,7 +2,8 @@
 
 Every pet counts, from everyone together: the client sends taps in small batches (`cat_taps` rows), and
 affection = min(MAX_AFFECTION, total taps // TAPS_PER_LEVEL) — it never decays, so 300 taps make the cat
-love the inn forever. comfort.py adds `affection × affection_bonus` to the comfort score of CAT_ROOM only.
+love the inn forever. comfort.py adds `affection × affection_bonus` to the comfort score of guest units in
+CAT_COMFORT_ROOMS only (the inn lobby itself takes no guests, its rooms are upstairs).
 Petting is free and never touches the pool; a level-up logs a 'cat' event (the only noise it makes).
 """
 
@@ -14,6 +15,7 @@ from .db import now
 from .progress import add_event
 
 CAT_ROOM = "inn"
+CAT_COMFORT_ROOMS = frozenset({CAT_ROOM, "floor_2"})
 TAPS_PER_LEVEL = 100
 MAX_AFFECTION = 3
 MAX_TAPS_PER_CALL = 50  # one request may not claim more than this many taps

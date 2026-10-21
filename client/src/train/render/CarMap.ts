@@ -4,8 +4,9 @@
 
 import Phaser from "phaser";
 import { CELL } from "../../room/grid";
-import { canHang, collisionLayer, floorKeyAt, onWall, Z_HUNG, Z_SCALE, type Item, type Room, type Seed } from "../../catalog";
+import { canHang, collisionLayer, floorKeyAt, onWall, Z_HUNG, Z_HUNG_PAPER, Z_SCALE, type Item, type Room, type Seed } from "../../catalog";
 import { depthOf, FX_DEPTH, sortRowFor, TILE_DEPTH } from "../../room/depth";
+import { fitPaper } from "../../room/ItemLayer";
 import { cellKey } from "../../room/walk";
 import { DEVICE_KO } from "../strings";
 import { benchCells, deviceCell, type Door, type Layout, type RoomBox } from "./layout";
@@ -113,13 +114,14 @@ export class CarMap {
         const p = seeds.find((o) => o.it.is_surface && s.x >= o.s.x && s.x < o.s.x + o.it.w && by >= o.s.y && by < o.s.y + o.it.h);
         if (p) { y = (row + it.h) * CELL - p.it.surface_offset_y + (it.offset_y ?? 0); sortRow = b.wallY0 + p.s.y + p.it.h - 1; }
       } else if (canHang(it) && s.y >= t.wall_rows) {
-        z = Z_HUNG; // hung on a partition's face
+        z = it.layer === "wallpaper" ? Z_HUNG_PAPER : Z_HUNG; // hung on a partition's face
       }
       const x = (b.x0 + s.x) * CELL;
       const depth = depthOf(sortRow, z);
       if (it.layer === "wallpaper") {
         const ts = this.scene.add.tileSprite(x, y, (s.span || it.w) * CELL, this.scene.textures.getFrame(ATLAS, it.sprite).height, ATLAS, it.sprite)
           .setOrigin(0, 0).setDepth(depth);
+        fitPaper(this.scene, ts, it, s.span, s.y >= t.wall_rows);
         this.objects.push(ts);
       } else {
         const img = this.scene.add.image(x, y, ATLAS, it.sprite).setOrigin(0, onWall(it) ? 0 : 1).setDepth(depth);

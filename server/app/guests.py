@@ -22,7 +22,7 @@ from dataclasses import dataclass
 from datetime import date, datetime, timedelta, timezone
 
 from . import config
-from .cat import CAT_ROOM, affection as cat_affection
+from .cat import CAT_COMFORT_ROOMS, affection as cat_affection
 from .catalog import Catalog, Room, Zone
 from .comfort import SET_LAYERS, Comfort, GuestConfig, comfort, nightly_pay, pay_per_guest
 from .db import bump_room_version, now
@@ -89,6 +89,8 @@ class Unit:
 
 
 def units_of(room: Room) -> list[Unit]:
+    if not room.guests:
+        return []
     return [Unit(room, z) for z in room.zones] if room.zones else [Unit(room, None)]
 
 
@@ -99,8 +101,8 @@ def day_key(ts: int, cfg: GuestConfig) -> int:
 
 
 def unit_affection(conn: sqlite3.Connection, unit: Unit, ts: int | None = None) -> int:
-    """The inn cat's affection (0..3) for units of the cat's room; every other room gets 0."""
-    return cat_affection(conn, ts) if unit.room.id == CAT_ROOM else 0
+    """The inn cat's affection (0..3) for units of the inn building; every other room gets 0."""
+    return cat_affection(conn, ts) if unit.room.id in CAT_COMFORT_ROOMS else 0
 
 
 def unit_comfort(cat: Catalog, unit: Unit, rows: list[ItemRow], cfg: GuestConfig, affection: int = 0) -> Comfort:

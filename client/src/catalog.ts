@@ -35,9 +35,9 @@ export function isPartition(it: Item | undefined): boolean {
   return (it?.layer === "wall" || it?.layer === "wallpaper") && hasTag(it, TAG_PARTITION);
 }
 
-/** Wall decor that may hang on a partition's face as well as on the wall rows (mirrors Item.can_hang). */
+/** Wall decor or wallpaper that may hang on a partition's face as well as on the wall rows (mirrors Item.can_hang). */
 export function canHang(it: Item | undefined): boolean {
-  return it?.layer === "wall" && !hasTag(it, TAG_PARTITION);
+  return (it?.layer === "wall" || it?.layer === "wallpaper") && !hasTag(it, TAG_PARTITION);
 }
 
 /** Rows of a partition's visible face, counted up from the bottom of its footprint (mirrors Item.face_rows). */
@@ -302,7 +302,16 @@ export function drawList(look: AvatarLook, chars: Chars): { layer: string; idx: 
 export const Z_SCALE: Record<CollisionLayer, number> = { wallpaper: 0, wall: 1, floor: 0, rug: 1, furniture: 10, surface_item: 20 };
 export const Z_AVATAR = 15;
 /** Wall decor hanging on a partition: sorted with the partition's bottom row, just above it and below avatars there. */
-export const Z_HUNG = Z_SCALE.furniture + 1;
+export const Z_HUNG = Z_SCALE.furniture + 2;
+/** Wallpaper pasted on a partition's face: over the partition, under the decor hung on it. */
+export const Z_HUNG_PAPER = Z_SCALE.furniture + 1;
+/** Rows a wallpaper pasted on a partition leaves bare at the top (the partition's rim); mirrors placement.PAPER_TRIM. */
+export const PAPER_TRIM = 1;
+
+/** Footprint height: wallpaper pasted on a partition's face loses its top PAPER_TRIM rows (mirrors placement.height_of). */
+export function heightOf(it: Item, hung: boolean): number {
+  return hung && it.layer === "wallpaper" ? Math.max(1, it.h - PAPER_TRIM) : it.h;
+}
 
 export function hasTag(it: Item | undefined, tag: string): boolean {
   return !!it?.tags?.includes(tag);

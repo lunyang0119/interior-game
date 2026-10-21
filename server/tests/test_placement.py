@@ -1,7 +1,7 @@
 import pytest
 
 from app.errors import ApiError
-from app.placement import ItemRow, has_children, validate_place
+from app.placement import ItemRow, footprint_of, has_children, validate_place
 
 
 def row(uid, item_id, x, y, z=1, parent=None, span=None):
@@ -52,7 +52,6 @@ def test_wall_decor_hangs_on_a_partition(catalog):
     assert err(lambda: validate_place(catalog, divider, "frame", 1, 1)) == "bad_cell_type"  # above the face
     assert err(lambda: validate_place(catalog, divider, "frame", 3, 3)) == "bad_cell_type"  # next to it
     assert err(lambda: validate_place(catalog, [], "frame", 1, 3)) == "bad_cell_type"  # nothing to hang on
-    assert err(lambda: validate_place(catalog, divider, "paper", 1, 3)) == "bad_cell_type"  # wallpaper never hangs
     # frames collide with frames on the face, and the partition cannot go while something hangs on it
     hung = divider + [row(2, "frame", 1, 2, z=2, parent=1)]
     assert err(lambda: validate_place(catalog, hung, "frame", 1, 2)) == "collision"
@@ -67,6 +66,30 @@ def test_wall_decor_hangs_on_a_partition(catalog):
     # seeds hang too (cell type is enforced even when relaxed)
     assert validate_place(catalog, divider, "frame", 1, 2, relaxed=True).parent_uid == 1
     assert err(lambda: validate_place(catalog, [], "frame", 1, 2, relaxed=True)) == "bad_cell_type"
+
+
+def test_wallpaper_pastes_on_a_partition_face(catalog):
+    """Wallpaper may cover a partition's face like wall decor (parent = the partition, "hung" z), across
+    neighbouring partitions with `span`, but never on a door and never past the faces. On a face it is
+    PAPER_TRIM rows shorter and must reach down to the face's bottom row (the top row is the partition's rim)."""
+    screen = [row(1, "screen", 1, 4)]  # face rows 2..4; tallpaper h3 → 2 rows when pasted
+    p = validate_place(catalog, screen, "tallpaper", 1, 3)
+    assert p.z == 2 and p.parent_uid == 1
+    assert err(lambda: validate_place(catalog, screen, "tallpaper", 1, 2)) == "bad_cell_type"  # stops above the feet
+    hung = screen + [row(2, "tallpaper", 1, 3, z=2, parent=1)]
+    assert footprint_of(catalog, hung[1]) == [(1, 3), (2, 3), (1, 4), (2, 4)]
+    assert validate_place(catalog, [], "paper", 1, 0).parent_uid is None  # on the wall rows nothing changes
+    divider = [row(1, "divider", 1, 3)]
+    assert validate_place(catalog, divider, "paper", 1, 3).parent_uid == 1
+    assert err(lambda: validate_place(catalog, divider, "paper", 1, 2)) == "bad_cell_type"  # not the bottom row
+    assert err(lambda: validate_place(catalog, divider, "paper", 1, 3, span=3)) == "bad_cell_type"  # col 3 bare
+    two = [row(1, "divider", 1, 3), row(2, "divider", 3, 3)]
+    assert validate_place(catalog, two, "paper", 1, 3, span=4).parent_uid == 1
+    assert err(lambda: validate_place(catalog, [row(1, "gate", 1, 3)], "paper", 1, 3)) == "bad_cell_type"  # doors stay bare
+    # a frame still hangs over the wallpaper; two wallpapers collide
+    papered = divider + [row(2, "paper", 1, 3, z=2, parent=1)]
+    assert validate_place(catalog, papered, "frame", 1, 3).parent_uid == 1
+    assert err(lambda: validate_place(catalog, papered, "paper", 2, 3, span=1)) == "collision"
 
 
 def test_rugs_lie_over_floor_patterns(catalog):

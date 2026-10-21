@@ -324,3 +324,26 @@ def test_zones_are_separate_guest_units(env):
         g = [e for e in ev if e["kind"] == "guest"]
         assert len(g) == 1 and g[0]["room_id"] == "house_a" and g[0]["data"]["zone"] == "r1"
         assert _sql("SELECT item_id FROM ledger WHERE kind = 'guest'") == [{"item_id": "room:house_a:r1"}]
+
+
+def test_room_with_guests_false_is_no_unit(env):
+    """`guests: false` (the inn lobby): furniture there never scores, the room has no comfort entry."""
+    import importlib
+    import json
+    import sys
+    p = env["rooms"] / "house_a.json"
+    room = json.loads(p.read_text(encoding="utf-8"))
+    room["guests"] = False
+    p.write_text(json.dumps(room, ensure_ascii=False), encoding="utf-8")
+    importlib.reload(sys.modules["app.catalog"])
+    from fastapi.testclient import TestClient
+    from app.main import create_app
+    with TestClient(create_app()) as client:
+        lun = register(client, "lun")
+        _place(client, lun, "bed", 0, 2, room="house_a")
+        house = next(r for r in client.get("/api/rooms").json()["rooms"] if r["id"] == "house_a")
+        assert house["comfort"] == {}
+        assert _meta("guest_day:house_a") == 0
+        ev = []
+        _settle(client, now() + DAY, events=ev)
+        assert not [e for e in ev if e["kind"] == "guest" and e["room_id"] == "house_a"]

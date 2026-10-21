@@ -104,8 +104,8 @@ class Item(BaseModel):
 
     @property
     def can_hang(self) -> bool:
-        """Wall decor that may hang on a partition's face as well as on the wall rows."""
-        return self.layer == "wall" and not self.has_tag(TAG_PARTITION)
+        """Wall decor or wallpaper that may hang on a partition's face as well as on the wall rows."""
+        return self.layer in WALL_LAYERS and not self.has_tag(TAG_PARTITION)
 
     @property
     def face_rows(self) -> int:
@@ -235,6 +235,8 @@ class Room(BaseModel):
     restore: list[Stage] = []
     # Guest rooms inside this room (comfort/guests per zone). Empty = the whole room is one guest unit.
     zones: list[Zone] = []
+    # False = no guest unit at all (comfort/guests are judged elsewhere, e.g. the inn lobby vs floor_2's rooms).
+    guests: bool = True
     # Pixel-placed decorations / animations drawn on top (see Fx).
     fx: list[Fx] = []
     # /train/ compartment templates only: where the doors open (see TrainDoors). None = centred doors.

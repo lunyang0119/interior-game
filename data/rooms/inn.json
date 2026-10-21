@@ -1392,5 +1392,6 @@
    ]
   }
  ],
- "zones": []
+ "zones": [],
+ "guests": false
 }

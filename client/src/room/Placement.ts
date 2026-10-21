@@ -1,11 +1,11 @@
 import Phaser from "phaser";
 import { api, ApiError, msgFor } from "../api";
 import { bus, toast } from "../bus";
-import { Z_HUNG, Z_SCALE, canHang, collisionLayer, onWall, priceOf, widthOf, type Catalog, type Room, type RoomItem } from "../catalog";
+import { Z_HUNG, Z_HUNG_PAPER, Z_SCALE, canHang, collisionLayer, heightOf, onWall, priceOf, widthOf, type Catalog, type Room, type RoomItem } from "../catalog";
 import { state } from "../state";
 import { depthOf, sortRowFor } from "./depth";
 import { anchorUnderPointer, CELL } from "./grid";
-import { makeItemSprite, type ItemLayer } from "./ItemLayer";
+import { fitPaper, makeItemSprite, type ItemLayer } from "./ItemLayer";
 import { checkPlace } from "./rules";
 
 const TINT_OK = 0x7cff7c;
@@ -67,7 +67,6 @@ export class PlacementController {
     if (next === this.span) return;
     this.span = next;
     this.lastSpan.set(this.itemId, next);
-    if ("setSize" in this.ghost) this.ghost.setSize(next * CELL, this.ghost.height);
     this.setCell(this.cell.cx, this.cell.cy);
     this.publish();
   }
@@ -99,6 +98,9 @@ export class PlacementController {
     const others = this.items.rows.filter((r) => r.uid !== this.moveUid);
     const check = checkPlace(this.cat, this.room, others, this.itemId, cx, cy, this.span);
     this.ok = check.ok;
+    const hung = it.layer === "wallpaper" && cy >= this.room.wall_rows; // pasted on a partition: lower rows only
+    const h = heightOf(it, hung);
+    fitPaper(this.scene, this.ghost, it, this.span, hung);
     let y = (onWall(it) ? cy * CELL : (cy + it.h) * CELL) + (it.offset_y ?? 0);
     let sortRow = sortRowFor(collisionLayer(it), cy + it.h - 1);
     let z = Z_SCALE[collisionLayer(it)];
@@ -107,7 +109,7 @@ export class PlacementController {
       const pit = parent && this.cat.byId.get(parent.item_id);
       if (parent && pit) {
         sortRow = parent.y + pit.h - 1;
-        if (canHang(it)) z = Z_HUNG; // hung on a partition
+        if (canHang(it)) z = it.layer === "wallpaper" ? Z_HUNG_PAPER : Z_HUNG; // hung on a partition
         else y -= pit.surface_offset_y; // on a table
       }
     }
@@ -116,8 +118,8 @@ export class PlacementController {
       const color = check.ok ? TINT_OK : TINT_BAD;
       const w = this.width();
       this.footprint.clear()
-        .fillStyle(color, FOOTPRINT_ALPHA).fillRect(cx * CELL, cy * CELL, w * CELL, it.h * CELL)
-        .lineStyle(1, color, 0.9).strokeRect(cx * CELL + 0.5, cy * CELL + 0.5, w * CELL - 1, it.h * CELL - 1);
+        .fillStyle(color, FOOTPRINT_ALPHA).fillRect(cx * CELL, cy * CELL, w * CELL, h * CELL)
+        .lineStyle(1, color, 0.9).strokeRect(cx * CELL + 0.5, cy * CELL + 0.5, w * CELL - 1, h * CELL - 1);
     }
   }
 

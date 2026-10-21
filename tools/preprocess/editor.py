@@ -298,12 +298,16 @@ def seed_problem(s: dict, room: dict, items: dict[str, dict], others: list[dict]
     h = it["h"]
     x, y = s["x"], s["y"]
     if (y + h > room["wall_rows"]) if wall else (y < room["wall_rows"]):
-        if wall and it["layer"] == "wall" and y >= room["wall_rows"]:
-            # wall decor on the floor rows is fine when every cell lies on a partition seed's face
+        if wall and y >= room["wall_rows"]:
+            # wall decor / wallpaper on the floor rows is fine when every cell lies on a partition seed's face
+            # (wallpaper skips doors; the per-column rule of placement.hanger_of is not mirrored here)
+            paper = it["layer"] == "wallpaper"
+            if paper:
+                h = max(1, h - 1)  # pasted on a face it leaves the partition's rim bare (placement.PAPER_TRIM)
             faces: set[tuple[int, int]] = set()
             for o in others:
                 oi = items.get(o.get("item_id"))
-                if o is not s and oi:
+                if o is not s and oi and not (paper and "door" in (oi.get("tags") or [])):
                     faces |= partition_face(o, oi)
             if all((cx, cy) in faces for cy in range(y, y + h) for cx in range(x, x + w)):
                 return None

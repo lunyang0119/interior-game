@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { Z_HUNG, Z_SCALE, canHang, collisionLayer, onWall, widthOf, type Catalog, type Item, type Layer, type RoomItem } from "../catalog";
+import { PAPER_TRIM, Z_HUNG, Z_HUNG_PAPER, Z_SCALE, canHang, collisionLayer, onWall, widthOf, type Catalog, type Item, type Layer, type RoomItem } from "../catalog";
 import { depthOf, sortRowFor } from "./depth";
 import { CELL } from "./grid";
 import { footprintOf } from "./rules";
@@ -17,6 +17,17 @@ export function makeItemSprite(scene: Phaser.Scene, it: Item | undefined, span?:
     return scene.add.tileSprite(0, 0, widthOf(it, span) * CELL, frame.height, ATLAS, it.sprite).setOrigin(0, onWall(it) ? 0 : 1);
   }
   return scene.add.image(0, 0, ATLAS, it?.sprite ?? "").setOrigin(0, onWall(it) ? 0 : 1);
+}
+
+/** Size a wallpaper sprite to its span; pasted on a partition (`hung`) it shows only its lower rows
+ *  (PAPER_TRIM rows cut off the top, so the partition's rim stays visible). No-op for anything else. */
+export function fitPaper(scene: Phaser.Scene, sprite: ItemSprite, it: Item | undefined, span: number | null | undefined, hung: boolean): void {
+  if (it?.layer !== "wallpaper" || !(sprite instanceof Phaser.GameObjects.TileSprite)) return;
+  const full = scene.textures.getFrame(ATLAS, it.sprite).height;
+  const cut = hung ? Math.min(PAPER_TRIM * CELL, full - CELL) : 0;
+  const w = widthOf(it, span) * CELL;
+  if (sprite.width !== w || sprite.height !== full - cut) sprite.setSize(w, full - cut);
+  sprite.tilePositionY = cut;
 }
 
 /** Keeps one sprite per room item and diffs against server snapshots. */
@@ -42,11 +53,12 @@ export class ItemLayer {
       const e = this.entries.get(row.uid);
       const it = this.cat.byId.get(row.item_id);
       if (!e) {
-        this.entries.set(row.uid, { row, sprite: makeItemSprite(this.scene, it, row.span) });
+        const sprite = makeItemSprite(this.scene, it, row.span);
+        fitPaper(this.scene, sprite, it, row.span, row.parent_uid != null);
+        this.entries.set(row.uid, { row, sprite });
       } else {
-        if (it && (e.row.span ?? null) !== (row.span ?? null) && "setSize" in e.sprite) {
-          e.sprite.setSize(widthOf(it, row.span) * CELL, e.sprite.height); // wallpaper resized while moving
-        }
+        // wallpaper resized or moved between the wall rows and a partition
+        fitPaper(this.scene, e.sprite, it, row.span, row.parent_uid != null);
         e.row = row;
       }
     }
@@ -68,9 +80,9 @@ export class ItemLayer {
       sortRow = parent.y + pit.h - 1;
       y = (row.y + h) * CELL - pit.surface_offset_y + (it.offset_y ?? 0);
     } else if (parent && pit && canHang(it)) {
-      // hung on a partition: sorted with the partition's feet, just above it
+      // hung on a partition: sorted with the partition's feet, just above it (wallpaper under the decor)
       sortRow = parent.y + pit.h - 1;
-      z = Z_HUNG;
+      z = it?.layer === "wallpaper" ? Z_HUNG_PAPER : Z_HUNG;
     }
     return { x, y, depth: depthOf(sortRow, z) + (row.uid % 97) / 100 };
   }
