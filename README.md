@@ -66,16 +66,29 @@ Host crystalroom.duckdns.org 158.179.169.136
 
 아직 안 열린 장소(복구 단계가 남은 방·광산)를 디버깅하려면 `DEBUG_PLAYERS`(env, 쉼표 구분, 기본 `안나`) 계정으로 들어가면 된다. 서버는 그 계정의 ws `enter`만 통과시키고 가구 배치는 여전히 거부하며, 클라이언트 `state.ts`의 `isDebugAccount()`가 같은 목록을 미러링해 맵 문·입장 잠금을 건너뛴다.
 
-**맵 바꿀 때 (VM에서)**
+## 재시딩 (방의 seed를 바꿨는데 VM에 안 보일 때)
+
+`data/rooms/<id>.json`의 `seed`(처음부터 놓여 있는 가구·벽·계단)는 서버가 켜질 때 한 번 DB에 넣고, 그 뒤로는 `room_meta`의 `seed_hash:<id>`와 비교해 **seed 목록이 바뀐 방만** 자동으로 다시 넣는다(`server/app/seed.py`). 그런데 두 경우엔 자동으로 안 된다:
+
+- 옛 DB라 `seeded:<id>` 마커만 있고 `seed_hash:<id>`가 없으면, 서버는 해시만 기록하고 **기존 seed 행을 그대로 둔다**(플레이어가 판 물건을 되살리지 않으려고). 2026-10-21에 2층 벽(`med_wall_*`)이 안 보이던 게 이 경우.
+- 파일은 올렸는데 재시작을 안 했을 때.
+
+증상: 파일에는 있는데 게임에 없다. 먼저 로그로 몇 개가 들어갔는지 본다:
+```bash
+journalctl -u interior -g "seeded room floor_2" | tail -3    # 로컬 fresh DB와 개수가 다르면 재시딩 필요
+```
+
+**재시딩 (VM에서)** — 그 방의 `$seed` 소유 행을 전부 지우고 seed 목록으로 다시 채운다. 플레이어가 놓은 가구는 남지만, seed 테이블 위에 올려 둔 플레이어 물건은 환불되며 사라진다.
 ```bash
 sudo systemctl stop interior
-grep DB_PATH /opt/interior/server/.env
-sqlite3 <그 경로> "DELETE FROM room_meta WHERE k IN ('seeded:room2','seed_hash:room2');"
+grep DB_PATH /opt/interior/server/.env                       # 비어 있으면 /opt/interior/server/interior.db
+sqlite3 <그 경로> "DELETE FROM room_meta WHERE k IN ('seeded:floor_2','seed_hash:floor_2');"   # 방 id만 바꿔서
 # 복구 단계를 처음부터 다시 하고 싶으면 (납품 기록은 남음)
 sqlite3 <그 경로> "DELETE FROM room_meta WHERE k LIKE 'stage:%' OR k LIKE 'stage_ts:%';"
 sudo systemctl start interior
+journalctl -u interior -n 50 -g "seeded room"
 ```
-  로그에 seeded room inn: N items (M old seed rows replaced)가 나오면 된 거
+`seeded room floor_2: N items (M old seed rows replaced)`가 나오면 된 거다(`skipped ... at (x,y)` 경고가 있으면 그 seed가 배치 규칙에 걸려 빠진 것). 그래도 안 보이면 그림 쪽이다: 벽·가구 그림은 `media/`가 아니라 `client/public/gen/`(`interiors.png`·`manifest.json`, gitignore)에 있으니 `deploy/sync.sh`로 gen을 올렸는지 확인하고 브라우저를 강력 새로고침한다.
 
 ## API 요약
 
