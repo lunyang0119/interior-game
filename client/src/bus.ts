@@ -50,7 +50,8 @@ export interface Events {
   "zone:changed": { zone: string | null }; // the avatar walked into another guest zone (or out of all of them)
   "log:open": { section?: "progress" | "guests" }; // open the 📜 panel (optionally scrolled to the restoration checklist)
   "board:open": void; // tapped a `board` item: open the 📋 quest / reservation board
-  "shop:open": { itemId?: string }; // open the shop, optionally scrolled to and highlighting one item
+  "shop:open": { itemId?: string };
+  "chat:open": void; // open the 채팅 panel // open the shop, optionally scrolled to and highlighting one item
 }
 
 type Handler<K extends keyof Events> = (payload: Events[K]) => void;

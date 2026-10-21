@@ -52,6 +52,7 @@
     <button id="btn-shop" class="big"><i class="icon icon-cart"></i> 상점</button>
     <button id="btn-avatar" class="big"><i class="icon icon-me"></i> 아바타</button>
     <button id="btn-log" class="big"><i class="icon icon-book"></i> 기록</button>
+    <button id="btn-chat" class="big"><i class="icon icon-chat"></i> 채팅<span id="chat-unread" class="badge hidden"></span></button>
     <button id="btn-fold" class="chip" title="메뉴 접기">▾</button>
   </div>
 
@@ -105,6 +106,13 @@
       <div class="note-foot"><span id="note-by"></span><span id="note-count"></span></div>
     </div>
     <div class="row"><button id="note-save" class="primary">남기기</button></div>
+  </div>
+
+  <!-- 채팅: one channel for everyone online; the list scrolls, the input row stays pinned (ui/chat.ts) -->
+  <div id="panel-chat" class="panel hidden">
+    <div class="panel-head"><span>채팅</span><button class="close" data-close="panel-chat" title="닫기"><i class="icon icon-close"></i></button></div>
+    <div id="chat-list"></div>
+    <div class="row chat-row"><input id="chat-input" placeholder="할 말을 적어요" maxlength="200" autocomplete="off" enterkeyhint="send" /><button id="chat-send" class="primary">보내기</button></div>
   </div>
 
   <!-- 📜 activity log (newest five only) + restoration checklists -->

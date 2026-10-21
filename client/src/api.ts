@@ -147,7 +147,13 @@ export interface ActivityResponse {
   cat?: CatView; // older servers leave it out
 }
 
+/** One chat line (server chat.py). `room` is the presence room the sender stood in when they said it. */
+export interface ChatMessage { id: number; ts: number; player: string; room: string; text: string }
+export interface ChatResponse { messages: ChatMessage[]; max: number; max_len: number }
+
 export const api = {
+  /** The newest few chat messages, oldest first (sending goes over the socket). */
+  chat: () => call<ChatResponse>("GET", "/api/chat"),
   catalog: () => call<RawCatalog>("GET", "/api/catalog"),
   rooms: () => call<RoomsResponse>("GET", "/api/rooms"),
   activity: () => call<ActivityResponse>("GET", "/api/activity"),

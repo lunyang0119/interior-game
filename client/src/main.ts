@@ -13,6 +13,7 @@ import * as storage from "./storage";
 import { initAccounts } from "./ui/accounts";
 import { initAvatarEditor } from "./ui/avatarEditor";
 import { initBoard } from "./ui/board";
+import { initChat } from "./ui/chat";
 import { initContextMenu } from "./ui/contextMenu";
 import { initLog } from "./ui/log";
 import { initNote } from "./ui/note";
@@ -107,6 +108,7 @@ async function boot(): Promise<void> {
   initNote();
   initLog();
   initBoard();
+  initChat();
   void initBgm();
   void initSfx();
 

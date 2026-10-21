@@ -89,4 +89,5 @@ html #toast { border-radius: 0; background: none; box-shadow: none; backdrop-fil
 .icon-lock { background-position: 100.0000% 50.0000%; }
 .icon-sync { background-position: 0.0000% 100.0000%; }
 .icon-cat { background-position: 14.2857% 100.0000%; }
-.icon-me { background-position: 28.5714% 100.0000%; }
+.icon-chat { background-position: 28.5714% 100.0000%; }
+.icon-me { background-position: 42.8571% 100.0000%; }

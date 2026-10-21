@@ -8,6 +8,10 @@ import { animKey, sheetsFor, texKey } from "./AvatarLoader";
 const SPEED = 48; // px per second
 const REMOTE_SPEED = 64;
 const LABEL_DEPTH = 1_000_000; // always above furniture
+const BUBBLE_MS = 6000;
+const BUBBLE_CHARS = 60; // a longer line is cut in the bubble; the chat panel has the whole text
+const BUBBLE_FONT = 0.7; // of the name tag's size: the tag is already as wide as the avatar, a sentence must stay small
+const BUBBLE_WRAP = 220; // text px before the label scale
 
 /** Name-tag style from theme.css variables (data/ui_theme.json → "label"). */
 function labelStyle(): { font: string; size: number; color: string; stroke: string; scale: number } {
@@ -41,6 +45,9 @@ export class Avatar extends Phaser.GameObjects.Container {
   private lastCell = { cx: -1, cy: -1 };
   private lastFrame: Phaser.Textures.Frame | null = null;
   private label: Phaser.GameObjects.Text;
+  /** The last chat line, shown over the name tag for a few seconds (say). */
+  private bubble: Phaser.GameObjects.Text | null = null;
+  private bubbleTimer: Phaser.Time.TimerEvent | null = null;
   /** Height of the tallest sheet the look draws (a loop-strip preset may differ from chars.frameH); the name tag sits above it. */
   private frameH: number;
 
@@ -63,11 +70,33 @@ export class Avatar extends Phaser.GameObjects.Container {
   }
 
   private syncLabel(): void {
-    this.label.setPosition(Math.round(this.x), Math.round(this.y - this.frameH - 1));
+    const top = Math.round(this.y - this.frameH - 1);
+    this.label.setPosition(Math.round(this.x), top);
+    this.bubble?.setPosition(Math.round(this.x), top - (this.label.visible ? Math.round(this.label.displayHeight) : 0) - 2);
+  }
+
+  /** Show a chat line in a speech bubble above the name tag; replaces the previous one and goes away after a while. */
+  say(text: string): void {
+    const t = text.length > BUBBLE_CHARS ? text.slice(0, BUBBLE_CHARS - 1) + "…" : text;
+    this.bubbleTimer?.remove(false);
+    if (!this.bubble) {
+      const st = labelStyle();
+      this.bubble = this.scene.add.text(0, 0, t, {
+        fontFamily: `${st.font}, sans-serif`, fontSize: `${Math.round(st.size * BUBBLE_FONT)}px`, color: "#1b1b24", backgroundColor: "#f6f1e4",
+        padding: { x: 5, y: 2 }, align: "center", wordWrap: { width: BUBBLE_WRAP, useAdvancedWrap: true }, resolution: 2,
+      }).setOrigin(0.5, 1).setScale(st.scale).setDepth(LABEL_DEPTH + 1);
+    } else {
+      this.bubble.setText(t).setVisible(true);
+    }
+    this.syncLabel();
+    this.bubbleTimer = this.scene.time.delayedCall(BUBBLE_MS, () => { this.bubble?.setVisible(false); this.bubbleTimer = null; });
   }
 
   destroy(fromScene?: boolean): void {
     this.label.destroy();
+    this.bubbleTimer?.remove(false);
+    this.bubble?.destroy();
+    this.bubble = null;
     super.destroy(fromScene);
   }
 

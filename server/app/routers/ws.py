@@ -12,6 +12,8 @@ Protocol (plan §4):
   S→C {"type":"join"|"leave"}            same room only
   S→C {"type":"avatar_look"|"room"|"money"}   everyone
   S→C {"type":"event","event"} | {"type":"progress","rooms","locked"}   everyone (activity log / restoration, progress.py)
+  C→S {"type":"chat","text"}              say something (chat.clean: ≤200 chars; 5 per 5 s)
+  S→C {"type":"chat","id","player","room","text","ts"}   everyone; `room` = where the sender stood (bubble there only)
   C→S {"type":"ping"} → S→C {"type":"pong"}
 """
 
@@ -22,9 +24,10 @@ import time
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
-from .. import config, progress
+from .. import chat, config, progress
 from ..auth import lookup_token
-from ..db import connect, room_version
+from ..db import connect, room_version, transaction
+from ..ratelimit import limiter
 from ..presence import Online, hub, split_room
 from .me import load_avatar
 
@@ -45,6 +48,15 @@ def _version(room: str) -> int:
     conn = connect()
     try:
         return room_version(conn, room)
+    finally:
+        conn.close()
+
+
+def _store_chat(pid: str, room: str, text: str) -> dict:
+    conn = connect()
+    try:
+        with transaction(conn):
+            return chat.store(conn, pid, room, text)
     finally:
         conn.close()
 
@@ -156,6 +168,15 @@ async def ws_endpoint(ws: WebSocket):
                 ver = await asyncio.to_thread(_version, base) if base in cat.rooms else 0
                 await ws.send_text(json.dumps({"type": "entered", "room": room,
                                                "online": hub.snapshot(room=room, exclude=pid), "room_version": ver}))
+            elif t == "chat":
+                text = chat.clean(msg.get("text"))
+                if text is None:
+                    continue
+                if not limiter.allow(f"chat:{pid}", *chat.RATE_LIMIT):
+                    await ws.send_text(json.dumps({"type": "error", "code": "rate_limited"}))
+                    continue
+                row = await asyncio.to_thread(_store_chat, pid, o.room, text)
+                await hub.broadcast({"type": "chat", **row})
             elif t == "move":
                 nowm = time.monotonic()
                 if nowm - window_start >= 1.0:

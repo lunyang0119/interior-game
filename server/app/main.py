@@ -13,7 +13,7 @@ from .errors import ApiError
 from .presence import hub
 from .reconcile import reconcile_items
 from .seed import seed_room
-from .routers import activity, auth, cat, deliver, fish, me, room, ws
+from .routers import activity, auth, cat, chat, deliver, fish, me, room, ws
 from .routers import mine as mine_router
 from .train import game as train_game
 from .train import router as train_router
@@ -166,6 +166,7 @@ def create_app() -> FastAPI:
     app.include_router(mine_router.router)
     app.include_router(activity.router)
     app.include_router(cat.router)
+    app.include_router(chat.router)
     app.include_router(ws.router)
     app.include_router(train_router.router)
     app.include_router(train_ws.router)

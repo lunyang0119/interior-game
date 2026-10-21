@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { Z_HUNG, Z_HUNG_PAPER, Z_SCALE, canHang, collisionLayer, isFloorPaper, onWall, widthOf, type Catalog, type Item, type Layer, type RoomItem } from "../catalog";
+import { SEED_PLAYER, Z_HUNG, Z_HUNG_PAPER, Z_SCALE, canHang, collisionLayer, isFloorPaper, onWall, widthOf, type Catalog, type Item, type Layer, type RoomItem } from "../catalog";
 import { depthOf, sortRowFor } from "./depth";
 import { CELL } from "./grid";
 import { footprintOf } from "./rules";
@@ -116,6 +116,8 @@ export class ItemLayer {
       sortRow = Math.max(...footprintOf(this.cat, row).map((c) => c[1]));
       z = Z_HUNG_PAPER;
     }
+    // tie-break inside a layer; wallpaper a player pasted over the room's starting ($seed) wallpaper draws above it
+    if (it?.layer === "wallpaper") return { x, y, depth: depthOf(sortRow, z) + (row.placed_by === SEED_PLAYER ? 0 : 0.5) + (row.uid % 97) / 250 };
     return { x, y, depth: depthOf(sortRow, z) + (row.uid % 97) / 100 };
   }
 
@@ -139,7 +141,8 @@ export class ItemLayer {
       if (this.hidden.has(row.uid)) continue;
       if (layers && !layers.has(this.cat.byId.get(row.item_id)?.layer ?? "furniture")) continue;
       if (!footprintOf(this.cat, row).some((c) => c[0] === cx && c[1] === cy)) continue;
-      if (row.z > bestZ) { best = row; bestZ = row.z; }
+      // equal z: a player's item beats a seed under it (re-papered walls open the new wallpaper)
+      if (row.z > bestZ || (row.z === bestZ && best?.placed_by === SEED_PLAYER && row.placed_by !== SEED_PLAYER)) { best = row; bestZ = row.z; }
     }
     return best;
   }

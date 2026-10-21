@@ -42,10 +42,12 @@ Phaser 캔버스 안의 그림은 다루지 않고, `client/index.html` + `clien
 - 접기: `#hud.folded`, `#bottombar.folded` + ▾ 칩. 접힘 상태는 `localStorage`에 기억한다 (`hud.ts initFold`, try/catch).
 - 데스크톱 전용 동작은 `isDesktop()` 또는 `matchMedia("(pointer: fine)")`로 가른다: 호버 밝기, 패널 열 때 입력창 포커스 (폰은 키보드가 가려서 하지 않는다, `shop.ts:134`, `note.ts:45`).
 - 그리드는 `minmax(0, 1fr)`을 쓴다 (사이드바에서 긴 이름이 넘치지 않게, `style.css:225` 주석).
+- 폰의 `#bottombar` 큰 버튼은 `flex: 1 1 0; min-width: 0`으로 같이 줄어든다 (상점·아바타·기록·채팅 네 개가 좁은 폰에 들어가야 한다). 하단 큰 버튼을 하나 더 늘리기 전에 폰 폭(390px)에서 글자가 깨지지 않는지 본다.
+- 소프트 키보드: `position: fixed` 시트는 안드로이드에서는 키보드와 같이 올라가지만 iOS는 layout viewport가 안 줄어 입력창이 키보드 밑에 숨는다. 입력창이 아래에 붙은 패널(`panel-chat`)은 열려 있는 동안 `visualViewport`의 `resize`/`scroll`을 듣고 인라인 `bottom`/`max-height`로 시트를 올린다 (`chat.ts fitKeyboard`, 닫을 때 원복). 보내기 버튼은 `pointerdown`에서 `preventDefault()`로 입력창 포커스를 지켜 키보드가 내려가지 않게 한다. 한글 IME는 `keydown`의 `isComposing`이 true인 Enter를 무시한다.
 
 ## 패널 구조와 열고 닫기
 
-실제 패널(`panel-shop`, `panel-log`, `panel-board`, `panel-note`, `panel-accounts`, `panel-avatar`, `panel-floor`)의 공통 패턴.
+실제 패널(`panel-shop`, `panel-log`, `panel-board`, `panel-note`, `panel-chat`, `panel-accounts`, `panel-avatar`, `panel-floor`)의 공통 패턴.
 
 **DOM (index.html)**
 ```html

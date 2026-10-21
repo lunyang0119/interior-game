@@ -356,6 +356,8 @@ export class MapScene extends Phaser.Scene {
       }),
       socket.on("money", (m) => { if (m.balance !== state.balance) { state.balance = m.balance; bus.emit("money", { balance: m.balance }); } }),
       socket.on("progress", () => void this.refreshMarkers()), // a stage completed: a lock may open
+      // a chat line said outside: a bubble over the speaker
+      socket.on("chat", (m) => { if (m.room !== MAP_ROOM) return; if (m.player === state.id) this.me?.say(m.text); else this.remotes.say(m.player, m.text); }),
       socket.on("open", () => this.publishOnline()),
       socket.on("close", () => { this.remotes.reset([]); this.publishOnline(); }),
     );

@@ -276,6 +276,8 @@ export class RoomScene extends Phaser.Scene {
       socket.on("money", (m) => this.setBalance(m.balance)),
       socket.on("mine", (m) => this.mine?.onMessage(m)),
       socket.on("mine_reset", () => void this.mine?.load()),
+      // a chat line said in this room (or floor): a bubble over the speaker
+      socket.on("chat", (m) => { if (m.room !== this.presenceRoom()) return; if (m.player === this.playerId) this.me?.say(m.text); else this.remotes.say(m.player, m.text); }),
       socket.on("open", () => this.publishOnline()),
       socket.on("close", () => { this.remotes.reset([]); this.publishOnline(); }),
     ];

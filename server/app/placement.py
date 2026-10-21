@@ -9,7 +9,8 @@ Rules (see plan §3):
    under its first cell becomes its parent (so it goes when the partition goes), z = "hung". Wallpaper on the
    floor rows goes only on the room's painted 벽지 칸 (`Room.paper`): per column it fills the vertical run of
    painted cells through its anchor row (see paper_cells), no parent, z = "hung"
-3. wallpaper/wall/floor/furniture only collide with items of the same collision layer
+3. wallpaper/wall/floor/furniture only collide with items of the same collision layer; wallpaper never collides
+   with seeded ($seed) wallpaper — it is pasted over it (a room's starting walls can be re-papered)
    (so frames, doors and chalkboards can hang over wallpaper; partitions collide with furniture;
    `rug`-tagged floor items lie over untagged floor patterns)
 4. surface_item needs exactly one is_surface furniture under every cell, the same
@@ -27,6 +28,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from .catalog import DEFAULT_ROOM, Catalog, Item, Room, Z_OF_LAYER
+from .config import SEED_PLAYER
 from .errors import ApiError
 
 
@@ -175,6 +177,8 @@ def validate_place(catalog: Catalog, others: list[ItemRow], item_id: str, x: int
         for o in [] if relaxed else others:
             if catalog.items[o.item_id].collision_layer != it.collision_layer:
                 continue
+            if it.layer == "wallpaper" and o.placed_by == SEED_PLAYER:
+                continue  # pasted over the room's starting wallpaper
             if cell_set & set(footprint_of(catalog, o)):
                 raise fail("collision")
         if hanger is not None:

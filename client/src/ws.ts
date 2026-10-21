@@ -21,6 +21,7 @@ export type WsMsg =
   | { type: "mine"; seq: number; floor: number; x: number; y: number; kind: string; hits_left: number; by: string; done: boolean; left: number;
       loot?: { id: string; name: string; value: number }; ladder?: { x: number; y: number } }
   | { type: "mine_reset" } // a new day: whoever is in the mine reloads their floor
+  | { type: "chat"; id: number; player: string; room: string; text: string; ts: number } // somebody said something (everyone; `room` = where)
   | { type: "pong" };
 
 type Handler = (msg: any) => void;
@@ -76,6 +77,11 @@ export class GameSocket {
 
   sendMove(x: number, y: number, dir: string, moving: boolean): void {
     this.send({ type: "move", x: +x.toFixed(2), y: +y.toFixed(2), dir, moving });
+  }
+
+  /** Say something (≤ 200 chars; the server echoes it to everyone, including us, as a `chat` message). */
+  sendChat(text: string): void {
+    this.send({ type: "chat", text });
   }
 
   /** Presence room change (grid room id, "map", "dock" or a mine floor "mine#3"); the server answers with "entered". */

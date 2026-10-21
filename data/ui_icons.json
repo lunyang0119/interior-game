@@ -20,6 +20,7 @@
   "lock": {"sheet": "graphic/GUI/UI assets pack 2/UI books & more.png", "x": 688, "y": 240},
   "sync": {"sheet": "graphic/GUI/UI assets pack 2/UI books & more.png", "x": 768, "y": 176},
   "cat": {"gen": "cat/orange_0.png", "x": 104, "y": 5, "w": 16, "h": 14},
+  "chat": {"sheet": "graphic/GUI/Sprout Lands - UI Pack - Basic pack/Sprite sheets/Icons/All Icons.png", "x": 256, "y": 0},
   "me": {"sheet": "graphic/GUI/Sprout Lands - UI Pack - Basic pack/Sprite sheets/Icons/special icons/Small Happines-Sadness icons.png", "x": 0, "y": 16}
  }
 }

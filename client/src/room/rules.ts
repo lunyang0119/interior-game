@@ -1,6 +1,6 @@
 /** Client mirror of server/app/placement.py. Only used to colour the ghost; the server decides. */
 
-import { canHang, collisionLayer, faceRows, isFloorPaper, isPartition, paperCells, onWall, tileWalkable, widthOf, type Catalog, type Room, type RoomItem } from "../catalog";
+import { SEED_PLAYER, canHang, collisionLayer, faceRows, isFloorPaper, isPartition, paperCells, onWall, tileWalkable, widthOf, type Catalog, type Room, type RoomItem } from "../catalog";
 import { footprint } from "./grid";
 
 export interface Check { ok: boolean; code?: string; parentUid: number | null }
@@ -78,6 +78,7 @@ export function checkPlace(cat: Catalog, room: Room, others: RoomItem[], itemId:
     for (const o of others) {
       const oi = cat.byId.get(o.item_id);
       if (!oi || collisionLayer(oi) !== collisionLayer(it)) continue;
+      if (it.layer === "wallpaper" && o.placed_by === SEED_PLAYER) continue; // pasted over the starting wallpaper
       if (footprintOf(cat, o).some((c) => cellSet.has(key(c)))) return { ok: false, code: "collision", parentUid: null };
     }
     return { ok: true, parentUid: hanger?.uid ?? null };

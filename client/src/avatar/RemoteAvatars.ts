@@ -52,6 +52,11 @@ export class RemoteAvatars {
     if (this.avatars.get(id) === a) a.setLook(look);
   }
 
+  /** Somebody in this room said something: a bubble over their head (nothing while their textures still load). */
+  say(id: string, text: string): void {
+    this.avatars.get(id)?.say(text);
+  }
+
   reset(list: OnlineState[]): void {
     for (const id of [...this.avatars.keys()]) this.leave(id);
     this.pending.clear();

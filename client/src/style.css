@@ -76,6 +76,27 @@ img, .framed { image-rendering: pixelated; }
 #fish-catch img { width: 48px; height: 48px; image-rendering: pixelated; object-fit: contain; }
 #fish-deliver { padding: 8px 16px; font-weight: 700; }
 
+/* 채팅: the panel is a flex column so the list scrolls and the input row stays pinned at the bottom; on a phone
+   chat.ts lifts the sheet above the keyboard (inline bottom/max-height) */
+#panel-chat { display: flex; flex-direction: column; overflow: hidden; }
+#chat-list { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+#chat-list .msg { padding: 6px 10px; border-radius: 10px; background: var(--card); margin-bottom: 6px; }
+#chat-list .msg-head { display: flex; justify-content: space-between; gap: 8px; font-size: var(--fs-small); color: var(--muted); }
+#chat-list .msg-head .who { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#chat-list .msg-head .when { font-size: 11px; white-space: nowrap; }
+#chat-list .msg.mine .who { color: var(--primary); }
+#chat-list .msg .text { white-space: pre-wrap; overflow-wrap: anywhere; -webkit-user-select: text; user-select: text; }
+#chat-list .empty { color: var(--muted); text-align: center; padding: 12px 0; }
+.chat-row { flex: none; flex-wrap: nowrap; }
+.chat-row button { white-space: nowrap; }
+#btn-chat { position: relative; }
+/* unread count on the 채팅 button while the panel is closed */
+.badge { position: absolute; top: -4px; right: -4px; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 10px;
+  background: var(--danger); color: #fff; font-size: 11px; font-weight: 700; line-height: 20px; text-align: center; }
+@media (max-width: 899px), (pointer: coarse) {
+  #panel-chat { height: 60vh; }
+}
+
 /* 📜 기록 */
 .log-today { color: var(--muted); margin-bottom: 8px; }
 #log-list .ev { display: flex; justify-content: space-between; gap: 10px; padding: 8px 10px; border-radius: 10px; background: var(--card); margin-bottom: 6px; line-height: 1.4; }
@@ -150,6 +171,9 @@ button.big { padding: 12px 20px; font-weight: 700; font-size: var(--fs-big); bac
 @media (max-width: 899px), (pointer: coarse) {
   button.big:has(> .icon) { display: inline-flex; flex-direction: column; align-items: center; white-space: nowrap; padding: 8px 14px; }
   button.big > .icon { margin: -6px 0 -2px; }
+  /* four big buttons (상점·아바타·기록·채팅) must share a narrow phone: they shrink evenly instead of overflowing */
+  #bottombar > button.big { flex: 1 1 0; min-width: 0; padding-left: 4px; padding-right: 4px; }
+  #bottombar > .chip { flex: none; }
 }
 button.primary { background: var(--primary); border: var(--slice-button-primary-px) solid transparent; border-image: var(--frame-button-primary) var(--slice-button-primary) fill round; }
 button.danger { background: var(--danger); }

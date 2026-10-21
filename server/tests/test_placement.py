@@ -99,6 +99,15 @@ def test_wallpaper_pastes_on_painted_cells(catalog):
     assert err(lambda: validate_place(catalog, [row(1, "divider", 1, 3)], "paper", 1, 3)) == "bad_cell_type"
 
 
+def test_wallpaper_pastes_over_seeded_wallpaper(catalog):
+    """A room's starting ($seed) wallpaper can be papered over; a player's wallpaper still collides."""
+    seeded = [ItemRow(uid=1, item_id="paper", x=1, y=0, z=0, parent_uid=None, placed_by="$seed", ts=0, span=4)]
+    assert validate_place(catalog, seeded, "paper", 2, 0, span=2).parent_uid is None
+    mine = [row(1, "paper", 1, 0, z=0, span=4)]
+    assert err(lambda: validate_place(catalog, mine, "paper", 2, 0, span=2)) == "collision"
+    assert err(lambda: validate_place(catalog, seeded + [row(2, "frame", 2, 0)], "frame", 2, 0)) == "collision"  # decor unchanged
+
+
 def test_rugs_lie_over_floor_patterns(catalog):
     """`rug`-tagged floor items are their own collision group above untagged floor patterns."""
     pattern = [row(1, "pattern", 2, 2, z=0)]
