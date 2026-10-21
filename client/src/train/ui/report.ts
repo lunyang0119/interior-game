@@ -1,4 +1,4 @@
-/** 📡 panel: the last report as text, every hunter's room + public order, fugitive extras. */
+/** 📡 panel: the last report as text, every hunter's room + public order, intruder extras. */
 
 import { tbus } from "../bus";
 import { isBot, isFugitive, isOver, label, tstate } from "../state";
@@ -7,9 +7,9 @@ import type { BotReason, Report } from "../api";
 import { actionText, resultText } from "../report";
 import { $, el, richEl, setRich, show } from "./dom";
 
-/** "R3 🕶 도주자-AI: 이동 → B2 + hide — 이유" / "R3 🤖 제미나이-1: 수색 — 이유" */
+/** "R3 🕶 침입자-AI: 이동 → B2 + hide — 이유" / "R3 🤖 제미나이-1: 수색 — 이유" */
 export function reasonLine(r: BotReason): string {
-  const who = r.uid === "fugitive" ? "{target} 도주자-AI" : `{chat} ${label(r.uid)}`;
+  const who = r.uid === "fugitive" ? "{target} 침입자-AI" : `{chat} ${label(r.uid)}`;
   const order = r.uid === "fugitive"
     ? `${r.target ? `이동 → ${r.target}` : "대기"}${r.order && r.order !== "stay" ? ` + ${HACK_KO[r.order] ?? r.order}${r.hack_target ? ` ${r.hack_target}` : ""}` : ""}`
     : `${ORDER_KO[r.order as keyof typeof ORDER_KO] ?? r.order}${r.target ? ` → ${r.target}` : ""}`;
@@ -36,7 +36,7 @@ function render(): void {
   // config keys the admin overrode at runtime: names only, so the crew knows the rules moved
   const keys = p?.override_keys ?? [];
   show("report-overrides", keys.length > 0);
-  if (keys.length) setRich($("report-overrides"), `{sliders} 관제가 바꾼 설정: ${keys.join(", ")}`);
+  if (keys.length) setRich($("report-overrides"), `{sliders} 방장이 바꾼 설정: ${keys.join(", ")}`);
   if (!p || !p.view) return;
   const last = lastShown();
   const orders = isFugitive() ? (p.fugitive?.pinged ? (tstate.pingOrders ?? p.orders ?? {}) : null) : (p.orders ?? {});
@@ -51,13 +51,13 @@ function render(): void {
     row.appendChild(richEl("div", "", txt));
     // what this crew member did last round and what came of it
     const pb = last?.playback.hunters.find((x) => x.id === h.name);
-    if (last && pb) row.appendChild(richEl("div", "small muted", `R${last.round}: ${actionText(pb)} · ${resultText(pb, last)}`));
+    if (last && pb) row.appendChild(richEl("div", "small muted", `R${last.round}: ${actionText(pb)} · ${resultText(pb, last, p.view.map_rows)}`));
     if (h.color) row.style.borderLeft = `4px solid ${h.color}`;
     crew.appendChild(row);
   }
-  if (isFugitive() && !p.fugitive_ai && !p.fugitive?.pinged && p.status === "ROUND_OPEN") crew.appendChild(el("div", "small muted", "승무원 명령 내용은 핑을 써야 보여요"));
+  if (isFugitive() && !p.fugitive_ai && !p.fugitive?.pinged && p.status === "ROUND_OPEN") crew.appendChild(el("div", "small muted", "승무원 행동 내용은 핑을 써야 보여요"));
   if (isFugitive() && p.position_history) crew.appendChild(el("div", "small muted", `이동 기록: ${p.position_history.join(" → ")}`));
-  // AI reasoning: the fugitive view (admin) sees it live, everyone sees the whole log once the chase is over
+  // AI reasoning: the intruder view (admin) sees it live, everyone sees the whole log once the chase is over
   const log = isOver(p.status) ? p.ai_log : isFugitive() ? p.bot_reasons : undefined;
   if (log?.length) {
     crew.appendChild(el("div", "panel-sub", "AI의 판단"));

@@ -1,7 +1,9 @@
-/** Fugitive bar: RAM/trace, move pick (tap a reachable room), quickhack pick (+ door/room target), ping, confirm. */
+/** Intruder bar: RAM/trace, move pick (tap a reachable room), quickhack pick (+ door/room target), ping, confirm. */
 
-import { api, msgFor, type Hack, type MapRow } from "../api";
+import { api, msgFor, type Hack } from "../api";
 import { tbus, toast } from "../bus";
+import { edgeOnPath } from "../graph";
+import { markerAge, tierOf } from "../report";
 import { describeFugitiveOrder, isFugitive, label, tstate } from "../state";
 import { HACK_DESC, HACK_KO, MESSAGES, ORDER_KO } from "../strings";
 import { $, el, setRich, show } from "./dom";
@@ -45,7 +47,7 @@ async function confirmOrder(): Promise<void> {
     // the ws fugitive_submitted carries no order: the REST answer is the truth for my own bar
     const p = tstate.payload;
     if (p?.fugitive && r.order) { p.fugitive.order = r.order; p.fugitive_submitted = true; }
-    toast(r.resolved ? "전원 제출 완료 · 정산해요" : `명령 접수: ${describeFugitiveOrder(r.order)}`);
+    toast(r.resolved ? "전원 제출 완료 · 결과가 나와요" : `행동 접수: ${describeFugitiveOrder(r.order)}`);
     tbus.emit("state:changed", {});
   } catch (e) {
     toast(msgFor(e), 4000);
@@ -76,28 +78,6 @@ async function ping(): Promise<void> {
   }
 }
 
-/** Rooms by BFS distance from `from` over the map's adjacency. */
-function distances(rows: MapRow[], from: string): Map<string, number> {
-  const adj = new Map(rows.map((r) => [r.room, r.neighbors.split(",").filter(Boolean)]));
-  const d = new Map<string, number>([[from, 0]]);
-  const q = [from];
-  while (q.length) {
-    const cur = q.shift()!;
-    for (const n of adj.get(cur) ?? []) if (!d.has(n)) { d.set(n, d.get(cur)! + 1); q.push(n); }
-  }
-  return d;
-}
-
-/** The door `edge` ("A1-A2") lies on a shortest way from `from` to `to`: locking it stops me in front of it. */
-function edgeOnPath(rows: MapRow[], from: string, to: string, edge: string): boolean {
-  const [a, b] = edge.split("-");
-  const ds = distances(rows, from), dt = distances(rows, to);
-  const total = ds.get(to);
-  if (total === undefined) return false;
-  const via = (x: string, y: string) => (ds.get(x) ?? Infinity) + 1 + (dt.get(y) ?? Infinity) === total;
-  return via(a, b) || via(b, a);
-}
-
 function render(): void {
   const p = tstate.payload;
   const on = isFugitive() && !!p && !p.fugitive_ai && p.status === "ROUND_OPEN" && !!p.fugitive && tstate.phase !== "playback";
@@ -107,7 +87,9 @@ function render(): void {
   const pick = tstate.fpick;
   const ramMax = Number(p.config?.ram_max ?? 10);
   $("fug-ram").textContent = `RAM ${"▮".repeat(Math.max(0, f.ram))}${"▯".repeat(Math.max(0, ramMax - f.ram))} ${f.ram}/${ramMax}`;
-  $("fug-trace").textContent = `추적률 ${f.trace}% · 경계도 ${f.tier}${f.frozen ? " · 동결" : ""}${f.hacks_disabled ? " · 덱 봉인" : ""}${f.hidden_until >= (p.round_no ?? 0) ? " · 은신 중" : ""}`;
+  // what the crew's tracker shows of me right now (the ◎ on my own map is the same one they see)
+  $("fug-trace").textContent = `추적률 ${f.trace}% · 승무원에게 ${markerAge(f.tier, f.frozen)}${f.frozen ? " (신호 고정)" : ""}${f.hacks_disabled ? " · 퀵핵 봉인" : ""}${f.hidden_until >= (p.round_no ?? 0) ? " · 은신 중" : ""}`;
+  $("fug-trace").title = "추적률이 오를수록 승무원 맵의 ◎ 표식이 내 최신 위치를 가리켜요. 100%가 되면 실시간으로 보이고, 그 뒤 몇 라운드 안에 안 잡히면 탈출이에요";
   const status = $("fug-status");
   const submitted = !!f.order || !!p.fugitive_submitted;
   show("btn-fug-cancel", submitted);
@@ -162,21 +144,18 @@ function shortWhy(why: string): string {
   return why;
 }
 
-/** "추적률 48 → 63 · 다음 라운드 티어 2 (표식 1라운드 지연)" for the selected hack (and this round's ping). */
+/** "추적률 48 → 63 (교란 +10, 기본 +5) · 다음 라운드 승무원에게 ◎ 1라운드 전 위치" for the selected hack (and this round's ping). */
 function projection(p: NonNullable<typeof tstate.payload>, hack: Hack | null, pinged: boolean): string {
   const f = p.fugitive;
   const c = p.config ?? {};
   if (!f) return "";
   const passive = Number(c.trace_passive ?? 0);
-  const t = [Number(c.trace_t1 ?? 40), Number(c.trace_t2 ?? 70), Number(c.trace_t3 ?? 100)];
   const add = hack ? Number(p.hacks?.[hack]?.trace ?? 0) : 0;
   if (!hack && !pinged) return "";
   const next = Math.min(100, f.trace + add + passive);
-  const tier = next >= t[2] ? 3 : next >= t[1] ? 2 : next >= t[0] ? 1 : 0;
-  const lag = ["표식 없음", "표식 2라운드 지연", "표식 1라운드 지연", "표식 실시간"][tier];
   const parts = [];
   if (hack) parts.push(`${HACK_KO[hack]} +${Number(p.hacks?.[hack]?.trace ?? 0)}`);
   if (pinged) parts.push("핑 반영됨");
   parts.push(`기본 +${passive}`);
-  return `추적률 ${f.trace} → ${next} (${parts.join(", ")}) · 다음 라운드 경계도 ${tier} (${lag})`;
+  return `추적률 ${f.trace} → ${next} (${parts.join(", ")}) · 다음 라운드 승무원에게 ${markerAge(tierOf(next, c), false)}`;
 }

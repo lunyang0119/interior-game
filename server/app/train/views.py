@@ -96,6 +96,10 @@ def _base(game: "TrainGame", role: str, pid: str | None) -> dict[str, Any]:
     out["reports"] = [public_report(e["report"]) for e in st.log[-REPLAY_ROUNDS:]]
     out["orders"] = hunter_orders(st)
     out["fugitive_submitted"] = st.fugitive.order is not None   # a flag only; the order itself stays fugitive-only
+    # public already (the report announces both): the round the trace hit 100 % and whether the signal froze, so a
+    # client that missed those reports can still count down to the escape
+    out["traced_round"] = st.fugitive.traced_at
+    out["frozen"] = st.fugitive.frozen
     out["config"] = settings.public_config(st.config)
     if pid is not None and pid in st.hunters:
         h = st.hunters[pid]

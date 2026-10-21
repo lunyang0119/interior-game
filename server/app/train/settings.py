@@ -35,8 +35,10 @@ WEB_DEFAULTS: dict[str, Any] = {"round_timer_sec": 3600, "early_resolve": True,
                                 "ping_signature": True, **WEB_ONLY}
 # keys the engine never reads: the server's round policy
 POLICY_KEYS = ("round_timer_sec", "fugitive_grace_sec", "early_resolve", "vote_skip_after_sec", "escape_on_freeze")
-# tunables the hunter/spectator payload may carry (nothing about the fugitive's resources)
-PUBLIC_KEYS = (*POLICY_KEYS, "scan_budget", "max_rounds", "fugitive_speed", "capture_mode", "signal_mode", "hunter_colors")
+# tunables the hunter/spectator payload may carry (nothing about the fugitive's resources). The trace tiers, signal
+# bands, scan lag and overheat length let the client explain the tracker (marker age, candidate rooms, escape countdown).
+PUBLIC_KEYS = (*POLICY_KEYS, "scan_budget", "scan_lag", "max_rounds", "overheat_rounds", "fugitive_speed", "capture_mode",
+               "signal_mode", "signal_bands", "trace_t1", "trace_t2", "trace_t3", "hunter_colors")
 
 SCALING_PATH = Path(__file__).with_name("scaling_web.json")
 

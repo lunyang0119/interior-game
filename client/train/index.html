@@ -22,15 +22,16 @@
     <div id="hud-status" class="chip" title="추적 상태">대기</div>
     <div id="hud-order" class="chip hidden" title="이번 라운드에 제출한 내 행동"><i class="ic ic-play"></i><span id="hud-order-val"></span><button id="btn-order-change" class="small">바꾸기</button></div>
     <span id="hud-game" class="hud-group hidden">
-      <div id="hud-clock" class="chip" title="제출 마감까지 남은 시간. 전원이 제출하면 잠깐 유예를 두고 정산돼요"><i class="ic ic-clock"></i><span id="hud-clock-val">–</span></div>
-      <div id="hud-trace" class="chip" title="추적률 · 경계도: 추적률은 라운드마다 오르고 퀵핵을 쓰면 더 올라요. 경계도 1 = ◎ 표식 2라운드 지연, 2 = 1라운드, 3 = 실시간"><i class="ic ic-target"></i><span id="hud-trace-val">–</span></div>
-      <button id="hud-sub" class="chip" title="제출 현황 — 미제출 승무원 이름. 누르면 건너뛰기 투표 패널"><i class="ic ic-menu"></i><span id="hud-sub-val">–</span></button>
+      <div id="hud-round" class="chip hidden" title="정해진 라운드 안에 못 잡으면 침입자가 탈출해요"></div>
+      <div id="hud-clock" class="chip" title="제출 마감까지 남은 시간. 전원이 제출하면 잠깐 유예를 두고 결과가 나와요"><i class="ic ic-clock"></i><span id="hud-clock-val">–</span></div>
+      <div id="hud-trace" class="chip" title="추적률: 라운드마다 오르고 침입자가 퀵핵을 쓰면 더 올라요. 높을수록 ◎ 표식이 더 최신 위치를 가리켜요"><i class="ic ic-target"></i><span class="gauge"><span id="hud-trace-fill" class="gauge-fill"></span></span><span id="hud-trace-val">–</span></div>
+      <button id="hud-sub" class="chip" title="제출 현황: 미제출 승무원 이름. 누르면 건너뛰기 투표 패널"><i class="ic ic-menu"></i><span id="hud-sub-val">–</span></button>
     </span>
     <button id="btn-lobby" class="chip" title="탑승"><i class="ic ic-exit"></i><span>탑승</span></button>
-    <button id="btn-report" class="chip" title="판독 보고"><i class="ic ic-chat"></i><span>보고</span></button>
+    <button id="btn-report" class="chip" title="보고: 승무원 현황과 라운드별 결과 기록"><i class="ic ic-chat"></i><span>보고</span></button>
     <button id="btn-roundcard" class="chip hidden" title="지난 라운드 결과 다시 보기"><i class="ic ic-chart"></i><span>결과</span></button>
     <button id="btn-vote" class="chip hidden" title="건너뛰기 투표"><i class="ic ic-trophy"></i><span id="btn-vote-val"></span></button>
-    <button id="btn-admin" class="chip hidden" title="관제"><i class="ic ic-gear"></i><span>관제</span></button>
+    <button id="btn-admin" class="chip hidden" title="방장 메뉴"><i class="ic ic-gear"></i><span>방장</span></button>
     <button id="btn-home-cam" class="chip" title="내 위치로"><i class="ic ic-expand"></i><span>내 위치</span></button>
     <button id="btn-help" class="chip" title="규칙·조작·표식 설명"><i class="ic ic-help"></i><span>도움말</span></button>
     <button id="btn-bgm" class="chip" title="음악 켜기/끄기"><i class="ic ic-speaker"></i><span id="btn-bgm-val">소리</span></button>
@@ -51,19 +52,21 @@
   <!-- hunter: this round's order -->
   <div id="orderbar" class="overlay bar hidden">
     <div class="bar-head"><div id="order-status" class="bar-status"></div><button class="chip fold" data-fold="orderbar" title="접기/펴기"><i class="ic ic-tri_down"></i><span>접기</span></button></div>
-    <div id="order-pick" class="row bar-body">
-      <button id="btn-pick-search"><i class="ic ic-search"></i><span>수색</span></button>
-      <button id="btn-pick-scan"><i class="ic ic-signal"></i><span>추적</span></button>
-      <button id="btn-pick-stay"><i class="ic ic-pause"></i><span>대기</span></button>
+    <!-- each action carries one line of what it does (strings.ts ORDER_DESC) so the bar explains itself -->
+    <div id="order-pick" class="row bar-body acts">
+      <button id="btn-pick-move" class="act"><i class="ic ic-exit"></i><span>이동<small>옆 구역을 눌러요</small></span></button>
+      <button id="btn-pick-search" class="act"><i class="ic ic-search"></i><span>수색<small>지금 구역을 뒤져요 · 침입자가 있으면 체포</small></span></button>
+      <button id="btn-pick-scan" class="act"><i class="ic ic-signal"></i><span>신호 탐색<small>침입자가 있는 구역의 장치 종류를 알아내요</small></span></button>
+      <button id="btn-pick-stay" class="act"><i class="ic ic-pause"></i><span>대기<small>제자리에 있어요</small></span></button>
     </div>
     <div class="row bar-body">
       <button id="btn-order-confirm" class="primary" title="이번 라운드 행동을 제출해요. 마감 전엔 취소하거나 다시 확정할 수 있어요."><i class="ic ic-play"></i><span id="btn-order-confirm-val">이번 라운드 행동 확정</span></button>
       <button id="btn-order-cancel" class="hidden"><i class="ic ic-close"></i><span>제출 취소</span></button>
     </div>
-    <div id="order-hint" class="small muted bar-hint bar-body">확정하면 행동이 제출돼요. 마감 전엔 다른 행동을 골라 다시 확정하면 덮어써요. 전원이 제출하면 잠깐 유예 뒤 정산돼요.</div>
+    <div id="order-hint" class="small muted bar-hint bar-body">확정하면 행동이 제출돼요. 마감 전엔 다른 행동을 골라 다시 확정하면 덮어써요. 전원이 제출하면 잠깐 유예 뒤 결과가 나와요.</div>
   </div>
 
-  <!-- fugitive: move + quickhack + ping -->
+  <!-- intruder: move + quickhack + ping -->
   <div id="fugbar" class="overlay bar hidden">
     <div class="bar-head"><div id="fug-status" class="bar-status"></div><button class="chip fold" data-fold="fugbar" title="접기/펴기"><i class="ic ic-tri_down"></i><span>접기</span></button></div>
     <div class="row small bar-body"><span id="fug-ram" class="chip"></span><span id="fug-trace" class="chip"></span></div>
@@ -82,7 +85,9 @@
   </div>
 
   <!-- round result card after each playback (ui/roundcard.ts) -->
-  <div id="roundcard" class="hidden"><div id="roundcard-body"></div></div>
+  <div id="roundcard" class="mapcard hidden"><div id="roundcard-body"></div></div>
+  <!-- first-round intro (ui/intro.ts): the three lines that make it a hide-and-seek -->
+  <div id="introcard" class="mapcard hidden"><div id="introcard-body"></div></div>
 
   <!-- capture / game start lines -->
   <div id="banner" class="hidden"><div id="banner-text"></div></div>
@@ -98,14 +103,14 @@
     </div>
     <div class="row small">
       <button id="btn-recovery">복구 링크 복사</button>
-      <button id="btn-account-claim"><i class="ic ic-crown"></i><span>관제 권한</span></button>
+      <button id="btn-account-claim"><i class="ic ic-crown"></i><span>방장 권한</span></button>
     </div>
     <div class="small muted" style="margin-top:8px">방 게임과 같은 계정이에요. 여기서 들어오면 방에서도 그 계정으로 들어가요.</div>
   </div>
 
   <div id="panel-claim" class="panel hidden">
-    <div class="panel-head"><span><i class="ic ic-crown"></i><span>관제 권한</span></span><button class="close" data-close="panel-claim" title="닫기"><i class="ic ic-close"></i></button></div>
-    <div class="small muted">관제 비밀문구를 입력하면 이 계정이 관제가 돼요.</div>
+    <div class="panel-head"><span><i class="ic ic-crown"></i><span>방장 권한</span></span><button class="close" data-close="panel-claim" title="닫기"><i class="ic ic-close"></i></button></div>
+    <div class="small muted">방장 비밀문구를 입력하면 이 계정이 방장이 돼요. 보통은 필요 없어요: 새 추적을 연 사람이 그 판의 방장이에요.</div>
     <div class="row">
       <input id="claim-secret" type="password" placeholder="비밀문구" autocomplete="off" autocapitalize="off" />
       <button id="btn-claim" class="primary">확인</button>
@@ -118,15 +123,15 @@
     <div id="lobby-info" class="small muted"></div>
     <div id="lobby-list"></div>
     <div id="lobby-actions" class="row"></div>
-    <div class="small muted" style="margin-top:8px">매 라운드 한 가지 행동을 제출해요. 전원이 제출하거나 마감이 되면 모두의 행동이 동시에 처리돼요. 침입자가 있는 구역을 수색하거나 침입자와 같은 라운드에 같은 문을 지나면(마주 지나든 뒤따르든) 체포예요. 같은 구역에서 라운드를 마치기만 하면 목격이라 위치만 드러나요. 추적은 정산 뒤 침입자가 있는 구역의 장치 계열을 알려줘요. 신호가 동결될 때까지 못 잡으면 침입자가 탈출해요.</div>
+    <div class="small muted" style="margin-top:8px">열차 숨바꼭질이에요. 침입자 한 명이 열차 어딘가에 숨고, 승무원은 매 라운드 한 가지 행동(이동·수색·신호 탐색·대기)으로 찾아요. 전원이 제출하거나 마감이 되면 모두의 행동이 동시에 처리돼요. 침입자가 있는 구역을 수색하거나 침입자와 같은 라운드에 같은 문을 지나면 체포예요. 정해진 라운드 안에 못 잡으면 침입자가 탈출해요.</div>
   </div>
 
   <div id="panel-report" class="panel hidden">
-    <div class="panel-head"><span><i class="ic ic-chat"></i><span>판독 보고</span></span><button class="close" data-close="panel-report" title="닫기"><i class="ic ic-close"></i></button></div>
+    <div class="panel-head"><span><i class="ic ic-chat"></i><span>보고</span></span><button class="close" data-close="panel-report" title="닫기"><i class="ic ic-close"></i></button></div>
     <div class="panel-sub">승무원</div>
     <div id="report-crew"></div>
     <div id="report-overrides" class="small muted hidden"></div>
-    <div class="panel-sub">판독 기록 <button id="btn-log-replay" class="chip small hidden" title="마지막 라운드 재생을 다시 보기"><i class="ic ic-play_back"></i><span>다시 보기</span></button></div>
+    <div class="panel-sub">라운드 기록 <button id="btn-log-replay" class="chip small hidden" title="마지막 라운드 재생을 다시 보기"><i class="ic ic-play_back"></i><span>다시 보기</span></button></div>
     <div id="roundlog-body" class="log-body"></div>
     <div id="report-text" class="report-text hidden"></div>
   </div>
@@ -143,7 +148,7 @@
   </div>
 
   <div id="panel-admin" class="panel hidden">
-    <div class="panel-head"><span><i class="ic ic-gear"></i><span>관제</span></span><button class="close" data-close="panel-admin" title="닫기"><i class="ic ic-close"></i></button></div>
+    <div class="panel-head"><span><i class="ic ic-gear"></i><span>방장</span></span><button class="close" data-close="panel-admin" title="닫기"><i class="ic ic-close"></i></button></div>
     <div id="admin-flow" class="row"></div>
     <div id="admin-presets" class="row"></div>
     <div id="admin-danger" class="row admin-danger"></div>

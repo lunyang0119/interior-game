@@ -75,16 +75,31 @@ button.armed { outline: 2px solid var(--danger); }
 .bar.folded .bar-head { justify-content: flex-end; }
 .bar.folded { padding-top: 2px; padding-bottom: 2px; }
 
-/* round result card over the map (ui/roundcard.ts): tap to dismiss */
-#roundcard { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 35; width: min(460px, calc(100vw - 32px));
+/* cards over the map (round result ui/roundcard.ts, first-round intro ui/intro.ts): tap to dismiss */
+.mapcard { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 35; width: min(460px, calc(100vw - 32px));
   max-height: 60vh; overflow-y: auto; background: var(--panel); border: 1px solid var(--primary); border-radius: 12px; padding: 10px 12px;
   box-shadow: 0 8px 40px rgba(0, 0, 0, 0.6); cursor: pointer; font-size: var(--fs-small); line-height: 1.4; }
+.intro-line { padding: 6px 8px; background: var(--card); border-radius: 8px; margin-bottom: 4px; }
+.rc-cand { margin-top: 4px; color: #ffb347; font-weight: 700; }
+
+/* HUD trace gauge: a short bar filled to the trace %, red-hot once the tracker runs live */
+#hud-trace .gauge { display: inline-block; width: 44px; height: 6px; border-radius: 3px; background: rgba(255, 255, 255, 0.15); overflow: hidden; margin-right: 4px; }
+#hud-trace .gauge-fill { display: block; height: 100%; width: 0; background: var(--primary); transition: width 0.4s; }
+#hud-trace.hot .gauge-fill { background: #e07070; }
+#hud-round.warn { color: #e07070; font-weight: 700; }
+
+/* action buttons with their one-line description */
+.acts .act { flex: 1 1 140px; justify-content: flex-start; text-align: left; padding: 6px 10px; min-height: 40px; }
+.acts .act > span { display: flex; flex-direction: column; gap: 1px; line-height: 1.2; }
+.acts .act small { font-size: 10px; font-weight: 400; color: var(--muted); white-space: normal; }
+.acts .act.active { outline: 2px solid var(--primary); }
 .rc-head { font-weight: 700; color: var(--primary); font-size: 14px; margin-bottom: 4px; display: flex; align-items: center; gap: 4px; }
 .rc-headline { display: flex; flex-wrap: wrap; gap: 2px 12px; margin-bottom: 6px; }
 .rc-note { margin-bottom: 4px; }
 .rc-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.5fr); gap: 6px; align-items: center;
   padding: 6px 8px; background: var(--card); border-radius: 8px; margin-bottom: 4px; }
 .rc-row.me { outline: 1px solid var(--primary); }
+#introcard .rc-foot { margin-top: 6px; }
 .rc-name { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .rc-foot { text-align: center; color: var(--muted); font-size: 11px; margin-top: 4px; }
 @media (max-width: 480px) {

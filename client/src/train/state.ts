@@ -49,7 +49,7 @@ export function isBot(id: string): boolean {
 }
 
 export function label(id: string): string {
-  return id === "fugitive" ? "도주자-AI" : isBot(id) ? `제미나이-${id.slice(4)}` : id;
+  return id === "fugitive" ? "침입자-AI" : isBot(id) ? `제미나이-${id.slice(4)}` : id;
 }
 
 /** The account holding the controls (pause, config, AI crew…). In fugitive-AI games this is not the fugitive. */

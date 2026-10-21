@@ -21,6 +21,7 @@ import { initHud } from "./ui/hud";
 import { initLobby } from "./ui/lobby";
 import { initReport, reasonLine } from "./ui/report";
 import { initHelp } from "./ui/help";
+import { hideIntro, initIntro } from "./ui/intro";
 import { initRoundLog, remember } from "./ui/roundlog";
 import { hideRoundCard, initRoundCard, showRoundCard } from "./ui/roundcard";
 import { initTrainBgm, isMuted, setTrace, stop as stopBgm, toggleMute } from "./bgm";
@@ -223,6 +224,7 @@ function applyState(p: TrainState): void {
     abortPlayback();
     tstate.history.length = 0; tstate.thinking.clear(); tstate.escape = null; tbus.emit("history:changed", {});
     hideRoundCard();
+    hideIntro();
   }
   // the round log: every report the payload carries (a new device / refresh sees more than the newest round)
   if (p.log?.length) for (const e of p.log) remember(withEntry(e.report, e));
@@ -285,6 +287,7 @@ function playOne(report: Report, gameId: number | null): Promise<void> {
     tstate.unseenResult = false;
     closePanels();
     hideRoundCard();
+    hideIntro();
     throttle();
     tbus.emit("state:changed", {});
     let finished = false;
@@ -442,7 +445,7 @@ function wireSocket(): void {
       const min = Math.max(1, Math.round((m.deadline_ts - Date.now() / 1000) / 60));
       toast(isFugitive() && !p.fugitive_ai
         ? `승무원 전원 제출 · 내 제출을 기다리는 중 · 유예 ${min}분`
-        : `승무원 전원 제출 · 도주자 제출을 기다리는 중 · 유예 ${min}분`, 4000);
+        : `승무원 전원 제출 · 침입자 제출을 기다리는 중 · 유예 ${min}분`, 4000);
     }
     else if (m.reason === "grace_cancel") { p.grace_until = null; p.deadline_ts = m.deadline_ts; toast("제출이 취소되어 유예가 풀렸어요"); }
     else {
@@ -489,7 +492,7 @@ function wireSocket(): void {
   tsocket.on("bot_thinking", (m: { id: string; round: number }) => {
     tstate.thinking.add(m.id);
     tbus.emit("state:changed", {});
-    // everyone sees "(판단 중)" on the HUD; the toast is for the controls (admin) and the fugitive only
+    // everyone sees "(판단 중)" on the HUD; the toast is for the controls (방장) and the intruder only
     if (isFugitive() || tstate.payload?.admin) toast(`${m.id === "fugitive" ? "{target}" : "{chat}"} ${label(m.id)} · R${m.round} 판단 중…`, 2500);
   });
   tsocket.on("bot_reason", (m: { reason: BotReason }) => {
@@ -499,7 +502,7 @@ function wireSocket(): void {
   });
   tsocket.on("paused", (m: { paused_remaining: number }) => {
     const p = tstate.payload;
-    if (p) { p.status = "PAUSED"; p.paused_remaining = m.paused_remaining; applyState(p); toast("관제가 라운드를 잠시 멈췄어요"); }
+    if (p) { p.status = "PAUSED"; p.paused_remaining = m.paused_remaining; applyState(p); toast("방장이 라운드를 잠시 멈췄어요"); }
   });
   tsocket.on("resumed", (m: { deadline_ts: number; vote_after_ts: number | null }) => {
     const p = tstate.payload;
@@ -577,6 +580,7 @@ async function boot(): Promise<void> {
   initRoundLog();
   initRoundCard();
   initHelp();
+  initIntro();
   initCues();
   void initTrainBgm();
   const bgmBtn = () => { $("btn-bgm-val").textContent = isMuted() ? "소리 꺼짐" : "소리"; };

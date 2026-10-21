@@ -36,9 +36,9 @@ DEFAULTS: Dict[str, Any] = {
     "trace_t3": 100,               # 실시간 + 퀵핵 봉인
     "overheat_rounds": 3,          # TRACED 이후 이 라운드 수가 지나면 동결
     "max_rounds": 24,              # 하드 캡 (동결)
-    # 추적기
+    # 신호 탐색기
     "scan_budget": 1,
-    "scan_trace": 5,               # 성공한 추적 1회당 추적률 상승
+    "scan_trace": 5,               # 성공한 신호 탐색 1회당 추적률 상승
     "scan_lag": 1,                 # 0 = 이동 후 방, 1 = 라운드 시작 시점 방의 장치
     "signal_mode": "banded",       # banded | exact | off
     "signal_bands": "1,3",         # 강 ≤ a, 중 ≤ b, 약 > b

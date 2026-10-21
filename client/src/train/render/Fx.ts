@@ -1,4 +1,5 @@
-/** Scene effects: signal markers (◎), locked doors (⛔), steam, blackout, speech bubbles, room/door highlights. */
+/** Scene effects: signal markers (◎ with their age), the marker trail of earlier rounds, candidate-room shading,
+ *  locked doors (⛔), steam, blackout, speech bubbles, room/door highlights. */
 
 import Phaser from "phaser";
 import { CELL } from "../../room/grid";
@@ -12,9 +13,13 @@ export const IC_MAP = "train-ic-map";
 const FX_DEPTH = 900_000;       // above furniture and avatars
 const OVERLAY_DEPTH = 950_000;  // full-screen effects
 const BUBBLE_DEPTH = 990_000;
+/** candidate-room wash (amber, under the markers) */
+const CANDIDATE_COLOR = 0xffb347;
 
 export class Fx {
-  private markers = new Map<string, Phaser.GameObjects.Text>();
+  private markers = new Map<string, Phaser.GameObjects.GameObject[]>();
+  private trail: Phaser.GameObjects.GameObject[] = [];
+  private candidates: Phaser.GameObjects.GameObject[] = [];
   private locks = new Map<string, Phaser.GameObjects.Image>();
   private steam = new Map<string, Phaser.GameObjects.GameObject[]>();
   private highlight: Phaser.GameObjects.Graphics;
@@ -78,17 +83,49 @@ export class Fx {
     return t;
   }
 
-  /** ◎ 신호 감지 on rooms (replaces the previous set). */
-  setMarkers(rooms: string[]): void {
+  /** ◎ 신호 감지 on rooms (replaces the previous set), with `age` under each ("2라운드 전" / "지금"; null = no
+   *  caption). Every marker of a round carries the same age: a decoy is not told apart from the real signal. */
+  setMarkers(rooms: string[], age: string | null = null): void {
     this.onCondition?.("marker", rooms);
-    for (const [r, t] of this.markers) if (!rooms.includes(r)) { t.destroy(); this.markers.delete(r); }
+    for (const [r, objs] of this.markers) { objs.forEach((o) => o.destroy()); this.markers.delete(r); }
     for (const r of rooms) {
       if (this.markers.has(r)) continue;
       const c = this.roomCenter(r);
       if (!c) continue;
       const t = this.text(c.x, c.y - CELL, "◎", 20);
       this.pulse({ targets: t, alpha: { from: 1, to: 0.35 }, duration: 700, yoyo: true, repeat: -1 });
-      this.markers.set(r, t);
+      const objs: Phaser.GameObjects.GameObject[] = [t];
+      if (age) objs.push(this.text(c.x, c.y - CELL + 11, age, 8, "#ffe9a0"));
+      this.markers.set(r, objs);
+    }
+  }
+
+  /** Earlier rounds' markers, faded, labelled by round ("R3 R5") so the crew can read the direction of travel.
+   *  `stops` newest last; a room repeated across rounds gets one label listing them. */
+  setTrail(stops: { round: number; room: string }[]): void {
+    for (const o of this.trail) o.destroy();
+    this.trail = [];
+    const byRoom = new Map<string, number[]>();
+    for (const s of stops) byRoom.set(s.room, [...(byRoom.get(s.room) ?? []), s.round]);
+    for (const [room, rounds] of byRoom) {
+      const c = this.roomCenter(room);
+      if (!c) continue;
+      const t = this.text(c.x, c.y + CELL * 0.6, `◎ ${rounds.map((r) => `R${r}`).join(" ")}`, 9, "#c9b36a").setAlpha(0.55);
+      this.trail.push(t);
+    }
+  }
+
+  /** Rooms the intruder can be in after the last round (clue overlay): an amber wash + "?" (replaces the set). */
+  setCandidates(rooms: string[]): void {
+    for (const o of this.candidates) o.destroy();
+    this.candidates = [];
+    for (const r of rooms) {
+      const b = this.layout.rooms.get(r);
+      if (!b) continue;
+      const rect = this.scene.add.rectangle(b.x0 * CELL, b.y0 * CELL, b.w * CELL, b.h * CELL, CANDIDATE_COLOR, 0.16).setOrigin(0).setDepth(TILE_DEPTH + 3);
+      const q = this.text((b.x0 + b.w) * CELL - 6, b.y0 * CELL + 14, "?", 13, "#ffb347");
+      this.objects.push(rect);
+      this.candidates.push(rect, q);
     }
   }
 
@@ -165,7 +202,7 @@ export class Fx {
 
   private route: Phaser.GameObjects.GameObject[] = [];
 
-  /** Post-game reveal: the fugitive's route as numbered stops + arrows, and the capture point. `[]` clears. */
+  /** Post-game reveal: the intruder's route as numbered stops + arrows, and the capture point. `[]` clears. */
   drawRoute(stops: { round: number; room: string }[], capture: string | null): void {
     for (const o of this.route) o.destroy();
     this.route = [];
@@ -194,6 +231,8 @@ export class Fx {
 
   destroy(): void {
     for (const o of this.route) o.destroy();
+    for (const o of this.trail) o.destroy();
+    for (const o of this.candidates) o.destroy();
     this.scene.scale.off(Phaser.Scale.Events.RESIZE, this.resizeDark, this);
     for (const o of this.objects) o.destroy();
     this.highlight.destroy();

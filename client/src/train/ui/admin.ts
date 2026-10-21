@@ -67,7 +67,7 @@ function render(): void {
   if (isOver(st)) {
     const on = !!p.route;
     flow.append(act(on ? "경로 공개 끄기" : "경로 공개 (모두에게)", () => api.reveal(!on), on ? "" : "primary"));
-    flow.appendChild(el("div", "small muted", on ? "승무원·관전자 화면에 도주자의 라운드별 경로와 체포 지점이 그려져요" : "체포 후에만 켤 수 있어요. 켜면 도주자의 전체 경로가 모두에게 보여요"));
+    flow.appendChild(el("div", "small muted", on ? "승무원·관전자 화면에 침입자의 라운드별 경로와 체포 지점이 그려져요" : "추적이 끝난 뒤에만 켤 수 있어요. 켜면 침입자의 전체 경로가 모두에게 보여요"));
   }
   if (st !== "IDLE" && !isOver(st)) {
     presets.append(
@@ -75,7 +75,7 @@ function render(): void {
       act("기본값으로", async () => { cfg = await api.resetConfig(); toast("이 판의 덮어쓴 값을 모두 지웠어요"); renderConfig(); }),
     );
   }
-  if (st === "ROUND_OPEN" || st === "PAUSED") danger.appendChild(armed("라운드 지금 정산", "정말 정산 (3초)", api.endRound));
+  if (st === "ROUND_OPEN" || st === "PAUSED") danger.appendChild(armed("라운드 지금 끝내기", "정말 끝내기 (3초)", api.endRound));
   if (st !== "IDLE") danger.appendChild(armed("추적 종료", "정말 종료 (3초)", api.endGame));
   show("admin-danger", danger.children.length > 0);
   // the tunables are not rebuilt on state pushes (typed values would be lost): only after load / apply / preset

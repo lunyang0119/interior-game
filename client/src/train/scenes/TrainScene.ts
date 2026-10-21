@@ -12,7 +12,11 @@ import { Fx } from "../render/Fx";
 import { Hunters } from "../render/Hunters";
 import { buildLayout, roomAt, type Layout } from "../render/layout";
 import { playRound } from "../render/Playback";
+import { candidates, markerCaption, tierOf } from "../report";
 import { isFugitive, isOver, label, me, tstate } from "../state";
+
+/** how many earlier rounds' markers stay on the map as a faded trail */
+const TRAIL_ROUNDS = 3;
 
 export interface TrainSceneData {
   rooms: MapRoom[];
@@ -144,7 +148,18 @@ export class TrainScene extends Phaser.Scene {
     for (const h of view.hunters) rooms[h.name] = h.room;
     await this.hunters.sync(ids, p.avatars ?? {}, rooms);
     if (this.busy) return;   // a playback started while the textures loaded: it owns the sprites now
-    this.fx.setMarkers(view.markers);
+    // the tracker after the last round: markers captioned with their age, the earlier rounds' trail, and the rooms
+    // the public clues leave open (nothing once the chase is over: the route reveal takes the map)
+    const rep = p.report ?? null;
+    const over = isOver(p.status);
+    const tier = p.fugitive ? p.fugitive.tier : (rep?.tier ?? tierOf(view.trace, p.config));
+    const frozen = p.fugitive ? p.fugitive.frozen : !!p.frozen;
+    this.fx.setMarkers(view.markers, markerCaption(tier, frozen));
+    const last = rep?.round ?? 0;
+    const trail: { round: number; room: string }[] = [];
+    for (const r of tstate.history) if (r.round < last && r.round >= last - TRAIL_ROUNDS && !r.blackout) for (const room of r.markers) trail.push({ round: r.round, room });
+    this.fx.setTrail(over ? [] : trail);
+    this.fx.setCandidates(rep && !over && !rep.captured_by ? candidates(rep, view.map_rows, p.config)?.rooms ?? [] : []);
     this.fx.setLocks(view.locks);
     this.fx.setSteam(view.steam);
     // post-game route reveal (server sends `route` only once the chase is over and the admin switched it on)
@@ -198,8 +213,8 @@ export class TrainScene extends Phaser.Scene {
       for (const h of report.playback.hunters) rooms[h.id] = h.from;
       await this.hunters.sync(ids, tstate.payload?.avatars ?? {}, rooms, true);
       await playRound({ scene: this, layout: this.layout, hunters: this.hunters, fugitive: this.fugitive, fx: this.fx,
-        fugitiveView: isFugitive(), toast: (s, ms) => tbus.emit("toast", { text: s, ms: ms ?? 2600 }), label, skipped: () => tstate.skipping,
-        captureRoom: () => tstate.payload?.view?.capture_room ?? null }, report);
+        fugitiveView: isFugitive(), rows: tstate.payload?.view?.map_rows ?? [], config: tstate.payload?.config, label,
+        skipped: () => tstate.skipping, captureRoom: () => tstate.payload?.view?.capture_room ?? null }, report);
     } catch (e) {
       console.error("train: playback failed", e);
     } finally {

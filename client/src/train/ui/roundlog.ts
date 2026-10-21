@@ -41,7 +41,7 @@ function render(): void {
   show("btn-log-replay", on && !playing && tstate.history.length > 0);
   const box = $("roundlog-body");
   box.innerHTML = "";
-  if (!on || !tstate.history.length) { box.appendChild(el("div", "small muted", "아직 판독 결과가 없어요")); return; }
+  if (!on || !tstate.history.length) { box.appendChild(el("div", "small muted", "아직 라운드 결과가 없어요")); return; }
   for (const rep of [...tstate.history].reverse()) {
     const playing = rep.round === tstate.playing?.round;
     const sec = el("div", "log-round" + (playing ? " playing" : ""));

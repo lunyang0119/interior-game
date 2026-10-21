@@ -112,6 +112,10 @@ export interface TrainState {
   orders?: Record<string, Order | null>;
   /** whether the fugitive has submitted this round (everyone sees the flag, never the order) */
   fugitive_submitted?: boolean;
+  /** the round the trace reached 100 % (the escape countdown runs from it); null until then */
+  traced_round?: number | null;
+  /** the signal froze (the chase ended by escape unless someone caught the intruder that round) */
+  frozen?: boolean;
   config?: Record<string, unknown>;
   ai_available?: boolean;
   admin?: boolean;

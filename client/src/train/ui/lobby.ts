@@ -1,4 +1,4 @@
-/** Lobby / idle / game-over panel: who is aboard, join/leave, (admin) start, and anyone's "새 추적 열기" when no
+/** Lobby / idle / game-over panel: who is aboard, join/leave, (방장) start, and anyone's "새 추적 열기" when no
  *  chase runs or the last one ended (the server lets anyone open a game then). */
 
 import { api, msgFor, type MapSummary, type TrainState } from "../api";
@@ -64,8 +64,8 @@ function createForm(actions: HTMLElement): void {
     for (const x of maps) { const o = el("option", "", `${x.id} (${x.rooms}칸)`); o.value = x.id; m.appendChild(o); }
     const ai = el("label", "small");
     const aiBox = el("input"); aiBox.type = "checkbox";
-    ai.append(aiBox, " 도주자도 AI");
-    ai.title = "도주자를 Gemini가 맡아요. 연 사람은 관제를 유지하면서 승무원으로 탑승할 수 있어요";
+    ai.append(aiBox, " 침입자도 AI");
+    ai.title = "침입자를 Gemini가 맡아요. 연 사람은 방장을 유지하면서 승무원으로 탑승할 수 있어요";
     row.append(n, m, button("새 추적 열기", async () => {
       try { await api.create(Number(n.value), m.value || undefined, aiBox.checked); } catch (e) { toast(msgFor(e)); }
     }, "primary"));
@@ -83,15 +83,15 @@ function summaryLines(p: TrainState): string[] {
     const by = rep?.captured_by;
     out.push(by
       ? `{trophy} R${rep!.round} 체포 · ${label(by)} (${CAPTURE_HOW_KO[rep!.capture_how ?? ""] ?? rep!.capture_how})`
-      : "{trophy} 도주자가 잡혔어요");
+      : "{trophy} 침입자가 잡혔어요");
   } else {
-    out.push(`{exit} 도주자가 ${tstate.escape?.round ?? rep?.round ?? "?"}라운드에 빠져나갔어요`);
+    out.push(`{exit} 침입자가 ${tstate.escape?.round ?? rep?.round ?? "?"}라운드에 빠져나갔어요`);
     if (tstate.escape?.line) out.push(tstate.escape.line);
   }
   if (rep) out.push(`최종 추적률 ${rep.trace}% · ${rep.round}라운드 진행`);
-  if (p.route?.length) out.push("{pin} 도주자의 라운드별 경로가 맵에 그려져 있어요");
+  if (p.route?.length) out.push("{pin} 침입자의 라운드별 경로가 맵에 그려져 있어요");
   if (p.ai_log?.length) out.push("{chat} AI의 판단은 보고 패널에서 볼 수 있어요");
-  out.push("새 추적을 열면 이 판은 닫히고, 연 사람이 관제가 돼요");
+  out.push("새 추적을 열면 이 판은 닫히고, 연 사람이 방장(침입자)이 돼요");
   return out;
 }
 
@@ -122,7 +122,7 @@ function render(): void {
 
   if (st === "IDLE" || over) {
     if (over && p) for (const line of summaryLines(p)) summary.appendChild(richEl("div", "small", line));
-    info.textContent = over ? "" : "진행 중인 추적이 없어요. 새 추적을 열면 이 계정이 관제(도주자)가 돼요.";
+    info.textContent = over ? "" : "진행 중인 추적이 없어요. 새 추적을 열면 이 계정이 방장(침입자)이 돼요.";
     show("lobby-info", !over);
     // keep the form (and the player's picks in it) across state pushes
     if (formFor !== st || !actions.children.length) { formFor = st; actions.innerHTML = ""; createForm(actions); }
@@ -133,7 +133,7 @@ function render(): void {
 
   actions.innerHTML = "";
   const lobby = p?.lobby ?? [];
-  info.textContent = `맵 ${p?.map_id} · 승무원 ${lobby.length}/${p?.hunter_count}명 · 도주자: ${p?.fugitive_ai ? "AI" : "관제"}`;
+  info.textContent = `맵 ${p?.map_id} · 승무원 ${lobby.length}/${p?.hunter_count}명 · 침입자: ${p?.fugitive_ai ? "AI" : "방장"}`;
   for (const id of lobby) {
     const row = richEl("div", "lobby-row", `${isBot(id) ? "{chat}" : "{gamepad}"} ${label(id)}${id === me() ? " (나)" : ""}`);
     list.appendChild(row);
@@ -152,7 +152,7 @@ function render(): void {
     }));
   }
   if (isAdmin() && p?.ai_available) {
-    actions.appendChild(button(p.fugitive_ai ? "도주자: AI → 내가 맡기" : "도주자: 내가 → AI에게 맡기기", async () => {
+    actions.appendChild(button(p.fugitive_ai ? "침입자: AI → 내가 맡기" : "침입자: 내가 → AI에게 맡기기", async () => {
       try { await api.setFugitiveAi(!p.fugitive_ai); } catch (e) { toast(msgFor(e)); }
     }));
   }
@@ -164,7 +164,7 @@ function render(): void {
     }, "danger"));
   }
   if (isAdmin() && !p?.fugitive_ai) {
-    // the admin is the fugitive: no riding
+    // the 방장 is the intruder: no riding
   } else if (me() && lobby.includes(me()!)) {
     actions.appendChild(button("하차", async () => { try { await api.leave(); } catch (e) { toast(msgFor(e)); } }));
   } else if (me()) {

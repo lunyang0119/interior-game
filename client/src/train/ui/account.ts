@@ -57,7 +57,7 @@ async function copyRecovery(): Promise<void> {
   const link = storage.recoveryLink(acct.token);
   try {
     await navigator.clipboard.writeText(link);
-    toast("복구 링크 복사됨.");
+    toast("복구 링크를 복사했어요");
   } catch {
     prompt("복구 링크예요. 복사해 주세요", link);
   }

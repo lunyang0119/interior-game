@@ -3,7 +3,7 @@
     python -m fugitive.sim --hunters 4 --games 2000 --seed 1
     python -m fugitive.sim --all            # 2~6인 전부
 
-헌터 봇: greedy (후보 구역 집합을 향해 이동, 후보가 좁으면 수색, 넓으면 추적)
+헌터 봇: greedy (후보 구역 집합을 향해 이동, 후보가 좁으면 수색, 넓으면 신호 탐색)
 도주자 봇: hacker (인접 위협 시 문 잠금, 포위 시 은신, 그 외 교란/정전) / stealth (핵 없음)
 사람 도주자는 봇보다 오래 버티므로 결과는 하한선으로 본다.
 """

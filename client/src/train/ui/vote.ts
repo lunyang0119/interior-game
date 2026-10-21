@@ -22,7 +22,7 @@ function render(): void {
   const open = p.status === "ROUND_OPEN" && p.vote_after_ts != null && now >= p.vote_after_ts;
   setRich($("vote-info"), open
     ? `아직 제출하지 않은 승무원을 "대기"로 넘길 수 있어요. 그 사람을 뺀 승무원의 과반(${p.need ?? 1}명)이 찬성하면 통과되고, 전원 제출이 되면 바로 다음 라운드로 넘어가요.`
-    : `라운드가 열리고 ${Math.round(Number(p.config?.vote_skip_after_sec ?? 600) / 60)}분이 지나면 미제출자를 건너뛰는 투표를 열 수 있어요. 관제는 {gear} 패널의 vote_skip_after_sec 로 이 시간을 바꿀 수 있어요.`);
+    : `라운드가 열리고 ${Math.round(Number(p.config?.vote_skip_after_sec ?? 600) / 60)}분이 지나면 미제출자를 건너뛰는 투표를 열 수 있어요. 방장은 {gear} 패널의 vote_skip_after_sec 로 이 시간을 바꿀 수 있어요.`);
   for (const h of p.view.hunters) {
     if (h.submitted || h.dazed) continue;
     const voters = p.votes?.[h.name] ?? [];
@@ -46,5 +46,5 @@ function render(): void {
     list.appendChild(row);
   }
   if (!list.children.length) list.appendChild(el("div", "small muted", "승무원은 모두 제출했어요"));
-  if (p.status === "ROUND_OPEN") list.appendChild(el("div", "small muted", p.fugitive_submitted ? "도주자: 제출함" : tstate.thinking.has("fugitive") ? "도주자: AI가 판단 중…" : "도주자: 아직 미제출 (전원 제출 후 유예 시간이 지나면 대기 처리)"));
+  if (p.status === "ROUND_OPEN") list.appendChild(el("div", "small muted", p.fugitive_submitted ? "침입자: 제출함" : tstate.thinking.has("fugitive") ? "침입자: AI가 판단 중…" : "침입자: 아직 미제출 (전원 제출 후 유예 시간이 지나면 대기 처리)"));
 }
