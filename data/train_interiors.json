@@ -58,7 +58,7 @@
     },
     {
      "item_id": "neon_86_3",
-     "x": 1,
+     "x": 0,
      "y": 0
     },
     {
@@ -69,11 +69,6 @@
     {
      "item_id": "neon_86_10",
      "x": 6,
-     "y": 0
-    },
-    {
-     "item_id": "neon_86_10",
-     "x": 0,
      "y": 0
     }
    ],
@@ -310,30 +305,20 @@
      "y": 1
     },
     {
-     "item_id": "cybe_90_2",
-     "x": 6,
-     "y": 0
-    },
-    {
-     "item_id": "cybe_90_2",
-     "x": 6,
-     "y": 0
-    },
-    {
      "item_id": "cybe_94",
      "x": 5,
      "y": 4
     },
     {
      "item_id": "light_window_anim",
-     "x": 3,
+     "x": 4,
      "y": 0
     }
    ],
    "fx": [
     {
      "sprite": "light_window_animation_real",
-     "x": 48,
+     "x": 67,
      "y": 0,
      "when": "blackout"
     },
