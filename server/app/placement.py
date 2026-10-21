@@ -94,8 +94,9 @@ def paper_cells(room: Room, x: int, y: int, w: int, h: int) -> list[Cell] | None
 
 
 def is_floor_paper(it: Item, room: Room | None, y: int) -> bool:
-    """Wallpaper anchored on a floor row: it can only be pasted on that room's painted 벽지 칸."""
-    return it.layer == "wallpaper" and room is not None and y >= room.wall_rows
+    """Wallpaper anchored on a floor row: it can only be pasted on that room's painted 벽지 칸. A wallpaper-layer
+    partition (e.g. a divider's end piece) is not wallpaper: it stands on the floor like any partition."""
+    return it.layer == "wallpaper" and not it.is_partition and room is not None and y >= room.wall_rows
 
 
 def footprint_of(catalog: Catalog, row: ItemRow) -> list[Cell]:
@@ -152,7 +153,8 @@ def validate_place(catalog: Catalog, others: list[ItemRow], item_id: str, x: int
         cells = pasted
     else:
         cells = footprint(x, y, width_of(it, span), it.h)
-    blocked = room.blocked_set
+    # painted 벽지 칸 are designated on purpose: a blocked cell (no walking, no furniture) may still take wallpaper
+    blocked = set() if floor_paper else room.blocked_set
     if not relaxed and any(not room.in_bounds(cx, cy) or (cx, cy) in blocked for cx, cy in cells):
         raise fail("out_of_bounds")
     # floor things cannot sit on water etc. (wall layers never touch floor tiles; surface items need a table)

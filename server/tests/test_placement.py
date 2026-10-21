@@ -85,6 +85,16 @@ def test_wallpaper_pastes_on_painted_cells(catalog):
     # wallpapers collide with wallpapers; wall decor never hangs on painted cells alone
     assert err(lambda: validate_place(catalog, hung, "paper", 2, 3, span=1, room_id=room)) == "collision"
     assert err(lambda: validate_place(catalog, [], "frame", 1, 3, room_id=room)) == "bad_cell_type"
+    # a blocked cell that is also painted still takes wallpaper (walls you can't walk into)
+    blocked_room = catalog.room_of(room).model_copy(update={"blocked": [[1, 3]]})
+    catalog.rooms[room], saved = blocked_room, catalog.rooms[room]
+    try:
+        assert validate_place(catalog, [], "tallpaper", 1, 3, room_id=room).z == 2
+        assert err(lambda: validate_place(catalog, [], "chair", 1, 3, room_id=room)) == "out_of_bounds"
+    finally:
+        catalog.rooms[room] = saved
+    # a wallpaper-layer partition (a divider's end piece) is a partition, not wallpaper: no 벽지 칸 needed
+    assert validate_place(catalog, [], "endcap", 0, 1, room_id=room).parent_uid is None
     # partitions take no wallpaper any more unless the cells are painted
     assert err(lambda: validate_place(catalog, [row(1, "divider", 1, 3)], "paper", 1, 3)) == "bad_cell_type"
 

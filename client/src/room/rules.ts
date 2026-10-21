@@ -52,7 +52,8 @@ export function checkPlace(cat: Catalog, room: Room, others: RoomItem[], itemId:
   const pasted = floorPaper ? paperCells(room, x, y, widthOf(it, span), it.h) : null;
   if (floorPaper && !pasted) return { ok: false, code: "bad_cell_type", parentUid: null };
   const cells = pasted ?? footprint(x, y, widthOf(it, span), it.h);
-  const blocked = new Set(room.blocked.map((b) => key([b[0], b[1]])));
+  // painted 벽지 칸 may be blocked cells (no walking) and still take wallpaper — mirrors placement.py
+  const blocked = new Set(floorPaper ? [] : room.blocked.map((b) => key([b[0], b[1]])));
   for (const c of cells) {
     if (c[0] < 0 || c[1] < 0 || c[0] >= room.cols || c[1] >= room.rows || blocked.has(key(c))) {
       return { ok: false, code: "out_of_bounds", parentUid: null };

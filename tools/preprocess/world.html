@@ -361,7 +361,7 @@
     const it = itemById(s.item_id); if (!it) return "items.json에 없는 아이템";
     const w = seedW(s, it), h = it.h;
     // wallpaper on the floor rows goes only on the painted 벽지 칸 (mirrors placement.paper_cells)
-    if (it.layer === "wallpaper" && s.y >= rm.wall_rows) return paperCells(rm, s.x, s.y, w, h) ? null : "칠한 벽지 칸 위에만 놓을 수 있어요 (열마다 시작 줄이 칠해져 있어야 해요)";
+    if (it.layer === "wallpaper" && !isPartition(it) && s.y >= rm.wall_rows) return paperCells(rm, s.x, s.y, w, h) ? null : "칠한 벽지 칸 위에만 놓을 수 있어요 (열마다 시작 줄이 칠해져 있어야 해요)";
     if (onWall(it) ? s.y + h > rm.wall_rows : s.y < rm.wall_rows) {
       // wall decor may hang on a partition's face instead of the wall rows
       if (onWall(it) && it.layer === "wall" && s.y >= rm.wall_rows) return hangerOf(s, it, rm) ? null : "벽 칸이나 partition 벽면 위에만 걸 수 있어요";
@@ -1081,9 +1081,6 @@
       else key = floorKeyAt(room, x, y);
       if (key) drawKey("interior", key, x * cz, y * cz, cz, cz);
     }
-    for (const [bx, by] of room.blocked) { g.fillStyle = "rgba(255,60,60,.35)"; g.fillRect(bx * cz, by * cz, cz, cz); }
-    // 벽지 칸: violet cells (strong while the tool is on, a faint outline otherwise, drawn again over the seeds below)
-    if (tool === "paper") for (const [px, py] of room.paper) { g.fillStyle = "rgba(190,120,255,.4)"; g.fillRect(px * cz, py * cz, cz, cz); }
     // seeds sorted like the game: wall layers and floor first (row -1, rugs over floor patterns), then by bottom row;
     // wall decor hung on a partition sorts with the partition's feet, just above it
     const order = { wallpaper: 0, wall: 1, floor: 2, rug: 2.5, furniture: 3, hung: 3.5, surface_item: 4 };
@@ -1091,7 +1088,7 @@
     for (const o of seeds) {
       const hanger = onWall(o.it) && o.s.y >= room.wall_rows ? hangerOf(o.s, o.it, room) : null;
       const hit = hanger && itemById(hanger.item_id);
-      o.cells = o.it.layer === "wallpaper" && o.s.y >= room.wall_rows ? paperCells(room, o.s.x, o.s.y, seedW(o.s, o.it), o.it.h) : null;
+      o.cells = o.it.layer === "wallpaper" && !isPartition(o.it) && o.s.y >= room.wall_rows ? paperCells(room, o.s.x, o.s.y, seedW(o.s, o.it), o.it.h) : null;
       o.row = o.cells ? Math.max(...o.cells.map((c) => c[1])) + 1 : hit ? hanger.y + hit.h : onWall(o.it) || o.it.layer === "floor" ? -1 : o.s.y + o.it.h;
       o.ord = o.cells ? order.hung - 0.25 : hit ? order.hung : o.it.layer === "floor" && tagsOf(o.it).includes("rug") ? order.rug : order[o.it.layer];
     }
@@ -1110,7 +1107,13 @@
       g.strokeRect(s.x * cz + .5, s.y * cz + .5, w * cz - 1, it.h * cz - 1);
       if (bad) { g.fillStyle = "rgba(255,59,59,.25)"; g.fillRect(s.x * cz, s.y * cz, w * cz, it.h * cz); g.fillStyle = "#ff3b3b"; g.font = `bold ${Math.max(10, 6 * zoom)}px sans-serif`; g.fillText("!", s.x * cz + 3, s.y * cz + 6 * zoom + 2); }
     }
-    if (tool !== "paper") { g.strokeStyle = "rgba(190,120,255,.55)"; g.lineWidth = 1; for (const [px, py] of room.paper) g.strokeRect(px * cz + 1.5, py * cz + 1.5, cz - 3, cz - 3); }
+    // blocked cells and 벽지 칸 over the seeds (partitions would hide them): red fill; violet fill while the 벽지 칸
+    // tool is on, else a violet outline
+    for (const [bx, by] of room.blocked) { g.fillStyle = "rgba(255,60,60,.35)"; g.fillRect(bx * cz, by * cz, cz, cz); }
+    for (const [px, py] of room.paper) {
+      if (tool === "paper") { g.fillStyle = "rgba(190,120,255,.5)"; g.fillRect(px * cz, py * cz, cz, cz); }
+      else { g.strokeStyle = "rgba(190,120,255,.8)"; g.lineWidth = 2; g.strokeRect(px * cz + 2, py * cz + 2, cz - 4, cz - 4); }
+    }
     for (const z of room.zones) {
       const bad = zoneProblem(z, room);
       g.fillStyle = z === selRZone ? "rgba(255,211,92,.18)" : bad ? "rgba(255,59,59,.18)" : "rgba(150,255,170,.12)"; g.fillRect(z.x * cz, z.y * cz, z.w * cz, z.h * cz);

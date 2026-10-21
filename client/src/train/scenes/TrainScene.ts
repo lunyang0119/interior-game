@@ -47,7 +47,7 @@ export class TrainScene extends Phaser.Scene {
     const layout = this.layout = buildLayout(this.data_.rooms, state.catalog);
     this.carMap = new CarMap(this, layout);
     this.cameras.main.setBackgroundColor("#14141c");
-    this.camCtl = new CameraController(this, { worldW: this.carMap.widthPx, worldH: this.carMap.heightPx, minZoom: 1, maxZoom: 4, targetRows: layout.rows });
+    this.camCtl = new CameraController(this, { worldW: this.carMap.widthPx, worldH: this.carMap.heightPx, minZoom: 1, maxZoom: 4, targetRows: layout.rows, overscroll: 0.4 });
 
     // one-finger drag pans. Gestures only pans with a mouse drag or two fingers (the room scenes follow the
     // avatar instead); `claim` adds the pan as a side effect and never takes the event over, so Gestures still

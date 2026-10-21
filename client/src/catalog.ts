@@ -310,7 +310,8 @@ export const Z_HUNG_PAPER = Z_SCALE.furniture + 1;
 
 /** Wallpaper anchored on a floor row: it can only be pasted on the room's painted 벽지 칸 (mirrors placement.is_floor_paper). */
 export function isFloorPaper(it: Item | undefined, room: Pick<Room, "wall_rows"> | undefined, y: number): boolean {
-  return it?.layer === "wallpaper" && !!room && y >= room.wall_rows;
+  // a wallpaper-layer partition (a divider's end piece) stands on the floor like any partition
+  return it?.layer === "wallpaper" && !isPartition(it) && !!room && y >= room.wall_rows;
 }
 
 /** Footprint of a wallpaper pasted on the floor rows at (x, y): per column the vertical run of painted 벽지 칸

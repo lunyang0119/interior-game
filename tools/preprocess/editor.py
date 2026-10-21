@@ -297,7 +297,7 @@ def seed_problem(s: dict, room: dict, items: dict[str, dict], others: list[dict]
     w = (s.get("span") or it["w"]) if it["layer"] == "wallpaper" else it["w"]
     h = it["h"]
     x, y = s["x"], s["y"]
-    if it["layer"] == "wallpaper" and y >= room["wall_rows"]:
+    if it["layer"] == "wallpaper" and not partition and y >= room["wall_rows"]:
         # wallpaper on the floor rows goes only on the painted 벽지 칸 (placement.paper_cells)
         painted = {(c[0], c[1]) for c in room.get("paper") or []}
         if all((cx, y) in painted for cx in range(x, x + w)):
