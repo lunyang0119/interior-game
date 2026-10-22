@@ -81,6 +81,23 @@ CHAR_NAME_RE = re.compile(r"^[A-Za-z]+_\d+(?:_[A-Za-z0-9]+)*\.png$")
 
 STRIP_LAYER = "preset"  # loop strips (config.PRESET_STRIP_DIR) become premade characters
 
+# VM mode (`--vm`, or automatically when assets/ is missing): the editor runs ON the game VM behind Caddy
+# (deploy/Caddyfile.editor + deploy/interior-editor.service) and edits data/ + gen/ there, so rooms, map, dock,
+# train compartments and item metadata (layer, tags, surface, price) can be fixed from any browser. Whatever
+# needs the raw asset packs or a build stays on the PC (VM_BLOCKED); "게임에 반영" (ApplyJob) restarts the game
+# after the server's own checks; deploy/pull.sh brings the edits back to the PC repo.
+VM = False
+VM_BLOCKED = {"/api/slices", "/api/build", "/api/cat/build", "/api/shrink", "/api/char-upload", "/api/char-delete",
+              "/api/deploy/mark", "/api/deploy/run"}
+VM_JS = Path(__file__).with_name("vm.js")
+APPLY_RESTART = ["sudo", "-n", "systemctl", "restart", "interior"]
+APPLY_ACTIVE = ["systemctl", "is-active", "interior"]
+APPLY_JOURNAL = ["journalctl", "-u", "interior", "-n", "30", "--no-pager"]
+APPLY_SETTLE_S = 2.0                                   # wait before asking systemd whether the restart held
+APPLY_ENV_FILE = C.REPO_ROOT / "server" / ".env"       # what systemd gives the game (DB_PATH etc.)
+APPLY_BACKUP_DIR = C.REPO_ROOT / "server" / "backups"  # interior-<ts>.db copies taken before every restart
+APPLY_BACKUPS = 10                                     # how many of them to keep
+
 
 def strip_ok(name: str, w: int, h: int) -> bool:
     """A loop-strip preset file is usable: `<Name>_<W>x<H>.png`, H tall, a whole number of W-wide frames."""
@@ -890,26 +907,27 @@ def cat_state(variant: str = "") -> dict:
     }
 
 
-class DeployJob:
-    """One 🚀 run, in a thread: build the bundle if client/src is newer, then send ONLY the files deploy.changes()
-    lists (tar | ssh), delete on the VM what was deleted here, restart when a restart-file was among them, mark.
-    Every step appends to `lines`, which the editor polls (GET /api/deploy/log?from=N) so the user sees progress
-    instead of a frozen button."""
+class Job:
+    """A background run whose progress the page polls: every step appends to `lines` (GET …/log?from=N), so the
+    user sees what is happening instead of a frozen button."""
 
-    def __init__(self, vm: str):
-        self.vm = vm
+    def __init__(self):
         self.lines: list[str] = []
         self.done = False
         self.ok = False
         self.thread = threading.Thread(target=self._run, daemon=True)
 
+    def _run(self) -> None:  # pragma: no cover - subclasses
+        raise NotImplementedError
+
     def log(self, line: str) -> None:
         self.lines.append(re.sub(r"\x1b\[[0-9;]*[A-Za-z]", "", line.rstrip()))
 
-    def _stream(self, args: list[str], cwd: Path, stdin_bytes: bytes | None = None) -> int:
+    def _stream(self, args: list[str], cwd: Path, stdin_bytes: bytes | None = None, env: dict[str, str] | None = None) -> int:
         """Run a command, echoing its output line by line; returns the exit code."""
         proc = subprocess.Popen(args, cwd=str(cwd), stdin=subprocess.PIPE if stdin_bytes is not None else subprocess.DEVNULL,
-                                stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, encoding="utf-8", errors="replace")
+                                stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, encoding="utf-8", errors="replace",
+                                env=env)
         if stdin_bytes is not None:
             def feed():
                 try:
@@ -923,6 +941,15 @@ class DeployJob:
             if line.strip():
                 self.log("  " + line)
         return proc.wait()
+
+
+class DeployJob(Job):
+    """One 🚀 run, in a thread: build the bundle if client/src is newer, then send ONLY the files deploy.changes()
+    lists (tar | ssh), delete on the VM what was deleted here, restart when a restart-file was among them, mark."""
+
+    def __init__(self, vm: str):
+        super().__init__()
+        self.vm = vm
 
     def _ssh(self) -> list[str]:
         return [shutil.which("ssh") or "ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=15", self.vm]
@@ -1005,11 +1032,97 @@ def start_deploy(vm: str) -> dict:
     return {"ok": True}
 
 
-def deploy_log(since: int) -> dict:
-    j = _deploy_job
+def _job_log(j: Job | None, since: int) -> dict:
     if j is None:
         return {"lines": [], "next": 0, "done": True, "ok": False, "idle": True}
     return {"lines": j.lines[since:], "next": len(j.lines), "done": j.done, "ok": j.ok}
+
+
+def deploy_log(since: int) -> dict:
+    return _job_log(_deploy_job, since)
+
+
+def _dotenv(path: Path) -> dict[str, str]:
+    """KEY=VALUE lines of server/.env (what systemd gives the game), so the check sees the same DB_PATH/DATA_DIR."""
+    out: dict[str, str] = {}
+    if not path.exists():
+        return out
+    for line in path.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        k, v = line.split("=", 1)
+        out[k.strip()] = v.strip().strip('"').strip("'")
+    return out
+
+
+class ApplyJob(Job):
+    """VM mode's "게임에 반영". The game reads data/ and gen/manifest.json only at startup, so a save reaches it by
+    restarting the service — but only after the server's own boot checks pass on the saved files (a bad file would
+    otherwise leave systemd restarting a crashing server, game down) and after a copy of the DB (a seed change
+    re-seeds that room, a size change reconciles furniture; the copy is the way back)."""
+
+    def _run(self) -> None:
+        import sqlite3
+        import time
+        server = C.REPO_ROOT / "server"
+        env = {**os.environ, **_dotenv(APPLY_ENV_FILE)}
+        try:
+            self.log("▶ 데이터 검사 (서버가 시작할 때 하는 검증 그대로)")
+            check = "from app.main import check_data; check_data(); print('ok')"
+            if self._stream([sys.executable, "-c", check], server, env=env) != 0:
+                self.log("✖ 검사 실패 — 위 오류를 고쳐 다시 저장해요. 게임은 그대로 돌고 있어요")
+                return
+            db = Path(env.get("DB_PATH") or server / "interior.db")
+            if db.exists():
+                APPLY_BACKUP_DIR.mkdir(parents=True, exist_ok=True)
+                dst = APPLY_BACKUP_DIR / f"interior-{time.strftime('%Y%m%d-%H%M%S')}.db"
+                src, cp = sqlite3.connect(db), sqlite3.connect(dst)
+                try:
+                    src.backup(cp)
+                finally:
+                    cp.close()
+                    src.close()
+                for old in sorted(APPLY_BACKUP_DIR.glob("interior-*.db"))[:-APPLY_BACKUPS]:
+                    old.unlink()
+                self.log(f"▶ DB 백업: {dst}")
+            else:
+                self.log("  (DB 파일이 없어 백업은 건너뜀)")
+            self.log("▶ " + " ".join(APPLY_RESTART))
+            if self._stream(APPLY_RESTART, server, env=env) != 0:
+                self.log("✖ 재시작 실패 — VM에서 `sudo -n systemctl restart interior` 가 되는지 확인해요")
+                return
+            time.sleep(APPLY_SETTLE_S)
+            if self._stream(APPLY_ACTIVE, server, env=env) != 0:
+                self._stream(APPLY_JOURNAL, server, env=env)
+                self.log("✖ 서버가 안 떴어요 — 위 로그를 보고 고친 뒤 다시 반영해요 (DB 복사본: " + str(APPLY_BACKUP_DIR) + ")")
+                return
+            self.ok = True
+            self.log("✔ 반영 끝 — 게임 탭을 새로고침해요")
+        except Exception:
+            self.log("✖ " + traceback.format_exc())
+        finally:
+            self.done = True
+
+
+_apply_job: ApplyJob | None = None
+
+
+def start_apply() -> dict:
+    """Kick off an ApplyJob unless one is running (VM mode only). {ok, error?}"""
+    global _apply_job
+    if not VM:
+        return {"ok": False, "error": "VM 모드에서만 쓸 수 있어요 (PC에서는 서버를 직접 다시 시작)"}
+    with _deploy_lock:
+        if _apply_job is not None and not _apply_job.done:
+            return {"ok": False, "error": "이미 반영하는 중이에요"}
+        _apply_job = ApplyJob()
+        _apply_job.thread.start()
+    return {"ok": True}
+
+
+def apply_log(since: int) -> dict:
+    return _job_log(_apply_job, since)
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -1066,10 +1179,16 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_json(D.status())
             elif u.path == "/api/deploy/log":
                 self.send_json(deploy_log(int(q.get("from", ["0"])[0])))
+            elif u.path == "/vm.js":
+                self.send_bytes(VM_JS.read_bytes(), "text/javascript; charset=utf-8")
+            elif u.path == "/api/vm":
+                self.send_json({"vm": VM, "apply": apply_log(0)})
+            elif u.path == "/api/apply/log":
+                self.send_json(apply_log(int(q.get("from", ["0"])[0])))
             elif u.path == "/api/state":
                 room = load_room()
                 self.send_json({
-                    "sheets": sheet_list(), "slices": P.load_slices(), "map_slices": P.load_slices(C.MAP_SLICES_FILE),
+                    "vm": VM, "sheets": sheet_list(), "slices": P.load_slices(), "map_slices": P.load_slices(C.MAP_SLICES_FILE),
                     "items": load_items()["items"], "layers": LAYERS, "cell": C.CELL,
                     "tags": [{"tag": t, "desc": d} for t, d in KNOWN_TAGS],
                     "room": {k: room.get(k) for k in ("cols", "rows", "wall_rows", "tiles")},
@@ -1080,7 +1199,7 @@ class Handler(BaseHTTPRequestHandler):
                 manifest = C.OUT_DIR / "manifest.json"
                 chars = json.loads(manifest.read_text(encoding="utf-8"))["chars"] if manifest.exists() else None
                 self.send_json({
-                    "rooms": load_rooms(), "map": load_map(), "items": load_items()["items"], "cell": C.CELL,
+                    "vm": VM, "rooms": load_rooms(), "map": load_map(), "items": load_items()["items"], "cell": C.CELL,
                     "layers": LAYERS, "chars": chars,
                     "map_slices": [s for s in P.load_slices(C.MAP_SLICES_FILE) if not s["key"].startswith("auto_")],
                     "tile_keys": sorted(s["key"] for s in P.load_slices() if s["key"].startswith(P.TILE_PREFIX)),
@@ -1139,8 +1258,16 @@ class Handler(BaseHTTPRequestHandler):
         except (Exception, SystemExit) as e:  # slice_image raises SystemExit on a bad sheet; keep the editor alive
             self.send_json({"error": f"{type(e).__name__}: {e}"}, 400)
 
+    def vm_blocked(self, path: str) -> bool:
+        if VM and path in VM_BLOCKED:
+            self.send_json({"error": "VM 모드에서는 할 수 없어요 (원본 assets나 빌드가 필요해서 PC에서만)"}, 400)
+            return True
+        return False
+
     def do_PUT(self) -> None:
         u = urlparse(self.path)
+        if self.vm_blocked(u.path):
+            return
         try:
             body = self.read_json()
             if u.path == "/api/slices":
@@ -1274,9 +1401,14 @@ class Handler(BaseHTTPRequestHandler):
     def do_POST(self) -> None:
         u = urlparse(self.path)
         q = parse_qs(u.query)
+        if self.vm_blocked(u.path):
+            return
         try:
             if u.path == "/api/build":
                 self.send_json({"ok": True, "log": run_build()})
+            elif u.path == "/api/apply":
+                # VM mode: check → DB copy → restart the game service; progress via GET /api/apply/log?from=N
+                self.send_json(start_apply())
             elif u.path == "/api/cat/build":
                 # only gen/cat + manifest.json `cat` (a full build takes much longer); the game picks it up on reload
                 entry = P.rebuild_cat()
@@ -1392,10 +1524,13 @@ def main(argv: list[str] | None = None) -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--port", type=int, default=8765)
     ap.add_argument("--no-browser", action="store_true")
+    ap.add_argument("--vm", action="store_true", help="VM mode: no assets/, data-only editing + '게임에 반영' (also automatic when assets/ is missing)")
     args = ap.parse_args(argv)
+    global VM
+    VM = args.vm or not C.ASSETS.exists()
     srv = ThreadingHTTPServer(("127.0.0.1", args.port), Handler)
     url = f"http://127.0.0.1:{args.port}/"
-    print(f"slice editor: {url}  (Ctrl+C to stop)")
+    print(f"slice editor: {url}  (Ctrl+C to stop){'  [VM mode: data only, no assets]' if VM else ''}")
     if not args.no_browser:
         threading.Timer(0.5, lambda: webbrowser.open(url)).start()
     try:

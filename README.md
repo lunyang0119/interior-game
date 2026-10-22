@@ -40,6 +40,23 @@ Oracle 콘솔에서 VCN → Security List → Ingress에 TCP 80, 443 추가 (스
 ```
 SFTP로 파일을 하나씩 올리는 대신 쓰는 스크립트다(git은 안 쓴다). VM의 `server/.env`·`interior.db`·venv는 건드리지 않는다. 마지막에 `Active: active (running)`과 `Application startup complete`가 보이면 성공. `~/.bashrc`에 `export VM=ubuntu@crystalroom.duckdns.org`를 적어 두면 주소를 생략할 수 있다. 손으로 올렸을 때는 VM에서 `sudo systemctl restart interior`.
 
+**VM 에디터 (밖에서 data/ 고치기)** — 월드 에디터를 VM에서도 띄워 `https://edit.crystalroom.duckdns.org`로 어디서나 방·맵·부두·열차 칸·아이템 메타데이터(레이어, 태그, 받침, 가격)를 고칠 수 있다. 원본 그림(`assets/`)이 없으니 슬라이스 자르기·빌드·캐릭터·고양이 빌드는 여전히 PC에서만 한다(그 탭·버튼은 VM에서 숨겨짐). 자세한 건 `tools/preprocess/README.md`의 "VM 모드".
+
+최초 1회 (VM에서; `tools/preprocess/`는 `sync.sh`가 같이 올린다):
+```bash
+/opt/interior/server/.venv/bin/pip install -e "/opt/interior/server[editor]"      # pillow
+sudo cp /opt/interior/deploy/interior-editor.service /etc/systemd/system/ && sudo systemctl daemon-reload
+sudo systemctl enable --now interior-editor                                        # 127.0.0.1:8765 에 뜸
+caddy hash-password                                                                # 비밀번호 → 해시
+sudo nano /etc/caddy/Caddyfile      # deploy/Caddyfile.editor 블록을 붙이고 해시를 바꿔 넣는다 (DNS 등록은 필요 없음)
+sudo caddy validate --config /etc/caddy/Caddyfile && sudo systemctl reload caddy
+```
+쓰는 법: 에디터에서 저장 → 하단 **게임에 반영**(서버 검증 → `server/backups/`에 DB 복사 → 재시작, 2~3초 끊김). 검증에 걸리면 재시작하지 않으니 게임은 그대로 돈다. 그 뒤 PC에서
+```bash
+./deploy/pull.sh ubuntu@crystalroom.duckdns.org     # VM의 data/ + gen/dock.json 을 가져와 git status 로 보여줌 → 커밋
+```
+`sync.sh`는 올리기 전에 VM의 `data/`가 마지막 sync/pull 이후 바뀌었는지(`/opt/interior/.data_stamp`) 보고, 바뀌었으면 덮어쓸지 묻는다(`--force`로 생략). VM에서 고친 걸 잊고 PC에서 올려도 조용히 사라지진 않는다.
+
 ssh 설정(한 번만, 2026-10-11에 해 둠): Oracle이 만들어 준 개인키(`ssh-key-2025-03-21.key`, Bitvise도 같은 키)를 `~/.ssh/oracle_vm.key`로 복사하고 `~/.ssh/config`에
 ```
 Host crystalroom.duckdns.org 158.179.169.136

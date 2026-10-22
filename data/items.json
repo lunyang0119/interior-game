@@ -2182,7 +2182,11 @@
    "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "fixed",
+    "stairs"
+   ]
   },
   {
    "id": "fence_accent_a_right",
@@ -2193,7 +2197,11 @@
    "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "fixed",
+    "stairs"
+   ]
   },
   {
    "id": "fence_plain_a_left",
@@ -2204,7 +2212,11 @@
    "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "fixed",
+    "stairs"
+   ]
   },
   {
    "id": "fence_plain_a_right",
@@ -2215,7 +2227,11 @@
    "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "fixed",
+    "stairs"
+   ]
   },
   {
    "id": "window_dark_a",
@@ -2237,7 +2253,11 @@
    "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "fixed",
+    "stairs"
+   ]
   },
   {
    "id": "stair_corner_b_right",
@@ -2248,7 +2268,11 @@
    "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "fixed",
+    "stairs"
+   ]
   },
   {
    "id": "stair_straight_b_left",
@@ -2259,7 +2283,11 @@
    "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "fixed",
+    "stairs"
+   ]
   },
   {
    "id": "stair_straight_b_right",
@@ -2270,7 +2298,11 @@
    "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "fixed",
+    "stairs"
+   ]
   },
   {
    "id": "doorway_void_b",
@@ -2336,7 +2368,11 @@
    "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "fixed",
+    "stairs"
+   ]
   },
   {
    "id": "fence_accent_b_right",
@@ -2362,7 +2398,11 @@
    "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "fixed",
+    "stairs"
+   ]
   },
   {
    "id": "fence_plain_b_right",
@@ -2373,7 +2413,11 @@
    "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "fixed",
+    "stairs"
+   ]
   },
   {
    "id": "window_dark_b",
@@ -2395,7 +2439,11 @@
    "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "fixed",
+    "stairs"
+   ]
   },
   {
    "id": "stair_corner_c_right",
@@ -2406,7 +2454,11 @@
    "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "fixed",
+    "stairs"
+   ]
   },
   {
    "id": "stair_straight_c_left",
@@ -2417,7 +2469,11 @@
    "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "fixed",
+    "stairs"
+   ]
   },
   {
    "id": "stair_straight_c_right",
@@ -2428,7 +2484,11 @@
    "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "fixed",
+    "stairs"
+   ]
   },
   {
    "id": "doorway_void_c",
@@ -2509,7 +2569,11 @@
    "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "fixed",
+    "stairs"
+   ]
   },
   {
    "id": "fence_plain_c_left",
@@ -2520,7 +2584,11 @@
    "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "fixed",
+    "stairs"
+   ]
   },
   {
    "id": "fence_plain_c_right",
@@ -3804,7 +3872,10 @@
    "h": 2,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "rug"
+   ]
   },
   {
    "id": "mat_contour_blue",
@@ -3815,7 +3886,10 @@
    "h": 2,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "rug"
+   ]
   },
   {
    "id": "mat_contour_sage",
@@ -3826,7 +3900,10 @@
    "h": 2,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "rug"
+   ]
   },
   {
    "id": "mat_small_teal",
@@ -3837,7 +3914,10 @@
    "h": 1,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "rug"
+   ]
   },
   {
    "id": "mat_small_blue",
@@ -3848,7 +3928,10 @@
    "h": 1,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "rug"
+   ]
   },
   {
    "id": "mat_small_sage",
@@ -3859,7 +3942,10 @@
    "h": 1,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "rug"
+   ]
   },
   {
    "id": "mat_oval_teal",
@@ -3870,7 +3956,10 @@
    "h": 1,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "rug"
+   ]
   },
   {
    "id": "mat_oval_blue",
@@ -3881,7 +3970,10 @@
    "h": 1,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "rug"
+   ]
   },
   {
    "id": "mat_oval_sage",
@@ -3892,7 +3984,10 @@
    "h": 1,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "rug"
+   ]
   },
   {
    "id": "mat_large_teal",
@@ -3903,7 +3998,10 @@
    "h": 2,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "rug"
+   ]
   },
   {
    "id": "mat_large_blue",
@@ -3914,7 +4012,10 @@
    "h": 2,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "rug"
+   ]
   },
   {
    "id": "mat_large_sage",
@@ -3925,7 +4026,10 @@
    "h": 2,
    "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "rug"
+   ]
   },
   {
    "id": "curtain_shower_tan",
@@ -4405,7 +4509,7 @@
    "name": "베이지 벽돌 벽지 1",
    "price": 8,
    "sprite": "wallpaper_brick_tan",
-   "w": 4,
+   "w": 1,
    "h": 3,
    "layer": "wallpaper",
    "is_surface": false,
@@ -7434,7 +7538,10 @@
    "h": 3,
    "layer": "wallpaper",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "partition"
+   ]
   },
   {
    "id": "fmp_042",
@@ -7685,7 +7792,10 @@
    "h": 3,
    "layer": "wallpaper",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "partition"
+   ]
   },
   {
    "id": "fmp_065",
@@ -9672,7 +9782,7 @@
   {
    "id": "int_181",
    "name": "부서진 갈색 상자 더미",
-   "price": 50,
+   "price": 20,
    "sprite": "int_181",
    "w": 2,
    "h": 2,
@@ -9686,7 +9796,7 @@
   {
    "id": "int_185",
    "name": "부서진 회색 천 가구 잔해",
-   "price": 50,
+   "price": 10,
    "sprite": "int_185",
    "w": 2,
    "h": 2,
@@ -9700,7 +9810,7 @@
   {
    "id": "int_191",
    "name": "낡은 갈색 나무 잔해",
-   "price": 50,
+   "price": 10,
    "sprite": "int_191",
    "w": 2,
    "h": 1,
@@ -9736,7 +9846,7 @@
   {
    "id": "int_187",
    "name": "부서진 갈색 빗자루 1",
-   "price": 50,
+   "price": 10,
    "sprite": "int_187",
    "w": 1,
    "h": 2,
@@ -9750,7 +9860,7 @@
   {
    "id": "int_182",
    "name": "부서진 갈색 작은 서랍장",
-   "price": 50,
+   "price": 20,
    "sprite": "int_182",
    "w": 1,
    "h": 2,
@@ -9764,7 +9874,7 @@
   {
    "id": "int_183",
    "name": "부서진 갈색 빗자루 2",
-   "price": 50,
+   "price": 20,
    "sprite": "int_183",
    "w": 1,
    "h": 2,
@@ -9790,7 +9900,7 @@
   {
    "id": "int_171",
    "name": "낡은 갈색 서랍 상자",
-   "price": 50,
+   "price": 20,
    "sprite": "int_171",
    "w": 1,
    "h": 2,
@@ -9805,7 +9915,7 @@
   {
    "id": "int_167",
    "name": "부서진 갈색 큰 옷장",
-   "price": 50,
+   "price": 20,
    "sprite": "int_167",
    "w": 2,
    "h": 3,
@@ -9820,7 +9930,7 @@
   {
    "id": "int_163",
    "name": "부서진 베이지 책상",
-   "price": 50,
+   "price": 20,
    "sprite": "int_163",
    "w": 2,
    "h": 2,
@@ -9835,7 +9945,7 @@
   {
    "id": "int_158",
    "name": "부서진 갈색 의자 등받이",
-   "price": 50,
+   "price": 20,
    "sprite": "int_158",
    "w": 1,
    "h": 2,
@@ -20291,10 +20401,11 @@
    "price": 50,
    "sprite": "mordhalloween_183_lamppost_tall",
    "w": 1,
-   "h": 4,
-   "layer": "furniture",
+   "h": 3,
+   "layer": "wall",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "offset_y": 11
   },
   {
    "id": "mordhalloween_184_decor_small_c",
@@ -20341,17 +20452,6 @@
    "surface_offset_y": 0
   },
   {
-   "id": "mordgym_001_punching_bag_tall",
-   "name": "알록달록 운동 매트 견본",
-   "price": 50,
-   "sprite": "mordgym_001_punching_bag_tall",
-   "w": 4,
-   "h": 3,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
    "id": "mordgym_002_ball_blue_a",
    "name": "파란 짐볼 1",
    "price": 50,
@@ -20382,7 +20482,8 @@
    "h": 1,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "offset_y": 6
   },
   {
    "id": "mordgym_005_wall_swatch_grey",
@@ -20393,18 +20494,20 @@
    "h": 3,
    "layer": "wallpaper",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "offset_y": 5
   },
   {
    "id": "mordgym_006_kettlebell_green",
    "name": "회색 케틀벨 2",
    "price": 50,
    "sprite": "mordgym_006_kettlebell_green",
-   "w": 1,
-   "h": 1,
+   "w": 2,
+   "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "offset_y": 6
   },
   {
    "id": "mordgym_007_rack_bench_a",
@@ -20433,11 +20536,12 @@
    "name": "빨간 짐볼 1",
    "price": 50,
    "sprite": "mordgym_009_ball_blue_b",
-   "w": 1,
-   "h": 1,
+   "w": 2,
+   "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "offset_y": 6
   },
   {
    "id": "mordgym_010_plate_grey_b",
@@ -20455,7 +20559,7 @@
    "name": "철제 바벨 2",
    "price": 50,
    "sprite": "mordgym_011_dumbbell_bar_b",
-   "w": 1,
+   "w": 2,
    "h": 1,
    "layer": "furniture",
    "is_surface": false,
@@ -20470,7 +20574,8 @@
    "h": 1,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "offset_y": 6
   },
   {
    "id": "mordgym_013_wall_swatch_red",
@@ -20488,22 +20593,24 @@
    "name": "연한 빨간 짐볼 1",
    "price": 50,
    "sprite": "mordgym_014_ball_red_a",
-   "w": 1,
-   "h": 1,
+   "w": 2,
+   "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "offset_y": 4
   },
   {
    "id": "mordgym_015_ball_red_b",
    "name": "철제 바벨 3",
    "price": 50,
    "sprite": "mordgym_015_ball_red_b",
-   "w": 1,
-   "h": 1,
+   "w": 2,
+   "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "offset_y": 5
   },
   {
    "id": "mordgym_016_barbell_plates_combo",
@@ -20511,7 +20618,7 @@
    "price": 50,
    "sprite": "mordgym_016_barbell_plates_combo",
    "w": 4,
-   "h": 1,
+   "h": 2,
    "layer": "furniture",
    "is_surface": false,
    "surface_offset_y": 0
@@ -20532,18 +20639,19 @@
    "name": "파란 짐볼 2",
    "price": 50,
    "sprite": "mordgym_018_ball_blue_c",
-   "w": 1,
-   "h": 1,
+   "w": 2,
+   "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "offset_y": 6
   },
   {
    "id": "mordgym_019_dumbbell_bar_c",
    "name": "철제 바벨 4",
    "price": 50,
    "sprite": "mordgym_019_dumbbell_bar_c",
-   "w": 1,
+   "w": 2,
    "h": 1,
    "layer": "furniture",
    "is_surface": false,
@@ -20620,11 +20728,12 @@
    "name": "철제 바벨 5",
    "price": 50,
    "sprite": "mordgym_026_ball_variant_a",
-   "w": 1,
-   "h": 1,
+   "w": 2,
+   "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "offset_y": 6
   },
   {
    "id": "mordgym_027_device_icon_b",
@@ -20653,11 +20762,12 @@
    "name": "빨간 짐볼 2",
    "price": 50,
    "sprite": "mordgym_029_ball_variant_b",
-   "w": 1,
-   "h": 1,
+   "w": 2,
+   "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "offset_y": 6
   },
   {
    "id": "mordgym_030_rack_machine_tall",
@@ -20665,14 +20775,14 @@
    "price": 50,
    "sprite": "mordgym_030_rack_machine_tall",
    "w": 3,
-   "h": 3,
+   "h": 4,
    "layer": "furniture",
    "is_surface": false,
    "surface_offset_y": 0
   },
   {
    "id": "mordgym_031_weight_tower_rocket",
-   "name": "검은 케이블 운동기구",
+   "name": "운동기구",
    "price": 50,
    "sprite": "mordgym_031_weight_tower_rocket",
    "w": 2,
@@ -29694,7 +29804,11 @@
    "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "fixed",
+    "stairs"
+   ]
   },
   {
    "id": "mordkit2_004_wardrobe_tall",
@@ -29705,7 +29819,11 @@
    "h": 2,
    "layer": "furniture",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "fixed",
+    "stairs"
+   ]
   },
   {
    "id": "mordkit2_006_chair_white_side_a",
@@ -30121,8 +30239,8 @@
    "sprite": "moritl_022_sideboard_tv_stand",
    "w": 2,
    "h": 1,
-   "layer": "furniture",
-   "is_surface": true,
+   "layer": "wall",
+   "is_surface": false,
    "surface_offset_y": 10
   },
   {
@@ -36708,7 +36826,7 @@
    "sprite": "cybe_90",
    "w": 2,
    "h": 1,
-   "layer": "furniture",
+   "layer": "wall",
    "is_surface": false,
    "surface_offset_y": 0
   },

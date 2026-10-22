@@ -95,10 +95,13 @@ python tools/preprocess/preprocess.py build | ui | media | train-ui
 VM에서 `git pull`을 하지 않는다. `deploy/push.sh`도 쓰지 않는다. 자세한 사용법과 ssh 설정은 README "배포".
 
 ```bash
-./deploy/sync.sh ubuntu@<host>            # 클라 빌드 -> server/app, migrations, data, gen, static -> 재시작
+./deploy/pull.sh ubuntu@<host>            # 먼저: VM 에디터(edit.<host>)로 고친 data/ 를 가져와 커밋
+./deploy/sync.sh ubuntu@<host>            # 클라 빌드 -> server/app, migrations, data, gen, static, tools/preprocess -> 재시작
 ./deploy/sync.sh ubuntu@<host> --media    # media(BGM, 폰트, 효과음)도 바뀌었을 때
 ./deploy/sync.sh ubuntu@<host> --no-build --no-restart
 ```
+
+`data/`는 VM 에디터에서도 바뀔 수 있다. `sync.sh`는 VM 쪽이 마지막 sync/pull 이후 바뀌었으면 덮어쓸지 묻는다(`--force`로 생략). 보고할 때 "VM에서 data를 고친 적이 있으면 pull 먼저"라고 한 줄 적는다. 서버 기동 검증을 바꿀 때는 `lifespan`이 아니라 `app.main.check_data()`에 넣는다(VM 에디터의 "게임에 반영"이 같은 함수를 돌린다).
 
 사용자가 직접 올릴지 판단할 수 있게, 배포가 필요한 변경을 끝낼 때마다 이렇게 보고한다:
 

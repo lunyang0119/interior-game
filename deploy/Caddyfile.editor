@@ -1,0 +1,12 @@
+# Append to /etc/caddy/Caddyfile to reach the VM editor (deploy/interior-editor.service) from anywhere.
+# DuckDNS answers for every name under the registered one (edit.crystalroom.duckdns.org already resolves to
+# the VM), so no DNS change; Caddy fetches the certificate by itself.
+# The password hash comes from `caddy hash-password` (type the password twice); the user name is free.
+# Replace the hash BEFORE reloading: an invalid hash makes the whole Caddyfile fail to load, game included.
+#   sudo caddy validate --config /etc/caddy/Caddyfile && sudo systemctl reload caddy
+edit.crystalroom.duckdns.org {
+	basic_auth {
+		editor REPLACE_WITH_caddy_hash-password_OUTPUT
+	}
+	reverse_proxy 127.0.0.1:8765
+}

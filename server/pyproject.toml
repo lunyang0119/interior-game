@@ -13,6 +13,7 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest>=8", "pytest-asyncio>=0.23", "pillow>=10"]  # pillow: tools/preprocess
+editor = ["pillow>=10"]  # the VM editor (tools/preprocess/editor.py --vm, deploy/interior-editor.service)
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

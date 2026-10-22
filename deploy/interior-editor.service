@@ -1,0 +1,21 @@
+# /etc/systemd/system/interior-editor.service — the browser editor ON the VM (tools/preprocess/editor.py --vm):
+# rooms, map, dock, train compartments and item metadata from any browser, without assets/ or a build.
+# Reachable only through Caddy with a password (deploy/Caddyfile.editor); it binds to localhost.
+#   sudo cp deploy/interior-editor.service /etc/systemd/system/ && sudo systemctl daemon-reload
+#   sudo systemctl enable --now interior-editor
+# Needs pillow in the server venv: /opt/interior/server/.venv/bin/pip install -e "/opt/interior/server[editor]"
+# "게임에 반영" runs `sudo -n systemctl restart interior`, so the user must have passwordless sudo for it
+# (the Oracle ubuntu user has it; else add a sudoers line for /bin/systemctl restart interior).
+[Unit]
+Description=Shared Room Decorator editor (VM mode)
+After=network.target
+
+[Service]
+User=ubuntu
+WorkingDirectory=/opt/interior
+ExecStart=/opt/interior/server/.venv/bin/python tools/preprocess/editor.py --vm --no-browser --port 8765
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

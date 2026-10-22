@@ -282,7 +282,7 @@
   <button id="save" class="primary">저장</button>
   <button id="reload">다시 불러오기</button>
   <span class="hint">방은 data/rooms/&lt;id&gt;.json (+ inn은 data/room.json에도 복사) · 열차 칸은 data/train_interiors.json · 맵은 data/map.json · 저장 후 게임 서버 재시작</span>
-  <details id="deploy" class="hidden"><summary></summary><div id="deployBody"></div></details>
+  <details id="deploy" class="hidden" data-pc><summary></summary><div id="deployBody"></div></details>
   <pre id="log"></pre>
 </div>
 
@@ -1416,5 +1416,6 @@
   document.addEventListener("click", (e) => { if (e.target.closest("button.primary, #build, #save")) setTimeout(() => { last = ""; poll(); }, 800); });
 })();
 </script>
+<script src="/vm.js"></script>
 </body>
 </html>

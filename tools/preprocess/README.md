@@ -143,6 +143,16 @@ python tools/preprocess/preprocess.py build                        # map_slices.
 - 파일을 다 올리고(재시작까지 하고) `올렸음 ✔`을 누르면 목록이 비워진다. 4초마다 다시 검사하므로 저장/빌드 직후에 바로 반영된다.
 - **🚀 VM에 올리기** 버튼은 **목록에 있는 파일만** 보낸다(`POST /api/deploy/run` → `deploy.changes()`): VM 주소(`user@host`, 브라우저에 기억됨)를 물은 뒤, `client/src`가 번들보다 새로우면 `npm run build`부터 하고, 바뀐/새 파일을 tar로 묶어 `ssh`로 `/opt/interior`에 풀고, 여기서 지운 파일은 VM에서도 지우고, 재시작 대상이 끼어 있을 때만 `sudo systemctl restart interior`를 한다. 단계마다 하단 로그 창에 줄이 붙으니(`GET /api/deploy/log`) 멈췄는지 가는지 보인다. 성공하면 `올렸음 ✔`을 누른 것과 같이 목록이 비워진다. ssh 키 설정(README의 배포 절)이 되어 있어야 하고, 기준(`올렸음`)이 한 번도 없으면 거부한다 — 그땐 `./deploy/sync.sh`로 전부 올린 뒤 기준을 잡는다.
 
+## VM 모드 (에디터를 VM에서 띄우기)
+
+`python tools/preprocess/editor.py --vm --no-browser`(또는 `assets/`가 없으면 자동)로 뜨는 **VM 모드**는 원본 그림 없이 `data/`와 빌드된 `gen/`만으로 돌아간다. VM에서는 `deploy/interior-editor.service`로 상시 띄우고 Caddy가 `edit.crystalroom.duckdns.org`(basic_auth, `deploy/Caddyfile.editor`)로 연결한다. 설치는 README "VM 에디터".
+
+- **되는 것** (data/만 쓰는 것): 방·맵·부두·열차 칸(`/world`), 열차 맵(`/train-maps`), **아이템 탭**(레이어·태그·is_surface·surface_offset_y·가격·이름·쌍 — AI가 잘못 잡은 메타데이터를 고치는 용도). 썸네일·미리보기는 빌드된 아틀라스(동결 프레임)에서 자른다.
+- **안 되는 것** (PC에서만): 슬라이스 좌표·새 슬라이스·`빌드`·`축소본`·캐릭터 업로드·고양이 빌드·🚀 업로드. 탭과 버튼이 숨겨지고(`data-pc` 표시), 라우트는 400 `VM 모드에서는 할 수 없어요`로 막힌다(`editor.py VM_BLOCKED`).
+- **게임에 반영** (하단 노란 바, `POST /api/apply`): 게임 서버는 `data/`를 시작할 때만 읽으므로 저장만으로는 안 바뀐다. 버튼은 ① 서버와 같은 검증(`app.main.check_data()`)을 서브프로세스로 돌리고 — 실패하면 여기서 멈추고 게임은 그대로 — ② DB를 `server/backups/interior-<시각>.db`로 복사(최근 10개 보관)한 뒤 ③ `sudo -n systemctl restart interior`, 2초 뒤 `is-active`로 확인하고 안 떴으면 `journalctl` 30줄을 보여준다. 접속자는 2~3초 끊긴다. 재시작 때 방 seed가 바뀐 방은 seed를 다시 심고(`seed_hash`), 방 크기·막힌 칸이 바뀌면 규칙에 안 맞는 플레이어 가구가 환불되니 DB 복사본이 되돌릴 길이다.
+- **PC로 가져오기**: `./deploy/pull.sh user@host`가 VM의 `data/` + `gen/dock.json`을 레포로 가져와 `git status`를 보여준다(PC에 커밋 안 한 변경이 있으면 먼저 묻는다). `sync.sh`는 올리기 전에 VM 쪽이 마지막 sync/pull 이후 바뀌었는지(`/opt/interior/.data_stamp`, `deploy/lib.sh`) 보고 덮어쓸지 묻는다. 순서는 늘 **pull → 커밋 → (PC 작업) → sync**.
+- 테스트: `tools/preprocess/tests/test_vm.py` (막힌 라우트, 반영 잡의 검사·백업·실패 보고).
+
 ## 에디터 탭 정리
 
 - **시트·슬라이스**: 시트 드롭다운에 `assets/graphic/Interior`·`Map` 아래 모든 PNG가 자동으로 뜬다 (이름 있는 시트 / 팩 전체 / 맵 세 그룹, 위 칸에 이름 일부를 치면 걸러짐).

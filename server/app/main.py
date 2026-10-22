@@ -104,14 +104,38 @@ async def _tick_loop(app: FastAPI) -> None:
             log.warning("mine spawn failed: %s", e)
 
 
+def check_data() -> dict:
+    """Load and cross-check every data file the server needs at boot (catalog, guests, fishing, mine).
+
+    Raises on the first problem, exactly like startup would. Also run on its own by the VM editor's "게임에 반영"
+    (`python -c "from app.main import check_data; check_data()"`) before it restarts the service, so a bad save
+    is caught here instead of putting systemd into a restart loop."""
+    cat = catalog_mod.load()
+    guests_cfg = comfort.load_config()
+    if guests_cfg.special_after not in (None, "map", "dock", *cat.rooms):
+        raise ValueError(f"guests.json: special_after '{guests_cfg.special_after}' is not a room, 'map' or 'dock'")
+    fishing_cfg = fishing.load_config()
+    mine_cfg = mine.load_config()
+    if mine_cfg:
+        mine_room = cat.room_of(mine_cfg.room)
+        if mine_room is None or mine_room.kind != mine.ROOM_KIND:
+            raise ValueError(f"mine.json: room '{mine_cfg.room}' is not a room with kind \"mine\"")
+    loot_ids = {"fish": {lt.id for lt in fishing_cfg.loot}, "mine": {o.id for o in mine_cfg.ores} if mine_cfg else set()}
+    for rm in cat.rooms.values():
+        for st in rm.restore:
+            for n in st.need:
+                if n.type == "deliver" and n.id is not None and n.id not in loot_ids[n.kind]:
+                    raise ValueError(f"room {rm.id}: stage '{st.id}' needs unknown {n.kind} loot '{n.id}' (data/{'fishing' if n.kind == 'fish' else 'mine'}.json)")
+    return {"catalog": cat, "guests": guests_cfg, "fishing": fishing_cfg, "mine": mine_cfg}
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     conn = connect()
     migrate(conn)
-    app.state.catalog = catalog_mod.load()
-    app.state.guests = comfort.load_config()
-    if app.state.guests.special_after not in (None, "map", "dock", *app.state.catalog.rooms):
-        raise ValueError(f"guests.json: special_after '{app.state.guests.special_after}' is not a room, 'map' or 'dock'")
+    data = check_data()
+    app.state.catalog = data["catalog"]
+    app.state.guests = data["guests"]
     with transaction(conn):
         ensure_room_meta(conn, list(app.state.catalog.rooms))
         reconcile_items(conn, app.state.catalog)
@@ -125,19 +149,8 @@ async def lifespan(app: FastAPI):
     # `pool` needs can only be met by new income, which arrives through sheet fetches
     app.state.sheet.catalog = app.state.catalog
     app.state.sheet.on_snapshot = lambda c, ev: progress.advance_rooms(c, app.state.catalog, ev)
-    app.state.fishing = fishing.Fishing(cfg=fishing.load_config())
-    mine_cfg = mine.load_config()
-    app.state.mine = mine.Mine(cfg=mine_cfg) if mine_cfg else None
-    if mine_cfg:
-        mine_room = app.state.catalog.room_of(mine_cfg.room)
-        if mine_room is None or mine_room.kind != mine.ROOM_KIND:
-            raise ValueError(f"mine.json: room '{mine_cfg.room}' is not a room with kind \"mine\"")
-    loot_ids = {"fish": {lt.id for lt in app.state.fishing.cfg.loot}, "mine": {o.id for o in mine_cfg.ores} if mine_cfg else set()}
-    for rm in app.state.catalog.rooms.values():
-        for st in rm.restore:
-            for n in st.need:
-                if n.type == "deliver" and n.id is not None and n.id not in loot_ids[n.kind]:
-                    raise ValueError(f"room {rm.id}: stage '{st.id}' needs unknown {n.kind} loot '{n.id}' (data/{'fishing' if n.kind == 'fish' else 'mine'}.json)")
+    app.state.fishing = fishing.Fishing(cfg=data["fishing"])
+    app.state.mine = mine.Mine(cfg=data["mine"]) if data["mine"] else None
     spawn_mine(app)
     hub.bind_loop()
     # train minigame: restore the stored game and re-arm its round timer from the stored deadline

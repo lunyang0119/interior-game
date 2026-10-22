@@ -289,5 +289,6 @@ $("saveBtn").onclick = async () => {
 window.onbeforeunload = () => (dirty ? "저장 안 한 변경이 있어요" : undefined);
 load().catch((e) => log("✖ " + e));
 </script>
+<script src="/vm.js"></script>
 </body>
 </html>
