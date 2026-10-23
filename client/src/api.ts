@@ -110,6 +110,7 @@ export interface MineFloorResponse {
 export interface MineOre { id: string; name: string; hits: number; value: number; sprite: string | null; wall: boolean }
 export interface MineInfo {
   room: string; floors: number; nodes_per_floor: number; hit_cooldown_ms: number; reach: number; ladder: string | null;
+  swing?: string | null; // atlas slice swung onto the node per press
   ores: MineOre[]; deepest: number;
 }
 /** Answer to one 채광 press; the loot fields only when the node broke (`ledger_seq` = what /api/deliver takes),

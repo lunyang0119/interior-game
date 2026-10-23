@@ -1431,7 +1431,7 @@ class Handler(BaseHTTPRequestHandler):
                 name = next((n_ for n_, p_ in C.all_sheets().items() if p_.resolve() == out.resolve()), out.name)
                 self.send_json({"ok": True, "sheet": name, "method": used})
             elif u.path == "/api/autoslice":
-                # {sheet, mode: blob|grid, gap, snap, cell, min} → {boxes: [[x, y, w, h]], bg}: candidate rects for
+                # {sheet, mode: blob|grid, gap, snap, cell, min, region?: [x, y, w, h]} → {boxes: [[x, y, w, h]], bg}: candidate rects for
                 # 자동 자르기; the page drops the ones already covered by a slice and adds the rest as auto_ slices
                 body = self.read_json() or {}
                 name = body.get("sheet", "")
@@ -1440,7 +1440,7 @@ class Handler(BaseHTTPRequestHandler):
                     return
                 r = P.detect_boxes(sheet_image(name), mode=body.get("mode") or "blob", gap=int(body.get("gap") or 0),
                                    snap_grid=bool(body.get("snap")), cell=int(body.get("cell") or C.CELL),
-                                   min_px=int(body.get("min") or 1))
+                                   min_px=int(body.get("min") or 1), region=body.get("region") or None)
                 self.send_json({"ok": True, **r})
             elif u.path == "/api/sizes":
                 # {specs: [slice, ...]} → {sizes: {key: [w, h]}} rendered pixel size of each slice (scale/parts/file

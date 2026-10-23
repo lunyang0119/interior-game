@@ -123,6 +123,7 @@
   </div>
   <div class="row small" style="gap:4px; flex-wrap:wrap" title="시트에서 그림 덩어리를 찾아 auto_ 슬라이스로 추가해요. 이미 슬라이스가 덮고 있는 곳은 건너뛰어요. 추가된 건 체크돼 있으니 지우거나(체크 삭제) 이름 일괄 변경으로 이어가면 돼요. 슬라이스 저장 전까지는 파일에 안 써요.">
     <button id="autoBtn" class="primary">✂ 자동 자르기</button>
+    <button id="autoRecut" title="체크한 슬라이스 안만 아래 옵션으로 다시 잘라서 조각들로 바꿔요 (붙어 나온 이웃 나누기 — 덩어리로 안 갈라지면 격자 + 칸 크기로). 아이템이 달린 건 건너뛰어요">체크한 것 다시 자르기</button>
     <select id="autoMode" title="덩어리: 붙어 있는 픽셀끼리 하나 · 격자: 그림이 있는 칸마다 하나 (바닥·벽 타일)"><option value="blob">덩어리</option><option value="grid">격자</option></select>
     <label title="이 픽셀 거리 안의 덩어리는 하나로 (떨어진 그림자·불빛). 0이 제일 정확해요"><span>간격</span><input type="number" id="autoGap" value="0" min="0" max="8" style="width:40px"></label>
     <label title="긴 변이 이보다 작은 점은 버려요"><span>최소</span><input type="number" id="autoMin" value="6" min="1" max="64" style="width:40px"></label>
@@ -140,6 +141,7 @@
     <button id="batchRename" class="primary" title="체크한 슬라이스의 key를 바꿈. 아래 칸이 비어 있으면 auto_/new_ 만 [폴더_]시트4글자_원래이름 으로, 적혀 있으면 체크한 전부를 그 이름(_2, _3… 또는 {n})으로">이름 일괄 변경</button>
     <button id="batchCreate" title="체크한 슬라이스 중 아이템이 없는 것(⚠)에 상점 항목을 만듦 (auto_/new_/tile_/맵 슬라이스는 건너뜀)">아이템 일괄 만들기</button>
     <button id="batchDelete" class="danger" title="체크한 슬라이스를 지움 (아이템이 달린 건 건너뜀). 자동 자르기에서 필요 없는 걸 치울 때">체크 삭제</button>
+    <button id="batchItemDel" class="danger" title="체크한 슬라이스에 달린 상점 아이템만 items.json에서 지움 (슬라이스는 남아요)">아이템 일괄 삭제</button>
     <button id="batchAnim" title="체크한 슬라이스들을 목록 순서대로 프레임 삼아 애니 슬라이스 하나를 만듦 (깜빡이는 불빛처럼 한 시트에서 따로 자른 그림들). 방 에디터 '효과 놓기'로 배치">🎞 체크한 걸로 애니 만들기</button>
   </div>
   <div class="row small" style="margin:0 0 4px; gap:6px">
@@ -151,6 +153,7 @@
   </div>
   <div class="row small" style="margin:0 0 4px; gap:6px" title="체크한 슬라이스의 아이템 레이어를 한 번에 바꿈 (가구가 아니면 is_surface는 꺼짐)">
     <span class="dim">레이어 일괄:</span><select id="batchLayerSel"></select><button id="batchLayerSet">바꾸기</button>
+    <span class="dim" title="체크한 슬라이스의 아이템에 is_surface(위에 소품 올리기)를 켜거나 끔 — furniture 레이어만">is_surface:</span><button id="batchSurfOn">켜기</button><button id="batchSurfOff">끄기</button>
   </div>
   <div class="hint">초록=이름 있음 · 회색=auto_ · 파랑=tile_ · 분홍=맵 슬라이스 · ⚠ 아이템 없음 · ● 저장 안 됨</div>
   <ul id="list"></ul>
@@ -176,6 +179,7 @@
     </div>
     <div class="row small" title="선택한 아이템의 레이어를 한 번에 바꿈 (가구가 아니면 is_surface는 꺼짐)">
       <span class="dim">레이어</span><select id="itemLayerSet"></select><button id="itemLayerApply">바꾸기</button>
+      <span class="dim" title="선택한 아이템에 is_surface(위에 소품 올리기)를 켜거나 끔 — furniture 레이어만">is_surface</span><button id="itemSurfOn">켜기</button><button id="itemSurfOff">끄기</button>
     </div>
     <div class="hint">카드 클릭=선택 토글 + 오른쪽에 그 아이템 정보 · Shift+클릭=범위 · Delete=선택 삭제 · ✎ 또는 오른쪽 <b>시트로 가기</b>=슬라이스 시트로 이동 · 카드의 태그 ×=그 태그 빼기.<br>바꾼 건 아래 <b>아이템 저장</b>을 눌러야 items.json에 들어가고, 서버는 재시작해야 읽어요.<br>썸네일은 마지막 <b>빌드</b> 결과(gen/interiors.png)라 새 슬라이스는 빌드 후에 보여요.</div>
   </div>
@@ -492,6 +496,19 @@
     targets.forEach(cardMeta); renderPicked(); renderList(); renderItem();
     log(`레이어 → ${layer}: ${targets.length}개 중 ${n}건 변경${surf ? ` (is_surface 꺼짐 ${surf}개)` : ""} — 아이템 저장으로 반영`);
   }
+  /** Turn is_surface on/off for the given items (furniture only, like the single form's checkbox). */
+  function applySurface(targets, on) {
+    if (!targets.length) { alert("먼저 아이템을 골라주세요"); return; }
+    let n = 0, skip = 0;
+    for (const it of targets) {
+      if (on && it.layer !== "furniture") { skip++; continue; }
+      if (!!it.is_surface === on) continue;
+      it.is_surface = on; n++;
+    }
+    if (n) dirtyItems = true;
+    targets.forEach(cardMeta); renderPicked(); renderList(); renderItem();
+    log(`is_surface ${on ? "켜기" : "끄기"}: ${targets.length}개 중 ${n}건 변경${skip ? ` (furniture가 아니라 건너뜀 ${skip}개)` : ""} — 아이템 저장으로 반영`);
+  }
   function pickCard(it, e) {
     if (e.shiftKey && lastPick && gridOrder.includes(lastPick)) {
       const a = gridOrder.indexOf(lastPick), b = gridOrder.indexOf(it);
@@ -511,8 +528,8 @@
     gridOrder.forEach((o) => { const c = cardOf.get(o); if (c) c.classList.toggle("sel", o.sprite === s.key); });
   }
   /** Drop the picked items from items.json (slices stay); partners lose their pair link. */
-  function deletePicked() {
-    const targets = [...picked];
+  function deletePicked() { deleteItems([...picked]); }
+  function deleteItems(targets) {
     if (!targets.length) { alert("먼저 카드를 골라주세요"); return; }
     const names = targets.slice(0, 8).map((it) => it.id).join(", ") + (targets.length > 8 ? ` 외 ${targets.length - 8}개` : "");
     if (!confirm(`아이템 ${targets.length}개를 지울까요? (슬라이스는 남아요)\n${names}`)) return;
@@ -520,7 +537,7 @@
     items = items.filter((it) => !gone.has(it.id));
     items.forEach((o) => { if (o.pair && gone.has(o.pair)) delete o.pair; });
     picked.clear(); lastPick = null; dirtyItems = true;
-    renderItemsGrid(); renderList(); renderItem();
+    renderItemsGrid(); renderList(); renderItem(); updateBatchBtn();
     log(`아이템 ${targets.length}개 삭제 — 아이템 저장으로 반영`);
   }
   async function renderItemsGrid() {
@@ -557,6 +574,8 @@
   $("itemDelPicked").onclick = deletePicked;
   $("goSheet").onclick = () => { if (sel) goTo(sel); };
   $("itemLayerApply").onclick = () => applyLayer([...picked], $("itemLayerSet").value);
+  $("itemSurfOn").onclick = () => applySurface([...picked], true);
+  $("itemSurfOff").onclick = () => applySurface([...picked], false);
   $("itemTagAdd").onclick = () => applyTag([...picked], $("itemTagNew").value, true);
   $("itemTagDel").onclick = () => applyTag([...picked], $("itemTagNew").value, false);
   window.addEventListener("keydown", (e) => {
@@ -687,36 +706,73 @@
 
   // ---- 자동 자르기: POST /api/autoslice → candidate rects; ones already covered by a slice are skipped
   const overlapArea = (a, b) => Math.max(0, Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x)) * Math.max(0, Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y));
+  const autoOpts = () => ({ sheet, mode: $("autoMode").value, gap: +$("autoGap").value || 0, min: +$("autoMin").value || 1,
+                            cell: +$("autoCell").value || S.cell, snap: $("autoSnap").checked });
+  async function autoDetect(extra = {}) {
+    const res = await fetch("/api/autoslice", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...autoOpts(), ...extra }) });
+    if (res.status === 404) throw new Error("에디터 서버가 /api/autoslice를 몰라요 — 터미널에서 에디터를 껐다 다시 켜고 새로고침하세요");
+    const r = await res.json();
+    if (!r.ok) throw new Error(r.error || "실패");
+    return r;
+  }
+  const sheetRects = () => allSlices().filter((s) => sheetOf(s) === sheet).flatMap(rectsOf).filter((x) => x.sheet === sheet);
+  /** Add `boxes` as ticked auto_ slices, skipping the ones >=50% covered by `have`; returns [added, skipped]. */
+  function addAutoBoxes(boxes, transparent, have) {
+    const list = groupOf(sheet) === "map" ? mapSlices : slices;
+    const prefix = `auto_${sheet.replace(/\//g, "_")}_`;
+    const taken = new Set(allSlices().map((s) => s.key));
+    let n = 1, added = 0, skipped = 0;
+    for (const [x, y, w, h] of boxes) {
+      const box = { x, y, w, h };
+      if (have.some((o) => overlapArea(box, o) * 2 >= Math.min(w * h, o.w * o.h))) { skipped++; continue; }
+      while (taken.has(prefix + String(n).padStart(3, "0"))) n++;
+      const s = { key: prefix + String(n).padStart(3, "0"), sheet, x, y, w, h };
+      if (transparent) s.transparent = transparent;
+      taken.add(s.key); list.push(s); unsaved.add(s.key); checked.add(s); have.push(s); added++;
+    }
+    if (added) dirtySlices = true;
+    return [added, skipped];
+  }
   $("autoBtn").onclick = async () => {
     if (noImage()) { alert("원본 그림이 있는 시트를 고르세요"); return; }
     const b = $("autoBtn"); b.disabled = true;
     try {
-      const body = { sheet, mode: $("autoMode").value, gap: +$("autoGap").value || 0, min: +$("autoMin").value || 1,
-                     cell: +$("autoCell").value || S.cell, snap: $("autoSnap").checked };
-      const res = await fetch("/api/autoslice", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-      if (res.status === 404) { alert("에디터 서버가 /api/autoslice를 몰라요 — 터미널에서 에디터를 껐다 다시 켜고 새로고침하세요"); return; }
-      const r = await res.json();
-      if (!r.ok) { alert(r.error || "실패"); return; }
-      const have = allSlices().filter((s) => sheetOf(s) === sheet).flatMap(rectsOf).filter((x) => x.sheet === sheet);
-      const list = groupOf(sheet) === "map" ? mapSlices : slices;
-      const prefix = `auto_${sheet.replace(/\//g, "_")}_`;
-      const taken = new Set(allSlices().map((s) => s.key));
-      let n = 1, added = 0, skipped = 0;
+      const r = await autoDetect();
       checked.clear();
-      for (const [x, y, w, h] of r.boxes) {
-        const box = { x, y, w, h };
-        if (have.some((o) => overlapArea(box, o) * 2 >= Math.min(w * h, o.w * o.h))) { skipped++; continue; }
-        while (taken.has(prefix + String(n).padStart(3, "0"))) n++;
-        const s = { key: prefix + String(n).padStart(3, "0"), sheet, x, y, w, h };
-        if (r.bg) s.transparent = r.bg;
-        taken.add(s.key); list.push(s); unsaved.add(s.key); checked.add(s); have.push(s); added++;
-      }
-      if (added) dirtySlices = true;
+      const [added, skipped] = addAutoBoxes(r.boxes, r.bg, sheetRects());
       renderList(); draw(); updateBatchBtn();
       log(`자동 자르기: ${r.boxes.length}개 찾음 · ${added}개 추가 · 이미 있는 ${skipped}개 건너뜀` + (r.bg ? ` · 배경색 ${r.bg.join(",")} 제거` : "") +
           (added ? " — 추가한 건 체크돼 있어요 (필요 없는 건 체크 삭제, 나머지는 이름 일괄 변경 → 슬라이스 저장)" : ""));
     } catch (e) { alert("자동 자르기 실패: " + e.message); }
     finally { b.disabled = false; }
+  };
+  // 다시 자르기: each ticked plain slice on this sheet is cut again inside its own rect with the current options
+  // and replaced by the pieces (kept when that gives back the same single box or nothing)
+  $("autoRecut").onclick = async () => {
+    if (noImage()) { alert("원본 그림이 있는 시트를 고르세요"); return; }
+    const all = checkedInOrder().filter((s) => sheetOf(s) === sheet);
+    const targets = all.filter((s) => !("parts" in s) && !isAnimSlice(s) && !("file" in s) && !itemOf(s));
+    if (!targets.length) { alert("이 시트에서 다시 자를 슬라이스를 체크하세요 (아이템이 달린 것·parts·애니는 안 돼요)"); return; }
+    const named = targets.filter((s) => !/^(auto|new)_/.test(s.key));
+    if (named.length && !confirm(`이름 있는 슬라이스 ${named.length}개도 조각(auto_)으로 바뀌어요. 계속할까요?\n${named.slice(0, 10).map((s) => s.key).join(", ")}`)) return;
+    const b = $("autoRecut"); b.disabled = true;
+    let split = 0, same = 0, pieces = 0;
+    try {
+      checked.clear();
+      for (const s of targets) {
+        const r = await autoDetect({ region: [s.x, s.y, s.w, s.h] });
+        const one = r.boxes.length === 1 && r.boxes[0].join() === [s.x, s.y, s.w, s.h].join();
+        if (!r.boxes.length || one) { same++; checked.add(s); continue; }
+        const arr = listOf(s); arr.splice(arr.indexOf(s), 1); unsaved.delete(s.key); dirtySlices = true;
+        if (sel === s) sel = null;
+        pieces += addAutoBoxes(r.boxes, s.transparent || r.bg, sheetRects())[0];
+        split++;
+      }
+    } catch (e) { alert("다시 자르기 실패: " + e.message); }
+    finally { b.disabled = false; }
+    renderList(); renderPanel(); draw(); updateBatchBtn();
+    log(`다시 자르기: ${split}개를 ${pieces}조각으로` + (same ? ` · 그대로 ${same}개 (덩어리로 안 갈라지면 격자 모드나 칸 크기를 바꿔 보세요)` : "") +
+        (all.length > targets.length ? ` · 아이템 달림/parts/애니라 건너뜀 ${all.length - targets.length}개` : ""));
   };
 
   function setSheet(name, thenSelect = null) {
@@ -1003,6 +1059,8 @@
     $("batchRename").textContent = checked.size ? `이름 일괄 변경 (${checked.size})` : "이름 일괄 변경";
     $("batchCreate").textContent = checked.size ? `아이템 일괄 만들기 (${checked.size})` : "아이템 일괄 만들기";
     $("batchDelete").textContent = checked.size ? `체크 삭제 (${checked.size})` : "체크 삭제";
+    const ni = [...checked].filter((s) => itemOf(s)).length;
+    $("batchItemDel").textContent = ni ? `아이템 일괄 삭제 (${ni})` : "아이템 일괄 삭제";
   };
   const safeKey = (t) => t.toLowerCase().replace(/[^a-z0-9_]+/g, "_").replace(/^_+|_+$/g, "");
   /** Proposed key for a slice, or null when it is not an auto_/new_ slice. */
@@ -1245,6 +1303,14 @@
   }
   $("batchTagOn").onclick = () => batchTags(true);
   $("batchTagOff").onclick = () => batchTags(false);
+  const checkedItems = () => {
+    const t = [...checked].map(itemOf).filter(Boolean);
+    if (!t.length) alert("목록에서 아이템이 있는 슬라이스를 체크하세요 (⚠ 표시는 아이템이 없는 것)");
+    return t;
+  };
+  $("batchSurfOn").onclick = () => { const t = checkedItems(); if (t.length) applySurface(t, true); };
+  $("batchSurfOff").onclick = () => { const t = checkedItems(); if (t.length) applySurface(t, false); };
+  $("batchItemDel").onclick = () => { const t = checkedItems(); if (t.length) deleteItems(t); };
   $("batchLayerSet").onclick = () => {
     const targets = [...checked].map(itemOf).filter(Boolean);
     if (!targets.length) { alert("목록에서 아이템이 있는 슬라이스를 체크하세요 (⚠ 표시는 아이템이 없는 것)"); return; }

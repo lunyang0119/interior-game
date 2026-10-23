@@ -35,7 +35,10 @@ non-empty 칸×칸 cell, for tiles; 최소 drops specks). A sheet without transp
 which the new slices remove via `transparent`. Boxes already ≥50% covered by a slice are skipped, the rest are added
 as unsaved `auto_<sheet>_NNN` slices and ticked: drop the unwanted ones with **체크 삭제** (slices with an item are
 kept), fix merged neighbours by hand (sprites that touch on the sheet come out as one box), then 이름 일괄 변경 →
-슬라이스 저장.
+슬라이스 저장. **체크한 것 다시 자르기** runs the same detection only inside each ticked plain slice (no item, not
+parts/anim) with the current options (`region`) and replaces it with the pieces — use 격자 + 칸 to split neighbours that
+touch. More batch buttons on the ticked slices: **아이템 일괄 삭제** (their items only, slices stay) and **is_surface
+켜기/끄기** (furniture items only; the items tab has the same pair for the picked cards).
 In the editor, tick slices in the list (☑ 전체 / ☑ auto = everything visible on the current sheet + search) and press
 **이름 일괄 변경**: each `auto_`/`new_` key becomes `[<folder>_]<sheet><original>`, e.g. `auto_interiors_017` → `inte_017`,
 a Map sheet `.../Grass.png` → `map_gras_003` (folder omitted when it is `Interior`; sheet = first 4 letters of the file

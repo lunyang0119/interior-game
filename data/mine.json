@@ -16,6 +16,7 @@
  ],
  "ladder": "mine_ladder",
  "ladder_chance": 0.25,
+ "swing": "mine_swing_pickaxe",
  "pickaxe": [
   "mine_pickaxe_anim_1",
   "mine_pickaxe_anim_2",

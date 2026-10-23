@@ -250,7 +250,7 @@ def test_ladder_opens_the_next_floor_and_stays_reachable(mclient):
         _stand_next_to(ws, nodes[seqs[0]])
         r = mclient.post("/api/mine/hit", json={"seq": seqs[0]}, headers=auth(lun)).json()
         n = nodes[seqs[0]]
-        assert r["done"] and r["ladder"] == {"x": n["x"], "y": n["y"] if not n["wall"] else n["y"] + 1}
+        assert r["done"] and r["ladder"] == {"x": n["x"], "y": n["y"]}
         assert mclient.get("/api/mine/floor/1").json()["ladder"] == r["ladder"]
         # floor 2 is open now (and generated on first look); 3 is not
         f2 = mclient.get("/api/mine/floor/2").json()
@@ -278,6 +278,32 @@ def test_ladder_opens_the_next_floor_and_stays_reachable(mclient):
             assert h.done and h.ladder is not None and mine.ladder_open(conn, cfg, 1, tomorrow) == h.ladder
     conn.close()
 
+
+
+def test_wall_ores_never_hide_or_open_the_ladder(mclient):
+    import random
+
+    from app import mine
+    from app.db import transaction
+    register(mclient, "lun")
+    cfg = mclient.app.state.mine.cfg
+    cat = mclient.app.state.catalog
+    cfg.ores.append(mine.Ore(id="stone_wall", name="돌", hits=1, value=0, sprite="mine_wall_gold", wall=True))
+    cfg.tiers[0].weights = {"stone": 1, "stone_wall": 50}
+    conn = _db()
+    for seed in range(40):
+        _, nodes = mine.layout_floor(conn, cat, cfg, 1, random.Random(seed))
+        hidden = [(c, o) for c, o, ladder in nodes if ladder]
+        assert len(hidden) == 1 and not hidden[0][1].wall
+    # even a wall dud flagged by an old layout and a 100% ladder_chance opens nothing
+    cfg.ladder_chance = 1.0
+    seq = conn.execute("SELECT seq FROM ore_nodes WHERE floor = 1 ORDER BY seq").fetchone()[0]
+    conn.execute("UPDATE ore_nodes SET kind = 'stone_wall', hits_left = 1, ladder = 1 WHERE seq = ?", (seq,))
+    conn.commit()
+    with transaction(conn):
+        h = mine.hit(conn, cfg, "lun", seq, mine.now())
+    assert h.done and h.ladder is None and mine.ladder_open(conn, cfg, 1, mine.now()) is None
+    conn.close()
 
 def test_hit_cooldown(mclient):
     lun = register(mclient, "lun")

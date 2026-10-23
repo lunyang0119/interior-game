@@ -475,13 +475,20 @@ def mask_components(mask: Image.Image) -> list[tuple[int, int, int, int]]:
 
 
 def detect_boxes(im: Image.Image, mode: str = "blob", gap: int = 0, snap_grid: bool = False, cell: int = C.CELL,
-                 min_px: int = 6) -> dict:
+                 min_px: int = 6, region: tuple[int, int, int, int] | None = None) -> dict:
     """Candidate slice rects on a sheet → {"boxes": [[x, y, w, h], ...] top-to-bottom, "bg": [r, g, b] | None}.
     mode "blob": one box per drawn region; regions closer than `gap` px count as one (a lamp and its separate
     glow, a chair and its shadow), boxes stay pixel-tight unless `snap_grid` rounds them out to `cell` and merges
     the ones that then overlap. mode "grid": every `cell`×`cell` square that has any drawn pixel (tiles, walls).
-    Boxes whose longer side is under `min_px` are dropped (stray specks)."""
+    Boxes whose longer side is under `min_px` are dropped (stray specks). `region` (x, y, w, h) looks only inside
+    that rect (다시 자르기 of one slice; grid cells then start at its corner); the background is still judged on the
+    whole sheet, and the boxes are in sheet coordinates."""
     mask, bg = opaque_mask(im)
+    ox = oy = 0
+    if region:
+        rx, ry, rw, rh = (int(v) for v in region)
+        ox, oy = max(0, rx), max(0, ry)
+        mask = mask.crop((ox, oy, max(ox, min(mask.width, rx + rw)), max(oy, min(mask.height, ry + rh))))
     w, h = mask.size
     if mode == "grid":
         cell = max(1, int(cell))
@@ -507,7 +514,7 @@ def detect_boxes(im: Image.Image, mode: str = "blob", gap: int = 0, snap_grid: b
         if snap_grid:
             boxes = [(x, y, min(bw, w - x), min(bh, h - y)) for x, y, bw, bh in merge_overlapping(snap(b) for b in boxes)]
     boxes.sort(key=lambda b: (b[1], b[0]))
-    return {"boxes": [list(b) for b in boxes], "bg": list(bg) if bg else None}
+    return {"boxes": [[x + ox, y + oy, bw, bh] for x, y, bw, bh in boxes], "bg": list(bg) if bg else None}
 
 
 def cmd_scan(args: argparse.Namespace) -> None:

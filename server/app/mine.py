@@ -7,7 +7,7 @@ geometry (tiles, exits, seeded props); what changes per floor and per day is gen
 floor is asked for (`ensure_floor`): rock clusters (partition sprites that block walking, `rock_density` of the
 free floor cells; whatever the spawn cannot reach is filled with rock too), `nodes_per_floor` ore nodes on cells
 the spawn can reach (wall ores on the wall row right above the floor), and one dud node (value 0) that hides the
-ladder down — any other dud opens it with `ladder_chance`. Stepping on the open ladder enters the next floor;
+ladder down — any other floor dud opens it with `ladder_chance` (wall ores never do). Stepping on the open ladder enters the next floor;
 room_meta 'mine_deepest:<room>' remembers the deepest floor ever opened so the map entrance can offer it again.
 
 Every node is shared: each `POST /api/mine/hit` takes one off its hits_left and the hit that empties it pays the
@@ -97,6 +97,7 @@ class MineConfig(BaseModel):
     ladder: str | None = None  # atlas slice drawn on the open ladder cell (the client draws a hole without it)
     ladder_chance: float = Field(ge=0, le=1, default=0.25)  # a dud that is not *the* ladder node still opens one
     pickaxe: list[str] | IconCrop | str | None = None  # 채광 button frames (atlas slices) or one icon crop
+    swing: str | None = None  # atlas slice the client swings down onto the node on every press (none = no swing)
     ores: list[Ore] = Field(min_length=1)
     tiers: list[Tier] = Field(min_length=1)
 
@@ -136,7 +137,7 @@ class MineConfig(BaseModel):
         """What GET /api/mine returns (no asset paths; atlas keys are fine, the client needs them)."""
         return {"room": self.room, "floors": self.floors, "nodes_per_floor": self.nodes_per_floor,
                 "hit_cooldown_ms": self.hit_cooldown_ms, "reach": self.reach, "ladder": self.ladder,
-                "ores": [o.public() for o in self.ores]}
+                "swing": self.swing, "ores": [o.public() for o in self.ores]}
 
 
 def load_config(path: Path | None = None) -> MineConfig | None:
@@ -306,8 +307,7 @@ def layout_floor(conn: sqlite3.Connection, cat: "Catalog", cfg: MineConfig, floo
             continue
         nodes.append((pool.pop(), ore, False))
     if floor < cfg.floors:
-        node_cells = {c for c, _, _ in nodes}
-        duds = [i for i, (c, o, _) in enumerate(nodes) if o.value == 0 and (not o.wall or (c[0], c[1] + 1) not in node_cells)]
+        duds = [i for i, (_, o, _) in enumerate(nodes) if o.value == 0 and not o.wall]  # wall ores never hide the ladder
         if duds:
             i = rng.choice(duds)
             nodes[i] = (nodes[i][0], nodes[i][1], True)
@@ -412,10 +412,10 @@ def hit(conn: sqlite3.Connection, cfg: MineConfig, player_id: str, seq: int, ts:
                 (ts, player_id, -ore.value, LEDGER_KIND, f"{LEDGER_KIND}:{ore.id}"),
             )
             ledger_seq = cur.lastrowid
-        elif floor < cfg.floors and ladder_open(conn, cfg, floor, ts) is None:
+        elif not ore.wall and floor < cfg.floors and ladder_open(conn, cfg, floor, ts) is None:
             rng = rng or random.Random()
             if row["ladder"] or rng.random() < cfg.ladder_chance:
-                ladder = (int(row["x"]), int(row["y"]) + 1 if ore.wall else int(row["y"]))
+                ladder = (int(row["x"]), int(row["y"]))
                 conn.execute("UPDATE mine_floors SET ladder_x = ?, ladder_y = ? WHERE room_id = ? AND day = ? AND floor = ?",
                              (ladder[0], ladder[1], cfg.room, row["day"], floor))
     else:

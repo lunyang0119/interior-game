@@ -65,3 +65,16 @@ def test_faint_alpha_is_ignored():
     im = _sheet([(5, 5, 8, 8)], size=(32, 32))
     im.putpixel((25, 25), (0, 0, 0, 3))
     assert P.detect_boxes(im, min_px=1)["boxes"] == [[5, 5, 8, 8]]
+
+
+def test_region_cuts_only_inside_and_keeps_sheet_coordinates():
+    im = _sheet([(2, 2, 6, 6), (20, 4, 6, 6), (40, 4, 6, 6)])
+    assert P.detect_boxes(im, region=(16, 0, 32, 16))["boxes"] == [[20, 4, 6, 6], [40, 4, 6, 6]]
+    # grid cells start at the region's corner
+    assert P.detect_boxes(im, mode="grid", cell=8, region=(16, 2, 16, 8))["boxes"] == [[16, 2, 8, 8], [24, 2, 8, 8]]
+
+
+def test_region_still_judges_background_on_the_whole_sheet():
+    im = _sheet([(4, 4, 8, 8)], size=(32, 32))
+    r = P.detect_boxes(im, region=(4, 4, 8, 8))  # fully opaque inside, but the sheet has transparency
+    assert r["bg"] is None and r["boxes"] == [[4, 4, 8, 8]]

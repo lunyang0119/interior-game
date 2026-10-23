@@ -25,6 +25,7 @@ type MineMsg = Extract<WsMsg, { type: "mine" }>;
 const Z_ORE = Z_SCALE.furniture; // like furniture on its row (avatars on the row below draw over it)
 const RING_COLOR = 0xffd35c;
 const HOLE_COLOR = 0x120c0a;
+const SPARK_COLORS = [0xfff3c4, 0xffd35c, 0xffffff];
 
 export class MineFloor {
   private nodes = new Map<number, MineNode>();
@@ -34,6 +35,8 @@ export class MineFloor {
   private ladder: { x: number; y: number } | null = null;
   private ores = new Map<string, MineOre>();
   private ladderKey: string | null = null;
+  private swingKey: string | null = null;
+  private swingImg: Phaser.GameObjects.Image | null = null;
   private ring: Phaser.GameObjects.Graphics;
   private target: number | null = null;
   private busy = false;
@@ -58,6 +61,7 @@ export class MineFloor {
       if (!this.alive) return;
       this.reach = info.reach;
       this.ladderKey = info.ladder;
+      this.swingKey = info.swing ?? null;
       this.ores = new Map(info.ores.map((o) => [o.id, o]));
       this.drawRocks(today.rocks);
       this.sync(today.nodes);
@@ -208,6 +212,7 @@ export class MineFloor {
     if (!n || !this.inReach(n)) { this.refreshTarget(); return; }
     this.busy = true;
     play(SFX.pick, { volume: SFX_VOL.ui });
+    this.swing(n, this.myCell());
     api.mineHit(seq)
       .then((r) => { if (this.alive) this.applyHit(r); })
       .catch((e) => {
@@ -239,10 +244,45 @@ export class MineFloor {
     if (m.by === state.id) return;
     const n = this.nodes.get(m.seq);
     if (!n) return;
+    this.swing(n, null);
     this.applyProgress(m.seq, m.hits_left, m.done);
     if (m.done && m.loot && m.loot.value > 0) toast(`${m.by}가 ${m.loot.name}을(를) 캤어요 (+${m.loot.value}{coin})`);
     if (m.ladder) this.uncover(m.ladder, false);
     this.emitLeft(m.left);
+  }
+
+  /** The pickaxe (`swing` slice: head up-right, handle bottom-left) raised beside the node swings down onto it,
+   *  a few sparks fly, then it fades. It comes from the side the miner stands on (`from`; null = left). */
+  private swing(n: MineNode, from: Cell | null): void {
+    const atlas = this.scene.textures.get(ATLAS);
+    if (!this.swingKey || !atlas.has(this.swingKey)) return;
+    if (this.swingImg) { this.scene.tweens.killTweensOf(this.swingImg); this.swingImg.destroy(); }
+    const right = !!from && from.cx > n.x; // miner on the right: mirrored, pivot on the node's right edge
+    const dir = right ? -1 : 1;
+    const px = right ? (n.x + 1) * CELL + 2 : n.x * CELL - 2;
+    const py = (n.y + 1) * CELL - 3;
+    const img = this.scene.add.image(px, py, ATLAS, this.swingKey)
+      .setOrigin(right ? 0.85 : 0.15, 0.85).setFlipX(right).setAngle(-40 * dir)
+      .setDepth(depthOf(Math.max(n.y, from?.cy ?? n.y) + 1, Z_ORE));
+    this.swingImg = img;
+    this.scene.tweens.add({
+      targets: img, angle: 45 * dir, duration: 110, ease: "Quad.easeIn",
+      onComplete: () => {
+        this.sparks((n.x + 0.5) * CELL, n.y * CELL + CELL * 0.45, img.depth);
+        this.scene.tweens.add({ targets: img, alpha: 0, delay: 70, duration: 130,
+          onComplete: () => { img.destroy(); if (this.swingImg === img) this.swingImg = null; } });
+      },
+    });
+  }
+
+  private sparks(x: number, y: number, depth: number): void {
+    for (let i = 0; i < 5; i++) {
+      const a = -Math.PI / 2 + (Math.random() - 0.5) * Math.PI * 1.2;
+      const d = 4 + Math.random() * 5;
+      const r = this.scene.add.rectangle(x, y, 1, 1, SPARK_COLORS[i % SPARK_COLORS.length]).setDepth(depth + 1);
+      this.scene.tweens.add({ targets: r, x: x + Math.cos(a) * d, y: y + Math.sin(a) * d, alpha: 0, duration: 220,
+        ease: "Quad.easeOut", onComplete: () => r.destroy() });
+    }
   }
 
   private uncover(l: { x: number; y: number }, mine: boolean): void {
@@ -297,6 +337,8 @@ export class MineFloor {
     this.rocks = [];
     this.ladderSprite?.destroy();
     this.ladderSprite = null;
+    this.swingImg?.destroy();
+    this.swingImg = null;
     this.blocked.clear();
     this.ring.destroy();
     this.target = null;

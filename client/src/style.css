@@ -60,9 +60,9 @@ img, .framed { image-rendering: pixelated; }
 /* ⛏ the mine bar sits above the bottom bar; the pickaxe swings once per press */
 #minebar { bottom: calc(var(--safe-bottom) + 64px); flex-direction: column; align-items: center; gap: 6px; }
 #mine-status { color: var(--text); font-weight: 700; text-shadow: 0 1px 2px #000; min-height: 1.2em; }
-#btn-mine { display: inline-flex; align-items: center; gap: 8px; min-width: 180px; touch-action: manipulation; }
+#btn-mine { display: inline-flex; align-items: center; gap: 6px; min-width: 132px; padding: 7px 14px; font-size: var(--fs-button); touch-action: manipulation; }
 #btn-mine:disabled { opacity: .55; filter: grayscale(1); transform: none; }
-#btn-mine img { width: 24px; height: 24px; image-rendering: pixelated; transform-origin: 25% 75%; }
+#btn-mine img { width: 20px; height: 20px; image-rendering: pixelated; transform-origin: 25% 75%; }
 /* with one pickaxe frame the icon tilts; with the 3-frame strip from data/mine.json the frames play instead (hud.ts) */
 #btn-mine.swing img.single { animation: pick-swing .22s ease-out; }
 @keyframes pick-swing { 0% { transform: rotate(-35deg); } 60% { transform: rotate(8deg); } 100% { transform: rotate(0); } }
