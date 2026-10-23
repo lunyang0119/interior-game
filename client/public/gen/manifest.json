@@ -198,7 +198,7 @@
     ]
    },
    "outfit": {
-    "count": 135,
+    "count": 137,
     "label": "\uc637",
     "groups": [
      [
@@ -405,6 +405,10 @@
      [
       133,
       134
+     ],
+     [
+      135,
+      136
      ]
     ],
     "names": [
@@ -542,13 +546,15 @@
      "Outfit_33_03",
      "Outfit_34_01",
      "Outfit_35_01",
-     "Outfit_35_01"
+     "Outfit_35_01",
+     "Outfit_36_01",
+     "Outfit_36_01"
     ]
    },
    "hair": {
-    "count": 548,
+    "count": 568,
     "label": "\uba38\ub9ac",
-    "none": 547,
+    "none": 567,
     "groups": [
      [
       0,
@@ -1168,7 +1174,29 @@
       546
      ],
      [
-      547
+      547,
+      548,
+      549,
+      550,
+      551,
+      552,
+      553,
+      554,
+      555,
+      556,
+      557,
+      558,
+      559,
+      560,
+      561,
+      562,
+      563,
+      564,
+      565,
+      566
+     ],
+     [
+      567
      ]
     ],
     "names": [
@@ -1719,6 +1747,26 @@
      "Hairstyle_35_15",
      "Hairstyle_35_16",
      "Hairstyle_35_16",
+     "Hairstyle_36_01",
+     "Hairstyle_36_01",
+     "Hairstyle_36_08",
+     "Hairstyle_36_08",
+     "Hairstyle_36_09",
+     "Hairstyle_36_09",
+     "Hairstyle_36_10",
+     "Hairstyle_36_10",
+     "Hairstyle_36_11",
+     "Hairstyle_36_11",
+     "Hairstyle_36_12",
+     "Hairstyle_36_12",
+     "Hairstyle_36_13",
+     "Hairstyle_36_13",
+     "Hairstyle_36_14",
+     "Hairstyle_36_14",
+     "Hairstyle_36_15",
+     "Hairstyle_36_15",
+     "Hairstyle_36_16",
+     "Hairstyle_36_16",
      "none"
     ]
    },
