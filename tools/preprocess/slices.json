@@ -3610,7 +3610,7 @@
   "x": 112,
   "y": 272,
   "w": 15,
-  "h": 37
+  "h": 16
  },
  {
   "key": "halloween_73",
@@ -3925,22 +3925,6 @@
   "h": 20
  },
  {
-  "key": "halloween_112",
-  "sheet": "Interior/moderninteriors-win/1_Interiors/16x16/Theme_Sorter/11_Halloween_16x16.png",
-  "x": 177,
-  "y": 401,
-  "w": 15,
-  "h": 9
- },
- {
-  "key": "halloween_113",
-  "sheet": "Interior/moderninteriors-win/1_Interiors/16x16/Theme_Sorter/11_Halloween_16x16.png",
-  "x": 177,
-  "y": 408,
-  "w": 8,
-  "h": 5
- },
- {
   "key": "halloween_114",
   "sheet": "Interior/moderninteriors-win/1_Interiors/16x16/Theme_Sorter/11_Halloween_16x16.png",
   "x": 81,
@@ -3979,38 +3963,6 @@
   "y": 421,
   "w": 10,
   "h": 10
- },
- {
-  "key": "halloween_119",
-  "sheet": "Interior/moderninteriors-win/1_Interiors/16x16/Theme_Sorter/11_Halloween_16x16.png",
-  "x": 3,
-  "y": 437,
-  "w": 45,
-  "h": 23
- },
- {
-  "key": "halloween_120",
-  "sheet": "Interior/moderninteriors-win/1_Interiors/16x16/Theme_Sorter/11_Halloween_16x16.png",
-  "x": 51,
-  "y": 437,
-  "w": 45,
-  "h": 23
- },
- {
-  "key": "halloween_121",
-  "sheet": "Interior/moderninteriors-win/1_Interiors/16x16/Theme_Sorter/11_Halloween_16x16.png",
-  "x": 99,
-  "y": 437,
-  "w": 18,
-  "h": 23
- },
- {
-  "key": "halloween_122",
-  "sheet": "Interior/moderninteriors-win/1_Interiors/16x16/Theme_Sorter/11_Halloween_16x16.png",
-  "x": 120,
-  "y": 440,
-  "w": 24,
-  "h": 22
  },
  {
   "key": "halloween_123",
@@ -4059,78 +4011,6 @@
   "y": 443,
   "w": 13,
   "h": 18
- },
- {
-  "key": "halloween_129",
-  "sheet": "Interior/moderninteriors-win/1_Interiors/16x16/Theme_Sorter/11_Halloween_16x16.png",
-  "x": 16,
-  "y": 457,
-  "w": 16,
-  "h": 18
- },
- {
-  "key": "halloween_130",
-  "sheet": "Interior/moderninteriors-win/1_Interiors/16x16/Theme_Sorter/11_Halloween_16x16.png",
-  "x": 64,
-  "y": 457,
-  "w": 16,
-  "h": 18
- },
- {
-  "key": "halloween_131",
-  "sheet": "Interior/moderninteriors-win/1_Interiors/16x16/Theme_Sorter/11_Halloween_16x16.png",
-  "x": 112,
-  "y": 457,
-  "w": 16,
-  "h": 18
- },
- {
-  "key": "halloween_132",
-  "sheet": "Interior/moderninteriors-win/1_Interiors/16x16/Theme_Sorter/11_Halloween_16x16.png",
-  "x": 26,
-  "y": 461,
-  "w": 22,
-  "h": 26
- },
- {
-  "key": "halloween_133",
-  "sheet": "Interior/moderninteriors-win/1_Interiors/16x16/Theme_Sorter/11_Halloween_16x16.png",
-  "x": 74,
-  "y": 461,
-  "w": 22,
-  "h": 26
- },
- {
-  "key": "halloween_134",
-  "sheet": "Interior/moderninteriors-win/1_Interiors/16x16/Theme_Sorter/11_Halloween_16x16.png",
-  "x": 3,
-  "y": 463,
-  "w": 18,
-  "h": 24
- },
- {
-  "key": "halloween_135",
-  "sheet": "Interior/moderninteriors-win/1_Interiors/16x16/Theme_Sorter/11_Halloween_16x16.png",
-  "x": 51,
-  "y": 463,
-  "w": 18,
-  "h": 24
- },
- {
-  "key": "halloween_136",
-  "sheet": "Interior/moderninteriors-win/1_Interiors/16x16/Theme_Sorter/11_Halloween_16x16.png",
-  "x": 99,
-  "y": 463,
-  "w": 18,
-  "h": 24
- },
- {
-  "key": "halloween_137",
-  "sheet": "Interior/moderninteriors-win/1_Interiors/16x16/Theme_Sorter/11_Halloween_16x16.png",
-  "x": 131,
-  "y": 465,
-  "w": 13,
-  "h": 22
  },
  {
   "key": "halloween_138",
@@ -30485,6 +30365,25 @@
   "key": "fx_steam",
   "anim": "fx/FX002",
   "fps": 8
+ },
+ {
+  "key": "halloween_112",
+  "parts": [
+   {
+    "sheet": "Interior/moderninteriors-win/1_Interiors/16x16/Theme_Sorter/11_Halloween_16x16.png",
+    "x": 177,
+    "y": 401,
+    "w": 15,
+    "h": 9
+   },
+   {
+    "sheet": "Interior/moderninteriors-win/1_Interiors/16x16/Theme_Sorter/11_Halloween_16x16.png",
+    "x": 177,
+    "y": 410,
+    "w": 8,
+    "h": 4
+   }
+  ]
  },
  {
   "key": "kitchen_chair_fa",

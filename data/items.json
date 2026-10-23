@@ -36297,151 +36297,19 @@
    "surface_offset_y": 0
   },
   {
-   "id": "halloween_11",
-   "name": "mordhalloween 014 pumpkin pair b",
-   "price": 50,
-   "sprite": "halloween_11",
-   "w": 1,
-   "h": 1,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
-   "id": "halloween_12",
-   "name": "11ha 85",
-   "price": 50,
-   "sprite": "halloween_12",
-   "w": 1,
-   "h": 1,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
-   "id": "halloween_14",
-   "name": "mordhalloween 019 pumpkin pair c",
-   "price": 50,
-   "sprite": "halloween_14",
-   "w": 1,
-   "h": 1,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
-   "id": "halloween_15",
-   "name": "11ha 86",
-   "price": 50,
-   "sprite": "halloween_15",
-   "w": 1,
-   "h": 1,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
-   "id": "halloween_22",
-   "name": "mordhalloween 025 wardrobe narrow",
-   "price": 50,
-   "sprite": "halloween_22",
-   "w": 1,
-   "h": 2,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
-   "id": "halloween_140",
-   "name": "mordhalloween 123 item small b",
-   "price": 50,
-   "sprite": "halloween_140",
-   "w": 1,
-   "h": 1,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
-   "id": "halloween_206",
-   "name": "mordhalloween 184 decor small c",
-   "price": 50,
-   "sprite": "halloween_206",
-   "w": 2,
-   "h": 1,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
    "id": "halloween",
-   "name": "11ha 001",
+   "name": "halloween",
    "price": 50,
    "sprite": "halloween",
    "w": 3,
    "h": 1,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
-   "id": "halloween_8",
-   "name": "11ha 002",
-   "price": 50,
-   "sprite": "halloween_8",
-   "w": 1,
-   "h": 1,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
-   "id": "halloween_4",
-   "name": "11ha 003",
-   "price": 50,
-   "sprite": "halloween_4",
-   "w": 1,
-   "h": 1,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
-   "id": "halloween_6",
-   "name": "11ha 004",
-   "price": 50,
-   "sprite": "halloween_6",
-   "w": 1,
-   "h": 1,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
-   "id": "halloween_7",
-   "name": "11ha 005",
-   "price": 50,
-   "sprite": "halloween_7",
-   "w": 1,
-   "h": 1,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
-   "id": "halloween_5",
-   "name": "11ha 006",
-   "price": 50,
-   "sprite": "halloween_5",
-   "w": 2,
-   "h": 1,
-   "layer": "furniture",
+   "layer": "wall",
    "is_surface": false,
    "surface_offset_y": 0
   },
   {
    "id": "halloween_2",
-   "name": "11ha 007",
+   "name": "halloween 2",
    "price": 50,
    "sprite": "halloween_2",
    "w": 2,
@@ -36452,7 +36320,7 @@
   },
   {
    "id": "halloween_3",
-   "name": "11ha 008",
+   "name": "halloween 3",
    "price": 50,
    "sprite": "halloween_3",
    "w": 2,
@@ -36462,21 +36330,10 @@
    "surface_offset_y": 0
   },
   {
-   "id": "halloween_9",
-   "name": "11ha 009",
+   "id": "halloween_4",
+   "name": "halloween 4",
    "price": 50,
-   "sprite": "halloween_9",
-   "w": 4,
-   "h": 2,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
-   "id": "halloween_20",
-   "name": "11ha 010",
-   "price": 50,
-   "sprite": "halloween_20",
+   "sprite": "halloween_4",
    "w": 1,
    "h": 1,
    "layer": "furniture",
@@ -36484,8 +36341,63 @@
    "surface_offset_y": 0
   },
   {
+   "id": "halloween_5",
+   "name": "halloween 5",
+   "price": 50,
+   "sprite": "halloween_5",
+   "w": 2,
+   "h": 1,
+   "layer": "furniture",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "halloween_6",
+   "name": "halloween 6",
+   "price": 50,
+   "sprite": "halloween_6",
+   "w": 1,
+   "h": 1,
+   "layer": "furniture",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "halloween_7",
+   "name": "halloween 7",
+   "price": 50,
+   "sprite": "halloween_7",
+   "w": 1,
+   "h": 1,
+   "layer": "furniture",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "halloween_8",
+   "name": "halloween 8",
+   "price": 50,
+   "sprite": "halloween_8",
+   "w": 1,
+   "h": 1,
+   "layer": "furniture",
+   "is_surface": true,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "halloween_9",
+   "name": "halloween 9",
+   "price": 50,
+   "sprite": "halloween_9",
+   "w": 4,
+   "h": 2,
+   "layer": "wall",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
    "id": "halloween_10",
-   "name": "11ha 011",
+   "name": "halloween 10",
    "price": 50,
    "sprite": "halloween_10",
    "w": 1,
@@ -36495,8 +36407,63 @@
    "surface_offset_y": 0
   },
   {
+   "id": "halloween_11",
+   "name": "halloween 11",
+   "price": 50,
+   "sprite": "halloween_11",
+   "w": 1,
+   "h": 1,
+   "layer": "furniture",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "halloween_12",
+   "name": "halloween 12",
+   "price": 50,
+   "sprite": "halloween_12",
+   "w": 1,
+   "h": 1,
+   "layer": "furniture",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "halloween_13",
+   "name": "halloween 13",
+   "price": 50,
+   "sprite": "halloween_13",
+   "w": 1,
+   "h": 1,
+   "layer": "furniture",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "halloween_14",
+   "name": "halloween 14",
+   "price": 50,
+   "sprite": "halloween_14",
+   "w": 1,
+   "h": 1,
+   "layer": "furniture",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "halloween_15",
+   "name": "halloween 15",
+   "price": 50,
+   "sprite": "halloween_15",
+   "w": 1,
+   "h": 1,
+   "layer": "furniture",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
    "id": "halloween_16",
-   "name": "11ha 012",
+   "name": "halloween 16",
    "price": 50,
    "sprite": "halloween_16",
    "w": 1,
@@ -36507,7 +36474,7 @@
   },
   {
    "id": "halloween_17",
-   "name": "11ha 013",
+   "name": "halloween 17",
    "price": 50,
    "sprite": "halloween_17",
    "w": 1,
@@ -36517,30 +36484,8 @@
    "surface_offset_y": 0
   },
   {
-   "id": "halloween_21",
-   "name": "11ha 014",
-   "price": 50,
-   "sprite": "halloween_21",
-   "w": 1,
-   "h": 1,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
-   "id": "halloween_13",
-   "name": "11ha 015",
-   "price": 50,
-   "sprite": "halloween_13",
-   "w": 1,
-   "h": 1,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
    "id": "halloween_18",
-   "name": "11ha 016",
+   "name": "halloween 18",
    "price": 50,
    "sprite": "halloween_18",
    "w": 1,
@@ -36551,7 +36496,7 @@
   },
   {
    "id": "halloween_19",
-   "name": "11ha 017",
+   "name": "halloween 19",
    "price": 50,
    "sprite": "halloween_19",
    "w": 1,
@@ -36561,10 +36506,10 @@
    "surface_offset_y": 0
   },
   {
-   "id": "halloween_25",
-   "name": "11ha 018",
+   "id": "halloween_20",
+   "name": "halloween 20",
    "price": 50,
-   "sprite": "halloween_25",
+   "sprite": "halloween_20",
    "w": 1,
    "h": 1,
    "layer": "furniture",
@@ -36572,19 +36517,33 @@
    "surface_offset_y": 0
   },
   {
-   "id": "halloween_26",
-   "name": "11ha 019",
+   "id": "halloween_21",
+   "name": "halloween 21",
    "price": 50,
-   "sprite": "halloween_26",
+   "sprite": "halloween_21",
    "w": 1,
    "h": 1,
    "layer": "furniture",
    "is_surface": false,
    "surface_offset_y": 0
+  },
+  {
+   "id": "halloween_22",
+   "name": "halloween 22",
+   "price": 50,
+   "sprite": "halloween_22",
+   "w": 1,
+   "h": 2,
+   "layer": "floor",
+   "is_surface": false,
+   "surface_offset_y": 0,
+   "tags": [
+    "rug"
+   ]
   },
   {
    "id": "halloween_23",
-   "name": "11ha 020",
+   "name": "halloween 23",
    "price": 50,
    "sprite": "halloween_23",
    "w": 2,
@@ -36595,7 +36554,7 @@
   },
   {
    "id": "halloween_24",
-   "name": "11ha 021",
+   "name": "halloween 24",
    "price": 50,
    "sprite": "halloween_24",
    "w": 2,
@@ -36605,52 +36564,72 @@
    "surface_offset_y": 0
   },
   {
+   "id": "halloween_25",
+   "name": "halloween 25",
+   "price": 50,
+   "sprite": "halloween_25",
+   "w": 1,
+   "h": 1,
+   "layer": "wall",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "halloween_26",
+   "name": "halloween 26",
+   "price": 50,
+   "sprite": "halloween_26",
+   "w": 1,
+   "h": 1,
+   "layer": "wall",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
    "id": "halloween_27",
-   "name": "11ha 022",
+   "name": "halloween 27",
    "price": 50,
    "sprite": "halloween_27",
    "w": 3,
    "h": 1,
-   "layer": "furniture",
+   "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "rug"
+   ]
   },
   {
    "id": "halloween_28",
-   "name": "11ha 023",
+   "name": "halloween 28",
    "price": 50,
    "sprite": "halloween_28",
    "w": 3,
    "h": 1,
-   "layer": "furniture",
+   "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "rug"
+   ]
   },
   {
    "id": "halloween_29",
-   "name": "11ha 024",
+   "name": "halloween 29",
    "price": 50,
    "sprite": "halloween_29",
    "w": 3,
    "h": 1,
-   "layer": "furniture",
+   "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
-   "id": "halloween_33",
-   "name": "11ha 025",
-   "price": 50,
-   "sprite": "halloween_33",
-   "w": 2,
-   "h": 2,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "rug"
+   ]
   },
   {
    "id": "halloween_30",
-   "name": "11ha 026",
+   "name": "halloween 30",
    "price": 50,
    "sprite": "halloween_30",
    "w": 2,
@@ -36661,29 +36640,40 @@
   },
   {
    "id": "halloween_31",
-   "name": "11ha 027",
+   "name": "halloween 31",
    "price": 50,
    "sprite": "halloween_31",
    "w": 3,
+   "h": 2,
+   "layer": "wall",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "halloween_32",
+   "name": "halloween 32",
+   "price": 50,
+   "sprite": "halloween_32",
+   "w": 2,
+   "h": 1,
+   "layer": "wall",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "halloween_33",
+   "name": "halloween 33",
+   "price": 50,
+   "sprite": "halloween_33",
+   "w": 2,
    "h": 2,
    "layer": "furniture",
    "is_surface": false,
    "surface_offset_y": 0
   },
   {
-   "id": "halloween_32",
-   "name": "11ha 028",
-   "price": 50,
-   "sprite": "halloween_32",
-   "w": 2,
-   "h": 1,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
    "id": "halloween_34",
-   "name": "11ha 029",
+   "name": "halloween 34",
    "price": 50,
    "sprite": "halloween_34",
    "w": 2,
@@ -36694,7 +36684,7 @@
   },
   {
    "id": "halloween_35",
-   "name": "11ha 030",
+   "name": "halloween 35",
    "price": 50,
    "sprite": "halloween_35",
    "w": 2,
@@ -36704,19 +36694,8 @@
    "surface_offset_y": 0
   },
   {
-   "id": "halloween_38",
-   "name": "11ha 031",
-   "price": 50,
-   "sprite": "halloween_38",
-   "w": 1,
-   "h": 2,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
    "id": "halloween_36",
-   "name": "11ha 032",
+   "name": "halloween 36",
    "price": 50,
    "sprite": "halloween_36",
    "w": 2,
@@ -36727,10 +36706,21 @@
   },
   {
    "id": "halloween_37",
-   "name": "11ha 033",
+   "name": "halloween 37",
    "price": 50,
    "sprite": "halloween_37",
    "w": 2,
+   "h": 2,
+   "layer": "wall",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "halloween_38",
+   "name": "halloween 38",
+   "price": 50,
+   "sprite": "halloween_38",
+   "w": 1,
    "h": 2,
    "layer": "furniture",
    "is_surface": false,
@@ -36738,7 +36728,7 @@
   },
   {
    "id": "halloween_39",
-   "name": "11ha 034",
+   "name": "halloween 39",
    "price": 50,
    "sprite": "halloween_39",
    "w": 2,
@@ -36749,7 +36739,7 @@
   },
   {
    "id": "halloween_40",
-   "name": "11ha 035",
+   "name": "halloween 40",
    "price": 50,
    "sprite": "halloween_40",
    "w": 2,
@@ -36760,7 +36750,7 @@
   },
   {
    "id": "halloween_41",
-   "name": "11ha 036",
+   "name": "halloween 41",
    "price": 50,
    "sprite": "halloween_41",
    "w": 1,
@@ -36770,63 +36760,8 @@
    "surface_offset_y": 0
   },
   {
-   "id": "halloween_45",
-   "name": "11ha 037",
-   "price": 50,
-   "sprite": "halloween_45",
-   "w": 1,
-   "h": 1,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
-   "id": "halloween_46",
-   "name": "11ha 038",
-   "price": 50,
-   "sprite": "halloween_46",
-   "w": 1,
-   "h": 1,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
-   "id": "halloween_52",
-   "name": "11ha 039",
-   "price": 50,
-   "sprite": "halloween_52",
-   "w": 1,
-   "h": 2,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
-   "id": "halloween_57",
-   "name": "11ha 040",
-   "price": 50,
-   "sprite": "halloween_57",
-   "w": 2,
-   "h": 2,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
-   "id": "halloween_62",
-   "name": "11ha 041",
-   "price": 50,
-   "sprite": "halloween_62",
-   "w": 1,
-   "h": 2,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
    "id": "halloween_42",
-   "name": "11ha 042",
+   "name": "halloween 42",
    "price": 50,
    "sprite": "halloween_42",
    "w": 2,
@@ -36837,7 +36772,7 @@
   },
   {
    "id": "halloween_43",
-   "name": "11ha 043",
+   "name": "halloween 43",
    "price": 50,
    "sprite": "halloween_43",
    "w": 2,
@@ -36847,8 +36782,41 @@
    "surface_offset_y": 0
   },
   {
+   "id": "halloween_44",
+   "name": "halloween 44",
+   "price": 50,
+   "sprite": "halloween_44",
+   "w": 1,
+   "h": 1,
+   "layer": "furniture",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "halloween_45",
+   "name": "halloween 45",
+   "price": 50,
+   "sprite": "halloween_45",
+   "w": 1,
+   "h": 1,
+   "layer": "furniture",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "halloween_46",
+   "name": "halloween 46",
+   "price": 50,
+   "sprite": "halloween_46",
+   "w": 1,
+   "h": 1,
+   "layer": "furniture",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
    "id": "halloween_47",
-   "name": "11ha 044",
+   "name": "halloween 47",
    "price": 50,
    "sprite": "halloween_47",
    "w": 1,
@@ -36859,7 +36827,7 @@
   },
   {
    "id": "halloween_48",
-   "name": "11ha 045",
+   "name": "halloween 48",
    "price": 50,
    "sprite": "halloween_48",
    "w": 1,
@@ -36869,52 +36837,52 @@
    "surface_offset_y": 0
   },
   {
-   "id": "halloween_44",
-   "name": "11ha 046",
-   "price": 50,
-   "sprite": "halloween_44",
-   "w": 1,
-   "h": 1,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
    "id": "halloween_49",
-   "name": "11ha 047",
+   "name": "halloween 49",
    "price": 50,
    "sprite": "halloween_49",
    "w": 1,
    "h": 2,
    "layer": "furniture",
-   "is_surface": false,
+   "is_surface": true,
    "surface_offset_y": 0
   },
   {
    "id": "halloween_50",
-   "name": "11ha 048",
+   "name": "halloween 50",
    "price": 50,
    "sprite": "halloween_50",
    "w": 1,
    "h": 2,
    "layer": "furniture",
-   "is_surface": false,
+   "is_surface": true,
    "surface_offset_y": 0
   },
   {
    "id": "halloween_51",
-   "name": "11ha 049",
+   "name": "halloween 51",
    "price": 50,
    "sprite": "halloween_51",
    "w": 1,
    "h": 2,
    "layer": "furniture",
-   "is_surface": false,
+   "is_surface": true,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "halloween_52",
+   "name": "halloween 52",
+   "price": 50,
+   "sprite": "halloween_52",
+   "w": 1,
+   "h": 2,
+   "layer": "furniture",
+   "is_surface": true,
    "surface_offset_y": 0
   },
   {
    "id": "halloween_53",
-   "name": "11ha 050",
+   "name": "halloween 53",
    "price": 50,
    "sprite": "halloween_53",
    "w": 3,
@@ -36925,7 +36893,7 @@
   },
   {
    "id": "halloween_54",
-   "name": "11ha 051",
+   "name": "halloween 54",
    "price": 50,
    "sprite": "halloween_54",
    "w": 1,
@@ -36936,7 +36904,7 @@
   },
   {
    "id": "halloween_55",
-   "name": "11ha 052",
+   "name": "halloween 55",
    "price": 50,
    "sprite": "halloween_55",
    "w": 2,
@@ -36947,7 +36915,7 @@
   },
   {
    "id": "halloween_56",
-   "name": "11ha 053",
+   "name": "halloween 56",
    "price": 50,
    "sprite": "halloween_56",
    "w": 1,
@@ -36957,74 +36925,107 @@
    "surface_offset_y": 0
   },
   {
+   "id": "halloween_57",
+   "name": "halloween 57",
+   "price": 50,
+   "sprite": "halloween_57",
+   "w": 2,
+   "h": 2,
+   "layer": "furniture",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
    "id": "halloween_58",
-   "name": "11ha 054",
+   "name": "halloween 58",
    "price": 50,
    "sprite": "halloween_58",
    "w": 1,
    "h": 2,
    "layer": "furniture",
-   "is_surface": false,
+   "is_surface": true,
    "surface_offset_y": 0
   },
   {
    "id": "halloween_59",
-   "name": "11ha 055",
+   "name": "halloween 59",
    "price": 50,
    "sprite": "halloween_59",
    "w": 1,
    "h": 2,
    "layer": "furniture",
-   "is_surface": false,
+   "is_surface": true,
    "surface_offset_y": 0
   },
   {
    "id": "halloween_60",
-   "name": "11ha 056",
+   "name": "halloween 60",
    "price": 50,
    "sprite": "halloween_60",
    "w": 1,
    "h": 2,
    "layer": "furniture",
-   "is_surface": false,
+   "is_surface": true,
    "surface_offset_y": 0
   },
   {
    "id": "halloween_61",
-   "name": "11ha 057",
+   "name": "halloween 61",
    "price": 50,
    "sprite": "halloween_61",
    "w": 1,
    "h": 2,
    "layer": "furniture",
-   "is_surface": false,
+   "is_surface": true,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "halloween_62",
+   "name": "halloween 62",
+   "price": 50,
+   "sprite": "halloween_62",
+   "w": 1,
+   "h": 2,
+   "layer": "furniture",
+   "is_surface": true,
    "surface_offset_y": 0
   },
   {
    "id": "halloween_63",
-   "name": "11ha 058",
+   "name": "halloween 63",
    "price": 50,
    "sprite": "halloween_63",
    "w": 1,
    "h": 2,
    "layer": "furniture",
-   "is_surface": false,
+   "is_surface": true,
    "surface_offset_y": 0
   },
   {
    "id": "halloween_64",
-   "name": "11ha 059",
+   "name": "halloween 64",
    "price": 50,
    "sprite": "halloween_64",
    "w": 1,
    "h": 2,
    "layer": "furniture",
-   "is_surface": false,
+   "is_surface": true,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "halloween_65",
+   "name": "halloween 65",
+   "price": 50,
+   "sprite": "halloween_65",
+   "w": 1,
+   "h": 2,
+   "layer": "furniture",
+   "is_surface": true,
    "surface_offset_y": 0
   },
   {
    "id": "halloween_66",
-   "name": "11ha 060",
+   "name": "halloween 66",
    "price": 50,
    "sprite": "halloween_66",
    "w": 1,
@@ -37034,33 +37035,11 @@
    "surface_offset_y": 0
   },
   {
-   "id": "halloween_65",
-   "name": "11ha 061",
+   "id": "halloween_67",
+   "name": "halloween 67",
    "price": 50,
-   "sprite": "halloween_65",
-   "w": 1,
-   "h": 2,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
-   "id": "halloween_70",
-   "name": "11ha 062",
-   "price": 50,
-   "sprite": "halloween_70",
-   "w": 1,
-   "h": 1,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
-   "id": "halloween_71",
-   "name": "11ha 063",
-   "price": 50,
-   "sprite": "halloween_71",
-   "w": 1,
+   "sprite": "halloween_67",
+   "w": 2,
    "h": 1,
    "layer": "furniture",
    "is_surface": false,
@@ -37068,7 +37047,7 @@
   },
   {
    "id": "halloween_68",
-   "name": "11ha 064",
+   "name": "halloween 68",
    "price": 50,
    "sprite": "halloween_68",
    "w": 2,
@@ -37079,106 +37058,68 @@
   },
   {
    "id": "halloween_69",
-   "name": "11ha 065",
+   "name": "halloween 69",
    "price": 50,
    "sprite": "halloween_69",
    "w": 1,
    "h": 1,
    "layer": "furniture",
-   "is_surface": false,
+   "is_surface": true,
    "surface_offset_y": 0
   },
   {
-   "id": "halloween_67",
-   "name": "11ha 066",
+   "id": "halloween_70",
+   "name": "halloween 70",
    "price": 50,
-   "sprite": "halloween_67",
-   "w": 2,
+   "sprite": "halloween_70",
+   "w": 1,
    "h": 1,
    "layer": "furniture",
    "is_surface": false,
    "surface_offset_y": 0
   },
   {
-   "id": "halloween_76",
-   "name": "11ha 067",
+   "id": "halloween_71",
+   "name": "halloween 71",
    "price": 50,
-   "sprite": "halloween_76",
+   "sprite": "halloween_71",
    "w": 1,
-   "h": 2,
+   "h": 1,
    "layer": "furniture",
    "is_surface": false,
    "surface_offset_y": 0
   },
   {
    "id": "halloween_72",
-   "name": "11ha 068",
+   "name": "halloween 72",
    "price": 50,
    "sprite": "halloween_72",
    "w": 1,
    "h": 2,
-   "layer": "furniture",
+   "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "rug"
+   ]
   },
   {
    "id": "halloween_73",
-   "name": "11ha 069",
+   "name": "halloween 73",
    "price": 50,
    "sprite": "halloween_73",
    "w": 1,
    "h": 1,
-   "layer": "furniture",
+   "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
-   "id": "halloween_75",
-   "name": "11ha 070",
-   "price": 50,
-   "sprite": "halloween_75",
-   "w": 1,
-   "h": 1,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
-   "id": "halloween_79",
-   "name": "11ha 071",
-   "price": 50,
-   "sprite": "halloween_79",
-   "w": 1,
-   "h": 1,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
-   "id": "halloween_77",
-   "name": "11ha 072",
-   "price": 50,
-   "sprite": "halloween_77",
-   "w": 1,
-   "h": 1,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
-   "id": "halloween_78",
-   "name": "11ha 073",
-   "price": 50,
-   "sprite": "halloween_78",
-   "w": 1,
-   "h": 1,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "rug"
+   ]
   },
   {
    "id": "halloween_74",
-   "name": "11ha 074",
+   "name": "halloween 74",
    "price": 50,
    "sprite": "halloween_74",
    "w": 2,
@@ -37188,8 +37129,85 @@
    "surface_offset_y": 0
   },
   {
+   "id": "halloween_75",
+   "name": "halloween 75",
+   "price": 50,
+   "sprite": "halloween_75",
+   "w": 1,
+   "h": 1,
+   "layer": "furniture",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "halloween_76",
+   "name": "halloween 76",
+   "price": 50,
+   "sprite": "halloween_76",
+   "w": 1,
+   "h": 2,
+   "layer": "furniture",
+   "is_surface": true,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "halloween_77",
+   "name": "halloween 77",
+   "price": 50,
+   "sprite": "halloween_77",
+   "w": 1,
+   "h": 1,
+   "layer": "furniture",
+   "is_surface": true,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "halloween_78",
+   "name": "halloween 78",
+   "price": 50,
+   "sprite": "halloween_78",
+   "w": 1,
+   "h": 1,
+   "layer": "furniture",
+   "is_surface": true,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "halloween_79",
+   "name": "halloween 79",
+   "price": 50,
+   "sprite": "halloween_79",
+   "w": 1,
+   "h": 1,
+   "layer": "furniture",
+   "is_surface": true,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "halloween_80",
+   "name": "halloween 80",
+   "price": 50,
+   "sprite": "halloween_80",
+   "w": 1,
+   "h": 2,
+   "layer": "furniture",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "halloween_81",
+   "name": "halloween 81",
+   "price": 50,
+   "sprite": "halloween_81",
+   "w": 2,
+   "h": 1,
+   "layer": "furniture",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
    "id": "halloween_82",
-   "name": "11ha 075",
+   "name": "halloween 82",
    "price": 50,
    "sprite": "halloween_82",
    "w": 1,
@@ -37200,7 +37218,7 @@
   },
   {
    "id": "halloween_83",
-   "name": "11ha 076",
+   "name": "halloween 83",
    "price": 50,
    "sprite": "halloween_83",
    "w": 1,
@@ -37210,41 +37228,19 @@
    "surface_offset_y": 0
   },
   {
-   "id": "halloween_81",
-   "name": "11ha 077",
-   "price": 50,
-   "sprite": "halloween_81",
-   "w": 2,
-   "h": 1,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
-   "id": "halloween_80",
-   "name": "11ha 078",
-   "price": 50,
-   "sprite": "halloween_80",
-   "w": 1,
-   "h": 2,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
    "id": "halloween_84",
-   "name": "11ha 079",
+   "name": "halloween 84",
    "price": 50,
    "sprite": "halloween_84",
    "w": 1,
    "h": 1,
    "layer": "furniture",
-   "is_surface": false,
+   "is_surface": true,
    "surface_offset_y": 0
   },
   {
    "id": "halloween_85",
-   "name": "11ha 080",
+   "name": "halloween 85",
    "price": 50,
    "sprite": "halloween_85",
    "w": 2,
@@ -37254,11 +37250,25 @@
    "surface_offset_y": 0
   },
   {
-   "id": "halloween_93",
-   "name": "11ha 081",
+   "id": "halloween_86",
+   "name": "halloween 86",
    "price": 50,
-   "sprite": "halloween_93",
+   "sprite": "halloween_86",
    "w": 2,
+   "h": 2,
+   "layer": "floor",
+   "is_surface": false,
+   "surface_offset_y": 0,
+   "tags": [
+    "rug"
+   ]
+  },
+  {
+   "id": "halloween_87",
+   "name": "halloween 87",
+   "price": 50,
+   "sprite": "halloween_87",
+   "w": 1,
    "h": 1,
    "layer": "furniture",
    "is_surface": false,
@@ -37266,7 +37276,7 @@
   },
   {
    "id": "halloween_88",
-   "name": "11ha 082",
+   "name": "halloween 88",
    "price": 50,
    "sprite": "halloween_88",
    "w": 2,
@@ -37277,7 +37287,7 @@
   },
   {
    "id": "halloween_89",
-   "name": "11ha 083",
+   "name": "halloween 89",
    "price": 50,
    "sprite": "halloween_89",
    "w": 2,
@@ -37288,7 +37298,7 @@
   },
   {
    "id": "halloween_90",
-   "name": "11ha 084",
+   "name": "halloween 90",
    "price": 50,
    "sprite": "halloween_90",
    "w": 2,
@@ -37299,7 +37309,7 @@
   },
   {
    "id": "halloween_91",
-   "name": "11ha 085",
+   "name": "halloween 91",
    "price": 50,
    "sprite": "halloween_91",
    "w": 2,
@@ -37310,40 +37320,29 @@
   },
   {
    "id": "halloween_92",
-   "name": "11ha 086",
+   "name": "halloween 92",
    "price": 50,
    "sprite": "halloween_92",
    "w": 1,
    "h": 1,
    "layer": "furniture",
-   "is_surface": false,
+   "is_surface": true,
    "surface_offset_y": 0
   },
   {
-   "id": "halloween_87",
-   "name": "11ha 087",
+   "id": "halloween_93",
+   "name": "halloween 93",
    "price": 50,
-   "sprite": "halloween_87",
-   "w": 1,
-   "h": 1,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
-   "id": "halloween_86",
-   "name": "11ha 088",
-   "price": 50,
-   "sprite": "halloween_86",
+   "sprite": "halloween_93",
    "w": 2,
-   "h": 2,
+   "h": 1,
    "layer": "furniture",
    "is_surface": false,
    "surface_offset_y": 0
   },
   {
    "id": "halloween_94",
-   "name": "11ha 089",
+   "name": "halloween 94",
    "price": 50,
    "sprite": "halloween_94",
    "w": 1,
@@ -37354,7 +37353,7 @@
   },
   {
    "id": "halloween_95",
-   "name": "11ha 090",
+   "name": "halloween 95",
    "price": 50,
    "sprite": "halloween_95",
    "w": 2,
@@ -37365,7 +37364,7 @@
   },
   {
    "id": "halloween_96",
-   "name": "11ha 091",
+   "name": "halloween 96",
    "price": 50,
    "sprite": "halloween_96",
    "w": 2,
@@ -37376,7 +37375,7 @@
   },
   {
    "id": "halloween_97",
-   "name": "11ha 092",
+   "name": "halloween 97",
    "price": 50,
    "sprite": "halloween_97",
    "w": 2,
@@ -37387,7 +37386,7 @@
   },
   {
    "id": "halloween_98",
-   "name": "11ha 093",
+   "name": "halloween 98",
    "price": 50,
    "sprite": "halloween_98",
    "w": 2,
@@ -37398,7 +37397,7 @@
   },
   {
    "id": "halloween_99",
-   "name": "11ha 094",
+   "name": "halloween 99",
    "price": 50,
    "sprite": "halloween_99",
    "w": 1,
@@ -37409,29 +37408,35 @@
   },
   {
    "id": "halloween_100",
-   "name": "11ha 095",
+   "name": "halloween 100",
    "price": 50,
    "sprite": "halloween_100",
    "w": 2,
    "h": 2,
-   "layer": "furniture",
+   "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "rug"
+   ]
   },
   {
    "id": "halloween_101",
-   "name": "11ha 096",
+   "name": "halloween 101",
    "price": 50,
    "sprite": "halloween_101",
    "w": 3,
    "h": 2,
-   "layer": "furniture",
+   "layer": "floor",
    "is_surface": false,
-   "surface_offset_y": 0
+   "surface_offset_y": 0,
+   "tags": [
+    "rug"
+   ]
   },
   {
    "id": "halloween_102",
-   "name": "11ha 097",
+   "name": "halloween 102",
    "price": 50,
    "sprite": "halloween_102",
    "w": 1,
@@ -37441,8 +37446,30 @@
    "surface_offset_y": 0
   },
   {
+   "id": "halloween_103",
+   "name": "halloween 103",
+   "price": 50,
+   "sprite": "halloween_103",
+   "w": 1,
+   "h": 1,
+   "layer": "furniture",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "halloween_104",
+   "name": "halloween 104",
+   "price": 50,
+   "sprite": "halloween_104",
+   "w": 1,
+   "h": 1,
+   "layer": "furniture",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
    "id": "halloween_105",
-   "name": "11ha 098",
+   "name": "halloween 105",
    "price": 50,
    "sprite": "halloween_105",
    "w": 2,
@@ -37453,7 +37480,7 @@
   },
   {
    "id": "halloween_106",
-   "name": "11ha 099",
+   "name": "halloween 106",
    "price": 50,
    "sprite": "halloween_106",
    "w": 2,
@@ -37463,19 +37490,8 @@
    "surface_offset_y": 0
   },
   {
-   "id": "halloween_109",
-   "name": "11ha 100",
-   "price": 50,
-   "sprite": "halloween_109",
-   "w": 1,
-   "h": 1,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
    "id": "halloween_107",
-   "name": "11ha 101",
+   "name": "halloween 107",
    "price": 50,
    "sprite": "halloween_107",
    "w": 1,
@@ -37485,19 +37501,8 @@
    "surface_offset_y": 0
   },
   {
-   "id": "halloween_104",
-   "name": "11ha 102",
-   "price": 50,
-   "sprite": "halloween_104",
-   "w": 1,
-   "h": 1,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
    "id": "halloween_108",
-   "name": "11ha 103",
+   "name": "halloween 108",
    "price": 50,
    "sprite": "halloween_108",
    "w": 1,
@@ -37507,87 +37512,10 @@
    "surface_offset_y": 0
   },
   {
-   "id": "halloween_103",
-   "name": "11ha 104",
+   "id": "halloween_109",
+   "name": "halloween 109",
    "price": 50,
-   "sprite": "halloween_103",
-   "w": 1,
-   "h": 1,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
-   "id": "halloween_114",
-   "name": "11ha 105",
-   "price": 50,
-   "sprite": "halloween_114",
-   "w": 1,
-   "h": 1,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
-   "id": "halloween_116",
-   "name": "11ha 106",
-   "price": 50,
-   "sprite": "halloween_116",
-   "w": 2,
-   "h": 2,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
-   "id": "halloween_117",
-   "name": "11ha 107",
-   "price": 50,
-   "sprite": "halloween_117",
-   "w": 1,
-   "h": 1,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
-   "id": "halloween_118",
-   "name": "11ha 108",
-   "price": 50,
-   "sprite": "halloween_118",
-   "w": 1,
-   "h": 1,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
-   "id": "halloween_115",
-   "name": "11ha 109",
-   "price": 50,
-   "sprite": "halloween_115",
-   "w": 2,
-   "h": 2,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
-   "id": "halloween_112",
-   "name": "11ha 110",
-   "price": 50,
-   "sprite": "halloween_112",
-   "w": 1,
-   "h": 1,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
-   "id": "halloween_113",
-   "name": "11ha 111",
-   "price": 50,
-   "sprite": "halloween_113",
+   "sprite": "halloween_109",
    "w": 1,
    "h": 1,
    "layer": "furniture",
@@ -37596,7 +37524,7 @@
   },
   {
    "id": "halloween_110",
-   "name": "11ha 112",
+   "name": "halloween 110",
    "price": 50,
    "sprite": "halloween_110",
    "w": 1,
@@ -37607,7 +37535,7 @@
   },
   {
    "id": "halloween_111",
-   "name": "11ha 113",
+   "name": "halloween 111",
    "price": 50,
    "sprite": "halloween_111",
    "w": 1,
@@ -37617,32 +37545,32 @@
    "surface_offset_y": 0
   },
   {
-   "id": "halloween_119",
-   "name": "11ha 114",
+   "id": "halloween_112",
+   "name": "halloween 112",
    "price": 50,
-   "sprite": "halloween_119",
-   "w": 3,
-   "h": 2,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
-   "id": "halloween_129",
-   "name": "11ha 115",
-   "price": 50,
-   "sprite": "halloween_129",
+   "sprite": "halloween_112",
    "w": 1,
-   "h": 2,
+   "h": 1,
    "layer": "furniture",
    "is_surface": false,
    "surface_offset_y": 0
   },
   {
-   "id": "halloween_132",
-   "name": "11ha 116",
+   "id": "halloween_114",
+   "name": "halloween 114",
    "price": 50,
-   "sprite": "halloween_132",
+   "sprite": "halloween_114",
+   "w": 1,
+   "h": 1,
+   "layer": "furniture",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "halloween_115",
+   "name": "halloween 115",
+   "price": 50,
+   "sprite": "halloween_115",
    "w": 2,
    "h": 2,
    "layer": "furniture",
@@ -37650,10 +37578,10 @@
    "surface_offset_y": 0
   },
   {
-   "id": "halloween_134",
-   "name": "11ha 117",
+   "id": "halloween_116",
+   "name": "halloween 116",
    "price": 50,
-   "sprite": "halloween_134",
+   "sprite": "halloween_116",
    "w": 2,
    "h": 2,
    "layer": "furniture",
@@ -37661,140 +37589,30 @@
    "surface_offset_y": 0
   },
   {
-   "id": "halloween_120",
-   "name": "11ha 118",
+   "id": "halloween_117",
+   "name": "halloween 117",
    "price": 50,
-   "sprite": "halloween_120",
-   "w": 3,
-   "h": 2,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
-   "id": "halloween_130",
-   "name": "11ha 119",
-   "price": 50,
-   "sprite": "halloween_130",
+   "sprite": "halloween_117",
    "w": 1,
-   "h": 2,
+   "h": 1,
    "layer": "furniture",
    "is_surface": false,
    "surface_offset_y": 0
   },
   {
-   "id": "halloween_133",
-   "name": "11ha 120",
+   "id": "halloween_118",
+   "name": "halloween 118",
    "price": 50,
-   "sprite": "halloween_133",
-   "w": 2,
-   "h": 2,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
-   "id": "halloween_135",
-   "name": "11ha 121",
-   "price": 50,
-   "sprite": "halloween_135",
-   "w": 2,
-   "h": 2,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
-   "id": "halloween_121",
-   "name": "11ha 122",
-   "price": 50,
-   "sprite": "halloween_121",
-   "w": 2,
-   "h": 2,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
-   "id": "halloween_122",
-   "name": "11ha 123",
-   "price": 50,
-   "sprite": "halloween_122",
-   "w": 2,
-   "h": 2,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
-   "id": "halloween_131",
-   "name": "11ha 124",
-   "price": 50,
-   "sprite": "halloween_131",
+   "sprite": "halloween_118",
    "w": 1,
-   "h": 2,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
-   "id": "halloween_136",
-   "name": "11ha 125",
-   "price": 50,
-   "sprite": "halloween_136",
-   "w": 2,
-   "h": 2,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
-   "id": "halloween_137",
-   "name": "11ha 126",
-   "price": 50,
-   "sprite": "halloween_137",
-   "w": 1,
-   "h": 2,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
-   "id": "halloween_127",
-   "name": "11ha 127",
-   "price": 50,
-   "sprite": "halloween_127",
-   "w": 1,
-   "h": 2,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
-   "id": "halloween_126",
-   "name": "11ha 128",
-   "price": 50,
-   "sprite": "halloween_126",
-   "w": 1,
-   "h": 2,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
-   "id": "halloween_128",
-   "name": "11ha 129",
-   "price": 50,
-   "sprite": "halloween_128",
-   "w": 1,
-   "h": 2,
+   "h": 1,
    "layer": "furniture",
    "is_surface": false,
    "surface_offset_y": 0
   },
   {
    "id": "halloween_123",
-   "name": "11ha 130",
+   "name": "halloween 123",
    "price": 50,
    "sprite": "halloween_123",
    "w": 1,
@@ -37805,7 +37623,7 @@
   },
   {
    "id": "halloween_124",
-   "name": "11ha 131",
+   "name": "halloween 124",
    "price": 50,
    "sprite": "halloween_124",
    "w": 1,
@@ -37816,7 +37634,7 @@
   },
   {
    "id": "halloween_125",
-   "name": "11ha 132",
+   "name": "halloween 125",
    "price": 50,
    "sprite": "halloween_125",
    "w": 1,
@@ -37826,8 +37644,55 @@
    "surface_offset_y": 0
   },
   {
+   "id": "halloween_126",
+   "name": "halloween 126",
+   "price": 50,
+   "sprite": "halloween_126",
+   "w": 1,
+   "h": 2,
+   "layer": "furniture",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "halloween_127",
+   "name": "halloween 127",
+   "price": 50,
+   "sprite": "halloween_127",
+   "w": 1,
+   "h": 2,
+   "layer": "furniture",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "halloween_128",
+   "name": "halloween 128",
+   "price": 50,
+   "sprite": "halloween_128",
+   "w": 1,
+   "h": 2,
+   "layer": "furniture",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "halloween_138",
+   "name": "halloween 138",
+   "price": 50,
+   "sprite": "halloween_138",
+   "w": 3,
+   "h": 2,
+   "layer": "furniture",
+   "is_surface": true,
+   "surface_offset_y": 0,
+   "tags": [
+    "rug"
+   ]
+  },
+  {
    "id": "halloween_139",
-   "name": "11ha 133",
+   "name": "halloween 139",
    "price": 50,
    "sprite": "halloween_139",
    "w": 2,
@@ -37837,19 +37702,33 @@
    "surface_offset_y": 0
   },
   {
-   "id": "halloween_138",
-   "name": "11ha 134",
+   "id": "halloween_140",
+   "name": "halloween 140",
    "price": 50,
-   "sprite": "halloween_138",
-   "w": 3,
-   "h": 2,
+   "sprite": "halloween_140",
+   "w": 1,
+   "h": 1,
    "layer": "furniture",
    "is_surface": false,
    "surface_offset_y": 0
   },
   {
+   "id": "halloween_141",
+   "name": "halloween 141",
+   "price": 50,
+   "sprite": "halloween_141",
+   "w": 3,
+   "h": 2,
+   "layer": "furniture",
+   "is_surface": true,
+   "surface_offset_y": 0,
+   "tags": [
+    "rug"
+   ]
+  },
+  {
    "id": "halloween_142",
-   "name": "11ha 135",
+   "name": "halloween 142",
    "price": 50,
    "sprite": "halloween_142",
    "w": 2,
@@ -37860,7 +37739,7 @@
   },
   {
    "id": "halloween_143",
-   "name": "11ha 136",
+   "name": "halloween 143",
    "price": 50,
    "sprite": "halloween_143",
    "w": 2,
@@ -37871,7 +37750,7 @@
   },
   {
    "id": "halloween_144",
-   "name": "11ha 137",
+   "name": "halloween 144",
    "price": 50,
    "sprite": "halloween_144",
    "w": 3,
@@ -37881,19 +37760,8 @@
    "surface_offset_y": 0
   },
   {
-   "id": "halloween_141",
-   "name": "11ha 138",
-   "price": 50,
-   "sprite": "halloween_141",
-   "w": 3,
-   "h": 2,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
    "id": "halloween_145",
-   "name": "11ha 139",
+   "name": "halloween 145",
    "price": 50,
    "sprite": "halloween_145",
    "w": 1,
@@ -37904,51 +37772,40 @@
   },
   {
    "id": "halloween_146",
-   "name": "11ha 140",
+   "name": "halloween 146",
    "price": 50,
    "sprite": "halloween_146",
    "w": 1,
    "h": 2,
-   "layer": "furniture",
+   "layer": "wall",
    "is_surface": false,
    "surface_offset_y": 0
   },
   {
    "id": "halloween_147",
-   "name": "11ha 141",
+   "name": "halloween 147",
    "price": 50,
    "sprite": "halloween_147",
    "w": 1,
    "h": 2,
-   "layer": "furniture",
+   "layer": "wall",
    "is_surface": false,
    "surface_offset_y": 0
   },
   {
    "id": "halloween_148",
-   "name": "11ha 142",
+   "name": "halloween 148",
    "price": 50,
    "sprite": "halloween_148",
    "w": 1,
    "h": 2,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
-   "id": "halloween_151",
-   "name": "11ha 143",
-   "price": 50,
-   "sprite": "halloween_151",
-   "w": 3,
-   "h": 2,
-   "layer": "furniture",
+   "layer": "wall",
    "is_surface": false,
    "surface_offset_y": 0
   },
   {
    "id": "halloween_149",
-   "name": "11ha 144",
+   "name": "halloween 149",
    "price": 50,
    "sprite": "halloween_149",
    "w": 2,
@@ -37959,7 +37816,7 @@
   },
   {
    "id": "halloween_150",
-   "name": "11ha 145",
+   "name": "halloween 150",
    "price": 50,
    "sprite": "halloween_150",
    "w": 2,
@@ -37969,8 +37826,19 @@
    "surface_offset_y": 0
   },
   {
+   "id": "halloween_151",
+   "name": "halloween 151",
+   "price": 50,
+   "sprite": "halloween_151",
+   "w": 3,
+   "h": 2,
+   "layer": "furniture",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
    "id": "halloween_152",
-   "name": "11ha 146",
+   "name": "halloween 152",
    "price": 50,
    "sprite": "halloween_152",
    "w": 2,
@@ -37981,7 +37849,7 @@
   },
   {
    "id": "halloween_153",
-   "name": "11ha 147",
+   "name": "halloween 153",
    "price": 50,
    "sprite": "halloween_153",
    "w": 2,
@@ -37992,7 +37860,7 @@
   },
   {
    "id": "halloween_154",
-   "name": "11ha 148",
+   "name": "halloween 154",
    "price": 50,
    "sprite": "halloween_154",
    "w": 2,
@@ -38002,19 +37870,8 @@
    "surface_offset_y": 0
   },
   {
-   "id": "halloween_159",
-   "name": "11ha 149",
-   "price": 50,
-   "sprite": "halloween_159",
-   "w": 2,
-   "h": 1,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
    "id": "halloween_155",
-   "name": "11ha 150",
+   "name": "halloween 155",
    "price": 50,
    "sprite": "halloween_155",
    "w": 2,
@@ -38024,30 +37881,8 @@
    "surface_offset_y": 0
   },
   {
-   "id": "halloween_160",
-   "name": "11ha 151",
-   "price": 50,
-   "sprite": "halloween_160",
-   "w": 2,
-   "h": 1,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
-   "id": "halloween_158",
-   "name": "11ha 152",
-   "price": 50,
-   "sprite": "halloween_158",
-   "w": 3,
-   "h": 2,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
    "id": "halloween_156",
-   "name": "11ha 153",
+   "name": "halloween 156",
    "price": 50,
    "sprite": "halloween_156",
    "w": 2,
@@ -38058,7 +37893,7 @@
   },
   {
    "id": "halloween_157",
-   "name": "11ha 154",
+   "name": "halloween 157",
    "price": 50,
    "sprite": "halloween_157",
    "w": 2,
@@ -38068,8 +37903,41 @@
    "surface_offset_y": 0
   },
   {
+   "id": "halloween_158",
+   "name": "halloween 158",
+   "price": 50,
+   "sprite": "halloween_158",
+   "w": 3,
+   "h": 2,
+   "layer": "furniture",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "halloween_159",
+   "name": "halloween 159",
+   "price": 50,
+   "sprite": "halloween_159",
+   "w": 2,
+   "h": 1,
+   "layer": "furniture",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "halloween_160",
+   "name": "halloween 160",
+   "price": 50,
+   "sprite": "halloween_160",
+   "w": 2,
+   "h": 1,
+   "layer": "furniture",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
    "id": "halloween_161",
-   "name": "11ha 155",
+   "name": "halloween 161",
    "price": 50,
    "sprite": "halloween_161",
    "w": 2,
@@ -38080,7 +37948,7 @@
   },
   {
    "id": "halloween_162",
-   "name": "11ha 156",
+   "name": "halloween 162",
    "price": 50,
    "sprite": "halloween_162",
    "w": 2,
@@ -38091,7 +37959,7 @@
   },
   {
    "id": "halloween_163",
-   "name": "11ha 157",
+   "name": "halloween 163",
    "price": 50,
    "sprite": "halloween_163",
    "w": 2,
@@ -38102,7 +37970,7 @@
   },
   {
    "id": "halloween_164",
-   "name": "11ha 158",
+   "name": "halloween 164",
    "price": 50,
    "sprite": "halloween_164",
    "w": 2,
@@ -38112,19 +37980,8 @@
    "surface_offset_y": 0
   },
   {
-   "id": "halloween_167",
-   "name": "11ha 159",
-   "price": 50,
-   "sprite": "halloween_167",
-   "w": 3,
-   "h": 2,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
    "id": "halloween_165",
-   "name": "11ha 160",
+   "name": "halloween 165",
    "price": 50,
    "sprite": "halloween_165",
    "w": 2,
@@ -38135,7 +37992,7 @@
   },
   {
    "id": "halloween_166",
-   "name": "11ha 161",
+   "name": "halloween 166",
    "price": 50,
    "sprite": "halloween_166",
    "w": 2,
@@ -38145,8 +38002,19 @@
    "surface_offset_y": 0
   },
   {
+   "id": "halloween_167",
+   "name": "halloween 167",
+   "price": 50,
+   "sprite": "halloween_167",
+   "w": 3,
+   "h": 2,
+   "layer": "furniture",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
    "id": "halloween_168",
-   "name": "11ha 162",
+   "name": "halloween 168",
    "price": 50,
    "sprite": "halloween_168",
    "w": 2,
@@ -38157,7 +38025,7 @@
   },
   {
    "id": "halloween_169",
-   "name": "11ha 163",
+   "name": "halloween 169",
    "price": 50,
    "sprite": "halloween_169",
    "w": 2,
@@ -38168,7 +38036,7 @@
   },
   {
    "id": "halloween_170",
-   "name": "11ha 164",
+   "name": "halloween 170",
    "price": 50,
    "sprite": "halloween_170",
    "w": 1,
@@ -38179,7 +38047,7 @@
   },
   {
    "id": "halloween_171",
-   "name": "11ha 165",
+   "name": "halloween 171",
    "price": 50,
    "sprite": "halloween_171",
    "w": 1,
@@ -38190,7 +38058,7 @@
   },
   {
    "id": "halloween_172",
-   "name": "11ha 166",
+   "name": "halloween 172",
    "price": 50,
    "sprite": "halloween_172",
    "w": 1,
@@ -38201,7 +38069,7 @@
   },
   {
    "id": "halloween_173",
-   "name": "11ha 167",
+   "name": "halloween 173",
    "price": 50,
    "sprite": "halloween_173",
    "w": 1,
@@ -38211,41 +38079,8 @@
    "surface_offset_y": 0
   },
   {
-   "id": "halloween_176",
-   "name": "11ha 168",
-   "price": 50,
-   "sprite": "halloween_176",
-   "w": 3,
-   "h": 2,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
-   "id": "halloween_177",
-   "name": "11ha 169",
-   "price": 50,
-   "sprite": "halloween_177",
-   "w": 4,
-   "h": 2,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
-   "id": "halloween_178",
-   "name": "11ha 170",
-   "price": 50,
-   "sprite": "halloween_178",
-   "w": 5,
-   "h": 2,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
    "id": "halloween_174",
-   "name": "11ha 171",
+   "name": "halloween 174",
    "price": 50,
    "sprite": "halloween_174",
    "w": 2,
@@ -38256,7 +38091,7 @@
   },
   {
    "id": "halloween_175",
-   "name": "11ha 172",
+   "name": "halloween 175",
    "price": 50,
    "sprite": "halloween_175",
    "w": 2,
@@ -38266,10 +38101,10 @@
    "surface_offset_y": 0
   },
   {
-   "id": "halloween_181",
-   "name": "11ha 173",
+   "id": "halloween_176",
+   "name": "halloween 176",
    "price": 50,
-   "sprite": "halloween_181",
+   "sprite": "halloween_176",
    "w": 3,
    "h": 2,
    "layer": "furniture",
@@ -38277,10 +38112,10 @@
    "surface_offset_y": 0
   },
   {
-   "id": "halloween_182",
-   "name": "11ha 174",
+   "id": "halloween_177",
+   "name": "halloween 177",
    "price": 50,
-   "sprite": "halloween_182",
+   "sprite": "halloween_177",
    "w": 4,
    "h": 2,
    "layer": "furniture",
@@ -38288,10 +38123,10 @@
    "surface_offset_y": 0
   },
   {
-   "id": "halloween_183",
-   "name": "11ha 175",
+   "id": "halloween_178",
+   "name": "halloween 178",
    "price": 50,
-   "sprite": "halloween_183",
+   "sprite": "halloween_178",
    "w": 5,
    "h": 2,
    "layer": "furniture",
@@ -38300,7 +38135,7 @@
   },
   {
    "id": "halloween_179",
-   "name": "11ha 176",
+   "name": "halloween 179",
    "price": 50,
    "sprite": "halloween_179",
    "w": 2,
@@ -38311,7 +38146,7 @@
   },
   {
    "id": "halloween_180",
-   "name": "11ha 177",
+   "name": "halloween 180",
    "price": 50,
    "sprite": "halloween_180",
    "w": 2,
@@ -38321,8 +38156,41 @@
    "surface_offset_y": 0
   },
   {
+   "id": "halloween_181",
+   "name": "halloween 181",
+   "price": 50,
+   "sprite": "halloween_181",
+   "w": 3,
+   "h": 2,
+   "layer": "furniture",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "halloween_182",
+   "name": "halloween 182",
+   "price": 50,
+   "sprite": "halloween_182",
+   "w": 4,
+   "h": 2,
+   "layer": "furniture",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "halloween_183",
+   "name": "halloween 183",
+   "price": 50,
+   "sprite": "halloween_183",
+   "w": 5,
+   "h": 2,
+   "layer": "furniture",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
    "id": "halloween_184",
-   "name": "11ha 178",
+   "name": "halloween 184",
    "price": 50,
    "sprite": "halloween_184",
    "w": 2,
@@ -38333,7 +38201,7 @@
   },
   {
    "id": "halloween_185",
-   "name": "11ha 179",
+   "name": "halloween 185",
    "price": 50,
    "sprite": "halloween_185",
    "w": 2,
@@ -38344,7 +38212,7 @@
   },
   {
    "id": "halloween_186",
-   "name": "11ha 180",
+   "name": "halloween 186",
    "price": 50,
    "sprite": "halloween_186",
    "w": 3,
@@ -38355,7 +38223,7 @@
   },
   {
    "id": "halloween_187",
-   "name": "11ha 181",
+   "name": "halloween 187",
    "price": 50,
    "sprite": "halloween_187",
    "w": 4,
@@ -38366,7 +38234,7 @@
   },
   {
    "id": "halloween_188",
-   "name": "11ha 182",
+   "name": "halloween 188",
    "price": 50,
    "sprite": "halloween_188",
    "w": 5,
@@ -38377,7 +38245,7 @@
   },
   {
    "id": "halloween_189",
-   "name": "11ha 183",
+   "name": "halloween 189",
    "price": 50,
    "sprite": "halloween_189",
    "w": 2,
@@ -38388,18 +38256,21 @@
   },
   {
    "id": "halloween_190",
-   "name": "11ha 184",
+   "name": "halloween 190",
    "price": 50,
    "sprite": "halloween_190",
    "w": 2,
    "h": 2,
    "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
+   "is_surface": true,
+   "surface_offset_y": 0,
+   "tags": [
+    "rug"
+   ]
   },
   {
    "id": "halloween_191",
-   "name": "11ha 185",
+   "name": "halloween 191",
    "price": 50,
    "sprite": "halloween_191",
    "w": 2,
@@ -38409,52 +38280,8 @@
    "surface_offset_y": 0
   },
   {
-   "id": "halloween_195",
-   "name": "11ha 186",
-   "price": 50,
-   "sprite": "halloween_195",
-   "w": 5,
-   "h": 1,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
-   "id": "halloween_196",
-   "name": "11ha 187",
-   "price": 50,
-   "sprite": "halloween_196",
-   "w": 1,
-   "h": 1,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
-   "id": "halloween_197",
-   "name": "11ha 188",
-   "price": 50,
-   "sprite": "halloween_197",
-   "w": 1,
-   "h": 1,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
-   "id": "halloween_198",
-   "name": "11ha 189",
-   "price": 50,
-   "sprite": "halloween_198",
-   "w": 1,
-   "h": 1,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
    "id": "halloween_192",
-   "name": "11ha 190",
+   "name": "halloween 192",
    "price": 50,
    "sprite": "halloween_192",
    "w": 2,
@@ -38465,7 +38292,7 @@
   },
   {
    "id": "halloween_193",
-   "name": "11ha 191",
+   "name": "halloween 193",
    "price": 50,
    "sprite": "halloween_193",
    "w": 1,
@@ -38476,7 +38303,7 @@
   },
   {
    "id": "halloween_194",
-   "name": "11ha 192",
+   "name": "halloween 194",
    "price": 50,
    "sprite": "halloween_194",
    "w": 1,
@@ -38486,8 +38313,52 @@
    "surface_offset_y": 0
   },
   {
+   "id": "halloween_195",
+   "name": "halloween 195",
+   "price": 50,
+   "sprite": "halloween_195",
+   "w": 5,
+   "h": 1,
+   "layer": "wall",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "halloween_196",
+   "name": "halloween 196",
+   "price": 50,
+   "sprite": "halloween_196",
+   "w": 1,
+   "h": 1,
+   "layer": "wall",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "halloween_197",
+   "name": "halloween 197",
+   "price": 50,
+   "sprite": "halloween_197",
+   "w": 1,
+   "h": 1,
+   "layer": "wall",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
+   "id": "halloween_198",
+   "name": "halloween 198",
+   "price": 50,
+   "sprite": "halloween_198",
+   "w": 1,
+   "h": 1,
+   "layer": "wall",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
    "id": "halloween_199",
-   "name": "11ha 193",
+   "name": "halloween 199",
    "price": 50,
    "sprite": "halloween_199",
    "w": 2,
@@ -38498,7 +38369,7 @@
   },
   {
    "id": "halloween_200",
-   "name": "11ha 194",
+   "name": "halloween 200",
    "price": 50,
    "sprite": "halloween_200",
    "w": 2,
@@ -38509,7 +38380,7 @@
   },
   {
    "id": "halloween_201",
-   "name": "11ha 195",
+   "name": "halloween 201",
    "price": 50,
    "sprite": "halloween_201",
    "w": 1,
@@ -38520,7 +38391,7 @@
   },
   {
    "id": "halloween_202",
-   "name": "11ha 196",
+   "name": "halloween 202",
    "price": 50,
    "sprite": "halloween_202",
    "w": 1,
@@ -38531,7 +38402,7 @@
   },
   {
    "id": "halloween_203",
-   "name": "11ha 197",
+   "name": "halloween 203",
    "price": 50,
    "sprite": "halloween_203",
    "w": 1,
@@ -38542,7 +38413,7 @@
   },
   {
    "id": "halloween_204",
-   "name": "11ha 198",
+   "name": "halloween 204",
    "price": 50,
    "sprite": "halloween_204",
    "w": 1,
@@ -38553,7 +38424,7 @@
   },
   {
    "id": "halloween_205",
-   "name": "11ha 199",
+   "name": "halloween 205",
    "price": 50,
    "sprite": "halloween_205",
    "w": 1,
@@ -38563,8 +38434,19 @@
    "surface_offset_y": 0
   },
   {
+   "id": "halloween_206",
+   "name": "halloween 206",
+   "price": 50,
+   "sprite": "halloween_206",
+   "w": 2,
+   "h": 1,
+   "layer": "furniture",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
    "id": "halloween_207",
-   "name": "11ha 200",
+   "name": "halloween 207",
    "price": 50,
    "sprite": "halloween_207",
    "w": 1,
@@ -38575,7 +38457,7 @@
   },
   {
    "id": "halloween_208",
-   "name": "11ha 201",
+   "name": "halloween 208",
    "price": 50,
    "sprite": "halloween_208",
    "w": 1,
@@ -38585,8 +38467,19 @@
    "surface_offset_y": 0
   },
   {
+   "id": "halloween_209",
+   "name": "halloween 209",
+   "price": 50,
+   "sprite": "halloween_209",
+   "w": 1,
+   "h": 2,
+   "layer": "furniture",
+   "is_surface": false,
+   "surface_offset_y": 0
+  },
+  {
    "id": "halloween_210",
-   "name": "11ha 202",
+   "name": "halloween 210",
    "price": 50,
    "sprite": "halloween_210",
    "w": 1,
@@ -38597,22 +38490,11 @@
   },
   {
    "id": "halloween_211",
-   "name": "11ha 203",
+   "name": "halloween 211",
    "price": 50,
    "sprite": "halloween_211",
    "w": 1,
    "h": 1,
-   "layer": "furniture",
-   "is_surface": false,
-   "surface_offset_y": 0
-  },
-  {
-   "id": "halloween_209",
-   "name": "11ha 204",
-   "price": 50,
-   "sprite": "halloween_209",
-   "w": 1,
-   "h": 2,
    "layer": "furniture",
    "is_surface": false,
    "surface_offset_y": 0

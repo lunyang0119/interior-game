@@ -7812,13 +7812,6 @@
     "ch": 2,
     "set": "8_gym_shadowless"
    },
-   "halloween_72": {
-    "w": 15,
-    "h": 37,
-    "cw": 0,
-    "ch": 2,
-    "set": "mi_halloween"
-   },
    "nosh_137_sofa_large_green": {
     "w": 57,
     "h": 36,
@@ -16922,20 +16915,6 @@
     "ch": 1,
     "set": "interior_no_shadow"
    },
-   "halloween_132": {
-    "w": 22,
-    "h": 26,
-    "cw": 1,
-    "ch": 1,
-    "set": "mi_halloween"
-   },
-   "halloween_133": {
-    "w": 22,
-    "h": 26,
-    "cw": 1,
-    "ch": 1,
-    "set": "mi_halloween"
-   },
    "furn_001_2": {
     "w": 16,
     "h": 26,
@@ -17513,27 +17492,6 @@
     "ch": 1,
     "set": "mi_halloween"
    },
-   "halloween_134": {
-    "w": 18,
-    "h": 24,
-    "cw": 1,
-    "ch": 1,
-    "set": "mi_halloween"
-   },
-   "halloween_135": {
-    "w": 18,
-    "h": 24,
-    "cw": 1,
-    "ch": 1,
-    "set": "mi_halloween"
-   },
-   "halloween_136": {
-    "w": 18,
-    "h": 24,
-    "cw": 1,
-    "ch": 1,
-    "set": "mi_halloween"
-   },
    "nosh_160_sink_pedestal": {
     "w": 17,
     "h": 24,
@@ -17674,20 +17632,6 @@
     "ch": 1,
     "set": "8_gym_shadowless"
    },
-   "halloween_119": {
-    "w": 45,
-    "h": 23,
-    "cw": 2,
-    "ch": 1,
-    "set": "mi_halloween"
-   },
-   "halloween_120": {
-    "w": 45,
-    "h": 23,
-    "cw": 2,
-    "ch": 1,
-    "set": "mi_halloween"
-   },
    "halloween_31": {
     "w": 45,
     "h": 23,
@@ -17785,13 +17729,6 @@
     "cw": 1,
     "ch": 1,
     "set": "interior_no_shadow"
-   },
-   "halloween_121": {
-    "w": 18,
-    "h": 23,
-    "cw": 1,
-    "ch": 1,
-    "set": "mi_halloween"
    },
    "halloween_108": {
     "w": 16,
@@ -17954,13 +17891,6 @@
     "ch": 1,
     "set": "pixelinterior_wardrobes_br"
    },
-   "halloween_122": {
-    "w": 24,
-    "h": 22,
-    "cw": 1,
-    "ch": 1,
-    "set": "mi_halloween"
-   },
    "pixe_95": {
     "w": 24,
     "h": 22,
@@ -18072,13 +18002,6 @@
     "cw": 0,
     "ch": 1,
     "set": "interior_tiles_lite"
-   },
-   "halloween_137": {
-    "w": 13,
-    "h": 22,
-    "cw": 0,
-    "ch": 1,
-    "set": "mi_halloween"
    },
    "mordkit2_007_chair_white_side_b": {
     "w": 12,
@@ -18730,27 +18653,6 @@
     "cw": 1,
     "ch": 1,
     "set": "axulart"
-   },
-   "halloween_129": {
-    "w": 16,
-    "h": 18,
-    "cw": 1,
-    "ch": 1,
-    "set": "mi_halloween"
-   },
-   "halloween_130": {
-    "w": 16,
-    "h": 18,
-    "cw": 1,
-    "ch": 1,
-    "set": "mi_halloween"
-   },
-   "halloween_131": {
-    "w": 16,
-    "h": 18,
-    "cw": 1,
-    "ch": 1,
-    "set": "mi_halloween"
    },
    "halloween_148": {
     "w": 14,
@@ -25812,6 +25714,13 @@
     "ch": 1,
     "set": "topdown"
    },
+   "halloween_72": {
+    "w": 15,
+    "h": 16,
+    "cw": 0,
+    "ch": 1,
+    "set": "mi_halloween"
+   },
    "halloween_73": {
     "w": 15,
     "h": 16,
@@ -26246,6 +26155,13 @@
     "ch": 0,
     "set": "mi_halloween"
    },
+   "halloween_112": {
+    "w": 15,
+    "h": 13,
+    "cw": 0,
+    "ch": 0,
+    "set": "mi_halloween"
+   },
    "halloween_198": {
     "w": 15,
     "h": 13,
@@ -26561,13 +26477,6 @@
     "ch": 0,
     "set": "mi_hospital"
    },
-   "halloween_112": {
-    "w": 15,
-    "h": 9,
-    "cw": 0,
-    "ch": 0,
-    "set": "mi_halloween"
-   },
    "halloween_104": {
     "w": 11,
     "h": 9,
@@ -26689,13 +26598,6 @@
    },
    "halloween_46": {
     "w": 15,
-    "h": 5,
-    "cw": 0,
-    "ch": 0,
-    "set": "mi_halloween"
-   },
-   "halloween_113": {
-    "w": 8,
     "h": 5,
     "cw": 0,
     "ch": 0,
