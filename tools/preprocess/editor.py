@@ -87,7 +87,7 @@ STRIP_LAYER = "preset"  # loop strips (config.PRESET_STRIP_DIR) become premade c
 # needs the raw asset packs or a build stays on the PC (VM_BLOCKED); "게임에 반영" (ApplyJob) restarts the game
 # after the server's own checks; deploy/pull.sh brings the edits back to the PC repo.
 VM = False
-VM_BLOCKED = {"/api/slices", "/api/build", "/api/cat/build", "/api/shrink", "/api/char-upload", "/api/char-delete",
+VM_BLOCKED = {"/api/slices", "/api/build", "/api/cat/build", "/api/shrink", "/api/autoslice", "/api/char-upload", "/api/char-delete",
               "/api/deploy/mark", "/api/deploy/run"}
 VM_JS = Path(__file__).with_name("vm.js")
 APPLY_RESTART = ["sudo", "-n", "systemctl", "restart", "interior"]
@@ -100,9 +100,10 @@ APPLY_BACKUPS = 10                                     # how many of them to kee
 
 
 def strip_ok(name: str, w: int, h: int) -> bool:
-    """A loop-strip preset file is usable: `<Name>_<W>x<H>.png`, H tall, a whole number of W-wide frames."""
+    """A loop-strip preset file is usable: `<Name>_<W>x<H>.png`, H tall (or 4×H: one row per direction), a whole
+    number of W-wide frames."""
     m = C.PRESET_STRIP_RE.match(name)
-    return bool(m) and h == int(m.group("h")) and w >= int(m.group("w")) and w % int(m.group("w")) == 0
+    return bool(m) and h in (int(m.group("h")), int(m.group("h")) * len(C.DIRS)) and w >= int(m.group("w")) and w % int(m.group("w")) == 0
 
 
 def char_state() -> dict:
@@ -1429,6 +1430,18 @@ class Handler(BaseHTTPRequestHandler):
                 C.all_sheets(refresh=True)
                 name = next((n_ for n_, p_ in C.all_sheets().items() if p_.resolve() == out.resolve()), out.name)
                 self.send_json({"ok": True, "sheet": name, "method": used})
+            elif u.path == "/api/autoslice":
+                # {sheet, mode: blob|grid, gap, snap, cell, min} → {boxes: [[x, y, w, h]], bg}: candidate rects for
+                # 자동 자르기; the page drops the ones already covered by a slice and adds the rest as auto_ slices
+                body = self.read_json() or {}
+                name = body.get("sheet", "")
+                if not sheet_path(name):
+                    self.send_json({"ok": False, "error": "원본 시트가 없어요"})
+                    return
+                r = P.detect_boxes(sheet_image(name), mode=body.get("mode") or "blob", gap=int(body.get("gap") or 0),
+                                   snap_grid=bool(body.get("snap")), cell=int(body.get("cell") or C.CELL),
+                                   min_px=int(body.get("min") or 1))
+                self.send_json({"ok": True, **r})
             elif u.path == "/api/sizes":
                 # {specs: [slice, ...]} → {sizes: {key: [w, h]}} rendered pixel size of each slice (scale/parts/file
                 # resolved exactly like the preview), for 아이템 일괄 만들기; unreadable slices are left out
@@ -1465,7 +1478,7 @@ class Handler(BaseHTTPRequestHandler):
                         self.send_json({"error": "파일 이름은 이름_가로x세로.png 형식이어야 해요 (예: Drone_36x30.png, 프레임 한 칸 크기)"}, 400)
                         return
                     if not strip_ok(name, w, h):
-                        self.send_json({"error": f"이름의 프레임 크기와 그림이 안 맞아요: {w}×{h}는 높이가 같고 가로가 프레임 폭의 배수여야 해요"}, 400)
+                        self.send_json({"error": f"이름의 프레임 크기와 그림이 안 맞아요: {w}×{h}는 높이가 프레임 높이(또는 그 4배: 방향별 한 줄)이고 가로가 프레임 폭의 배수여야 해요"}, 400)
                         return
                     C.PRESET_STRIP_DIR.mkdir(parents=True, exist_ok=True)
                     (C.PRESET_STRIP_DIR / name).write_bytes(raw)

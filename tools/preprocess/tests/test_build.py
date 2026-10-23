@@ -285,3 +285,23 @@ def test_frames_anim_slice_reuses_other_slices_as_frames(tmp_path: Path):
         P.pack_atlas(slices + [{"key": "bad", "frames": ["nope"]}], sheet_paths={"lamps": sheet})
     with pytest.raises(SystemExit):
         P.pack_atlas(slices + [{"key": "bad", "frames": ["fx_blink"]}], sheet_paths={"lamps": sheet})
+
+
+def test_directional_strip_preset_uses_one_row_per_direction(tmp_path: Path):
+    """A strip 4 rows tall = one loop per direction (DIRS order), nothing mirrored."""
+    import config as C
+    fw, fh, n = 16, 48, 8
+    strip = Image.new("RGBA", (fw * n, fh * len(C.DIRS)), (0, 0, 0, 0))
+    for di in range(len(C.DIRS)):  # row di: a marker on the left edge coloured by direction
+        for i in range(n):
+            strip.paste(Image.new("RGBA", (1, fh), (di * 50, 0, 0, 255)), (i * fw, di * fh))
+    src = tmp_path / "Ghost_16x48.png"
+    strip.save(src)
+    out = P._loop_strip({"name": "Ghost", "strip": src, "frame": (fw, fh)}, "run")
+    assert out.size == (fw * C.FRAMES_PER_DIR * len(C.DIRS), fh)
+    for di in range(len(C.DIRS)):
+        fr = out.crop((di * C.FRAMES_PER_DIR * fw, 0, (di * C.FRAMES_PER_DIR + 1) * fw, fh))
+        assert fr.getpixel((0, 0)) == (di * 50, 0, 0, 255)  # its own row, left edge still on the left
+    with pytest.raises(SystemExit):  # 3 rows is neither a loop nor one per direction
+        Image.new("RGBA", (fw * n, fh * 3), (0, 0, 0, 0)).save(src)
+        P._loop_strip({"name": "Ghost", "strip": src, "frame": (fw, fh)}, "run")

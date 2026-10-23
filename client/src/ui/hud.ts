@@ -71,18 +71,24 @@ export function initHud(): void {
     toastTimer = window.setTimeout(() => t.classList.add("hidden"), ms ?? 2200);
   });
 
-  bus.on("place:state", ({ active, label, ok, mode, busy, span, spanMax }) => {
+  bus.on("place:state", ({ active, label, ok, mode, busy, span, spanMax, spanH, spanHMax }) => {
     placing = active;
     show("placebar", active);
     show("bottombar", !active);
     setRich($("place-label"), label);
     $("place-confirm").classList.toggle("primary", ok);
     show("place-again", active && mode === "place"); // "one more" only makes sense for new items
-    show("place-span", active && span != null); // wallpaper: pick how many columns it covers
+    show("place-span", active && span != null); // wallpaper / floor pattern: pick how many columns it covers
     if (span != null) {
       $("place-span-val").textContent = String(span);
       ($("place-span-dec") as HTMLButtonElement).disabled = span <= 1;
       ($("place-span-inc") as HTMLButtonElement).disabled = spanMax != null && span >= spanMax;
+    }
+    show("place-span-h", active && spanH != null); // floor pattern: how many rows
+    if (spanH != null) {
+      $("place-span-h-val").textContent = String(spanH);
+      ($("place-span-h-dec") as HTMLButtonElement).disabled = spanH <= 1;
+      ($("place-span-h-inc") as HTMLButtonElement).disabled = spanHMax != null && spanH >= spanHMax;
     }
     for (const id of ["place-confirm", "place-again", "place-cancel"]) ($(id) as HTMLButtonElement).disabled = !!busy;
     if (active && !isDesktop()) closeAllPanels(); // on desktop the shop sidebar stays open while placing
@@ -260,6 +266,8 @@ export function initHud(): void {
   });
   $("place-span-dec").addEventListener("click", () => bus.emit("place:span", { delta: -1 }));
   $("place-span-inc").addEventListener("click", () => bus.emit("place:span", { delta: 1 }));
+  $("place-span-h-dec").addEventListener("click", () => bus.emit("place:span", { delta: -1, axis: "h" }));
+  $("place-span-h-inc").addEventListener("click", () => bus.emit("place:span", { delta: 1, axis: "h" }));
 
   guard($("btn-sync"), async () => {
     if (!state.token) { toast("먼저 계정을 골라주세요"); return; }

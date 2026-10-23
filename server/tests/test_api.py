@@ -259,3 +259,31 @@ def test_wallpaper_span_pricing_and_resize(client):
     # remove refunds the width-based price
     r = client.delete(f"/api/room/item/{uid}", headers=auth(lun))
     assert r.status_code == 200 and r.json()["balance"] == 800
+
+
+def test_floor_pattern_span_pricing_and_resize(client):
+    lun = register(client, "lun")
+    # pattern: 2×2 for 5 → 4×3 = 12 cells = 3 copies = 15
+    r = client.post("/api/room/place", json={"item_id": "pattern", "x": 0, "y": 1, "span": 4, "span_h": 3}, headers=auth(lun))
+    assert r.status_code == 200 and r.json()["balance"] == 800 - 15
+    uid = r.json()["uid"]
+    item = next(i for i in client.get("/api/room").json()["items"] if i["uid"] == uid)
+    assert item["span"] == 4 and item["span_h"] == 3
+    # overlapping pattern → collision; a rug on top is fine
+    r = client.post("/api/room/place", json={"item_id": "pattern", "x": 3, "y": 3}, headers=auth(lun))
+    assert r.status_code == 400 and r.json()["error"] == "collision"
+    r = client.post("/api/room/place", json={"item_id": "rug", "x": 1, "y": 2}, headers=auth(lun))
+    assert r.status_code == 200
+    # move + grow taller: 4×4 = 16 cells = 4 copies = 20, pays the 5 difference; the width is kept
+    r = client.post("/api/room/move", json={"uid": uid, "x": 0, "y": 1, "span_h": 4}, headers=auth(lun))
+    assert r.status_code == 200 and r.json()["balance"] == 800 - 30 - 20
+    item = next(i for i in client.get("/api/room").json()["items"] if i["uid"] == uid)
+    assert item["span"] == 4 and item["span_h"] == 4
+    # span_h on a rug / wallpaper is rejected
+    r = client.post("/api/room/place", json={"item_id": "rug", "x": 5, "y": 2, "span_h": 3}, headers=auth(lun))
+    assert r.status_code == 400 and r.json()["error"] == "bad_span"
+    r = client.post("/api/room/place", json={"item_id": "paper", "x": 0, "y": 0, "span_h": 2}, headers=auth(lun))
+    assert r.status_code == 400 and r.json()["error"] == "bad_span"
+    # remove refunds the stretched price
+    r = client.delete(f"/api/room/item/{uid}", headers=auth(lun))
+    assert r.status_code == 200 and r.json()["balance"] == 800 - 30

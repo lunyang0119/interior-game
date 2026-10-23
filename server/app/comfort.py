@@ -110,7 +110,7 @@ class Comfort:
 def _price(cat: Catalog, row: ItemRow) -> int:
     from .placement import price_of  # placement imports catalog; keep this module import-light
 
-    return price_of(cat.items[row.item_id], row.span)
+    return price_of(cat.items[row.item_id], row.span, row.span_h)
 
 
 def comfort(cat: Catalog, cells: int, items: list[ItemRow], cfg: ComfortConfig, affection: int = 0) -> Comfort:

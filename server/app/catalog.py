@@ -143,6 +143,7 @@ class Seed(BaseModel):
     x: int
     y: int
     span: int | None = Field(default=None, ge=1)
+    span_h: int | None = Field(default=None, ge=1)
 
 
 class Fx(BaseModel):

@@ -265,7 +265,8 @@ export interface RoomItem {
   parent_uid: number | null;
   placed_by: string;
   ts: number;
-  span?: number | null; // wallpaper: width in cells chosen when placed (null → item.w)
+  span?: number | null; // wallpaper / floor pattern: width in cells chosen when placed (null → item.w)
+  span_h?: number | null; // floor pattern: height in cells chosen when placed (null → item.h)
   room_id?: string;
   // note items only
   note?: string | null;
@@ -340,14 +341,32 @@ export function forSale(it: Item): boolean {
   return !hasTag(it, TAG_RUINED) && !hasTag(it, TAG_FIXED);
 }
 
-/** Footprint width of a placed/ghost item: wallpaper stretches to `span`, everything else is fixed. */
-export function widthOf(it: Item, span?: number | null): number {
-  return it.layer === "wallpaper" && span ? span : it.w;
+/** Wallpaper and floor patterns (untagged floor items, not rugs) take a width chosen at placement (server stretch_cols). */
+export function stretchCols(it: Item): boolean {
+  return it.layer === "wallpaper" || collisionLayer(it) === "floor";
 }
 
-/** Wallpaper is priced per column; everything else per item. Mirrors server price_of(). */
-export function priceOf(it: Item, span?: number | null): number {
-  return it.layer === "wallpaper" ? it.price * widthOf(it, span) : it.price;
+/** Floor patterns also take a height chosen at placement (server stretch_rows). */
+export function stretchRows(it: Item): boolean {
+  return collisionLayer(it) === "floor";
+}
+
+/** Footprint width of a placed/ghost item: wallpaper and floor patterns stretch to `span`, everything else is fixed. */
+export function widthOf(it: Item, span?: number | null): number {
+  return stretchCols(it) && span ? span : it.w;
+}
+
+/** Footprint height: floor patterns stretch to `spanH`, everything else is the item's h. */
+export function heightOf(it: Item, spanH?: number | null): number {
+  return stretchRows(it) && spanH ? spanH : it.h;
+}
+
+/** Wallpaper is priced per column, a floor pattern per cell relative to its own size (rounded up); everything
+ *  else per item. Mirrors server price_of(). */
+export function priceOf(it: Item, span?: number | null, spanH?: number | null): number {
+  if (it.layer === "wallpaper") return it.price * widthOf(it, span);
+  if (stretchRows(it)) return Math.ceil((it.price * widthOf(it, span) * heightOf(it, spanH)) / (it.w * it.h));
+  return it.price;
 }
 
 /** The floor tile key drawn at a cell (painted grid first, then the room default). */

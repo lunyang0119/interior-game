@@ -275,7 +275,8 @@ def _with_extra_hair_colors(variants: list[dict]) -> list[dict]:
 # Loop strips as premade characters: assets/custom/preset/<Name>_<W>x<H>.png is one horizontal strip of WxH
 # frames (any count) that loops — a drone hovering, a ghost bobbing. The build samples FRAMES_PER_DIR frames of
 # it for every direction and anim ("left" mirrored) and the variant keeps its own frame size (manifest `sizes`),
-# so it need not fit the 16x32 character frame. They come after the pack's premade characters, in file order.
+# so it need not fit the 16x32 character frame. A strip len(DIRS) rows tall is one loop per direction instead
+# (DIRS order, no mirroring). They come after the pack's premade characters, in file order.
 PRESET_STRIP_DIR = CUSTOM_DIR / "preset"
 PRESET_STRIP_RE = re.compile(r"^(?P<name>[A-Za-z0-9][A-Za-z0-9_-]*)_(?P<w>\d+)x(?P<h>\d+)\.png$")
 

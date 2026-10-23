@@ -103,13 +103,13 @@ def place(body: PlaceIn, request: Request, me: Player = Depends(current_player),
             if not it.for_sale:
                 raise ApiError(400, "not_for_sale")
             items = load_items(conn, body.room_id)
-            p = validate_place(cat, items, body.item_id, body.x, body.y, body.span, room_id=body.room_id)
-            price = price_of(it, body.span)
+            p = validate_place(cat, items, body.item_id, body.x, body.y, body.span, room_id=body.room_id, span_h=body.span_h)
+            price = price_of(it, body.span, body.span_h)
             if sheet.balance(conn) < price:
                 raise ApiError(400, "insufficient_funds")
             cur = conn.execute(
-                "INSERT INTO items(item_id, x, y, z, parent_uid, placed_by, ts, span, room_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                (body.item_id, body.x, body.y, p.z, p.parent_uid, me.id, now(), body.span, body.room_id),
+                "INSERT INTO items(item_id, x, y, z, parent_uid, placed_by, ts, span, room_id, span_h) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                (body.item_id, body.x, body.y, p.z, p.parent_uid, me.id, now(), body.span, body.room_id, body.span_h),
             )
             uid = cur.lastrowid
             conn.execute(
@@ -152,9 +152,10 @@ def move(body: MoveIn, request: Request, me: Player = Depends(current_player),
             if has_children(body.uid, others):
                 raise ApiError(400, "has_children")
             span = body.span if body.span is not None else target.span
-            p = validate_place(cat, others, target.item_id, body.x, body.y, span, room_id=target.room_id)
-            # wallpaper resized while moving: settle the price difference like a partial place / refund
-            diff = price_of(it, span) - price_of(it, target.span)
+            span_h = body.span_h if body.span_h is not None else target.span_h
+            p = validate_place(cat, others, target.item_id, body.x, body.y, span, room_id=target.room_id, span_h=span_h)
+            # wallpaper / floor pattern resized while moving: settle the price difference like a partial place / refund
+            diff = price_of(it, span, span_h) - price_of(it, target.span, target.span_h)
             if diff > 0 and sheet.balance(conn) < diff:
                 raise ApiError(400, "insufficient_funds")
             if diff != 0:
@@ -164,8 +165,8 @@ def move(body: MoveIn, request: Request, me: Player = Depends(current_player),
                 )
                 events.append(progress.add_event(conn, "place" if diff > 0 else "remove", room_id=target.room_id,
                                                  player_id=me.id, item_id=target.item_id, amount=-diff))
-            conn.execute("UPDATE items SET x=?, y=?, z=?, parent_uid=?, span=? WHERE uid=?",
-                         (body.x, body.y, p.z, p.parent_uid, span, body.uid))
+            conn.execute("UPDATE items SET x=?, y=?, z=?, parent_uid=?, span=?, span_h=? WHERE uid=?",
+                         (body.x, body.y, p.z, p.parent_uid, span, span_h, body.uid))
             version = bump_room_version(conn, target.room_id)
             completed = progress.advance_rooms(conn, cat, events)
             log_access(conn, request, "move", me.id, True)
@@ -196,7 +197,7 @@ def remove(uid: int, request: Request, me: Player = Depends(current_player),
             if has_children(uid, items):
                 raise ApiError(400, "has_children")
             # a guest's note was never paid for either, but unlike junk it is worth nothing
-            price = 0 if target.placed_by == config.GUEST_PLAYER else price_of(it, target.span)
+            price = 0 if target.placed_by == config.GUEST_PLAYER else price_of(it, target.span, target.span_h)
             conn.execute("DELETE FROM items WHERE uid = ?", (uid,))
             # seeded junk was never paid for: selling it is how the pool earns from cleaning up
             conn.execute(

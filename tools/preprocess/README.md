@@ -28,6 +28,14 @@ Workflow for adding furniture:
 A slice can also be `"parts": [{sheet,x,y,w,h}, ...]` — rects stacked top-to-bottom into one frame (used for the wallpaper strips whose blocks are separated by transparent lines; every wallpaper is cut to 48px = 3 wall rows).
 
 Only named slices (not `auto_*`) go into the atlas. Keys starting with `tile_` are room tiles, not shop items.
+**✂ 자동 자르기** (editor, slice tab, PC only) is `scan` for the current sheet without leaving the editor:
+`POST /api/autoslice` → `preprocess.detect_boxes` finds the drawn regions (덩어리: 8-connected, pixel-tight boxes;
+간격 N merges regions up to N px apart, 0 is the most accurate; 칸 맞춤 rounds out to the 칸 grid; 격자: every
+non-empty 칸×칸 cell, for tiles; 최소 drops specks). A sheet without transparency is read against its corner colour,
+which the new slices remove via `transparent`. Boxes already ≥50% covered by a slice are skipped, the rest are added
+as unsaved `auto_<sheet>_NNN` slices and ticked: drop the unwanted ones with **체크 삭제** (slices with an item are
+kept), fix merged neighbours by hand (sprites that touch on the sheet come out as one box), then 이름 일괄 변경 →
+슬라이스 저장.
 In the editor, tick slices in the list (☑ 전체 / ☑ auto = everything visible on the current sheet + search) and press
 **이름 일괄 변경**: each `auto_`/`new_` key becomes `[<folder>_]<sheet><original>`, e.g. `auto_interiors_017` → `inte_017`,
 a Map sheet `.../Grass.png` → `map_gras_003` (folder omitted when it is `Interior`; sheet = first 4 letters of the file
@@ -163,7 +171,7 @@ python tools/preprocess/preprocess.py build                        # map_slices.
   `nearest`(픽셀 그대로 되돌림), 아니면 `box`(평균 축소)를 고른다. 원본이 바뀌면 다시 만들어야 하고, 사본도 `assets/`라 gitignore.
 - **아이템**: items.json 전체를 썸네일로 검색·태그·시트·레이어로 거르고(태그 필터에 `(태그 없음)` 있음), 여기서 바로 **태그를 단다**.
   카드 클릭=선택(Shift+클릭=범위, ☑ 보이는 것/☐ 해제, Esc), 왼쪽의 태그 칩을 누르면 선택한 아이템 전부에 그 태그를 켜고(이미 전부 켜져 있으면 끔) 숫자키 1~9가 n번째 칩. 카드의 태그 ×로 하나만 빼고, 칩에 없는 태그는 아래 입력칸으로 켜고 끈다. 그 아래 **레이어** 선택+바꾸기는 선택한 아이템 전부의 layer를 한 번에 바꾼다(가구가 아니면 is_surface는 꺼짐; 슬라이스 탭의 "레이어 일괄"은 체크한 슬라이스의 아이템에 같은 일을 한다).
-  태그별 개수 줄(0개면 빨강)을 누르면 그 태그로 거른다. 카드의 ✎(또는 더블클릭) → 그 슬라이스로 이동해 오른쪽 폼에서 편집. 바꾼 건 **아이템 저장**을 눌러야 items.json에 들어가고, 게임 서버는 재시작해야 읽는다.
+  태그별 개수 줄(0개면 빨강)을 누르면 그 태그로 거른다. 카드를 클릭하면 탭을 떠나지 않고 오른쪽에 그 아이템(슬라이스+아이템 폼)이 뜬다; 시트까지 가려면 카드의 ✎나 오른쪽 폼 위의 **시트로 가기**(슬라이스 탭으로 돌아갈 때도 그 시트로 따라간다). **선택 삭제**(또는 Delete)는 선택한 아이템을 items.json에서 지운다(슬라이스는 남고, 짝(pair) 연결은 풀림). 바꾼 건 **아이템 저장**을 눌러야 items.json에 들어가고, 게임 서버는 재시작해야 읽는다.
   태그 목록과 설명은 `editor.py`의 `KNOWN_TAGS` 한 곳에 있다(`ruined` 팔 수만 있음 · `fixed` 못 건드림 · `stairs` 출구 · `bed` 손님 침대 · `dog` 개 손님 장식 · `note` 쪽지 소품 · `guest_note` 손님 쪽지용 스프라이트 · `board` 📋 게시판 · `partition`/`door` 칸막이 · `rug` 바닥 무늬 위에 깔리는 러그). 그 밖의 `[a-z0-9_]` 태그도 저장은 된다.
   오른쪽 아이템 폼의 **쌍(pair)**: 부서진 가구 ↔ 멀쩡한 가구를 양방향으로 잇는다.
 - **낱개**: 정식 팩 `Theme_Sorter_Singles`의 낱개 PNG를 테마별 썸네일로 보고 클릭하면 `file` 슬라이스가 생긴다.
@@ -301,5 +309,5 @@ python tools/preprocess/preprocess.py ui      # → client/public/media/theme.cs
 
 사람 모양이 아닌 것(드론, 유령…)은 896×656 시트 대신 **가로 띠 하나**로 프리셋 캐릭터가 된다.
 - 파일: `assets/custom/preset/<이름>_<가로>x<세로>.png` — 예 `Drone_flight_animation_36x30.png`. 이름 끝의 `가로x세로`가 프레임 한 칸 크기이고, 그림은 그 높이에 가로로 프레임을 몇 개든 이어 붙인 것(한 바퀴 도는 루프). 이름 꼴이 아니거나 크기가 안 맞으면 빌드에서 빠진다(에디터 캐릭터 탭에 ⚠로 표시).
-- `build`가 방향마다 6프레임을 루프에서 고르게 뽑아 48프레임 시트로 만든다. 방향은 없고 왼쪽만 좌우 반전, run은 같은 프레임을 더 빠르게 튼다. 프레임 크기는 그대로라서(16×32에 안 맞아도 됨) manifest의 `layers.preset.sizes[인덱스] = [w, h]`로 내려가고 클라이언트가 그 크기로 자른다. 아바타 발 위치 = 프레임 아래 가운데.
+- `build`가 방향마다 6프레임을 루프에서 고르게 뽑아 48프레임 시트로 만든다. 한 줄이면 방향은 없고 왼쪽만 좌우 반전; 그림이 **4줄**(높이 = 세로×4)이면 위에서부터 오른쪽·뒤·왼쪽·앞 방향의 루프로 쓴다(반전 없음, 예 `Ghost_1_16x48.png` = 팩 `Ghosts/ghost_1_16x16.png`의 걷기 줄을 방향별로 자른 것). run은 같은 프레임을 더 빠르게 튼다. 프레임 크기는 그대로라서(16×32에 안 맞아도 됨) manifest의 `layers.preset.sizes[인덱스] = [w, h]`로 내려가고 클라이언트가 그 크기로 자른다. 아바타 발 위치 = 프레임 아래 가운데.
 - 팩의 Premade_Character 뒤에 파일 이름 순으로 붙으므로 기존 프리셋 번호는 안 밀린다. 에디터 캐릭터 탭의 "내 시트 추가"에서 레이어를 "프리셋 캐릭터"로 하면 띠 파일을 올릴 수 있다.

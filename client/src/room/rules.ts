@@ -1,6 +1,6 @@
 /** Client mirror of server/app/placement.py. Only used to colour the ghost; the server decides. */
 
-import { SEED_PLAYER, canHang, collisionLayer, faceRows, isFloorPaper, isPartition, paperCells, onWall, tileWalkable, widthOf, type Catalog, type Room, type RoomItem } from "../catalog";
+import { SEED_PLAYER, canHang, collisionLayer, faceRows, heightOf, isFloorPaper, isPartition, paperCells, onWall, stretchCols, stretchRows, tileWalkable, widthOf, type Catalog, type Room, type RoomItem } from "../catalog";
 import { footprint } from "./grid";
 
 export interface Check { ok: boolean; code?: string; parentUid: number | null }
@@ -17,7 +17,7 @@ export function footprintOf(cat: Catalog, row: RoomItem): [number, number][] {
     const cells = paperCells(room, row.x, row.y, widthOf(it, row.span), it.h);
     if (cells) return cells;
   }
-  return footprint(row.x, row.y, widthOf(it, row.span), it.h);
+  return footprint(row.x, row.y, widthOf(it, row.span), heightOf(it, row.span_h));
 }
 
 /** Cells of a partition's visible wall face (its columns, `faceRows` rows up from the footprint bottom); empty otherwise. */
@@ -43,15 +43,16 @@ export function hangerOf(cat: Catalog, others: RoomItem[], cells: [number, numbe
   return first && cells.every((c) => covered.has(key(c))) ? first : null;
 }
 
-export function checkPlace(cat: Catalog, room: Room, others: RoomItem[], itemId: string, x: number, y: number, span?: number | null): Check {
+export function checkPlace(cat: Catalog, room: Room, others: RoomItem[], itemId: string, x: number, y: number, span?: number | null, spanH?: number | null): Check {
   const it = cat.byId.get(itemId);
   if (!it) return { ok: false, code: "unknown_item", parentUid: null };
-  if (span != null && (it.layer !== "wallpaper" || span < 1 || span > room.cols)) return { ok: false, code: "bad_span", parentUid: null };
+  if (span != null && (!stretchCols(it) || span < 1 || span > room.cols)) return { ok: false, code: "bad_span", parentUid: null };
+  if (spanH != null && (!stretchRows(it) || spanH < 1 || spanH > room.rows)) return { ok: false, code: "bad_span", parentUid: null };
   // wallpaper starting on a floor row goes only on the painted 벽지 칸, as tall as each column's painted run
   const floorPaper = isFloorPaper(it, room, y);
   const pasted = floorPaper ? paperCells(room, x, y, widthOf(it, span), it.h) : null;
   if (floorPaper && !pasted) return { ok: false, code: "bad_cell_type", parentUid: null };
-  const cells = pasted ?? footprint(x, y, widthOf(it, span), it.h);
+  const cells = pasted ?? footprint(x, y, widthOf(it, span), heightOf(it, spanH));
   // painted 벽지 칸 may be blocked cells (no walking) and still take wallpaper — mirrors placement.py
   const blocked = new Set(floorPaper ? [] : room.blocked.map((b) => key([b[0], b[1]])));
   for (const c of cells) {

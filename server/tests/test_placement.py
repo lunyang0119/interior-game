@@ -186,3 +186,26 @@ def test_unwalkable_tile_blocks_furniture_and_rugs(catalog):
     validate_place(catalog, [], "frame", 4, 0, room_id="house_a")  # wall layer never looks at floor tiles
     # seeds are relaxed: the designer may put junk in the pond on purpose
     validate_place(catalog, [], "chair", 4, 3, room_id="house_a", relaxed=True)
+
+
+def test_floor_pattern_span(catalog):
+    from app.catalog import Z_OF_LAYER
+    from app.placement import price_of
+    pat = catalog.items["pattern"]  # 2×2, price 5: stretches both ways, priced per cell (rounded up to whole copies)
+    assert validate_place(catalog, [], "pattern", 0, 1, span=4, span_h=3).z == Z_OF_LAYER["floor"]
+    assert price_of(pat, None, None) == 5
+    assert price_of(pat, 4, 3) == 15   # 12 cells = 3 copies
+    assert price_of(pat, 3, 3) == 12   # 9 cells = 2.25 → 3 copies... ceil(5 * 9 / 4)
+    assert price_of(pat, 1, 1) == 2    # ceil(5 / 4)
+    assert err(lambda: validate_place(catalog, [], "pattern", 0, 1, span=4, span_h=6)) == "out_of_bounds"  # past row 5
+    assert err(lambda: validate_place(catalog, [], "pattern", 0, 1, span_h=7)) == "bad_span"  # taller than the room
+    assert err(lambda: validate_place(catalog, [], "pattern", 0, 1, span=9)) == "bad_span"
+    assert err(lambda: validate_place(catalog, [], "rug", 0, 1, span=3)) == "bad_span"  # rugs keep their size
+    assert err(lambda: validate_place(catalog, [], "paper", 0, 0, span_h=2)) == "bad_span"  # wallpaper only widens
+    assert err(lambda: validate_place(catalog, [], "chair", 2, 2, span_h=2)) == "bad_span"
+    big = [ItemRow(uid=1, item_id="pattern", x=0, y=1, z=0, parent_uid=None, placed_by="lun", ts=0, span=4, span_h=3)]
+    assert len(footprint_of(catalog, big[0])) == 12
+    assert err(lambda: validate_place(catalog, big, "pattern", 3, 3)) == "collision"  # (3,3) is covered
+    assert validate_place(catalog, big, "pattern", 4, 1).z == Z_OF_LAYER["floor"]
+    assert validate_place(catalog, big, "rug", 1, 2).z == Z_OF_LAYER["rug"]  # rugs lie over patterns
+    assert validate_place(catalog, big, "chair", 1, 2).z == Z_OF_LAYER["furniture"]

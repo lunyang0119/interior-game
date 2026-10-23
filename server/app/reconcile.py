@@ -22,7 +22,7 @@ log = logging.getLogger("reconcile")
 def reconcile_items(conn: sqlite3.Connection, catalog: Catalog) -> int:
     """Returns the number of rows removed or updated. Must run inside a transaction."""
     rows = conn.execute(
-        "SELECT uid, item_id, x, y, z, parent_uid, placed_by, ts, span, room_id FROM items "
+        "SELECT uid, item_id, x, y, z, parent_uid, placed_by, ts, span, room_id, span_h FROM items "
         "ORDER BY parent_uid IS NOT NULL, uid"  # parents before children so a dropped table drops its cups
     ).fetchall()
     kept: dict[str, list[ItemRow]] = {}
@@ -37,13 +37,13 @@ def reconcile_items(conn: sqlite3.Connection, catalog: Catalog) -> int:
                 raise ApiError(404, "unknown_room")
             # seeded rows keep the designer's freedom (past the edge / overlapping); see placement.validate_place
             p = validate_place(catalog, kept.setdefault(row.room_id, []), row.item_id, row.x, row.y, row.span,
-                               room_id=row.room_id, relaxed=row.placed_by == config.SEED_PLAYER)
+                               room_id=row.room_id, relaxed=row.placed_by == config.SEED_PLAYER, span_h=row.span_h)
         except ApiError as e:
             conn.execute("DELETE FROM items WHERE uid = ?", (row.uid,))
             if item is not None and row.placed_by not in config.SYSTEM_PLAYERS:  # a guest's note was never paid for
                 conn.execute(
                     "INSERT INTO ledger(ts, player_id, amount, kind, item_uid, item_id) VALUES (?, ?, ?, 'refund', ?, ?)",
-                    (now(), row.placed_by, -price_of(item, row.span), row.uid, row.item_id),
+                    (now(), row.placed_by, -price_of(item, row.span, row.span_h), row.uid, row.item_id),
                 )
             log.warning("removed item uid=%s %s in %s at (%s,%s): %s (refunded %s)",
                         row.uid, row.item_id, row.room_id, row.x, row.y, e.code, row.placed_by)

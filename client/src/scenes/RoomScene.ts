@@ -306,7 +306,7 @@ export class RoomScene extends Phaser.Scene {
       bus.on("place:confirm", () => void this.placement.confirm()),
       bus.on("place:confirm-again", () => void this.placement.confirm(true)),
       bus.on("place:cancel", () => this.placement.cancel()),
-      bus.on("place:span", ({ delta }) => this.placement.setSpan(delta)),
+      bus.on("place:span", ({ delta, axis }) => this.placement.setSpan(delta, axis ?? "w")),
       bus.on("room:refresh", () => void this.refreshRoom()),
       bus.on("item:remove", ({ uid }) => void this.removeItem(uid)),
       bus.on("item:walk", ({ uid }) => this.walkToItem(uid)),

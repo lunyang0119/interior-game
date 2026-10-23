@@ -46,12 +46,16 @@
   ],
   "layers": {
    "preset": {
-    "count": 22,
+    "count": 24,
     "label": "\ud504\ub9ac\uc14b \uce90\ub9ad\ud130",
     "sizes": {
-     "21": [
+     "22": [
       36,
       30
+     ],
+     "23": [
+      16,
+      48
      ]
     },
     "none": 0,
@@ -78,7 +82,9 @@
      "Premade_Character_18",
      "Premade_Character_19",
      "Premade_Character_20",
-     "Drone_flight_animation"
+     "Premade_Character_21",
+     "Drone_flight_animation",
+     "Ghost_1"
     ]
    },
    "skin": {
@@ -2074,13 +2080,6 @@
     "ch": 6,
     "set": "mi_kitchen"
    },
-   "painting_stripes_wide": {
-    "w": 64,
-    "h": 96,
-    "cw": 4,
-    "ch": 6,
-    "set": "pi_bedroom"
-   },
    "mordhalloween_041_stone_tower_tall": {
     "w": 48,
     "h": 96,
@@ -2094,27 +2093,6 @@
     "cw": 2,
     "ch": 6,
     "set": "mi_jail"
-   },
-   "mordmusic_053_grand_piano_light": {
-    "w": 32,
-    "h": 96,
-    "cw": 2,
-    "ch": 6,
-    "set": "mi_music_and_sport"
-   },
-   "mordmusic_054_grand_piano_medium": {
-    "w": 32,
-    "h": 96,
-    "cw": 2,
-    "ch": 6,
-    "set": "mi_music_and_sport"
-   },
-   "mordmusic_055_grand_piano_dark": {
-    "w": 32,
-    "h": 96,
-    "cw": 2,
-    "ch": 6,
-    "set": "mi_music_and_sport"
    },
    "mordkitchen_003_floor_swatch_strip": {
     "w": 256,
@@ -2459,40 +2437,12 @@
     "ch": 4,
     "set": "pi_living"
    },
-   "wardrobe_brown_a_open": {
-    "w": 64,
-    "h": 66,
-    "cw": 4,
-    "ch": 4,
-    "set": "pi_bedroom"
-   },
-   "wardrobe_brown_b_open": {
-    "w": 64,
-    "h": 66,
-    "cw": 4,
-    "ch": 4,
-    "set": "pi_bedroom"
-   },
-   "wardrobe_white_open": {
-    "w": 64,
-    "h": 66,
-    "cw": 4,
-    "ch": 4,
-    "set": "pi_bedroom"
-   },
    "mordjail_008_kitchen_counter_row": {
     "w": 144,
     "h": 64,
     "cw": 9,
     "ch": 4,
     "set": "mi_jail"
-   },
-   "mordart_006_paint_pots_and_plant_cluster": {
-    "w": 112,
-    "h": 64,
-    "cw": 7,
-    "ch": 4,
-    "set": "mi_art"
    },
    "mordjapan_050_dining_scene_low_table": {
     "w": 112,
@@ -2822,27 +2772,6 @@
     "cw": 3,
     "ch": 4,
     "set": "mi_free"
-   },
-   "wardrobe_brown_a_closed": {
-    "w": 48,
-    "h": 64,
-    "cw": 3,
-    "ch": 4,
-    "set": "pi_bedroom"
-   },
-   "wardrobe_brown_b_closed": {
-    "w": 48,
-    "h": 64,
-    "cw": 3,
-    "ch": 4,
-    "set": "pi_bedroom"
-   },
-   "wardrobe_white_closed": {
-    "w": 48,
-    "h": 64,
-    "cw": 3,
-    "ch": 4,
-    "set": "pi_bedroom"
    },
    "bed_pixel_black_single": {
     "w": 32,
@@ -3754,13 +3683,6 @@
     "ch": 3,
     "set": "mi_classroom_and_library"
    },
-   "blinds_navy": {
-    "w": 96,
-    "h": 48,
-    "cw": 6,
-    "ch": 3,
-    "set": "pi_bedroom"
-   },
    "mordbath_127_shower_stall_glass_trio": {
     "w": 96,
     "h": 48,
@@ -3865,6 +3787,13 @@
     "cw": 5,
     "ch": 3,
     "set": "ppfurniture_pack_freev"
+   },
+   "blinds_navy": {
+    "w": 68,
+    "h": 48,
+    "cw": 4,
+    "ch": 3,
+    "set": "pi_bedroom"
    },
    "fmp_013": {
     "w": 64,
@@ -4000,13 +3929,6 @@
     "set": "mi_free"
    },
    "toilet_fa": {
-    "w": 64,
-    "h": 48,
-    "cw": 4,
-    "ch": 3,
-    "set": "furniture_assets"
-   },
-   "tv_table_fa": {
     "w": 64,
     "h": 48,
     "cw": 4,
@@ -4272,90 +4194,6 @@
     "ch": 3,
     "set": "pi_bath"
    },
-   "dresser_brown_3drawer_a": {
-    "w": 48,
-    "h": 48,
-    "cw": 3,
-    "ch": 3,
-    "set": "pi_bedroom"
-   },
-   "dresser_brown_3drawer_b": {
-    "w": 48,
-    "h": 48,
-    "cw": 3,
-    "ch": 3,
-    "set": "pi_bedroom"
-   },
-   "dresser_brown_3drawer_c": {
-    "w": 48,
-    "h": 48,
-    "cw": 3,
-    "ch": 3,
-    "set": "pi_bedroom"
-   },
-   "dresser_brown_3drawer_d": {
-    "w": 48,
-    "h": 48,
-    "cw": 3,
-    "ch": 3,
-    "set": "pi_bedroom"
-   },
-   "dresser_brown_4drawer_a": {
-    "w": 48,
-    "h": 48,
-    "cw": 3,
-    "ch": 3,
-    "set": "pi_bedroom"
-   },
-   "dresser_brown_4drawer_b": {
-    "w": 48,
-    "h": 48,
-    "cw": 3,
-    "ch": 3,
-    "set": "pi_bedroom"
-   },
-   "dresser_brown_4drawer_c": {
-    "w": 48,
-    "h": 48,
-    "cw": 3,
-    "ch": 3,
-    "set": "pi_bedroom"
-   },
-   "dresser_brown_4drawer_d": {
-    "w": 48,
-    "h": 48,
-    "cw": 3,
-    "ch": 3,
-    "set": "pi_bedroom"
-   },
-   "dresser_white_3drawer_a": {
-    "w": 48,
-    "h": 48,
-    "cw": 3,
-    "ch": 3,
-    "set": "pi_bedroom"
-   },
-   "dresser_white_3drawer_b": {
-    "w": 48,
-    "h": 48,
-    "cw": 3,
-    "ch": 3,
-    "set": "pi_bedroom"
-   },
-   "dresser_white_4drawer_a": {
-    "w": 48,
-    "h": 48,
-    "cw": 3,
-    "ch": 3,
-    "set": "pi_bedroom"
-   },
-   "dresser_white_4drawer_b": {
-    "w": 48,
-    "h": 48,
-    "cw": 3,
-    "ch": 3,
-    "set": "pi_bedroom"
-   },
    "f03_bed_02": {
     "w": 48,
     "h": 48,
@@ -4392,13 +4230,6 @@
     "set": "free_modern_pack"
    },
    "fmp_tile_02": {
-    "w": 48,
-    "h": 48,
-    "cw": 3,
-    "ch": 3,
-    "set": "free_modern_pack"
-   },
-   "fmp_tile_03": {
     "w": 48,
     "h": 48,
     "cw": 3,
@@ -4818,20 +4649,6 @@
     "ch": 3,
     "set": "pi_living"
    },
-   "sink_counter_dry": {
-    "w": 48,
-    "h": 48,
-    "cw": 3,
-    "ch": 3,
-    "set": "pi_bath"
-   },
-   "sink_counter_full": {
-    "w": 48,
-    "h": 48,
-    "cw": 3,
-    "ch": 3,
-    "set": "pi_bath"
-   },
    "stove_fa": {
     "w": 48,
     "h": 48,
@@ -4972,13 +4789,6 @@
     "ch": 3,
     "set": "pi_living"
    },
-   "armchair_tan_striped": {
-    "w": 32,
-    "h": 48,
-    "cw": 2,
-    "ch": 3,
-    "set": "pi_living"
-   },
    "bed_fa": {
     "w": 32,
     "h": 48,
@@ -5113,20 +4923,6 @@
     "set": "furniture03"
    },
    "f03_rug_olive_vertical": {
-    "w": 32,
-    "h": 48,
-    "cw": 2,
-    "ch": 3,
-    "set": "furniture03"
-   },
-   "f03_tub": {
-    "w": 32,
-    "h": 48,
-    "cw": 2,
-    "ch": 3,
-    "set": "furniture03"
-   },
-   "f03_tub_purple": {
     "w": 32,
     "h": 48,
     "cw": 2,
@@ -5959,6 +5755,27 @@
     "ch": 3,
     "set": "mi_music_and_sport"
    },
+   "mordmusic_053_grand_piano_light": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3,
+    "set": "mi_music_and_sport"
+   },
+   "mordmusic_054_grand_piano_medium": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3,
+    "set": "mi_music_and_sport"
+   },
+   "mordmusic_055_grand_piano_dark": {
+    "w": 32,
+    "h": 48,
+    "cw": 2,
+    "ch": 3,
+    "set": "mi_music_and_sport"
+   },
    "mordmusic_155_piano_upright_brown": {
     "w": 32,
     "h": 48,
@@ -6365,13 +6182,6 @@
     "ch": 3,
     "set": "topdown"
    },
-   "toilet_white": {
-    "w": 32,
-    "h": 48,
-    "cw": 2,
-    "ch": 3,
-    "set": "pi_bath"
-   },
    "topdoor_open_brown": {
     "w": 32,
     "h": 48,
@@ -6399,27 +6209,6 @@
     "cw": 2,
     "ch": 3,
     "set": "topdown"
-   },
-   "vanity_mirror_chair_brown_a": {
-    "w": 32,
-    "h": 48,
-    "cw": 2,
-    "ch": 3,
-    "set": "pi_bedroom"
-   },
-   "vanity_mirror_chair_brown_b": {
-    "w": 32,
-    "h": 48,
-    "cw": 2,
-    "ch": 3,
-    "set": "pi_bedroom"
-   },
-   "vanity_mirror_chair_white": {
-    "w": 32,
-    "h": 48,
-    "cw": 2,
-    "ch": 3,
-    "set": "pi_bedroom"
    },
    "wallpaper_brick_office": {
     "w": 32,
@@ -7681,6 +7470,20 @@
     "ch": 2,
     "set": "interior_tiles_lite"
    },
+   "pi_wallclad_orange": {
+    "w": 64,
+    "h": 47,
+    "cw": 4,
+    "ch": 2,
+    "set": "pi_living"
+   },
+   "pi_wallclad_white": {
+    "w": 64,
+    "h": 47,
+    "cw": 4,
+    "ch": 2,
+    "set": "pi_living"
+   },
    "fuck": {
     "w": 12,
     "h": 47,
@@ -7785,6 +7588,13 @@
     "ch": 2,
     "set": "interior_tiles_lite"
    },
+   "pi_wallclad_dark": {
+    "w": 64,
+    "h": 45,
+    "cw": 4,
+    "ch": 2,
+    "set": "pi_living"
+   },
    "moritl_041_tv_stand_dark": {
     "w": 60,
     "h": 45,
@@ -7813,47 +7623,12 @@
     "ch": 2,
     "set": "interior_no_shadow"
    },
-   "pi_floorcolor_pink": {
-    "w": 67,
+   "fixt_003": {
+    "w": 22,
     "h": 44,
-    "cw": 4,
+    "cw": 1,
     "ch": 2,
-    "set": "pi_living"
-   },
-   "pi_floorcolor_sage": {
-    "w": 67,
-    "h": 44,
-    "cw": 4,
-    "ch": 2,
-    "set": "pi_living"
-   },
-   "pi_floortile_cream": {
-    "w": 67,
-    "h": 44,
-    "cw": 4,
-    "ch": 2,
-    "set": "pi_living"
-   },
-   "pi_floortile_gray": {
-    "w": 67,
-    "h": 44,
-    "cw": 4,
-    "ch": 2,
-    "set": "pi_living"
-   },
-   "pi_floorcolor_gray": {
-    "w": 66,
-    "h": 44,
-    "cw": 4,
-    "ch": 2,
-    "set": "pi_living"
-   },
-   "pi_floortile_dark": {
-    "w": 66,
-    "h": 44,
-    "cw": 4,
-    "ch": 2,
-    "set": "pi_living"
+    "set": "pi_bath"
    },
    "nosh_024_vanity_mirror_dresser_brown": {
     "w": 34,
@@ -7875,6 +7650,20 @@
     "cw": 1,
     "ch": 2,
     "set": "free_modern_pack"
+   },
+   "furn_002_2": {
+    "w": 20,
+    "h": 43,
+    "cw": 1,
+    "ch": 2,
+    "set": "furniture03"
+   },
+   "furn_003": {
+    "w": 20,
+    "h": 43,
+    "cw": 1,
+    "ch": 2,
+    "set": "furniture03"
    },
    "mordbed_185_bunkbed_blue": {
     "w": 41,
@@ -7939,69 +7728,6 @@
     "ch": 2,
     "set": "mi_bedroom"
    },
-   "pi_wall_cream": {
-    "w": 67,
-    "h": 40,
-    "cw": 4,
-    "ch": 2,
-    "set": "pi_living"
-   },
-   "pi_wall_mint": {
-    "w": 67,
-    "h": 40,
-    "cw": 4,
-    "ch": 2,
-    "set": "pi_living"
-   },
-   "pi_wallclad_orange": {
-    "w": 67,
-    "h": 40,
-    "cw": 4,
-    "ch": 2,
-    "set": "pi_living"
-   },
-   "pi_wallclad_white": {
-    "w": 67,
-    "h": 40,
-    "cw": 4,
-    "ch": 2,
-    "set": "pi_living"
-   },
-   "pi_wallpanel_orange": {
-    "w": 67,
-    "h": 40,
-    "cw": 4,
-    "ch": 2,
-    "set": "pi_living"
-   },
-   "pi_wallpanel_white": {
-    "w": 67,
-    "h": 40,
-    "cw": 4,
-    "ch": 2,
-    "set": "pi_living"
-   },
-   "pi_wall_white": {
-    "w": 66,
-    "h": 40,
-    "cw": 4,
-    "ch": 2,
-    "set": "pi_living"
-   },
-   "pi_wallclad_dark": {
-    "w": 66,
-    "h": 40,
-    "cw": 4,
-    "ch": 2,
-    "set": "pi_living"
-   },
-   "pi_wallpanel_brown": {
-    "w": 66,
-    "h": 40,
-    "cw": 4,
-    "ch": 2,
-    "set": "pi_living"
-   },
    "mordernBase_06_woodenstair": {
     "w": 24,
     "h": 40,
@@ -8064,6 +7790,13 @@
     "cw": 3,
     "ch": 2,
     "set": "mi_basement"
+   },
+   "mordkit2": {
+    "w": 48,
+    "h": 39,
+    "cw": 3,
+    "ch": 2,
+    "set": "kitchen"
    },
    "mordernhospital_08_dentistchair": {
     "w": 24,
@@ -8520,6 +8253,20 @@
     "ch": 2,
     "set": "interior_no_shadow"
    },
+   "pi_wallpanel_orange": {
+    "w": 64,
+    "h": 33,
+    "cw": 4,
+    "ch": 2,
+    "set": "pi_living"
+   },
+   "pi_wall_cream": {
+    "w": 63,
+    "h": 33,
+    "cw": 3,
+    "ch": 2,
+    "set": "pi_living"
+   },
    "nosh_141_loveseat_orange": {
     "w": 53,
     "h": 33,
@@ -8674,13 +8421,6 @@
     "ch": 2,
     "set": "mi_generic"
    },
-   "mordkit2_001a_wall_colors_strip": {
-    "w": 144,
-    "h": 32,
-    "cw": 9,
-    "ch": 2,
-    "set": "kitchen"
-   },
    "mordupstairs_009_wallpaper_swatch_row": {
     "w": 144,
     "h": 32,
@@ -8758,20 +8498,6 @@
     "ch": 2,
     "set": "ppfurniture_pack_freev"
    },
-   "bathtub_dry": {
-    "w": 80,
-    "h": 32,
-    "cw": 5,
-    "ch": 2,
-    "set": "pi_bath"
-   },
-   "bathtub_full": {
-    "w": 80,
-    "h": 32,
-    "cw": 5,
-    "ch": 2,
-    "set": "pi_bath"
-   },
    "mordbath_055_shower_stall_base_trio": {
     "w": 80,
     "h": 32,
@@ -8834,6 +8560,27 @@
     "cw": 5,
     "ch": 2,
     "set": "mi_japanese_interiors"
+   },
+   "fixt_002": {
+    "w": 65,
+    "h": 32,
+    "cw": 4,
+    "ch": 2,
+    "set": "pi_bath"
+   },
+   "fixt_005": {
+    "w": 65,
+    "h": 32,
+    "cw": 4,
+    "ch": 2,
+    "set": "pi_bath"
+   },
+   "pi_wall_mint": {
+    "w": 65,
+    "h": 32,
+    "cw": 4,
+    "ch": 2,
+    "set": "pi_living"
    },
    "back_stair_red": {
     "w": 64,
@@ -8982,6 +8729,20 @@
     "ch": 2,
     "set": "mi_music_and_sport"
    },
+   "pi_wall_white": {
+    "w": 64,
+    "h": 32,
+    "cw": 4,
+    "ch": 2,
+    "set": "pi_living"
+   },
+   "pi_wallpanel_brown": {
+    "w": 64,
+    "h": 32,
+    "cw": 4,
+    "ch": 2,
+    "set": "pi_living"
+   },
    "rug_rect_dotted_cream_wide": {
     "w": 64,
     "h": 32,
@@ -9024,6 +8785,13 @@
     "ch": 2,
     "set": "freepixel"
    },
+   "pi_wallpanel_white": {
+    "w": 62,
+    "h": 32,
+    "cw": 3,
+    "ch": 2,
+    "set": "pi_living"
+   },
    "med_003": {
     "w": 49,
     "h": 32,
@@ -9037,13 +8805,6 @@
     "cw": 3,
     "ch": 2,
     "set": "furniture_assets"
-   },
-   "bench_ottoman_white": {
-    "w": 48,
-    "h": 32,
-    "cw": 3,
-    "ch": 2,
-    "set": "pi_bedroom"
    },
    "carpet_large_fa": {
     "w": 48,
@@ -9822,41 +9583,6 @@
     "ch": 2,
     "set": "pi_living"
    },
-   "soundbar_black": {
-    "w": 48,
-    "h": 32,
-    "cw": 3,
-    "ch": 2,
-    "set": "pi_living"
-   },
-   "soundbar_silver": {
-    "w": 48,
-    "h": 32,
-    "cw": 3,
-    "ch": 2,
-    "set": "pi_living"
-   },
-   "table_coffee_round_brown": {
-    "w": 48,
-    "h": 32,
-    "cw": 3,
-    "ch": 2,
-    "set": "pi_living"
-   },
-   "table_coffee_round_cream": {
-    "w": 48,
-    "h": 32,
-    "cw": 3,
-    "ch": 2,
-    "set": "pi_living"
-   },
-   "table_coffee_round_dark": {
-    "w": 48,
-    "h": 32,
-    "cw": 3,
-    "ch": 2,
-    "set": "pi_living"
-   },
    "table_dining_dark_a": {
     "w": 48,
     "h": 32,
@@ -9891,20 +9617,6 @@
     "cw": 3,
     "ch": 2,
     "set": "furniture_assets"
-   },
-   "tv_screen_black": {
-    "w": 48,
-    "h": 32,
-    "cw": 3,
-    "ch": 2,
-    "set": "pi_living"
-   },
-   "tv_screen_on": {
-    "w": 48,
-    "h": 32,
-    "cw": 3,
-    "ch": 2,
-    "set": "pi_living"
    },
    "window_dark_a": {
     "w": 48,
@@ -9947,6 +9659,13 @@
     "cw": 3,
     "ch": 2,
     "set": "pi_living"
+   },
+   "tv_set": {
+    "w": 46,
+    "h": 32,
+    "cw": 2,
+    "ch": 2,
+    "set": "tv_table"
    },
    "f03_bed_green": {
     "w": 44,
@@ -10067,55 +9786,6 @@
     "ch": 2,
     "set": "mi_free"
    },
-   "cabinet_vanity_brown_a": {
-    "w": 32,
-    "h": 32,
-    "cw": 2,
-    "ch": 2,
-    "set": "pi_bath"
-   },
-   "cabinet_vanity_brown_b": {
-    "w": 32,
-    "h": 32,
-    "cw": 2,
-    "ch": 2,
-    "set": "pi_bath"
-   },
-   "cabinet_vanity_white": {
-    "w": 32,
-    "h": 32,
-    "cw": 2,
-    "ch": 2,
-    "set": "pi_bath"
-   },
-   "chair_black_back_b": {
-    "w": 32,
-    "h": 32,
-    "cw": 2,
-    "ch": 2,
-    "set": "pi_living"
-   },
-   "chair_black_side_b": {
-    "w": 32,
-    "h": 32,
-    "cw": 2,
-    "ch": 2,
-    "set": "pi_living"
-   },
-   "chair_dark_back_b": {
-    "w": 32,
-    "h": 32,
-    "cw": 2,
-    "ch": 2,
-    "set": "pi_living"
-   },
-   "chair_dark_side_b": {
-    "w": 32,
-    "h": 32,
-    "cw": 2,
-    "ch": 2,
-    "set": "pi_living"
-   },
    "chair_medium_back_b": {
     "w": 32,
     "h": 32,
@@ -10227,13 +9897,6 @@
     "cw": 2,
     "ch": 2,
     "set": "mi_free"
-   },
-   "f03_easel_painting": {
-    "w": 32,
-    "h": 32,
-    "cw": 2,
-    "ch": 2,
-    "set": "furniture03"
    },
    "f03_potted_plant": {
     "w": 32,
@@ -10601,6 +10264,13 @@
     "cw": 2,
     "ch": 2,
     "set": "furniture_assets"
+   },
+   "kitchen_workspace_2": {
+    "w": 32,
+    "h": 32,
+    "cw": 2,
+    "ch": 2,
+    "set": "kitchen_workspace"
    },
    "lamp_table_cream_dark": {
     "w": 32,
@@ -12450,41 +12120,6 @@
     "ch": 2,
     "set": "cyberpunk_city_props"
    },
-   "nightstand_brown_c": {
-    "w": 32,
-    "h": 32,
-    "cw": 2,
-    "ch": 2,
-    "set": "pi_bedroom"
-   },
-   "nightstand_brown_colorful": {
-    "w": 32,
-    "h": 32,
-    "cw": 2,
-    "ch": 2,
-    "set": "pi_bedroom"
-   },
-   "nightstand_brown_d": {
-    "w": 32,
-    "h": 32,
-    "cw": 2,
-    "ch": 2,
-    "set": "pi_bedroom"
-   },
-   "nightstand_brown_g": {
-    "w": 32,
-    "h": 32,
-    "cw": 2,
-    "ch": 2,
-    "set": "pi_bedroom"
-   },
-   "nightstand_brown_h": {
-    "w": 32,
-    "h": 32,
-    "cw": 2,
-    "ch": 2,
-    "set": "pi_bedroom"
-   },
    "nightstand_olive1": {
     "w": 32,
     "h": 32,
@@ -12498,13 +12133,6 @@
     "cw": 2,
     "ch": 2,
     "set": "topdown"
-   },
-   "nightstand_white_c": {
-    "w": 32,
-    "h": 32,
-    "cw": 2,
-    "ch": 2,
-    "set": "pi_bedroom"
    },
    "office_chair_fa": {
     "w": 32,
@@ -12884,27 +12512,6 @@
     "ch": 2,
     "set": "pi_living"
    },
-   "stool_round_brown": {
-    "w": 32,
-    "h": 32,
-    "cw": 2,
-    "ch": 2,
-    "set": "pi_living"
-   },
-   "stool_round_cream": {
-    "w": 32,
-    "h": 32,
-    "cw": 2,
-    "ch": 2,
-    "set": "pi_living"
-   },
-   "stool_round_dark": {
-    "w": 32,
-    "h": 32,
-    "cw": 2,
-    "ch": 2,
-    "set": "pi_living"
-   },
    "table_long_tan_ti": {
     "w": 32,
     "h": 32,
@@ -13073,6 +12680,13 @@
     "ch": 2,
     "set": "mi_free"
    },
+   "livi_001_2": {
+    "w": 31,
+    "h": 32,
+    "cw": 1,
+    "ch": 2,
+    "set": "pi_living"
+   },
    "tile_85": {
     "w": 25,
     "h": 32,
@@ -13128,13 +12742,6 @@
     "cw": 1,
     "ch": 2,
     "set": "small_items02"
-   },
-   "cabinet_narrow_dark": {
-    "w": 16,
-    "h": 32,
-    "cw": 1,
-    "ch": 2,
-    "set": "pi_bedroom"
    },
    "chair_black_back_a": {
     "w": 16,
@@ -13297,12 +12904,26 @@
     "ch": 2,
     "set": "pi_living"
    },
-   "clock_alarm_small": {
+   "cybe_10": {
     "w": 16,
     "h": 32,
     "cw": 1,
     "ch": 2,
-    "set": "pi_bedroom"
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_props"
+   },
+   "cybe_8": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2,
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_props"
+   },
+   "cybe_9": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2,
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_props"
    },
    "cybe_91": {
     "w": 16,
@@ -13310,6 +12931,20 @@
     "cw": 1,
     "ch": 2,
     "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_props"
+   },
+   "deco_90": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2,
+    "set": "pi_bedroom"
+   },
+   "deco_92": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2,
+    "set": "pi_bedroom"
    },
    "f03_chess": {
     "w": 16,
@@ -13688,6 +13323,20 @@
     "cw": 1,
     "ch": 2,
     "set": "pi_bedroom"
+   },
+   "livi_001": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2,
+    "set": "pi_living"
+   },
+   "livi_001_3": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2,
+    "set": "pi_living"
    },
    "med_004": {
     "w": 16,
@@ -17112,34 +16761,6 @@
     "ch": 2,
     "set": "pi_bedroom"
    },
-   "nightstand_brown_e": {
-    "w": 16,
-    "h": 32,
-    "cw": 1,
-    "ch": 2,
-    "set": "pi_bedroom"
-   },
-   "nightstand_brown_f": {
-    "w": 16,
-    "h": 32,
-    "cw": 1,
-    "ch": 2,
-    "set": "pi_bedroom"
-   },
-   "nightstand_white_a": {
-    "w": 16,
-    "h": 32,
-    "cw": 1,
-    "ch": 2,
-    "set": "pi_bedroom"
-   },
-   "nightstand_white_b": {
-    "w": 16,
-    "h": 32,
-    "cw": 1,
-    "ch": 2,
-    "set": "pi_bedroom"
-   },
    "painting_campfire": {
     "w": 16,
     "h": 32,
@@ -17167,6 +16788,13 @@
     "cw": 1,
     "ch": 2,
     "set": "paintings"
+   },
+   "painting_stripes_wide": {
+    "w": 16,
+    "h": 32,
+    "cw": 1,
+    "ch": 2,
+    "set": "pi_bedroom"
    },
    "painting_sunflower": {
     "w": 16,
@@ -17448,6 +17076,20 @@
     "ch": 1,
     "set": "wardrobe"
    },
+   "warm_bookshelf": {
+    "w": 24,
+    "h": 31,
+    "cw": 1,
+    "ch": 1,
+    "set": "bookcase"
+   },
+   "floor_lava_lamp": {
+    "w": 14,
+    "h": 31,
+    "cw": 0,
+    "ch": 1,
+    "set": "floor_lamp"
+   },
    "door_92": {
     "w": 49,
     "h": 30,
@@ -17483,12 +17125,26 @@
     "ch": 1,
     "set": "doorswindowsstairs_back"
    },
+   "kitchen_workspace": {
+    "w": 32,
+    "h": 30,
+    "cw": 2,
+    "ch": 1,
+    "set": "kitchen_workspace"
+   },
    "morderngrocery_04_stove_front": {
     "w": 32,
     "h": 30,
     "cw": 2,
     "ch": 1,
     "set": "mi_grocery_store"
+   },
+   "furn_002": {
+    "w": 30,
+    "h": 30,
+    "cw": 1,
+    "ch": 1,
+    "set": "furniture03"
    },
    "nosh_132_window_2pane_stacked": {
     "w": 25,
@@ -17497,12 +17153,40 @@
     "ch": 1,
     "set": "interior_no_shadow"
    },
+   "coff_90": {
+    "w": 20,
+    "h": 30,
+    "cw": 1,
+    "ch": 1,
+    "set": "coffee_shop_tiles_png_coffee_shop_props"
+   },
+   "coff_91": {
+    "w": 20,
+    "h": 30,
+    "cw": 1,
+    "ch": 1,
+    "set": "coffee_shop_tiles_png_coffee_shop_props"
+   },
+   "coff_93": {
+    "w": 20,
+    "h": 30,
+    "cw": 1,
+    "ch": 1,
+    "set": "coffee_shop_tiles_png_coffee_shop_props"
+   },
    "nosh_121_tv_radio_b": {
     "w": 19,
     "h": 30,
     "cw": 1,
     "ch": 1,
     "set": "interior_no_shadow"
+   },
+   "blue_ref": {
+    "w": 16,
+    "h": 30,
+    "cw": 1,
+    "ch": 1,
+    "set": "refrigerator"
    },
    "new_75": {
     "w": 64,
@@ -17518,12 +17202,26 @@
     "ch": 1,
     "set": "doorswindowsstairs_back"
    },
+   "coff_89_2": {
+    "w": 48,
+    "h": 29,
+    "cw": 3,
+    "ch": 1,
+    "set": "coffee_shop_tiles_png_coffee_shop_props"
+   },
    "med_007": {
     "w": 32,
     "h": 29,
     "cw": 2,
     "ch": 1,
     "set": "medieval_pack"
+   },
+   "coff_92": {
+    "w": 22,
+    "h": 29,
+    "cw": 1,
+    "ch": 1,
+    "set": "coffee_shop_tiles_png_coffee_shop_props"
    },
    "moritl_031_sink_pedestal": {
     "w": 21,
@@ -17601,6 +17299,13 @@
     "cw": 1,
     "ch": 1,
     "set": "interior_tiles_lite"
+   },
+   "mirror_stand": {
+    "w": 16,
+    "h": 29,
+    "cw": 1,
+    "ch": 1,
+    "set": "mirror"
    },
    "mordhalloween_035_dungeon_scene": {
     "w": 25,
@@ -17804,6 +17509,13 @@
     "cw": 1,
     "ch": 1,
     "set": "interior_no_shadow"
+   },
+   "furn_001_2": {
+    "w": 16,
+    "h": 26,
+    "cw": 1,
+    "ch": 1,
+    "set": "furniture03"
    },
    "nosh_166_curtain_panel_purple_small": {
     "w": 12,
@@ -18099,6 +17811,27 @@
     "ch": 1,
     "set": "ppfurniture_pack_freev"
    },
+   "mordkit2_001a_wall_colors_strip": {
+    "w": 17,
+    "h": 25,
+    "cw": 1,
+    "ch": 1,
+    "set": "kitchen"
+   },
+   "livi_002": {
+    "w": 16,
+    "h": 25,
+    "cw": 1,
+    "ch": 1,
+    "set": "pi_living"
+   },
+   "livi_002_3": {
+    "w": 16,
+    "h": 25,
+    "cw": 1,
+    "ch": 1,
+    "set": "pi_living"
+   },
    "nosh_059_chair_highback": {
     "w": 16,
     "h": 25,
@@ -18368,6 +18101,62 @@
     "ch": 1,
     "set": "mi_grocery_store"
    },
+   "mordkit2_2": {
+    "w": 16,
+    "h": 24,
+    "cw": 1,
+    "ch": 1,
+    "set": "kitchen"
+   },
+   "mordkit2_3": {
+    "w": 16,
+    "h": 24,
+    "cw": 1,
+    "ch": 1,
+    "set": "kitchen"
+   },
+   "mordkit2_4": {
+    "w": 16,
+    "h": 24,
+    "cw": 1,
+    "ch": 1,
+    "set": "kitchen"
+   },
+   "mordkit2_5": {
+    "w": 16,
+    "h": 24,
+    "cw": 1,
+    "ch": 1,
+    "set": "kitchen"
+   },
+   "mordkit2_6": {
+    "w": 16,
+    "h": 24,
+    "cw": 1,
+    "ch": 1,
+    "set": "kitchen"
+   },
+   "mordkit2_7": {
+    "w": 16,
+    "h": 24,
+    "cw": 1,
+    "ch": 1,
+    "set": "kitchen"
+   },
+   "mordkit2_8": {
+    "w": 16,
+    "h": 24,
+    "cw": 1,
+    "ch": 1,
+    "set": "kitchen"
+   },
+   "mordkit2_9": {
+    "w": 16,
+    "h": 24,
+    "cw": 1,
+    "ch": 1,
+    "set": "kitchen"
+   },
    "nosh_010_side_table_arch_brown": {
     "w": 15,
     "h": 24,
@@ -18585,6 +18374,13 @@
     "ch": 1,
     "set": "animationsprite"
    },
+   "cabinet_vanity_brown_b": {
+    "w": 32,
+    "h": 22,
+    "cw": 2,
+    "ch": 1,
+    "set": "pi_bath"
+   },
    "fmp_011": {
     "w": 32,
     "h": 22,
@@ -18788,6 +18584,20 @@
     "ch": 1,
     "set": "interior_no_shadow"
    },
+   "fixt_001": {
+    "w": 32,
+    "h": 21,
+    "cw": 2,
+    "ch": 1,
+    "set": "pi_bath"
+   },
+   "fixt_004": {
+    "w": 32,
+    "h": 21,
+    "cw": 2,
+    "ch": 1,
+    "set": "pi_bath"
+   },
    "fmp_066": {
     "w": 32,
     "h": 21,
@@ -18808,6 +18618,13 @@
     "cw": 2,
     "ch": 1,
     "set": "mi_halloween"
+   },
+   "couch_warm": {
+    "w": 31,
+    "h": 21,
+    "cw": 1,
+    "ch": 1,
+    "set": "couch"
    },
    "pixe_93": {
     "w": 26,
@@ -18871,6 +18688,34 @@
     "cw": 3,
     "ch": 1,
     "set": "mi_grocery_store"
+   },
+   "livi_008": {
+    "w": 36,
+    "h": 20,
+    "cw": 2,
+    "ch": 1,
+    "set": "pi_living"
+   },
+   "livi_010": {
+    "w": 36,
+    "h": 20,
+    "cw": 2,
+    "ch": 1,
+    "set": "pi_living"
+   },
+   "cabinet_vanity_brown_a": {
+    "w": 32,
+    "h": 20,
+    "cw": 2,
+    "ch": 1,
+    "set": "pi_bath"
+   },
+   "cabinet_vanity_white": {
+    "w": 32,
+    "h": 20,
+    "cw": 2,
+    "ch": 1,
+    "set": "pi_bath"
    },
    "mordernBase_01_tv_back": {
     "w": 29,
@@ -18941,6 +18786,76 @@
     "cw": 1,
     "ch": 1,
     "set": "tiles_and_items"
+   },
+   "ward_001": {
+    "w": 16,
+    "h": 20,
+    "cw": 1,
+    "ch": 1,
+    "set": "pi_bedroom"
+   },
+   "ward_002": {
+    "w": 16,
+    "h": 20,
+    "cw": 1,
+    "ch": 1,
+    "set": "pi_bedroom"
+   },
+   "ward_003": {
+    "w": 16,
+    "h": 20,
+    "cw": 1,
+    "ch": 1,
+    "set": "pi_bedroom"
+   },
+   "ward_005": {
+    "w": 16,
+    "h": 20,
+    "cw": 1,
+    "ch": 1,
+    "set": "pi_bedroom"
+   },
+   "ward_006": {
+    "w": 16,
+    "h": 20,
+    "cw": 1,
+    "ch": 1,
+    "set": "pi_bedroom"
+   },
+   "ward_008": {
+    "w": 16,
+    "h": 20,
+    "cw": 1,
+    "ch": 1,
+    "set": "pi_bedroom"
+   },
+   "ward_009": {
+    "w": 16,
+    "h": 20,
+    "cw": 1,
+    "ch": 1,
+    "set": "pi_bedroom"
+   },
+   "ward_001_2": {
+    "w": 14,
+    "h": 20,
+    "cw": 0,
+    "ch": 1,
+    "set": "pi_bedroom"
+   },
+   "ward_004": {
+    "w": 14,
+    "h": 20,
+    "cw": 0,
+    "ch": 1,
+    "set": "pi_bedroom"
+   },
+   "ward_007": {
+    "w": 14,
+    "h": 20,
+    "cw": 0,
+    "ch": 1,
+    "set": "pi_bedroom"
    },
    "neon_4": {
     "w": 36,
@@ -19089,6 +19004,13 @@
     "ch": 1,
     "set": "interior_no_shadow"
    },
+   "pi_floortile_cream": {
+    "w": 17,
+    "h": 17,
+    "cw": 1,
+    "ch": 1,
+    "set": "pi_living"
+   },
    "mordlivingroom_02_cabinnet_mirror": {
     "w": 16,
     "h": 17,
@@ -19102,6 +19024,27 @@
     "cw": 1,
     "ch": 1,
     "set": "interior_no_shadow"
+   },
+   "pi_floorcolor_pink": {
+    "w": 16,
+    "h": 17,
+    "cw": 1,
+    "ch": 1,
+    "set": "pi_living"
+   },
+   "pi_floorcolor_sage": {
+    "w": 16,
+    "h": 17,
+    "cw": 1,
+    "ch": 1,
+    "set": "pi_living"
+   },
+   "floo_90": {
+    "w": 15,
+    "h": 17,
+    "cw": 0,
+    "ch": 1,
+    "set": "pi_living"
    },
    "mordkitchen_001_swatch_strip_a": {
     "w": 144,
@@ -19159,20 +19102,6 @@
     "ch": 1,
     "set": "pi_living"
    },
-   "stool_bench_dark": {
-    "w": 64,
-    "h": 16,
-    "cw": 4,
-    "ch": 1,
-    "set": "floors_walls02"
-   },
-   "stool_bench_light": {
-    "w": 64,
-    "h": 16,
-    "cw": 4,
-    "ch": 1,
-    "set": "floors_walls02"
-   },
    "mat_oval_blue": {
     "w": 48,
     "h": 16,
@@ -19181,13 +19110,6 @@
     "set": "pi_bath"
    },
    "mat_oval_sage": {
-    "w": 48,
-    "h": 16,
-    "cw": 3,
-    "ch": 1,
-    "set": "pi_bath"
-   },
-   "mat_oval_teal": {
     "w": 48,
     "h": 16,
     "cw": 3,
@@ -19320,12 +19242,26 @@
     "ch": 1,
     "set": "pi_living"
    },
+   "furn_001": {
+    "w": 44,
+    "h": 16,
+    "cw": 2,
+    "ch": 1,
+    "set": "furniture03"
+   },
    "neon": {
     "w": 39,
     "h": 16,
     "cw": 2,
     "ch": 1,
     "set": "16px_cyberpunk_cyb_assets_neons"
+   },
+   "cybe_4": {
+    "w": 32,
+    "h": 16,
+    "cw": 2,
+    "ch": 1,
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_props"
    },
    "cybe_90": {
     "w": 32,
@@ -19396,6 +19332,27 @@
     "cw": 2,
     "ch": 1,
     "set": "mi_free"
+   },
+   "livi_002_2": {
+    "w": 32,
+    "h": 16,
+    "cw": 2,
+    "ch": 1,
+    "set": "pi_living"
+   },
+   "livi_004": {
+    "w": 32,
+    "h": 16,
+    "cw": 2,
+    "ch": 1,
+    "set": "pi_living"
+   },
+   "livi_006": {
+    "w": 32,
+    "h": 16,
+    "cw": 2,
+    "ch": 1,
+    "set": "pi_living"
    },
    "mat_small_blue": {
     "w": 32,
@@ -20419,33 +20376,19 @@
     "ch": 1,
     "set": "pi_living"
    },
-   "stool_small_a": {
-    "w": 32,
-    "h": 16,
-    "cw": 2,
-    "ch": 1,
-    "set": "pi_bedroom"
-   },
-   "stool_small_b": {
-    "w": 32,
-    "h": 16,
-    "cw": 2,
-    "ch": 1,
-    "set": "pi_bedroom"
-   },
-   "stool_small_c": {
-    "w": 32,
-    "h": 16,
-    "cw": 2,
-    "ch": 1,
-    "set": "pi_bedroom"
-   },
    "tile_wall_mine_22": {
     "w": 32,
     "h": 16,
     "cw": 2,
     "ch": 1,
     "set": "goldrush"
+   },
+   "ward_012": {
+    "w": 32,
+    "h": 16,
+    "cw": 2,
+    "ch": 1,
+    "set": "pi_bedroom"
    },
    "mordernhospital_03_whiteboard": {
     "w": 28,
@@ -20692,12 +20635,103 @@
     "ch": 1,
     "set": "small_items02"
    },
+   "cybe": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_props"
+   },
+   "cybe_11": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_props"
+   },
    "cybe_118": {
     "w": 16,
     "h": 16,
     "cw": 1,
     "ch": 1,
     "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_tiles_fences"
+   },
+   "cybe_12": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_props"
+   },
+   "cybe_13": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_props"
+   },
+   "cybe_14": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_props"
+   },
+   "cybe_15": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_props"
+   },
+   "cybe_16": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_props"
+   },
+   "cybe_17": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_props"
+   },
+   "cybe_2": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_props"
+   },
+   "cybe_3": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_props"
+   },
+   "cybe_5": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_props"
+   },
+   "cybe_6": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_props"
+   },
+   "cybe_7": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_props"
    },
    "cybe_87": {
     "w": 16,
@@ -20719,6 +20753,27 @@
     "cw": 1,
     "ch": 1,
     "set": "cyberpunk_cyberpunk_city_ext_v1_0_cyberpunk_city_props"
+   },
+   "deco_89": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "pi_bedroom"
+   },
+   "deco_91": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "pi_bedroom"
+   },
+   "deco_93": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "pi_bedroom"
    },
    "desk_calendar": {
     "w": 16,
@@ -21070,6 +21125,13 @@
     "ch": 1,
     "set": "free_modern_pack"
    },
+   "fmp_tile_03": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "free_modern_pack"
+   },
    "fmp_tile_06": {
     "w": 16,
     "h": 16,
@@ -21104,6 +21166,62 @@
     "cw": 1,
     "ch": 1,
     "set": "mi_free"
+   },
+   "free_89": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "free_modern_pack"
+   },
+   "free_90": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "free_modern_pack"
+   },
+   "free_91": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "free_modern_pack"
+   },
+   "free_92": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "free_modern_pack"
+   },
+   "free_93": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "free_modern_pack"
+   },
+   "free_94": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "free_modern_pack"
+   },
+   "free_95": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "free_modern_pack"
+   },
+   "free_96": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "free_modern_pack"
    },
    "glass_blue1_td": {
     "w": 16,
@@ -21181,6 +21299,27 @@
     "cw": 1,
     "ch": 1,
     "set": "topdown"
+   },
+   "livi_003": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "pi_living"
+   },
+   "livi_005": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "pi_living"
+   },
+   "livi_007": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "pi_living"
    },
    "med_012": {
     "w": 16,
@@ -24353,6 +24492,13 @@
     "ch": 1,
     "set": "topdown"
    },
+   "pi_floortile_gray": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "pi_living"
+   },
    "pie_pink_td": {
     "w": 16,
     "h": 16,
@@ -25603,6 +25749,27 @@
     "ch": 1,
     "set": "mi_free"
    },
+   "tile_wall_cyber": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "wall_0005_city_x003_y001"
+   },
+   "tile_wall_cyber_2": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "wall_0004_city_x002_y001"
+   },
+   "tile_wall_cyber_3": {
+    "w": 16,
+    "h": 16,
+    "cw": 1,
+    "ch": 1,
+    "set": "wall_0002_city_x000_y001"
+   },
    "tile_wall_left_bottom": {
     "w": 16,
     "h": 16,
@@ -25925,6 +26092,20 @@
     "ch": 1,
     "set": "topdown"
    },
+   "pi_floorcolor_gray": {
+    "w": 15,
+    "h": 16,
+    "cw": 0,
+    "ch": 1,
+    "set": "pi_living"
+   },
+   "pi_floortile_dark": {
+    "w": 15,
+    "h": 16,
+    "cw": 0,
+    "ch": 1,
+    "set": "pi_living"
+   },
    "fire_extinguisher_sm": {
     "w": 11,
     "h": 16,
@@ -25988,6 +26169,20 @@
     "ch": 0,
     "set": "16px_coffee_shop_tiles_png_coffee_shop_props"
    },
+   "floo_89": {
+    "w": 16,
+    "h": 15,
+    "cw": 1,
+    "ch": 0,
+    "set": "pi_living"
+   },
+   "mordkit2_10": {
+    "w": 22,
+    "h": 14,
+    "cw": 1,
+    "ch": 0,
+    "set": "kitchen"
+   },
    "med_beer": {
     "w": 15,
     "h": 14,
@@ -26008,6 +26203,13 @@
     "cw": 1,
     "ch": 0,
     "set": "interior_tiles_lite"
+   },
+   "warm_rug": {
+    "w": 23,
+    "h": 13,
+    "cw": 1,
+    "ch": 0,
+    "set": "carpet_medium"
    },
    "nosh_177_rug_green_oval_small": {
     "w": 21,
@@ -26058,6 +26260,13 @@
     "ch": 0,
     "set": "8_gym_shadowless"
    },
+   "cutlery_3": {
+    "w": 8,
+    "h": 12,
+    "cw": 0,
+    "ch": 0,
+    "set": "kitchen"
+   },
    "cybe_113": {
     "w": 8,
     "h": 12,
@@ -26092,6 +26301,34 @@
     "cw": 1,
     "ch": 0,
     "set": "topdown"
+   },
+   "ward_010": {
+    "w": 12,
+    "h": 10,
+    "cw": 0,
+    "ch": 0,
+    "set": "pi_bedroom"
+   },
+   "ward_011": {
+    "w": 12,
+    "h": 10,
+    "cw": 0,
+    "ch": 0,
+    "set": "pi_bedroom"
+   },
+   "ward_013": {
+    "w": 12,
+    "h": 10,
+    "cw": 0,
+    "ch": 0,
+    "set": "pi_bedroom"
+   },
+   "clock_alarm_small": {
+    "w": 10,
+    "h": 10,
+    "cw": 0,
+    "ch": 0,
+    "set": "pi_bedroom"
    },
    "cybe_116": {
     "w": 10,
@@ -26134,6 +26371,34 @@
     "cw": 1,
     "ch": 0,
     "set": "topdown"
+   },
+   "cutlery": {
+    "w": 12,
+    "h": 8,
+    "cw": 0,
+    "ch": 0,
+    "set": "kitchen"
+   },
+   "cutlery_2": {
+    "w": 12,
+    "h": 8,
+    "cw": 0,
+    "ch": 0,
+    "set": "kitchen"
+   },
+   "livi_009": {
+    "w": 32,
+    "h": 6,
+    "cw": 2,
+    "ch": 0,
+    "set": "pi_living"
+   },
+   "livi_011": {
+    "w": 32,
+    "h": 6,
+    "cw": 2,
+    "ch": 0,
+    "set": "pi_living"
    },
    "cybe_115": {
     "w": 8,

@@ -24,7 +24,7 @@ const MESSAGES: Record<string, string> = {
   insufficient_funds: "돈이 부족해요. 재화를 번 뒤 다시 구입해주세요",
   has_children: "위에 올린 걸 먼저 치운 다음 다시 시도해주세요",
   not_found: "이미 없어진 아이템이에요",
-  bad_span: "벽지 폭이 이상해요",
+  bad_span: "크기가 이상해요",
   not_for_sale: "파는 물건이 아니에요",
   fixed_item: "이건 방의 일부라 손댈 수 없어요",
   unknown_room: "없는 방이에요",
@@ -177,10 +177,10 @@ export const api = {
   room: (roomId: string, etagVersion?: number) =>
     call<RoomResponse | null>("GET", `/api/room/${encodeURIComponent(roomId)}`, undefined,
       etagVersion === undefined || etagVersion < 0 ? {} : { "If-None-Match": `"${etagVersion}"` }),
-  place: (room_id: string, item_id: string, x: number, y: number, span?: number | null) =>
-    call<{ uid: number; balance: number; version: number; room: string }>("POST", "/api/room/place", { room_id, item_id, x, y, span: span ?? undefined }),
-  move: (uid: number, x: number, y: number, span?: number | null) =>
-    call<{ uid: number; version: number; balance: number }>("POST", "/api/room/move", { uid, x, y, span: span ?? undefined }),
+  place: (room_id: string, item_id: string, x: number, y: number, span?: number | null, span_h?: number | null) =>
+    call<{ uid: number; balance: number; version: number; room: string }>("POST", "/api/room/place", { room_id, item_id, x, y, span: span ?? undefined, span_h: span_h ?? undefined }),
+  move: (uid: number, x: number, y: number, span?: number | null, span_h?: number | null) =>
+    call<{ uid: number; version: number; balance: number }>("POST", "/api/room/move", { uid, x, y, span: span ?? undefined, span_h: span_h ?? undefined }),
   remove: (uid: number) => call<{ balance: number; version: number; room?: string; ruined?: number }>("DELETE", `/api/room/item/${uid}`),
   note: (uid: number, text: string) =>
     call<{ uid: number; version: number; room: string; note: string | null; note_by: string | null; note_ts: number | null }>("PUT", `/api/room/item/${uid}/note`, { text }),

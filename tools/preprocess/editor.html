@@ -71,6 +71,8 @@
   body:not([data-tab=items]) #itemsPanel, body:not([data-tab=items]) #itemsLeft { display: none; }
   body:not([data-tab=singles]) #singlesPanel, body:not([data-tab=singles]) #singlesLeft { display: none; }
   body[data-tab=chars] #right { display: none; }
+  #goSheet { display: none; margin-left: 6px; font-size: 11px; padding: 1px 8px; }
+  body[data-tab=items] #goSheet { display: inline-block; }
   #charPanel, #itemsPanel, #singlesPanel { padding: 12px; }
   .thumbs { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 10px; }
   .thumb { width: 48px; height: 96px; background-repeat: no-repeat; image-rendering: pixelated; border: 1px solid var(--line); background-color: #1a1a22; border-radius: 3px; }
@@ -119,6 +121,14 @@
     <button id="shrinkBtn" title="원본 격자 크기를 16px로 맞춘 사본을 assets/graphic/<루트>/_16px/ 에 만들어요 (16보다 크면 축소, 작으면 확대).">축소본 혹은 확대본 만들기</button>
     <select id="shrinkMethod" title="nearest: 2배 확대된 그림을 픽셀 그대로 되돌림 · box: 진짜 고해상도 그림을 평균내서 축소 · auto: 그림을 보고 고름"><option value="auto" selected>auto</option><option value="nearest">nearest</option><option value="box">box</option></select>
   </div>
+  <div class="row small" style="gap:4px; flex-wrap:wrap" title="시트에서 그림 덩어리를 찾아 auto_ 슬라이스로 추가해요. 이미 슬라이스가 덮고 있는 곳은 건너뛰어요. 추가된 건 체크돼 있으니 지우거나(체크 삭제) 이름 일괄 변경으로 이어가면 돼요. 슬라이스 저장 전까지는 파일에 안 써요.">
+    <button id="autoBtn" class="primary">✂ 자동 자르기</button>
+    <select id="autoMode" title="덩어리: 붙어 있는 픽셀끼리 하나 · 격자: 그림이 있는 칸마다 하나 (바닥·벽 타일)"><option value="blob">덩어리</option><option value="grid">격자</option></select>
+    <label title="이 픽셀 거리 안의 덩어리는 하나로 (떨어진 그림자·불빛). 0이 제일 정확해요"><span>간격</span><input type="number" id="autoGap" value="0" min="0" max="8" style="width:40px"></label>
+    <label title="긴 변이 이보다 작은 점은 버려요"><span>최소</span><input type="number" id="autoMin" value="6" min="1" max="64" style="width:40px"></label>
+    <label title="격자 모드의 칸 크기 / 칸 맞춤의 기준"><span>칸</span><input type="number" id="autoCell" value="16" min="4" max="128" style="width:44px"></label>
+    <label title="덩어리 상자를 칸 단위로 넓혀요 (겹치면 합침)"><input type="checkbox" id="autoSnap"> 칸 맞춤</label>
+  </div>
   <div class="row">
     <label><span>줌</span><select id="zoomSel"><option>1</option><option>2</option><option selected>3</option><option>4</option><option>6</option></select></label>
     <label><input type="checkbox" id="gridChk" checked> 격자</label>
@@ -129,6 +139,7 @@
     <button id="chkAll" title="목록에 보이는 것 전부">☑ 전체</button><button id="chkAuto" title="목록의 auto_ 만">☑ auto</button><button id="chkNone">☐ 해제</button>
     <button id="batchRename" class="primary" title="체크한 슬라이스의 key를 바꿈. 아래 칸이 비어 있으면 auto_/new_ 만 [폴더_]시트4글자_원래이름 으로, 적혀 있으면 체크한 전부를 그 이름(_2, _3… 또는 {n})으로">이름 일괄 변경</button>
     <button id="batchCreate" title="체크한 슬라이스 중 아이템이 없는 것(⚠)에 상점 항목을 만듦 (auto_/new_/tile_/맵 슬라이스는 건너뜀)">아이템 일괄 만들기</button>
+    <button id="batchDelete" class="danger" title="체크한 슬라이스를 지움 (아이템이 달린 건 건너뜀). 자동 자르기에서 필요 없는 걸 치울 때">체크 삭제</button>
     <button id="batchAnim" title="체크한 슬라이스들을 목록 순서대로 프레임 삼아 애니 슬라이스 하나를 만듦 (깜빡이는 불빛처럼 한 시트에서 따로 자른 그림들). 방 에디터 '효과 놓기'로 배치">🎞 체크한 걸로 애니 만들기</button>
   </div>
   <div class="row small" style="margin:0 0 4px; gap:6px">
@@ -156,6 +167,7 @@
     <div class="row small">
       <b id="itemSelInfo">0개 선택</b>
       <button id="itemPickAll" title="보이는 카드 전부 선택">☑ 보이는 것</button><button id="itemPickNone" title="선택 해제 (Esc)">☐ 해제</button>
+      <button id="itemDelPicked" class="danger" title="선택한 아이템을 items.json에서 지움 (Delete). 슬라이스는 남아요">선택 삭제</button>
     </div>
     <div id="itemTagChips" class="row small" style="gap:4px" title="선택한 아이템에 태그 켜기/끄기 — 전부 켜져 있으면 끄고, 아니면 켜요. 숫자키 1~9 = n번째 태그"></div>
     <div class="row small">
@@ -165,7 +177,7 @@
     <div class="row small" title="선택한 아이템의 레이어를 한 번에 바꿈 (가구가 아니면 is_surface는 꺼짐)">
       <span class="dim">레이어</span><select id="itemLayerSet"></select><button id="itemLayerApply">바꾸기</button>
     </div>
-    <div class="hint">카드 클릭=선택 토글 · Shift+클릭=범위 · ✎=슬라이스로 이동 · 카드의 태그 ×=그 태그 빼기.<br>바꾼 건 아래 <b>아이템 저장</b>을 눌러야 items.json에 들어가고, 서버는 재시작해야 읽어요.<br>썸네일은 마지막 <b>빌드</b> 결과(gen/interiors.png)라 새 슬라이스는 빌드 후에 보여요.</div>
+    <div class="hint">카드 클릭=선택 토글 + 오른쪽에 그 아이템 정보 · Shift+클릭=범위 · Delete=선택 삭제 · ✎ 또는 오른쪽 <b>시트로 가기</b>=슬라이스 시트로 이동 · 카드의 태그 ×=그 태그 빼기.<br>바꾼 건 아래 <b>아이템 저장</b>을 눌러야 items.json에 들어가고, 서버는 재시작해야 읽어요.<br>썸네일은 마지막 <b>빌드</b> 결과(gen/interiors.png)라 새 슬라이스는 빌드 후에 보여요.</div>
   </div>
   <div id="singlesLeft">
     <label><span>테마</span><select id="singlesTheme"></select></label>
@@ -190,7 +202,7 @@
       <input type="file" id="cFile" accept="image/png" multiple>
       <button id="cUpload" class="primary">업로드</button>
       <button id="cBuild">캐릭터 빌드</button>
-      <span class="hint">파일 이름 = 접두사_스타일번호_색번호.png (예: Hairstyle_30_01.png). 같은 스타일의 다른 색은 _02, _03… · 프리셋 캐릭터는 896×656 시트 대신 가로 띠 애니(이름_가로x세로.png, 예: Drone_36x30.png)도 돼요</span>
+      <span class="hint">파일 이름 = 접두사_스타일번호_색번호.png (예: Hairstyle_30_01.png). 같은 스타일의 다른 색은 _02, _03… · 프리셋 캐릭터는 896×656 시트 대신 가로 띠 애니(이름_가로x세로.png, 예: Drone_36x30.png)도 돼요. 띠를 4줄(오른쪽·뒤·왼쪽·앞)로 쌓으면 방향별로 써요</span>
     </div>
     <div id="charBody"></div>
   </div>
@@ -199,7 +211,7 @@
 <div id="right">
   <div id="none" class="dim">슬라이스를 선택하거나 시트에서 드래그하세요.</div>
   <div id="sliceForm" style="display:none">
-    <h3>슬라이스 <span id="sliceGroup" class="tag"></span></h3>
+    <h3>슬라이스 <span id="sliceGroup" class="tag"></span> <button id="goSheet" data-pc title="이 슬라이스가 있는 시트로 이동 (슬라이스 탭)">시트로 가기</button></h3>
     <label><span>key</span><input type="text" id="sKey"></label>
     <div id="rectForm">
       <div class="row">
@@ -323,6 +335,8 @@
     for (const [id, t] of [["tabFurn", "furn"], ["tabItems", "items"], ["tabSingles", "singles"], ["tabChars", "chars"]]) $(id).classList.toggle("on", t === tab);
     if (tab === "chars") loadChars();
     if (tab === "items") renderItemsGrid();
+    // an item peeked at in the items tab may live on another sheet: show that sheet when coming back here
+    if (tab === "furn" && sel) { if (sheetOf(sel) !== sheet) setSheet(sheetOf(sel), sel); else draw(); }
     if (tab === "singles") renderSingles();
   }
   $("tabFurn").onclick = () => setTab("furn");
@@ -485,6 +499,29 @@
     } else if (picked.has(it)) picked.delete(it); else picked.add(it);
     lastPick = it;
     gridOrder.forEach(cardMeta); renderPicked();
+    peekItem(it);
+  }
+  /** Show an item's slice + item form on the right without leaving the items tab (the sheet is not switched;
+   *  setTab("furn") catches up later). */
+  function peekItem(it) {
+    const s = allSlices().find((x) => x.key === it.sprite);
+    if (!s || s === sel) return;
+    sel = s; partIdx = 0; pickColor = false;
+    renderList(); renderPanel();
+    gridOrder.forEach((o) => { const c = cardOf.get(o); if (c) c.classList.toggle("sel", o.sprite === s.key); });
+  }
+  /** Drop the picked items from items.json (slices stay); partners lose their pair link. */
+  function deletePicked() {
+    const targets = [...picked];
+    if (!targets.length) { alert("먼저 카드를 골라주세요"); return; }
+    const names = targets.slice(0, 8).map((it) => it.id).join(", ") + (targets.length > 8 ? ` 외 ${targets.length - 8}개` : "");
+    if (!confirm(`아이템 ${targets.length}개를 지울까요? (슬라이스는 남아요)\n${names}`)) return;
+    const gone = new Set(targets.map((it) => it.id));
+    items = items.filter((it) => !gone.has(it.id));
+    items.forEach((o) => { if (o.pair && gone.has(o.pair)) delete o.pair; });
+    picked.clear(); lastPick = null; dirtyItems = true;
+    renderItemsGrid(); renderList(); renderItem();
+    log(`아이템 ${targets.length}개 삭제 — 아이템 저장으로 반영`);
   }
   async function renderItemsGrid() {
     const at = await loadAtlas("interior");
@@ -510,7 +547,6 @@
       const nm = document.createElement("div"); nm.className = "nm"; nm.title = it.id; nm.textContent = it.name || it.id; card.appendChild(nm);
       const meta = document.createElement("div"); meta.className = "hint meta"; card.appendChild(meta);
       card.onclick = (e) => pickCard(it, e);
-      card.ondblclick = () => go.onclick(new Event("click"));
       grid.appendChild(card); cardOf.set(it, card); cardMeta(it);
     }
     renderTagCounts(); renderPicked();
@@ -518,12 +554,15 @@
   for (const id of ["itemSearch", "itemTagSel", "itemSheetSel", "itemLayerSel", "itemNoPair"]) $(id).addEventListener("input", renderItemsGrid);
   $("itemPickAll").onclick = () => { gridOrder.forEach((it) => picked.add(it)); gridOrder.forEach(cardMeta); renderPicked(); };
   $("itemPickNone").onclick = () => { picked.clear(); gridOrder.forEach(cardMeta); renderPicked(); };
+  $("itemDelPicked").onclick = deletePicked;
+  $("goSheet").onclick = () => { if (sel) goTo(sel); };
   $("itemLayerApply").onclick = () => applyLayer([...picked], $("itemLayerSet").value);
   $("itemTagAdd").onclick = () => applyTag([...picked], $("itemTagNew").value, true);
   $("itemTagDel").onclick = () => applyTag([...picked], $("itemTagNew").value, false);
   window.addEventListener("keydown", (e) => {
     if (document.body.dataset.tab !== "items" || ["INPUT", "SELECT", "TEXTAREA"].includes(document.activeElement.tagName)) return;
     if (e.key === "Escape") { $("itemPickNone").onclick(); return; }
+    if (e.key === "Delete") { if (picked.size) { deletePicked(); e.preventDefault(); } return; }
     const i = parseInt(e.key, 10), t = knownTags()[i - 1];
     if (i >= 1 && t && picked.size) { applyTag([...picked], t); e.preventDefault(); }
   });
@@ -644,6 +683,40 @@
       setSheet(r.sheet);
       alert(`${kind}을 만들었어요 (${from}→16, ${r.method})\n${r.sheet}`);
     } finally { b.disabled = false; }
+  };
+
+  // ---- 자동 자르기: POST /api/autoslice → candidate rects; ones already covered by a slice are skipped
+  const overlapArea = (a, b) => Math.max(0, Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x)) * Math.max(0, Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y));
+  $("autoBtn").onclick = async () => {
+    if (noImage()) { alert("원본 그림이 있는 시트를 고르세요"); return; }
+    const b = $("autoBtn"); b.disabled = true;
+    try {
+      const body = { sheet, mode: $("autoMode").value, gap: +$("autoGap").value || 0, min: +$("autoMin").value || 1,
+                     cell: +$("autoCell").value || S.cell, snap: $("autoSnap").checked };
+      const res = await fetch("/api/autoslice", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+      if (res.status === 404) { alert("에디터 서버가 /api/autoslice를 몰라요 — 터미널에서 에디터를 껐다 다시 켜고 새로고침하세요"); return; }
+      const r = await res.json();
+      if (!r.ok) { alert(r.error || "실패"); return; }
+      const have = allSlices().filter((s) => sheetOf(s) === sheet).flatMap(rectsOf).filter((x) => x.sheet === sheet);
+      const list = groupOf(sheet) === "map" ? mapSlices : slices;
+      const prefix = `auto_${sheet.replace(/\//g, "_")}_`;
+      const taken = new Set(allSlices().map((s) => s.key));
+      let n = 1, added = 0, skipped = 0;
+      checked.clear();
+      for (const [x, y, w, h] of r.boxes) {
+        const box = { x, y, w, h };
+        if (have.some((o) => overlapArea(box, o) * 2 >= Math.min(w * h, o.w * o.h))) { skipped++; continue; }
+        while (taken.has(prefix + String(n).padStart(3, "0"))) n++;
+        const s = { key: prefix + String(n).padStart(3, "0"), sheet, x, y, w, h };
+        if (r.bg) s.transparent = r.bg;
+        taken.add(s.key); list.push(s); unsaved.add(s.key); checked.add(s); have.push(s); added++;
+      }
+      if (added) dirtySlices = true;
+      renderList(); draw(); updateBatchBtn();
+      log(`자동 자르기: ${r.boxes.length}개 찾음 · ${added}개 추가 · 이미 있는 ${skipped}개 건너뜀` + (r.bg ? ` · 배경색 ${r.bg.join(",")} 제거` : "") +
+          (added ? " — 추가한 건 체크돼 있어요 (필요 없는 건 체크 삭제, 나머지는 이름 일괄 변경 → 슬라이스 저장)" : ""));
+    } catch (e) { alert("자동 자르기 실패: " + e.message); }
+    finally { b.disabled = false; }
   };
 
   function setSheet(name, thenSelect = null) {
@@ -929,6 +1002,7 @@
   const updateBatchBtn = () => {
     $("batchRename").textContent = checked.size ? `이름 일괄 변경 (${checked.size})` : "이름 일괄 변경";
     $("batchCreate").textContent = checked.size ? `아이템 일괄 만들기 (${checked.size})` : "아이템 일괄 만들기";
+    $("batchDelete").textContent = checked.size ? `체크 삭제 (${checked.size})` : "체크 삭제";
   };
   const safeKey = (t) => t.toLowerCase().replace(/[^a-z0-9_]+/g, "_").replace(/^_+|_+$/g, "");
   /** Proposed key for a slice, or null when it is not an auto_/new_ slice. */
@@ -990,6 +1064,17 @@
     for (const [s, k] of plan) renameSlice(s, k);
     checked.clear(); $("batchName").value = ""; renderList(); renderPanel(); draw(); updateBatchBtn();
     log(`이름 ${plan.length}개 변경 — 저장 버튼으로 slices.json/items.json에 반영`);
+  };
+  $("batchDelete").onclick = () => {
+    const targets = checkedInOrder();
+    if (!targets.length) { alert("먼저 목록에서 체크하세요"); return; }
+    const todo = targets.filter((s) => !itemOf(s)), kept = targets.length - todo.length;
+    if (!todo.length) { alert("체크한 건 전부 아이템이 달려 있어서 못 지워요 (하나씩 지우면 아이템도 같이 지워져요)"); return; }
+    if (!confirm(`체크한 슬라이스 ${todo.length}개를 지울까요?${kept ? ` (아이템 달린 ${kept}개는 남겨요)` : ""}`)) return;
+    for (const s of todo) { const arr = listOf(s); arr.splice(arr.indexOf(s), 1); unsaved.delete(s.key); checked.delete(s); if (sel === s) sel = null; }
+    dirtySlices = true;
+    renderList(); renderPanel(); draw(); updateBatchBtn();
+    log(`슬라이스 ${todo.length}개 삭제 — 슬라이스 저장으로 반영`);
   };
   /** Shop item with the editor defaults for a slice rendered pw×ph pixels (same rule as 아이템 만들기 / scaffold). */
   function newItem(key, pw, ph) {

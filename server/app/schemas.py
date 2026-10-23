@@ -20,14 +20,16 @@ class PlaceIn(BaseModel):
     room_id: str = "inn"
     x: int
     y: int
-    span: int | None = Field(default=None, ge=1)  # wallpaper width in cells
+    span: int | None = Field(default=None, ge=1)  # wallpaper / floor pattern width in cells
+    span_h: int | None = Field(default=None, ge=1)  # floor pattern height in cells
 
 
 class MoveIn(BaseModel):
     uid: int
     x: int
     y: int
-    span: int | None = Field(default=None, ge=1)  # wallpaper: new width (None keeps the current one)
+    span: int | None = Field(default=None, ge=1)  # wallpaper / floor pattern: new width (None keeps the current one)
+    span_h: int | None = Field(default=None, ge=1)  # floor pattern: new height (None keeps the current one)
 
 
 class NoteIn(BaseModel):

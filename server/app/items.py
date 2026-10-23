@@ -5,7 +5,7 @@ import sqlite3
 from .catalog import TAG_RUINED, Catalog
 from .placement import ItemRow
 
-ITEM_COLS = "uid, item_id, x, y, z, parent_uid, placed_by, ts, span, room_id, note, note_by, note_ts"
+ITEM_COLS = "uid, item_id, x, y, z, parent_uid, placed_by, ts, span, room_id, note, note_by, note_ts, span_h"
 
 
 def load_items(conn: sqlite3.Connection, room_id: str) -> list[ItemRow]:

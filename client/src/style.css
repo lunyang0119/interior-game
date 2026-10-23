@@ -154,9 +154,10 @@ img, .framed { image-rendering: pixelated; }
 .shop-item.hl { outline: 3px solid var(--primary); animation: shop-hl 2.5s ease-out; }
 @keyframes shop-hl { 0%, 60% { filter: brightness(1.4); } 100% { filter: none; } }
 #place-label { color: var(--text); margin-right: 8px; }
-#place-span { display: inline-flex; align-items: center; gap: 6px; }
-#place-span button { padding: 4px 10px; font-weight: 700; }
-#place-span-val { min-width: 2ch; text-align: center; font-weight: 700; }
+#place-span, #place-span-h { display: inline-flex; align-items: center; gap: 6px; }
+#place-span button, #place-span-h button { padding: 4px 10px; font-weight: 700; }
+#place-span-val, #place-span-h-val { min-width: 2ch; text-align: center; font-weight: 700; }
+#place-span .axis, #place-span-h .axis { font-size: var(--fs-small); color: var(--muted); }
 
 /* ---- framed elements: default rounded look, or a pixel 9-slice when the theme provides a frame ---- */
 button, .chip {

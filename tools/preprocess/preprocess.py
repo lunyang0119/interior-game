@@ -48,7 +48,7 @@ import sys
 from collections import deque
 from pathlib import Path
 
-from PIL import Image, ImageDraw
+from PIL import Image, ImageChops, ImageDraw, ImageFilter
 
 sys.path.insert(0, str(Path(__file__).parent))
 import config as C  # noqa: E402
@@ -409,6 +409,107 @@ def merge_overlapping(boxes: list[tuple[int, int, int, int]]) -> list[tuple[int,
     return boxes
 
 
+# ---- editor 자동 슬라이스 (POST /api/autoslice): faster than find_components and tolerant of small gaps
+
+AUTO_ALPHA_MIN = 4  # alpha above this counts as a pixel (faint antialias noise does not)
+
+
+def opaque_mask(im: Image.Image) -> tuple[Image.Image, tuple[int, int, int] | None]:
+    """('L' mask 0/255 of the drawn pixels, background colour or None). A sheet with no transparency at all is read
+    as drawn on a flat background: the most common corner colour, which the slice then removes via `transparent`."""
+    im = im.convert("RGBA")
+    a = im.getchannel("A")
+    if a.getextrema()[0] < 255:
+        return a.point(lambda v: 255 if v > AUTO_ALPHA_MIN else 0), None
+    w, h = im.size
+    corners = [im.getpixel(p)[:3] for p in ((0, 0), (w - 1, 0), (0, h - 1), (w - 1, h - 1))]
+    bg = max(set(corners), key=corners.count)
+    diff = ImageChops.difference(im.convert("RGB"), Image.new("RGB", im.size, bg))
+    r, g, b = diff.split()
+    return ImageChops.lighter(ImageChops.lighter(r, g), b).point(lambda v: 255 if v else 0), bg
+
+
+def mask_components(mask: Image.Image) -> list[tuple[int, int, int, int]]:
+    """Bounding boxes (x, y, w, h) of the 8-connected regions of an 'L' mask: row runs + union-find, so a big
+    mostly-empty sheet costs about one regex pass per row."""
+    w, h = mask.size
+    data = mask.tobytes()
+    parent: list[int] = []
+    box: list[list[int]] = []  # per label [x0, y0, x1, y1] (inclusive)
+
+    def find(i: int) -> int:
+        while parent[i] != i:
+            parent[i] = parent[parent[i]]
+            i = parent[i]
+        return i
+
+    prev: list[tuple[int, int, int]] = []  # runs of the previous row: (start, end exclusive, label)
+    run = re.compile(rb"[^\x00]+")
+    for y in range(h):
+        cur = []
+        j = 0
+        for m in run.finditer(data, y * w, (y + 1) * w):
+            a, b = m.start() - y * w, m.end() - y * w
+            lab = len(parent)
+            parent.append(lab)
+            box.append([a, y, b - 1, y])
+            while j < len(prev) and prev[j][1] < a:  # ends left of a-1: cannot touch this or later runs
+                j += 1
+            k = j
+            while k < len(prev) and prev[k][0] <= b:  # starts at or before b (diagonal included)
+                ra, rb_ = find(lab), find(prev[k][2])
+                if ra != rb_:
+                    parent[ra] = rb_
+                k += 1
+            cur.append((a, b, lab))
+        prev = cur
+    merged: dict[int, list[int]] = {}
+    for lab, (x0, y0, x1, y1) in enumerate(box):
+        r = find(lab)
+        o = merged.get(r)
+        if o is None:
+            merged[r] = [x0, y0, x1, y1]
+        else:
+            o[0], o[1], o[2], o[3] = min(o[0], x0), min(o[1], y0), max(o[2], x1), max(o[3], y1)
+    return [(x0, y0, x1 - x0 + 1, y1 - y0 + 1) for x0, y0, x1, y1 in merged.values()]
+
+
+def detect_boxes(im: Image.Image, mode: str = "blob", gap: int = 0, snap_grid: bool = False, cell: int = C.CELL,
+                 min_px: int = 6) -> dict:
+    """Candidate slice rects on a sheet → {"boxes": [[x, y, w, h], ...] top-to-bottom, "bg": [r, g, b] | None}.
+    mode "blob": one box per drawn region; regions closer than `gap` px count as one (a lamp and its separate
+    glow, a chair and its shadow), boxes stay pixel-tight unless `snap_grid` rounds them out to `cell` and merges
+    the ones that then overlap. mode "grid": every `cell`×`cell` square that has any drawn pixel (tiles, walls).
+    Boxes whose longer side is under `min_px` are dropped (stray specks)."""
+    mask, bg = opaque_mask(im)
+    w, h = mask.size
+    if mode == "grid":
+        cell = max(1, int(cell))
+        boxes = [(x, y, min(cell, w - x), min(cell, h - y)) for y in range(0, h, cell) for x in range(0, w, cell)
+                 if mask.crop((x, y, min(x + cell, w), min(y + cell, h))).getbbox()]
+    else:
+        gap = max(0, min(8, int(gap)))
+        if gap:
+            boxes = []
+            for x, y, bw, bh in mask_components(mask.filter(ImageFilter.MaxFilter(2 * gap + 1))):
+                # the dilated box is the real one grown by `gap` (clipped at the sheet edge): shrink, then let
+                # getbbox fix the clipped sides
+                x0 = x + gap if x > 0 else 0
+                y0 = y + gap if y > 0 else 0
+                x1 = x + bw - gap if x + bw < w else w
+                y1 = y + bh - gap if y + bh < h else h
+                bb = mask.crop((x0, y0, x1, y1)).getbbox() if x1 > x0 and y1 > y0 else None
+                if bb:
+                    boxes.append((x0 + bb[0], y0 + bb[1], bb[2] - bb[0], bb[3] - bb[1]))
+        else:
+            boxes = mask_components(mask)
+        boxes = [b for b in boxes if max(b[2], b[3]) >= min_px]
+        if snap_grid:
+            boxes = [(x, y, min(bw, w - x), min(bh, h - y)) for x, y, bw, bh in merge_overlapping(snap(b) for b in boxes)]
+    boxes.sort(key=lambda b: (b[1], b[0]))
+    return {"boxes": [list(b) for b in boxes], "bg": list(bg) if bg else None}
+
+
 def cmd_scan(args: argparse.Namespace) -> None:
     sheet = args.sheet
     table = C.MAP_SHEETS if args.map else C.SHEETS
@@ -618,18 +719,23 @@ def frame_size(v: dict) -> tuple[int, int]:
 
 def _loop_strip(v: dict, anim: str) -> Image.Image:
     """A 24-frame strip for a loop-strip preset: FRAMES_PER_DIR frames sampled evenly from the loop for each
-    direction (so a long loop still fits), "left" mirrored. `anim` is ignored: run just plays faster."""
+    direction (so a long loop still fits). One row = the same loop for every direction, "left" mirrored;
+    len(DIRS) rows = one loop per direction in DIRS order (right, up, left, down), used as drawn.
+    `anim` is ignored: run just plays faster."""
     fw, fh = frame_size(v)
     im = Image.open(v["strip"]).convert("RGBA")
-    if im.height != fh or im.width < fw or im.width % fw:
-        raise SystemExit(f"{v['name']}: {v['strip'].name} should be a row of {fw}x{fh} frames, got {im.width}x{im.height}")
+    rows = im.height // fh if im.height in (fh, fh * len(C.DIRS)) else 0
+    if not rows or im.width < fw or im.width % fw:
+        raise SystemExit(f"{v['name']}: {v['strip'].name} should be a row of {fw}x{fh} frames "
+                         f"(or {len(C.DIRS)} rows, one per direction), got {im.width}x{im.height}")
     n = im.width // fw
-    frames = [im.crop((i * fw, 0, (i + 1) * fw, fh)) for i in range(n)]
     out = Image.new("RGBA", (fw * C.FRAMES_PER_DIR * len(C.DIRS), fh), (0, 0, 0, 0))
     for di, d in enumerate(C.DIRS):
+        row = di if rows > 1 else 0
+        frames = [im.crop((i * fw, row * fh, (i + 1) * fw, (row + 1) * fh)) for i in range(n)]
         for k in range(C.FRAMES_PER_DIR):
             fr = frames[(k * n) // C.FRAMES_PER_DIR]
-            if d == "left":
+            if d == "left" and rows == 1:
                 fr = fr.transpose(Image.Transpose.FLIP_LEFT_RIGHT)
             out.paste(fr, ((di * C.FRAMES_PER_DIR + k) * fw, 0))
     return out

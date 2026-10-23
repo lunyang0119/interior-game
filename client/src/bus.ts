@@ -14,8 +14,9 @@ export interface Events {
   "place:confirm": void;
   "place:confirm-again": void;
   "place:cancel": void;
-  "place:span": { delta: number };
-  "place:state": { active: boolean; label: string; ok: boolean; mode: "place" | "move" | null; busy?: boolean; span?: number | null; spanMax?: number };
+  /** −/+ on the placement bar: `axis` "w" (default) = columns (wallpaper, floor patterns), "h" = rows (floor patterns) */
+  "place:span": { delta: number; axis?: "w" | "h" };
+  "place:state": { active: boolean; label: string; ok: boolean; mode: "place" | "move" | null; busy?: boolean; span?: number | null; spanMax?: number; spanH?: number | null; spanHMax?: number };
   "room:refresh": void;
   "room:changed": { id: string; name: string; ruined: number; kind?: "room" | "mine"; floor?: number }; // the Room scene shows another room / junk count moved (floor: mine floor)
   "room:exit": { from: string; to: string; spawn: { x: number; y: number } }; // avatar stepped on an exit

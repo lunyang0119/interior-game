@@ -44,7 +44,7 @@ def _clear_seed_rows(conn: sqlite3.Connection, catalog: Catalog, room_id: str) -
     if not uids:
         return 0
     q = ",".join("?" * len(uids))
-    kids = conn.execute(f"SELECT uid, item_id, placed_by, span FROM items WHERE parent_uid IN ({q}) AND placed_by != ?",
+    kids = conn.execute(f"SELECT uid, item_id, placed_by, span, span_h FROM items WHERE parent_uid IN ({q}) AND placed_by != ?",
                         (*uids, config.SEED_PLAYER)).fetchall()
     for k in kids:
         it = catalog.items.get(k["item_id"])
@@ -52,7 +52,7 @@ def _clear_seed_rows(conn: sqlite3.Connection, catalog: Catalog, room_id: str) -
         if it is not None and k["placed_by"] not in config.SYSTEM_PLAYERS:  # a guest's note was never paid for
             conn.execute(
                 "INSERT INTO ledger(ts, player_id, amount, kind, item_uid, item_id) VALUES (?, ?, ?, 'refund', ?, ?)",
-                (now(), k["placed_by"], -price_of(it, k["span"]), k["uid"], k["item_id"]),
+                (now(), k["placed_by"], -price_of(it, k["span"], k["span_h"]), k["uid"], k["item_id"]),
             )
             log.info("seed %s: refunded %s's %s that sat on a seeded surface", room_id, k["placed_by"], k["item_id"])
     # children (seed cups on seed tables) before parents, FK-safe
@@ -73,7 +73,7 @@ def seed_room(conn: sqlite3.Connection, catalog: Catalog, room: Room) -> int:
         return 0
     removed = _clear_seed_rows(conn, catalog, room.id)
     rows = conn.execute(
-        "SELECT uid, item_id, x, y, z, parent_uid, placed_by, ts, span, room_id FROM items WHERE room_id = ? ORDER BY uid",
+        "SELECT uid, item_id, x, y, z, parent_uid, placed_by, ts, span, room_id, span_h FROM items WHERE room_id = ? ORDER BY uid",
         (room.id,),
     ).fetchall()
     present = [ItemRow(**dict(r)) for r in rows]
@@ -86,16 +86,16 @@ def seed_room(conn: sqlite3.Connection, catalog: Catalog, room: Room) -> int:
     order = sorted(room.seed, key=rank)
     for sd in order:
         try:
-            p = validate_place(catalog, present, sd.item_id, sd.x, sd.y, sd.span, room_id=room.id, relaxed=True)
+            p = validate_place(catalog, present, sd.item_id, sd.x, sd.y, sd.span, room_id=room.id, relaxed=True, span_h=sd.span_h)
         except ApiError as e:
             log.warning("seed %s: skipped %s at (%s,%s): %s", room.id, sd.item_id, sd.x, sd.y, e.code)
             continue
         cur = conn.execute(
-            "INSERT INTO items(item_id, x, y, z, parent_uid, placed_by, ts, span, room_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-            (sd.item_id, sd.x, sd.y, p.z, p.parent_uid, config.SEED_PLAYER, now(), sd.span, room.id),
+            "INSERT INTO items(item_id, x, y, z, parent_uid, placed_by, ts, span, room_id, span_h) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (sd.item_id, sd.x, sd.y, p.z, p.parent_uid, config.SEED_PLAYER, now(), sd.span, room.id, sd.span_h),
         )
         present.append(ItemRow(uid=cur.lastrowid or 0, item_id=sd.item_id, x=sd.x, y=sd.y, z=p.z, parent_uid=p.parent_uid,
-                               placed_by=config.SEED_PLAYER, ts=0, span=sd.span, room_id=room.id))
+                               placed_by=config.SEED_PLAYER, ts=0, span=sd.span, room_id=room.id, span_h=sd.span_h))
         inserted += 1
     _set_meta(conn, key, h)
     _set_meta(conn, f"seeded:{room.id}", 1)

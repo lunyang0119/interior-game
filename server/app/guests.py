@@ -342,8 +342,8 @@ def leave_note(conn, cat: Catalog, unit: Unit, items: list[ItemRow], c: Comfort,
             conn.execute("DELETE FROM items WHERE uid = ?", (r.uid,))
         text = note_text(c.score, data, rng)
         by = "개를 좋아하는 손님" if data.get("dog") else "손님"
-        conn.execute("INSERT INTO items(item_id, x, y, z, parent_uid, placed_by, ts, span, room_id, note, note_by, note_ts) "
-                     "VALUES (?, ?, ?, ?, ?, ?, ?, NULL, ?, ?, ?, ?)",
+        conn.execute("INSERT INTO items(item_id, x, y, z, parent_uid, placed_by, ts, span, span_h, room_id, note, note_by, note_ts) "
+                     "VALUES (?, ?, ?, ?, ?, ?, ?, NULL, NULL, ?, ?, ?, ?)",
                      (it.id, x, y, p.z, p.parent_uid, config.GUEST_PLAYER, ts, unit.room.id, text, by, ts))
         return True
     return False

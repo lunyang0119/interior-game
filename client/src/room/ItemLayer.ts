@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { SEED_PLAYER, Z_HUNG, Z_HUNG_PAPER, Z_SCALE, canHang, collisionLayer, isFloorPaper, onWall, widthOf, type Catalog, type Item, type Layer, type RoomItem } from "../catalog";
+import { SEED_PLAYER, Z_HUNG, Z_HUNG_PAPER, Z_SCALE, canHang, collisionLayer, heightOf, isFloorPaper, onWall, stretchRows, widthOf, type Catalog, type Item, type Layer, type RoomItem } from "../catalog";
 import { depthOf, sortRowFor } from "./depth";
 import { CELL } from "./grid";
 import { footprintOf } from "./rules";
@@ -8,19 +8,23 @@ import { buildOccupancy } from "./walk";
 export const ATLAS = "interiors";
 
 export type ItemSprite = Phaser.GameObjects.Image | Phaser.GameObjects.TileSprite | Phaser.GameObjects.Container;
-/** `shape`: what the sprite was built for (wallpaper: anchor + span); a change rebuilds it. */
+/** `shape`: what the sprite was built for (wallpaper: anchor + span; floor pattern: span + span_h); a change rebuilds it. */
 interface Entry { row: RoomItem; sprite: ItemSprite; shape: string }
 
 /** A wallpaper pasted on the floor rows: its anchor and footprint (paperCells: one painted run per column). */
 export interface Pasted { x: number; y: number; cells: [number, number][] }
 
 /** Wallpaper repeats its frame horizontally across the chosen span (pasted on the floor rows: one strip per
- *  column, see makePaperStrips); everything else is a plain image. */
-export function makeItemSprite(scene: Phaser.Scene, it: Item | undefined, span?: number | null, pasted?: Pasted | null): ItemSprite {
+ *  column, see makePaperStrips); a floor pattern repeats it both ways across span × spanH; everything else is a
+ *  plain image. */
+export function makeItemSprite(scene: Phaser.Scene, it: Item | undefined, span?: number | null, pasted?: Pasted | null, spanH?: number | null): ItemSprite {
   if (it?.layer === "wallpaper") {
     if (pasted) return makePaperStrips(scene, it, pasted);
     const frame = scene.textures.getFrame(ATLAS, it.sprite);
     return scene.add.tileSprite(0, 0, widthOf(it, span) * CELL, frame.height, ATLAS, it.sprite).setOrigin(0, onWall(it) ? 0 : 1);
+  }
+  if (it && stretchRows(it)) {
+    return scene.add.tileSprite(0, 0, widthOf(it, span) * CELL, heightOf(it, spanH) * CELL, ATLAS, it.sprite).setOrigin(0, 1);
   }
   return scene.add.image(0, 0, ATLAS, it?.sprite ?? "").setOrigin(0, onWall(it) ? 0 : 1);
 }
@@ -74,14 +78,14 @@ export class ItemLayer {
     for (const row of rows) {
       const e = this.entries.get(row.uid);
       const it = this.cat.byId.get(row.item_id);
-      const shape = it?.layer === "wallpaper" ? `${row.x},${row.y},${row.span ?? ""}` : "";
+      const shape = it?.layer === "wallpaper" ? `${row.x},${row.y},${row.span ?? ""}` : it && stretchRows(it) ? `${row.span ?? ""}x${row.span_h ?? ""}` : "";
       if (e && e.shape === shape) {
         e.row = row;
         continue;
       }
-      // new, or a wallpaper resized / moved (its strips depend on where it is pasted)
+      // new, or a wallpaper / floor pattern resized (wallpaper also when moved: its strips depend on where it is pasted)
       e?.sprite.destroy();
-      this.entries.set(row.uid, { row, sprite: makeItemSprite(this.scene, it, row.span, this.pasted(row)), shape });
+      this.entries.set(row.uid, { row, sprite: makeItemSprite(this.scene, it, row.span, this.pasted(row), row.span_h), shape });
     }
     for (const e of this.entries.values()) this.layout(e);
     this.occupied = buildOccupancy(this.cat, rows);
@@ -97,7 +101,7 @@ export class ItemLayer {
   /** Position + depth for a row, using the parent for stacked surface items and for wall decor hung on a partition. */
   placement(row: RoomItem): { x: number; y: number; depth: number } {
     const it = this.cat.byId.get(row.item_id);
-    const h = it?.h ?? 1;
+    const h = it ? heightOf(it, row.span_h) : 1;
     let x = row.x * CELL;
     let y = (onWall(it) ? row.y * CELL : (row.y + h) * CELL) + (it?.offset_y ?? 0);
     let sortRow = sortRowFor(it && collisionLayer(it), row.y + h - 1);
